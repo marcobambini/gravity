@@ -60,7 +60,7 @@ func main() {
 * nested classes
 * closures
 * garbage collector
-* operators overloading
+* operators overriding
 * powerful embedding api
 * built-in unit test
 * built-in JSON serializer/deserializer
