@@ -6,6 +6,8 @@
 
 **Gravity** supports procedural programming, object-oriented programming, functional programming and data-driven programming. Thanks to built-in bind method it can also be used as a prototype-based programming language.
 
+**Gravity** has been developed from scratch for the <a href="http://creolabs.com" target="_blank">Creo</a> project in order to offer an easy way to write portable code for the iOS and Android platforms. It is written in portable C code that can be compiled in any platform using a C99 compiler. VM code is about 2K lines long, multipass compiler code is about 3K lines and shared code is about 2K lines. Compiler and virtual machine together add less than 200KB to the executable size in a 64bit system.
+
 ## How Gravity code looks like
 
 ```swift
@@ -62,20 +64,18 @@ func main() {
 * built-in unit test
 * built-in JSON serializer/deserializer
 
-## Credits
-**Gravity** has been developed from scratch for the <a href="http://creolabs.com" target="_blank">Creo</a> project in order to offer an easy way to write portable code for the iOS and Android platforms.
-
 ## Special thanks
 A couple of open source projects helped Gravity in some areas. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language, specifically from the "Closures in Lua" pdf document. For fibers and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
 
 ## Documentation
+To do
 
 ## Contributing
-Contributions and improvements are very welcome!
-<a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
-* if you need help
-* if you find a bug
-* if you have a feature request
-* to ask a general question
-<a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
-* if you want to contribute
+Contributions to Gravity are welcomed and encouraged!
+* <a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
+ * if you need help
+ * if you find a bug
+ * if you have a feature request
+ * to ask a general question
+* <a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
+ * if you want to contribute
