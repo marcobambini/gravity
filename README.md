@@ -2,9 +2,9 @@
 <img src="https://raw.githubusercontent.com/marcobambini/gravity/master/docs/images/logo.png" height="74px" alt="Gravity Programming Language" title="Gravity Programming Language">
 </p>
 
-Gravity is a powerful, dynamically typed, lightweight, embeddable programming language written in C without any external dependency (except stdlib). It is a class based concurrent scripting language with a modern <a href="https://github.com/apple/swift">Swift</a> like syntax.
+**Gravity** is a powerful, dynamically typed, lightweight, embeddable programming language written in C without any external dependency (except stdlib). It is a class based concurrent scripting language with a modern <a href="https://github.com/apple/swift">Swift</a> like syntax.
 
-It supports procedural programming, object-oriented programming, functional programming and data-driven programming.
+**Gravity** supports procedural programming, object-oriented programming, functional programming and data-driven programming. Thanks to built-in bind methods it can also be used as a prototype-based programming language.
 
 ## Example
 
