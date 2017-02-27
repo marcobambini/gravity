@@ -14,20 +14,20 @@ class Vector {
 	var y=0;
 	var z=0;
 	
-	public func init (a, b, c) {
+	func init (a, b, c) {
 		if (!a) a = 0;
 		if (!b) b = 0;
 		if (!c) c = 0;
 		x = a; y = b; z = c;
 	}
 	
-	public func + (v) {
+	func + (v) {
 		if (v isa Int) return Vector(x+v, y+v, z+v);
 		else if (v isa Vector) return Vector(x+v.x, y+v.y, z+v.z);
 		return null;
 	}
   
-  public func String() {
+	func String() {
 		return "[" + x.String() + "," + y.String() + "," + z.String() + "]";
 	}
 }
