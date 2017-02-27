@@ -13,9 +13,9 @@
 ```swift
 class Vector {
 	// instance variables
-	var x=0;
-	var y=0;
-	var z=0;
+	var x = 0;
+	var y = 0;
+	var z = 0;
 	
 	// constructor
 	func init (a, b, c) {
@@ -60,6 +60,7 @@ func main() {
 * nested classes
 * closures
 * garbage collector
+* operators overloading
 * powerful embedding api
 * built-in unit test
 * built-in JSON serializer/deserializer
