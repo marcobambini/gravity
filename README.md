@@ -10,9 +10,9 @@
 
 ```swift
 class Vector {
-	public var x=0;
-	public var y=0;
-	public var z=0;
+	var x=0;
+	var y=0;
+	var z=0;
 	
 	public func init (a, b, c) {
 		if (!a) a = 0;
@@ -22,11 +22,8 @@ class Vector {
 	}
 	
 	public func + (v) {
-		if (v isa Int) {
-			return Vector(x+v, y+v, z+v);
-		} else if (v isa Vector) {
-			return Vector(x+v.x, y+v.y, z+v.z);
-		}
+		if (v isa Int) return Vector(x+v, y+v, z+v);
+		else if (v isa Vector) return Vector(x+v.x, y+v.y, z+v.z);
 		return null;
 	}
   
@@ -44,14 +41,13 @@ func main() {
  ```
 
 ## Features
-
-## To Do
-* Add support for modules
-* Code generation for ternary operator
-* Code generation for switch statement
-* Improve register allocation algorithm
-* Improve parser error handling
-
-## Internals
-
-By design it has a clear distinction between the compiler itself (frontend and backend) and the runtime and the executable format is an highly portale JSON file (future version could include a binary representation).
+* dynamic typing
+* classes and inheritance
+* higher order functions and classes
+* lexical scoping
+* coroutines (via fibers)
+* nested classes
+* closures
+* garbage collector
+* powerful embedding api
+* built-in unit test
