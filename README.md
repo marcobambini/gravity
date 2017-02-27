@@ -51,3 +51,9 @@ func main() {
 * garbage collector
 * powerful embedding api
 * built-in unit test
+* built-in JSON serializer/deserializer
+
+## Documentation
+
+## Author
+My name is Marco Bambini and I am <a href="http://creolabs.com">Creolabs</a> founder. If you want to know more about me my personal homepage is <a href="http://marcobambini.com">http://marcobambini.com</a>.
