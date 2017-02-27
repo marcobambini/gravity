@@ -45,6 +45,13 @@ func main() {
 
 ## Features
 
+## To Do
+* Add support for modules
+* Code generation for ternary operator
+* Code generation for switch statement
+* Improve register allocation algorithm
+* Improve parser error handling
+
 ## Internals
 
 By design it has a clear distinction between the compiler itself (frontend and backend) and the runtime and the executable format is an highly portale JSON file (future version could include a binary representation).
