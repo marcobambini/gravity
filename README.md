@@ -63,9 +63,19 @@ func main() {
 * built-in JSON serializer/deserializer
 
 ## Credits
-**Gravity** has been developed from scratch for the <a href="http://creolabs.com" target="_blank">Creo</a> project in order to offer an easy way to write portable code for the iOS and Android platforms. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language. For fibers and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language.
+**Gravity** has been developed from scratch for the <a href="http://creolabs.com" target="_blank">Creo</a> project in order to offer an easy way to write portable code for the iOS and Android platforms.
+
+## Special thanks
+A couple of open source projects helped Gravity in some areas. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language, specifically from the "Closures in Lua" pdf document. For fibers and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
 
 ## Documentation
 
-## Author
-My name is Marco Bambini and I am <a href="http://creolabs.com">Creolabs</a> founder. If you want to know more about me my personal homepage is <a href="http://marcobambini.com">http://marcobambini.com</a>.
+## Contributing
+Contributions and improvements are very welcome!
+<a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
+* if you need help
+* if you find a bug
+* if you have a feature request
+* to ask a general question
+<a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
+* if you want to contribute
