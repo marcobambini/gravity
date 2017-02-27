@@ -66,7 +66,7 @@ func main() {
 * built-in JSON serializer/deserializer
 
 ## Special thanks
-A couple of open source projects helped Gravity in some areas. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language, specifically from the "Closures in Lua" pdf document. For fibers and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
+A couple of open source projects helped Gravity in some areas. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language, specifically from the <a href="http://www.cs.tufts.edu/~nr/cs257/archive/roberto-ierusalimschy/closures-draft.pdf">Closures in Lua</a> pdf document. For fibers and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
 
 ## Documentation
 To do
