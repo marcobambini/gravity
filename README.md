@@ -80,3 +80,6 @@ Contributions to Gravity are welcomed and encouraged!
  * to ask a general question
 * <a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
  * if you want to contribute
+
+## License
+Gravity is available under the permissive MIT license.
