@@ -1,0 +1,200 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gravity: Functions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800">
+    <link rel="stylesheet" href="scripts/highlight/styles/github-gist.css">
+    <link rel="stylesheet" href="stylesheets/styles.css">
+  </head>
+  <body>
+
+	<!-- BEGIN NAVIGATION BAR -->
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="http://gravity-lang.org"><img src="images/logo.png" width="32px" height="36px"></a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav navbar-right">
+				<li class="active"><a href="index.html">Gravity</a></li>
+				<li><a href="internals/index.html">Internals</a></li>
+				<li><a href="https://github.com/marcobambini/gravity">GitHub</a></li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+	</nav>
+	<!-- END NAVIGATION BAR -->
+
+	<div class="container body-container">
+		<div class="main-content">
+			<div class="row">
+       	
+       		<!-- BEGIN SIDEBAR -->
+       		<div class="col-sm-3 border-right section-left">
+				<div saveheight="1" class="sidebar-nav">
+				<h4>INTRODUCTION</h4>
+				<ul>
+					<li><a href="index.html"><span>Introduction</span></a></li>
+					<li><a href="getting-started.html"><span>Getting Started</span></a></li>
+				</ul>
+				<h4>LANGUAGE GUIDE</h4>
+				<ul>
+					<li><a href="syntax.html"><span>Syntax</span></a></li>
+					<li><a href="operators.html"><span>Operators</span></a></li>
+					<li><a href="types.html"><span>Types</span></a></li>
+					<li><a href="lists.html"><span>Lists</span></a></li>
+					<li><a href="maps.html"><span>Maps</span></a></li>
+					<li><a href="enum.html"><span>Enum</span></a></li>
+					<li><a href="functions.html" class="active"><span>Functions</span></a></li>
+					<li><a href="closures.html"><span>Closures</span></a></li>
+					<li><a href="classes.html"><span>Classes</span></a></li>
+					<li><a href="control-flow.html"><span>Control Flow</span></a></li>
+					<li><a href="loops.html"><span>Loops</span></a></li>
+					<li><a href="fibers.html"><span>Fibers</span></a></li>
+				</ul>
+				<h4>ADVANCED</h4>
+				<ul>
+					<li><a href="api.html"><span>Embedding API</span></a></li>
+					<li><a href="system.html"><span>System class</span></a></li>
+					<li><a href="unit-test.html"><span>Unit test</span></a></li>
+					<li><a href="contributing.html"><span>Contributing</span></a></li>
+				</ul>
+				</div>
+			</div>
+			<!-- END SIDEBAR -->
+
+       		<div class="col-sm-9 border-left section-right">
+         	<h1 class="section-header">Function</h1><hr>
+			
+			<p class="section-content">
+			Functions are first class objects like <a href="types.html">Int</a> or <a href="types.html">String</a> and can be stored in local variables (even in <a href="list.html">Lists</a> or <a href="map.html">Maps</a>), passed as function parameters or returned by a function. Functions can be implemented in Gravity or in a <a href="api.html">native language</a> with calling conventions compatible with ANSI C.<br><br>Functions are called by value, this means that foo(1) calls the function which is the value of the variable foo. Calling a value that is not a function will raise a runtime error.
+			</p>
+			<pre><code class="swift">
+	func main() {
+		var a = 10;
+		var b = 20;
+		return a + b;
+	}
+			</code></pre>
+			
+			<pre><code class="swift">
+	func f1() {
+		return 10;
+	}
+			
+	func f2() {
+		return f1;
+	}
+			
+	func main() {
+		// a is now function f2
+		var a = f2;
+				
+		// b is now the return value of f2 which is function f1
+		var b = a();
+				
+		// return value is f1() which is 10
+		return b();
+				
+		// above code is equivalent to
+		return f2()();
+	}
+			</code></pre>
+			
+			<h4 class="section-h4">Function parameters</h4>
+			<p>Functions aren’t very useful if you can’t pass values to them so you can provide a parameter list in the function declaration. Gravity performs no check on the number of parameters so you can call a function providing more or less parameters.</p> 
+			<pre><code class="swift">
+	func sum(a, b) {
+		return a + b;
+	}
+			
+	// execute the sum function
+	// and returns 30 as result
+	sum(10,20);
+			</code></pre>
+			
+			<p>If a function is called with missing arguments (less than declared), the missing values are set to <strong>undefined</strong>.</p>
+			<pre><code class="swift">
+	// sum modified to take in account missing arguments
+	func sum(a, b) {
+		// equivalent to if (a == undefined) a = 30;
+		if (!a) a = 30;
+		
+		// equivalent to if (b == undefined) b = 50;
+		if (!b) b = 50;
+		
+		return a + b;
+	}
+			
+	// execute the sum function without any argument
+	// a has a 30 default value and b has a 50 default value
+	// return value is 80
+	sum();
+			</code></pre>
+			
+			<p>If a function is called with more arguments (more than declared), the additional arguments can be accessed using the <strong>_args</strong> array.</p>
+			<pre><code class="swift">
+	// sum modified to accept a variable number of arguments
+	func sum() {
+		var tot = 0;
+		for (var i in 0..<_args.count()) {
+			tot += _args[i];
+		}
+		return tot;
+	}
+			
+	// execute the sum function with a variable number
+	// of arguments returns 550 as result
+	sum(10,20,30,40,50,60,70,80,90,100);
+			</code></pre>
+			
+			<h4 class="section-h4">Recursion</h4>
+			<p>Function recursion is fully supported in Gravity (current function can be accessed using the _func reserved keyword):</p> 
+			<pre><code class="swift">
+	func fibonacci (n) {
+		if (n<2) return n;
+		// could be written as return _func(n-2) + _func(n-1)
+		return fibonacci(n-2) + fibonacci(n-1);
+ 	}
+ 
+	func main() {
+		return fibonacci(20);
+ 	}
+			</code></pre>
+			
+			<h4 class="section-h4">Returning values</h4>
+			<p>A function without a return statement returns <strong>null</strong> by default. You can explicitly return a value using a return statement.</p> 
+			
+         	</div>
+       	</div> <!-- /row -->
+       </div> <!-- /main-content -->
+     </div> <!-- /container -->
+
+	<!-- BEGIN FOOTER -->
+	<footer class="navbar-fixed-bottom">
+		<div class="container footer">
+			<p>
+			</p>
+		</div>
+	</footer>
+    <!-- END FOOTER -->
+	
+	<!-- Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+	<!-- Highlights JS -->
+    <script src="scripts/highlight/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+	</body>
+</html>

@@ -1,0 +1,222 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gravity: Operators</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800">
+    <link rel="stylesheet" href="scripts/highlight/styles/github-gist.css">
+    <link rel="stylesheet" href="stylesheets/styles.css">
+  </head>
+  <body>
+
+	<!-- BEGIN NAVIGATION BAR -->
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="http://gravity-lang.org"><img src="images/logo.png" width="32px" height="36px"></a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav navbar-right">
+				<li class="active"><a href="index.html">Gravity</a></li>
+				<li><a href="internals/index.html">Internals</a></li>
+				<li><a href="https://github.com/marcobambini/gravity">GitHub</a></li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+	</nav>
+	<!-- END NAVIGATION BAR -->
+
+	<div class="container body-container">
+		<div class="main-content">
+			<div class="row">
+       	
+       		<!-- BEGIN SIDEBAR -->
+       		<div class="col-sm-3 border-right section-left">
+				<div saveheight="1" class="sidebar-nav">
+				<h4>INTRODUCTION</h4>
+				<ul>
+					<li><a href="index.html"><span>Introduction</span></a></li>
+					<li><a href="getting-started.html"><span>Getting Started</span></a></li>
+				</ul>
+				<h4>LANGUAGE GUIDE</h4>
+				<ul>
+					<li><a href="syntax.html"><span>Syntax</span></a></li>
+					<li><a href="operators.html" class="active"><span>Operators</span></a></li>
+					<li><a href="types.html"><span>Types</span></a></li>
+					<li><a href="lists.html"><span>Lists</span></a></li>
+					<li><a href="maps.html"><span>Maps</span></a></li>
+					<li><a href="enum.html"><span>Enum</span></a></li>
+					<li><a href="functions.html"><span>Functions</span></a></li>
+					<li><a href="closures.html"><span>Closures</span></a></li>
+					<li><a href="classes.html"><span>Classes</span></a></li>
+					<li><a href="control-flow.html"><span>Control Flow</span></a></li>
+					<li><a href="loops.html"><span>Loops</span></a></li>
+					<li><a href="fibers.html"><span>Fibers</span></a></li>
+				</ul>
+				<h4>ADVANCED</h4>
+				<ul>
+					<li><a href="api.html"><span>Embedding API</span></a></li>
+					<li><a href="system.html"><span>System class</span></a></li>
+					<li><a href="unit-test.html"><span>Unit test</span></a></li>
+					<li><a href="contributing.html"><span>Contributing</span></a></li>
+				</ul>
+				</div>
+			</div>
+			<!-- END SIDEBAR -->
+
+       		<div class="col-sm-9 border-left section-right">
+         	<h1 class="section-header">Operators</h1><hr>
+			
+			<p class="section-content">
+			An operator is a special symbol or phrase that you use to check, change, or combine values. For example, the addition operator (+) adds two numbers, as in <strong>var i = 1 + 2</strong>, and the logical AND operator (&&) combines two Boolean values, as in <strong>if (flag1 && flag2)</strong>.
+			<br><br>
+			Gravity supports most standard C operators and improves several capabilities to eliminate common coding errors. The assignment operator (=) does not return a value, to prevent it from being mistakenly used when the equal to operator (==) is intended. Gravity also provides two <a href="types.html">range</a> operators as a shortcut for expressing a range of values.
+			</p>
+			
+			<!-- ARITHMETIC -->
+			<h4 class="section-h4">Arithmetic Operators</h4>
+			<p>
+			<ul>
+				<li>Addition (+)</li>
+				<li>Subtraction (-)</li>
+				<li>Multiplication (*)</li>
+				<li>Division (/)</li>
+				<li>Reminder (%)</li>
+			</ul>
+			</p>
+			<pre><code class="swift">
+	var n1 = 1 + 2		// equals 3
+	var n2 = 5 - 3		// equals 2
+	var n3 = 2 * 3		// equals 6
+	var n4 = 10.0 / 2.5	// equals 4.0
+	var n5 = 9 % 4		// equals 1
+			</code></pre>
+			<p>Special attention has been placed in the division operator. A Division between two Int usually result in a Float in order to not truncate any decimal.</p>
+			
+			<!-- ASSIGNMENT -->
+			<h4 class="section-h4">Assignment Operator</h4>
+			<p>The assignment operator = initialize or update a value:</p>
+			<pre><code class="swift">
+	var a = 50;		// a = 50
+	var b = a;		// b = 50
+	var c = a * b;		// c = 50 * 50
+			</code></pre>
+			<p>Please note that contrary to many other programming languages, the assignment operator has no side effect, it means that it does not return any value.</p>
+
+			<!-- COMPARISON -->
+			<h4 class="section-h4">Comparison Operators</h4>
+			<p>The comparison operators return a Bool value to indicate whether or not the statement is true:</p>
+			<p>
+			<ul>
+				<li>Equal (==)</li>
+				<li>Not equal (!=)</li>
+				<li>Less than (<)</li>
+				<li>Less than or equal (<=)</li>
+				<li>Greater than (>)</li>
+				<li>Greater than or equal (>=)</li>
+				<li>Identical (===)</li>
+				<li>Not identical (!==)</li>
+				<li>Type check (isa)</li>
+				<li>Pattern match (~=)</li>
+			</ul>
+			</p>
+			<pre><code class="swift">
+	1 == 1		// true because 1 is equal to 1
+	1 != 2		// true because 1 is not equal to 2
+	1 < 2		// true because 1 is less than 2
+	1 <= 1		// true because 1 is less than or equal to 1
+	1 > 2		// false because 1 is not greater than 2
+	1 >= 1		// true because 1 is greater than or equal to 1
+	1 === 1		// true because 1 is identical to 1 (same value and same class)
+	1 isa Int	// true because 1 is of class Int
+			</code></pre>
+			<p>Gravity performs some conversions at runtime, so 1 == "1" but not 1 === '1'.</p>
+
+			<!-- LOGICAL -->
+			<h4 class="section-h4">Logical Operators</h4>
+			<p>The comparison operators return a Bool value to indicate whether or not the statement is true:</p>
+			<p>
+			<ul>
+				<li>Logical NOT (!)</li>
+				<li>Logical AND (&&)</li>
+				<li>Logical OR (||)</li>
+			</ul>
+			</p>
+			<pre><code class="swift">
+	!1		// false because 1 is true
+	1 && 0		// false because one of the two values is false
+	1 || 0		// true because one of the two values is true
+			</code></pre>
+			<p>In order to improve code readability the reserved keywords <strong>not, and, or</strong> has been introduces as an alisas to logical operators.</p>
+			
+			<!-- BITWISE -->
+			<h4 class="section-h4">Bitwise Operators</h4>
+			<p>
+			<ul>
+				<li>Bitwise shift left (<<)</li>
+				<li>Bitwise shift right (>>)</li>
+				<li>Bitwise AND (&)</li>
+				<li>Bitwise OR (|)</li>
+				<li>Bitwise XOR (^)</li>
+				<li>Bitwise NOT or one's complement (~)</li>
+			</ul>
+			</p>
+			<pre><code class="swift">
+	var n = 0B00110011;
+	var n1 = n << 2			// equals 11001100
+	var n2 = n >> 2			// equals 00001100
+	var n3 = n & 0B00001111		// equals 00000011
+	var n4 = n | 0B00001111		// equals 00111111
+	var n5 = n ^ 0B00001111		// equals 00111100
+	var n6 = ~n;			// equals 11001100
+			</code></pre>
+			
+			<!-- COMPOUND -->
+			<h4 class="section-h4">Compound Assignment Operators</h4>
+			<p>As a shortcut, assignment and operators can be combined together:
+			<ul>
+				<li>Multiply and assign (*=)</li>
+				<li>Divide and assign (/=)</li>
+				<li>Remainder and assign (%=)</li>
+				<li>Add and assign (+=)</li>
+				<li>Subtract and assign (-=)</li>
+				<li>Left bit shift and assign (<<=)</li>
+				<li>Right bit shift and assign (>>=)</li>
+				<li>Bitwise AND and assign (&=)</li>
+				<li>Bitwise XOR and assign (^=)</li>
+				<li>Bitwise OR and assign (|=)</li>
+			</ul>
+			</p>
+			
+         	</div>
+       	</div> <!-- /row -->
+       </div> <!-- /main-content -->
+     </div> <!-- /container -->
+
+	<!-- BEGIN FOOTER -->
+	<footer class="navbar-fixed-bottom">
+		<div class="container footer">
+			<p>
+			</p>
+		</div>
+	</footer>
+    <!-- END FOOTER -->
+	
+	<!-- Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+	<!-- Highlights JS -->
+    <script src="scripts/highlight/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+	</body>
+</html>

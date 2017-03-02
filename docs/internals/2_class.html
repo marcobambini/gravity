@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gravity: Class and metaclass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800">
+    <link rel="stylesheet" href="../scripts/highlight/styles/github-gist.css">
+    <link rel="stylesheet" href="../stylesheets/styles.css">
+  </head>
+  <body>
+
+	<!-- BEGIN NAVIGATION BAR -->
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="http://gravity-lang.org"><img src="../images/logo.png" width="32px" height="36px"></a>
+		</div>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="../index.html">Gravity</a></li>
+				<li class="active"><a href="index.html">Internals</a></li>
+				<li><a href="https://github.com/marcobambini/gravity">GitHub</a></li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+	</nav>
+	<!-- END NAVIGATION BAR -->
+
+	<div class="container body-container">
+		<div class="main-content">
+			<div class="row">
+       	
+       		<!-- BEGIN SIDEBAR -->
+       		<div class="col-sm-3 border-right section-left">
+				<div saveheight="1" class="sidebar-nav">
+				<h4>1. OVERVIEW</h4>
+				<ul>
+					<li><a href="index.html"><span>Introduction</span></a></li>
+					<li><a href="1_changelog.html"><span>Changelog</span></a></li>
+					<li><a href="1_files.html"><span>Gravity files</span></a></li>
+				</ul>
+				
+				<h4>2. PREREQUISITES</h4>
+				<ul>
+					<li><a href="2_overview.html"><span>Overview</span></a></li>
+					<li><a href="2_array.html"><span>Array</span></a></li>
+					<li><a href="2_hash.html"><span>Hash</span></a></li>
+					<li><a href="2_memory.html"><span>Memory</span></a></li>
+					<li><a href="2_utils.html"><span>Utils</span></a></li>
+					<li><a href="2_json.html"><span>JSON</span></a></li>
+					<li><a href="2_visitor.html"><span>Visitor Pattern</span></a></li>
+					<li><a href="2_vm.html"><span>Stack vs Register VM</span></a></li>
+					<li><a href="2_class.html" class="active"><span>Class and metaclass</span></a></li>
+				</ul>
+				
+				<h4>3. COMPILER</h4>
+				<ul>
+					<li><a href="3_overview.html"><span>Overview</span></a></li>
+					<li><a href="3_grammar.html"><span>Grammar</span></a></li>
+					<li><a href="3_lexer.html"><span>Lexer</span></a></li>
+					<li><a href="3_parser.html"><span>Parser</span></a></li>
+					<li><a href="3_prattparser.html"><span>Pratt Parser</span></a></li>
+					<li><a href="3_ast.html"><span>AST</span></a></li>
+					<li><a href="3_symboltable.html"><span>Symbol Table</span></a></li>
+					<li><a href="3_semantic.html"><span>Semantic Analyses</span></a></li>
+					<li><a href="3_opcodes.html"><span>Opcodes</span></a></li>
+					<li><a href="3_ircode.html"><span>IRCode</span></a></li>
+					<li><a href="3_codegen.html"><span>Code Generation</span></a></li>
+					<li><a href="3_optimizer.html"><span>Optimizer</span></a></li>
+					<li><a href="3_bytecode.html"><span>Bytecode</span></a></li>
+				</ul>
+				
+				<h4>4. RUNTIME</h4>
+				<ul>
+					<li><a href="4_overview.html"><span>Overview</span></a></li>
+					<li><a href="4_objmodel.html"><span>Object Model</span></a></li>
+					<li><a href="4_memory.html"><span>Memory Ownership</span></a></li>
+					<li><a href="4_vm.html"><span>Virtual Machine</span></a></li>
+					<li><a href="4_performance.html"><span>Efficient Interpreter</span></a></li>
+					<li><a href="4_base.html"><span>Base Classes</span></a></li>
+					<li><a href="4_gc.html"><span>Garbage Collector</span></a></li>
+				</ul>
+				
+				<h4>5. LLVM</h4>
+				<ul>
+					<li><a href="5_overview.html"><span>Overview</span></a></li>
+					<li><a href="5_jit.html"><span>LLVM JIT</span></a></li>
+				</ul>
+				
+				</div>
+			</div>
+			<!-- END SIDEBAR -->
+			
+			<!-- BEGIN CONTENT -->
+       		<div class="col-sm-9 border-left section-right">
+         	<h1 class="section-header">Class and metaclass</h1><hr>
+         	<p>Content will be available soon.</p>
+			</div>
+         	<!-- END CONTENT -->
+         	
+       	</div> <!-- /row -->
+       </div> <!-- /main-content -->
+     </div> <!-- /container -->
+
+	<!-- BEGIN FOOTER -->
+	<footer class="navbar-fixed-bottom">
+		<div class="container footer">
+			<p>
+			</p>
+		</div>
+	</footer>
+    <!-- END FOOTER -->
+	
+	<!-- Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+	<!-- Highlights JS -->
+    <script src="../scripts/highlight/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+	</body>
+</html>
