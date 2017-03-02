@@ -1,5 +1,5 @@
 <p align="center" >
-<img src="https://raw.githubusercontent.com/marcobambini/gravity/master/docs/images/logo.png" height="74px" alt="Gravity Programming Language" title="Gravity Programming Language">
+<img src="https://raw.githubusercontent.com/marcobambini/gravity/master/docs/images/logo-gravity.png" height="74px" alt="Gravity Programming Language" title="Gravity Programming Language">
 </p>
 
 **Gravity** is a powerful, dynamically typed, lightweight, embeddable programming language written in C without any external dependency (except stdlib). It is a class based concurrent scripting language with a modern <a href="https://github.com/apple/swift">Swift</a> like syntax.
