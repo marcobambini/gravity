@@ -50,6 +50,7 @@ static void print_help (void) {
 	printf("--help             show command line usage and exit\n");
 	printf("-c input_file      compile input_file (default to gravity.json)\n");
 	printf("-o output_file     specify output file name\n");
+	printf("-x input_file      execute input_file (JSON format expected)\n");
 	printf("file_name          compile file_name and executes it\n");
 }
 
@@ -70,23 +71,25 @@ static op_type parse_args (int argc, const char* argv[]) {
 		exit(0);
 	}
 	
-	if (argc == 2) {
-		input_file = argv[2];
-		return OP_COMPILE_RUN;
-	}
-	
 	op_type type = OP_RUN;
-	for (int i=2; i<argc; ++i) {
+	for (int i=1; i<argc; ++i) {
 		if ((strcmp(argv[i], "-c") == 0) && (i+1 < argc)) {
 			input_file = argv[++i];
 			type = OP_COMPILE;
 		}
-		if ((strcmp(argv[i], "-o") == 0) && (i+1 < argc)) {
+		else if ((strcmp(argv[i], "-o") == 0) && (i+1 < argc)) {
 			output_file = argv[++i];
+		}
+		else if ((strcmp(argv[i], "-x") == 0) && (i+1 < argc)) {
+			input_file = argv[++i];
+			type = OP_RUN;
 		}
 	}
 	
-	if (input_file == NULL) input_file = argv[2];
+	if (input_file == NULL) {
+		input_file = argv[1];
+		return OP_COMPILE_RUN;
+	}
 	return type;
 }
 
@@ -137,17 +140,12 @@ int main (int argc, const char* argv[]) {
 		// check if closure needs to be serialized
 		if (type == OP_COMPILE) {
 			bool result = gravity_compiler_serialize_infile(compiler, closure, output_file);
-			if (!result) {
-				printf("Error serializing file %s\n", output_file);
-				goto cleanup;
-			}
+			if (!result) printf("Error serializing file %s\n", output_file);
+			goto cleanup;
 		}
 		
 		// op is OP_COMPILE_RUN so transfer memory from compiler to VM
 		gravity_compiler_transfer(compiler, vm);
-		
-		// cleanup compiler
-		gravity_compiler_free(compiler);
 		
 	} else if (type == OP_RUN) {
 		// unserialize file
