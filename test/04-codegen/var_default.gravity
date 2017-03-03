@@ -1,0 +1,10 @@
+#unittest {
+	name: "Test local variable default value.";
+	error: NONE;
+	result: null;
+};
+
+func main() {
+	var a;
+	return a;
+}

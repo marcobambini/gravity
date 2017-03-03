@@ -1,0 +1,21 @@
+#unittest {
+	name: "Test class ivar (a) and lookup (b).";
+	error: NONE;
+	result: 3;
+};
+
+class foo {
+	var a = 1;
+	func b() {return 2;}
+	
+	func f1() {
+		var n1 = a;
+		var n2 = b;
+		return n1+n2();
+	}
+}
+
+func main() {
+	var f = foo();
+	return f.f1();
+}

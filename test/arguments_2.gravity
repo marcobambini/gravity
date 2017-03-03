@@ -1,0 +1,13 @@
+#unittest {
+	name: "Test arguments keyword.";
+	error: NONE;
+	result: 10;
+};
+
+func sum (a,b,c) {
+	return _args.count;
+}
+
+func main() {
+	return sum(10,20,30,40,50,60,70,80,90,100);
+}

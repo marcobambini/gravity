@@ -1,0 +1,19 @@
+#unittest {
+	name: "Subclass override and super access.";
+	result: 4666;
+};
+
+class bar:foo {
+	func f1() {return 2000;}
+	func f2() {return f1();}		// 2000
+	func f3() {return super.f1();}
+}
+
+class foo {
+	func f1() {return 666;}
+}
+
+func main() {
+	var b = bar();
+	return b.f1()+b.f2()+b.f3();
+}

@@ -1,0 +1,41 @@
+#unittest {
+	name: "Basic object methods;";
+	error: NONE;
+	result: true;
+};
+
+class foo {}
+class bar:foo {}
+
+func main() {
+	var r;
+	
+	r = bar.name();
+	if (r != "bar") return "-1 (" + r + ")";
+	
+	r = bar.Class().name();
+	if (r != "bar meta") return "-2 (" + r + ")";
+	
+	func echo(v) {return v;}
+	r = echo.Class().name();
+	if (r != "Closure") return "-3 (" + r + ")";
+	
+	var instance = bar();
+	r = instance.Class().name();
+	if (r != "bar") return "-4 (" + r + ")";
+	
+	r = instance.Class().Class().Class().name();
+	if (r != "bar meta") return "-5 (" + r + ")";
+	
+	var v = "A string";
+	var log;
+	
+	r = v.String();					if (r != v)			return "-7 (" + r + ")";
+	r = bar.String();				if (r != "bar")		return "-9 (" + r + ")";
+	r = 0.1.String();				if (r != "0.100000")	return "-10 (" + r + ")";
+	r = null.String();				if (r != "null")	return "-11 (" + r + ")";
+	r = true.String();				if (r != "true")	return "-12 (" + r + ")";
+	r = main.String();				if (r != "main")	return "-13 (" + r + ")";
+	
+	return true;
+}

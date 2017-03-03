@@ -1,0 +1,18 @@
+#unittest {
+	name: "Chained call.";
+	result: 20;
+};
+
+func f1() {
+	return 10;
+}
+
+func f2() {
+	return f1;
+}
+
+func main() {
+	var a = f2;				// a is now function f2
+	var b = a();			// b is now return value of f2 which is function f1
+	return b() + f2()();	// return value is f1() which is 10
+}

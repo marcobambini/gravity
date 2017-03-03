@@ -1,0 +1,15 @@
+#unittest {
+	name: "While loop with break;";
+	error: NONE;
+	result: 100;
+};
+
+func main() {
+	var a;
+	
+	while (1) {
+		a += 1;
+		if (a == 100) break;
+	}
+	return a;
+}

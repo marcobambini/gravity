@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test map iterator.";
+	error: NONE;
+	result: 60;
+};
+
+func main() {
+	var sum = 0;
+	var map = ["Marco":10, "Andrea":20, "Chiara":30];
+	for (var key in map.keys()) {
+		sum += map[key];
+	}
+	return sum;
+}

@@ -1,0 +1,35 @@
+#unittest {
+	name: "Type names.";
+	error: NONE;
+	result: true;
+};
+
+class foo {
+	func f1() {return 1000;}
+}
+
+class bar:foo {
+	func f1() {return 10;}
+	func f2() {return 2000;}
+}
+
+func main() {
+	var a = 1;
+	var b = 2.2;
+	var c = true;
+	var d = "Marco";
+	var e = null;
+	var f = bar();
+	
+	var r;
+	
+	r = bar.Class().name();	if (r != "bar meta")	return "-1: " + r.String();
+	r = a.Class().name();	if (r != "Int")			return "-2: " + r.String();
+	r = b.Class().name();	if (r != "Float")		return "-3: " + r.String();
+	r = c.Class().name();	if (r != "Bool")		return "-4: " + r.String();
+	r = d.Class().name();	if (r != "String")		return "-5: " + r.String();
+	r = e.Class().name();	if (r != "Null")		return "-6: " + r.String();
+	r = f.Class().name();	if (r != "bar")			return "-7: " + r.String();
+	
+	return true;
+}

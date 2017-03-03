@@ -1,0 +1,12 @@
+#unittest {
+	name: "Class redeclared.";
+	error: SEMANTIC;
+	error_row: 11;
+	error_col: 1;
+};
+
+class c {
+}
+
+func c() {
+}

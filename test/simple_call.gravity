@@ -1,0 +1,20 @@
+#unittest {
+	name: "Simple call.";
+	result: 440;
+};
+
+func f1 (p1, p2) {
+	return p1 * p2;
+}
+
+func f2 (p1, p2) {
+	return p1 + f1(p1,p2);
+}
+
+func f3 (p1, p2) {
+	return p1 + p2 + f2(p1, p2) + f1(p1, p2);
+}
+
+func main() {
+	return f3(10,20);
+}

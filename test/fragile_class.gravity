@@ -1,0 +1,27 @@
+#unittest {
+	name: "Fragile class test.";
+	error: NONE;
+	result: 330;
+};
+
+class bar {
+	var b1 = 100;
+	var b2 = 200;
+	
+	func f1() {
+		return b1+b2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	var e2 = 20;
+	
+	func f1() {
+		return b1+b2+e1+e2;
+	}
+}
+
+func main() {
+	return foo().f1();
+}

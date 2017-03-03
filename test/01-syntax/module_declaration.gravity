@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test module declaration.";
+	error: RUNTIME;
+};
+
+module m1 {
+	var a = 100;
+	func f1() {return a;}
+}
+
+module m2 {
+	var a = 200;
+	func f1() {return a;}
+}

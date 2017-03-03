@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test _func keyword.";
+	error: NONE;
+	result: 6765;
+};
+
+func fibonacci (n) {
+	if (n<2) return n;
+	return _func(n-2) + _func(n-1);
+}
+
+func main() {
+	return fibonacci(20);
+}

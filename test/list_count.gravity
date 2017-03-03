@@ -1,0 +1,10 @@
+#unittest {
+	name: "Test list count.";
+	error: NONE;
+	result: 5;
+};
+
+func main() {
+	var list = [10,20,30,40,50];
+	return list.count;
+}

@@ -1,0 +1,11 @@
+#unittest {
+	name: "Negative literal number.";
+	error: NONE;
+	result: -1;
+};
+
+func main() {
+	var a = -3;
+	a = 2 + a;
+	return a;
+}

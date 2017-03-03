@@ -1,0 +1,16 @@
+#unittest {
+	name: "While loop with continue;";
+	error: NONE;
+	result: 10;
+};
+
+func main() {
+	var a;
+	
+	while (1) {
+		a += 1;
+		if (a < 10) continue;
+		break;
+	}
+	return a;
+}

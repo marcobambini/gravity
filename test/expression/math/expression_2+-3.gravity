@@ -1,0 +1,11 @@
+#unittest {
+	name: "Expression with +- sequence.";
+	error: NONE;
+	result: -1;
+};
+
+func main () {
+	var a;
+	a = 2+-3;
+	return a;
+}

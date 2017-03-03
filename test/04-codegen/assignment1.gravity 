@@ -1,0 +1,11 @@
+#unittest {
+	name: "Test local assignment.";
+	error: NONE;
+	result: 10;
+};
+
+func main() {
+	var a;
+	a = 10;
+	return a;
+}

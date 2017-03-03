@@ -1,0 +1,15 @@
+#unittest {
+	name: "Test multiple call.";
+	error: NONE;
+	result: 123;
+};
+
+func f1() {return 123;}
+func f2() {return f1;}
+func f3() {return f2;}
+func f4() {return f3;}
+func f5() {return f4;}
+
+func main() {
+	return f5()()()()();
+}

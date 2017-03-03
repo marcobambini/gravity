@@ -1,0 +1,9 @@
+#unittest {
+	name: "Test empty return.";
+	error: NONE;
+	result: null;
+};
+
+func main() {
+	return;
+}

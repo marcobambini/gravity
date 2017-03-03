@@ -1,0 +1,31 @@
+#unittest {
+	name: "Conversion to Int;";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var v,r;
+	
+	v = "2bstr";
+	r = v.Int();		if (r != 2)			return "-1 (" + r + ")";
+	r = "2bstr".Int();	if (r != 2)			return "-2 (" + r + ")";
+	
+	v = null;
+	r = v.Int();		if (r != 0)			return "-3 (" + r + ")";
+	r = null.Int();		if (r != 0)			return "-4 (" + r + ")";
+	
+	v = true;
+	r = v.Int();		if (r != 1)			return "-5 (" + r + ")";
+	r = true.Int();		if (r != 1)			return "-6 (" + r + ")";
+	
+	v = 6;
+	r = v.Int();		if (r != 6)			return "-7 (" + r + ")";
+	r = 6.Int();		if (r != 6)			return "-8 (" + r + ")";
+	
+	v = 1.1;
+	r = v.Int();		if (r != 1)			return "-9 (" + r + ")";
+	r = 1.1.Int();		if (r != 1)			return "-10 (" + r + ")";
+	
+	return true;
+}

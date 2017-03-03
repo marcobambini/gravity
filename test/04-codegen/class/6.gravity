@@ -1,0 +1,27 @@
+#unittest {
+	name: "Test class instantiation.";
+	error: NONE;
+	result: 783;
+};
+
+class foo {
+	var a = 1;
+	var b = 2;
+	
+	func f1() {
+		return self.a+self.b;
+	}
+	
+	func f2() {
+		self.a = 50;
+		self.b = 730;
+	}
+}
+
+func main() {
+	var f = foo();
+	var n1 = f.f1();
+	f.f2();
+	var n2 = f.f1();
+	return n1+n2;
+}

@@ -1,0 +1,25 @@
+#unittest {
+	name: "Test outer map setter.";
+	error: NONE;
+	result: false;
+};
+
+class c1 {
+	var v1 = ["on":true, "hip":"hop"];
+	class c2 {
+		func test() {
+			v1["on"] = !v1["on"];
+		}
+	}
+	
+	func test() {
+		var temp = c2();
+		temp.test();
+		return v1["on"];
+	}
+}
+
+func main() {
+	var obj = c1();
+	return obj.test();
+}

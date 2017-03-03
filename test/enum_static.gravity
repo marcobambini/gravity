@@ -1,0 +1,16 @@
+#unittest {
+	name: "Test enum static case.";
+	error: NONE;
+	result: 211;
+};
+
+enum foo {
+	a = 110,
+	b = 210,
+	c
+}
+
+func main() {
+	var n = foo.c;
+	return n;
+}

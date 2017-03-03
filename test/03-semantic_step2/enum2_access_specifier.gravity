@@ -1,0 +1,12 @@
+#unittest {
+	name: "Testing enum access specifier in a function.";
+	error: SEMANTIC;
+	error_row: 9;
+	error_col: 9;
+};
+
+func foo() {
+	public enum math {
+		one = 1
+	}
+}

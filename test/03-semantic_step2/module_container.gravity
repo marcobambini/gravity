@@ -1,0 +1,14 @@
+#unittest {
+	name: "Testing module container (module cannot be declared inside a module).";
+	error: SEMANTIC;
+	error_row: 13;
+	error_col: 2;
+};
+
+module foo {
+	var a;
+	func b() {return 1;}
+	class c {}
+	enum d { one = 1}
+	module e {var one;}
+}

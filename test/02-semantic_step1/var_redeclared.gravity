@@ -1,0 +1,9 @@
+#unittest {
+	name: "Test variable redeclared.";
+	error: SEMANTIC;
+	error_row: 9;
+	error_col: 5;
+};
+
+var v1;
+var v1;

@@ -1,0 +1,11 @@
+#unittest {
+	name: "Class internal redeclared.";
+	error: SEMANTIC;
+	error_row: 10;
+	error_col: 2;
+};
+
+class c {
+	var a;
+	func a() {return 1;}
+}

@@ -1,0 +1,14 @@
+#unittest {
+	name: "ADD operation and function calls;";
+	error: NONE;
+	result: "classname: (bar)";
+};
+
+class foo {}
+class bar:foo {}
+
+func main() {
+	var v = bar();
+	var log = "classname: (" + v.Class().name() + ")";
+	return log;
+}

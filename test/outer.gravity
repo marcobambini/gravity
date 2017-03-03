@@ -1,0 +1,26 @@
+#unittest {
+	name: "Test outer non-ivar access.";
+	error: NONE;
+	result: 4;
+};
+
+class foo {
+	func f2() {return 2;}
+	
+	class bar {
+		func f1() {
+			var a = f2;
+			return a()+f2();
+		}
+	}
+	
+	func fbar() {
+		var b = bar();
+		return b.f1();
+	}
+}
+
+func main() {
+	var f = foo();
+	return f.fbar();
+}

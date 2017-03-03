@@ -1,0 +1,19 @@
+#unittest {
+	name: "Test self set/get init.";
+	error: NONE;
+	result: 150;
+};
+
+// no init
+class c1 {
+	var p1;
+	func f1() {
+		self.p1 = 150;
+		return self.p1;
+	}
+}
+
+func main() {
+	var x1 = c1().f1();
+	return x1;
+}

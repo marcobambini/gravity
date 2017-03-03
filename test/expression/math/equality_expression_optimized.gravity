@@ -1,0 +1,10 @@
+#unittest {
+	name: "Equality expression (==,!=) with multiple subnodes, testing optimizer operator execution order.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var a = 2 == 2 != 0;	// should be like	(2==2)!=0	-> (1)!=0	-> 1,
+	return a;				// not like			2==(2!=0)	-> 2==(1)	-> 0
+}

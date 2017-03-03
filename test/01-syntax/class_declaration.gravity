@@ -1,0 +1,44 @@
+#unittest {
+	name: "Test classes declaration with both static and non static members.";
+	error: NONE;
+};
+
+// class declarations
+class bar {
+	// class var
+	static var a1 = 10;
+	static var a2 = 20;
+	
+	// class const
+	static var b1 = 100;
+	static var b2 = 200;
+	
+	// instance var
+	var c1 = 1000;
+	var c2 = 2000;
+	
+	// instance const
+	const d1 = 10000;
+	const d2 = 20000;
+	
+	static func f1() {
+		return a1+a2+b1+b2;
+	}
+	
+	func f2() {
+		return c1+c2+d1+d2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	var e2 = 20;
+	
+	func init() {
+		e1 = 100;
+	}
+}
+
+func main() {
+	return;
+}

@@ -1,0 +1,9 @@
+#unittest {
+	name: "Division by 0 error.";
+	error: RUNTIME;
+};
+
+func main() {
+	var a = 10;
+	return a / 0;
+}

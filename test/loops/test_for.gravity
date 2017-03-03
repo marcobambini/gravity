@@ -1,0 +1,13 @@
+#unittest {
+	name: "For loop.";
+	error: NONE;
+	result: 820;
+};
+
+func main() {
+	var count = 0;
+	for (var i in 0...40) {
+		count += i;
+	}
+	return count;
+}

@@ -1,0 +1,11 @@
+#unittest {
+	name: "Test variable declaration in while loop statement.";
+	error: SYNTAX;
+	error_row: 9;
+	error_col: 9;
+};
+
+func main() {
+	while (var a) {
+	};
+}

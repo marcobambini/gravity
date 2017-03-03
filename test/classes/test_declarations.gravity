@@ -1,0 +1,33 @@
+#unittest {
+	name: "Test classes declaration with both static and non static members.";
+	error: NONE;
+	result: 100;
+};
+
+// global declarations
+var a;
+var b = 10;
+var c = func() {return 20;};
+
+// class declarations
+class bar {
+	var a = 10;
+	static func b() {return 20;}
+	func c() {return a;}
+}
+
+// function declarations
+func foo() {
+	var a = 0;
+	var b = 10;
+	var c = func() {return 20;};
+	return a + b + c();
+}
+
+// test
+func main() {
+	var ref = bar;
+	var obj1 = ref();
+	var obj2 = bar();
+	return a + b + c() + foo() + bar.b() + obj1.c()+ obj2.c();
+}

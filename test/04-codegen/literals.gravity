@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test literals expression.";
+	error: NONE;
+	result: 4468.1415;
+};
+
+func main() {
+	var n1 = 100;		// decimal 100
+	var n2 = 0xFF;		// hex 255
+	var n3 = 0b1111;	// binary 15
+	var n4 = 0o7777;	// octal 4095
+	var n5 = 3.1415;	// real 3.1415
+	return n1+n2+n3+n4+n5;
+}

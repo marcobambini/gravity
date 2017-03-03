@@ -1,0 +1,9 @@
+#unittest {
+	name: "Test function redeclared.";
+	error: SEMANTIC;
+	error_row: 9;
+	error_col: 1;
+};
+
+func foo() {return 1;}
+func foo() {return 1;}

@@ -1,0 +1,22 @@
+#unittest {
+	name: "Expressions with strings and other types";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var bool_t = true;
+	var string = "string";
+	var r;
+	
+	r = string + 1 + bool_t;		if (r != "string1true")	return "-1: " + r.String();
+	r = "2" == 2;					if (r != true)			return "-2: " + r.String();
+	r = "a" > 2314;					if (r != true)			return "-3: " + r.String();
+	r = string && "";				if (r != false)			return "-4: " + r.String();
+	r = string ||  "";				if (r != true)			return "-5: " + r.String();
+	r = string && "other string";	if (r != true)			return "-6: " + r.String();
+	r = null + string + 1;			if (r != "string1")		return "-7: " + r.String();
+	r = string + null + 1;			if (r != "stringnull1")	return "-8: " + r.String();
+	
+	return true;
+}

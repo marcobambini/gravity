@@ -1,0 +1,15 @@
+#unittest {
+	name: "While loop.";
+	error: NONE;
+	result: 50000;
+};
+
+func main() {
+	var i = 0;
+
+	while (i < 50000) {
+		i += 1;
+	}
+
+	return i;
+}

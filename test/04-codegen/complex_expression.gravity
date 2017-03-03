@@ -1,0 +1,12 @@
+#unittest {
+	name: "Test complex expression.";
+	error: NONE;
+	result: 1000;
+};
+
+func main() {
+	var a = 50;
+	var b = 20;
+	var c = 200;
+	return (a*2 + b*5) * 4 + c;
+}

@@ -1,0 +1,38 @@
+#unittest {
+	name: "Test class static non static internal init.";
+	error: NONE;
+	result: 10890000;
+};
+
+// class declarations
+class bar {
+	// class var
+	static var a1 = 10;
+	static var a2 = 20;
+	
+	// class const
+	static var b1 = 100;
+	static var b2 = 200;
+	
+	// instance var
+	var c1 = 1000;
+	var c2 = 2000;
+	
+	// instance const
+	var d1 = 10000;
+	var d2 = 20000;
+	
+	static func f1() {
+		return a1+a2+b1+b2;
+	}
+	
+	func f2() {
+		return c1+c2+d1+d2;
+	}
+}
+
+func main() {
+	var n1 = bar.f1();		// 330
+	var n2 = bar().f2();	// 33000
+	return n1*n2;
+}

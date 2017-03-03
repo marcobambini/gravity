@@ -1,0 +1,9 @@
+#unittest {
+	name: "Testing module access specifier.";
+	error: SEMANTIC;
+	error_row: 8;
+	error_col: 8;
+};
+
+public module math {
+}

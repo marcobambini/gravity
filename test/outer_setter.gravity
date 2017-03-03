@@ -1,0 +1,29 @@
+#unittest {
+	name: "Test outer setter.";
+	error: NONE;
+	result: true;
+};
+
+class toggle {
+	var on;
+}
+
+class c1 {
+	var v1 = toggle();
+	class c2 {
+		func test() {
+			v1.on = !v1.on;
+		}
+	}
+	
+	func test() {
+		var temp = c2();
+		temp.test();
+		return v1.on;
+	}
+}
+
+func main() {
+	var obj = c1();
+	return obj.test();
+}

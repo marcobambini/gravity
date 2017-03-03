@@ -1,0 +1,33 @@
+#unittest {
+	name: "Chained call 2.";
+	result: 2468;
+};
+
+func foo(a) {
+	return a*2;
+}
+
+class c3 {
+	var p1 = 555;
+	func init() {
+		p1 = foo;
+	}
+}
+
+class c2 {
+	var p1 = 333;
+	func init() {
+		p1 = c3();
+	}
+}
+
+class c1 {
+	var p1 = 111;
+	func init() {
+		p1 = c2();
+	}
+}
+
+func main() {
+	return c1().p1.p1.p1(1234);
+}

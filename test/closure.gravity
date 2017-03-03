@@ -1,0 +1,16 @@
+#unittest {
+	name: "Simple closure.";
+	error: NONE;
+	result: 30;
+};
+
+func f1(a) {
+	return func(b) {
+		return a + b;
+	}
+}
+
+func main() {
+	var addTen = f1(10);
+	return addTen(20);
+}

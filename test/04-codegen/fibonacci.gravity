@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test recursive call with Fibonacci.";
+	error: NONE;
+	result: 6765;
+};
+
+func fibonacci (n) {
+	if (n<2) return n;
+	return fibonacci(n-2) + fibonacci(n-1);
+}
+
+func main() {
+	return fibonacci(20);
+}

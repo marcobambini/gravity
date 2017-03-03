@@ -1,0 +1,27 @@
+#unittest {
+	name: "ivar load and store access.";
+	error: NONE;
+	result: 420;
+};
+
+class foo {
+	var a = 10;
+	var b = 20;
+	
+	func f1() {
+		b = 200;
+		return a+b;
+	}
+	
+	func f2() {
+		var n1 = a;
+		return n1+b;
+	}
+}
+
+func main() {
+	var obj = foo();
+	var n1 = obj.f1();
+	var n2 = obj.f2();
+	return n1+n2;
+}

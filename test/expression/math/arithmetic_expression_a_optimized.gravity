@@ -1,0 +1,10 @@
+#unittest {
+	name: "Arithmetic expression (+,-) with multiple subnodes, testing optimizer operator execution order.";
+	error: NONE;
+	result: 5;
+};
+
+func main() {
+	var a = 5 - 2 + 2;
+	return a;
+}

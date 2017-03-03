@@ -1,0 +1,16 @@
+#unittest {
+	name: "Int bitwise operations.";
+	result: -9730860130;
+};
+
+func main () {
+	var n = 999999982873;	// prime number
+	n <<= 2;				// prime number
+	n ^= 719;				// prime number
+	n >>= 7;				// prime number
+	n |= 13;				// prime number
+	n &= 10000000097;		// prime number
+	n = ~n;
+	
+	return n;
+}

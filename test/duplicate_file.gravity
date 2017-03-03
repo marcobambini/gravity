@@ -1,0 +1,11 @@
+#unittest {
+	name: "Duplicate file expression.";
+	result: 30;
+};
+
+var g = 10;
+
+func main() {
+	file.g += 20;
+	return file.g;
+}

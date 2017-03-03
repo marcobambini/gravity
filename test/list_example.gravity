@@ -1,0 +1,16 @@
+#unittest {
+	name: "Test list access.";
+	error: NONE;
+	result: 30;
+};
+
+var g = 30;
+
+func main() {
+	var a = 10;
+	var b = 20;
+	var pi = 3.1415;
+	
+	var r1 = [5,a,b,pi,g];
+	return r1[4];
+}

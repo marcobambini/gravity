@@ -1,0 +1,13 @@
+#unittest {
+	name: "Expressions with boolean, strings and numbers.";
+	error: NONE;
+	result: 3;
+};
+
+func main () {
+    var bool_t = true;
+	var string = "hello";
+	
+	var r1 = bool_t + string + 1 + string + 1 + null;
+    return r1;
+}

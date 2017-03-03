@@ -1,0 +1,13 @@
+#unittest {
+	name: "String operations.";
+	result: "MarconiinibmaBocraM";
+};
+
+func main() {
+	var s1 = "MarcoBambini";
+	var s2 = "Bambi";
+	var s3 = s1-s2; // Marconi
+	var s4 = -s1;	// inibmaBocraM
+	
+	return s3+s4;	// MarconiinibmaBocraM
+}

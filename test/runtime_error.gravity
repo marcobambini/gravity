@@ -1,0 +1,12 @@
+#unittest {
+	name: "Test runtime error.";
+	error: RUNTIME;
+};
+
+class foo {
+	var a = 10;
+}
+
+func main() {
+	return foo()+10;
+}

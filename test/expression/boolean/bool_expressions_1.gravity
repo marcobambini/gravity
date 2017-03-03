@@ -1,0 +1,29 @@
+#unittest {
+	name: "Expressions with boolean (MUL,DIV,REM).";
+	error: NONE;
+	result: 10.2;
+};
+
+func main () {
+	var bool_t = true;
+	
+	var r1 = true * 2;		// 2
+	var r2 = 2 * true;		// 2
+	var r3 = bool_t / 2;	// 0
+	var r4 = 2 / bool_t;	// 2
+	
+	var r5 = true * 1.1;	// 1.1
+	var r6 = 1.1 * true;	// 1.1
+	var r7 = bool_t / 1;	// 1
+	var r8 = 1.1 / bool_t;	// 1.1
+	
+	var r9 = false * 2;		// 0
+	var r10 = false / 2;	// 0
+	
+	var r11 = true % 1;		// 0
+	var r12 = 3 % true;		// 0
+	
+	return	r1 + r2 + r3 + r4 +
+		r5 + r6 + r7 + r8 +
+		r9 + r10 + r11 + r12;
+}

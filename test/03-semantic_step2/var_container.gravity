@@ -1,0 +1,8 @@
+#unittest {
+	name: "Testing anonymous function declaration.";
+	error: NONE;
+};
+
+func main() {
+	var a = func() {return 1;};
+}
