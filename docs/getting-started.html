@@ -94,10 +94,26 @@
 			<img src="images/unittest.png" width="666px" height="466px">
 			</p>
 			
-			<p>Gravity usage:</p>
+			<p>Gravity help:</p>
 			<pre><code>
 	./gravity --help
 			</code></pre>
+			
+			<p>To compile a gravity file to a exec.json executable:</p>
+			<pre><code>
+	./gravity -c myfile.gravity -o exec.json
+			</code></pre>
+			
+			<p>To execute a precompiled json executable file:</p>
+			<pre><code>
+	./gravity -x exec.json
+			</code></pre>
+			
+			<p>To directly execute a gravity file (without first serialize it to json):</p>
+			<pre><code>
+	./gravity myfile.gravity
+			</code></pre>
+			
          	</div>
          	<!-- END CONTENT -->
          	
