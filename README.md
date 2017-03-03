@@ -69,7 +69,8 @@ func main() {
 A couple of open source projects helped Gravity in some areas. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language, specifically from the <a href="http://www.cs.tufts.edu/~nr/cs257/archive/roberto-ierusalimschy/closures-draft.pdf">Closures in Lua</a> document. For fibers, upvalues handling and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
 
 ## Documentation
-To do
+<a href="https://marcobambini.github.io/gravity/getting-started.html">Getting Started</a> will guide you about Gravity download and compilation.
+There is also extensive <a href="https://marcobambini.github.io/gravity/index.html">language documentation</a> and an in progress <a href="https://marcobambini.github.io/gravity/internals/index.html">internals book</a>.
 
 ## Contributing
 Contributions to Gravity are welcomed and encouraged!
