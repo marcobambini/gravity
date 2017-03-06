@@ -642,8 +642,12 @@ static void visit_jump_stmt (gvisitor_t *self, gnode_jump_stmt_t *node) {
 }
 
 static void visit_empty_stmt (gvisitor_t *self, gnode_empty_stmt_t *node) {
-	#pragma unused(self, node)
 	DEBUG_SEMANTIC("visit_empty_stmt");
+	
+	// get top declaration
+	gnode_t *top = TOP_DECLARATION();
+	if (!NODE_ISA_FUNCTION(top)) REPORT_ERROR(node, "Extraneous semicolon error.");
+	
 	return;
 }
 
@@ -658,7 +662,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	// check if optional access and storage specifiers make sense in current context
 	check_access_storage_specifiers(self, (gnode_t *)node, NODE_TAG(top), node->access, node->storage);
 	
-	// set enclosing declaration
+	// get enclosing declaration
 	node->env = top;
 	
 	// enter function scope
