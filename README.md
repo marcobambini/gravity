@@ -2,13 +2,13 @@
 <img src="https://raw.githubusercontent.com/marcobambini/gravity/master/docs/images/logo-gravity.png" height="74px" alt="Gravity Programming Language" title="Gravity Programming Language">
 </p>
 
-**Gravity** is a powerful, dynamically typed, lightweight, embeddable programming language written in C without any external dependency (except stdlib). It is a class based concurrent scripting language with a modern <a href="https://github.com/apple/swift">Swift</a> like syntax.
+**Gravity** is a powerful, dynamically typed, lightweight, embeddable programming language written in C without any external dependencies (except for stdlib). It is a class-based concurrent scripting language with modern <a href="https://github.com/apple/swift">Swift</a>-like syntax.
 
-**Gravity** supports procedural programming, object-oriented programming, functional programming and data-driven programming. Thanks to built-in special methods it can also be used as a prototype-based programming language.
+**Gravity** supports procedural programming, object-oriented programming, functional programming and data-driven programming. Thanks to special built-in methods, it can also be used as a prototype-based programming language.
 
-**Gravity** has been developed from scratch for the <a href="http://creolabs.com" target="_blank">Creo</a> project in order to offer an easy way to write portable code for the iOS and Android platforms. It is written in portable C code that can be compiled in any platform using a C99 compiler. VM code is about 2K lines long, multipass compiler code is about 3K lines and shared code is about 2K lines. Compiler and virtual machine together add less than 200KB to the executable size in a 64bit system.
+**Gravity** has been developed from scratch for the <a href="http://creolabs.com" target="_blank">Creo</a> project in order to offer an easy way to write portable code for the iOS and Android platforms. It is written in portable C code that can be compiled on any platform using a C99 compiler. The VM code is about 2K lines long, the multipass compiler code is about 3K lines and the shared code is about 2K lines long. The compiler and virtual machine combined add less than 200KB to the executable on a 64 bit system.
 
-## How Gravity code looks like
+## What Gravity code looks like
 
 ```swift
 class Vector {
@@ -59,18 +59,17 @@ func main() {
 * coroutines (via fibers)
 * nested classes
 * closures
-* garbage collector
-* operators overriding
+* garbage collection
+* operator overriding
 * powerful embedding api
-* built-in unit test
+* built-in unit tests
 * built-in JSON serializer/deserializer
 
 ## Special thanks
-A couple of open source projects helped Gravity in some areas. For closures implementation inspirations come from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language, specifically from the <a href="http://www.cs.tufts.edu/~nr/cs257/archive/roberto-ierusalimschy/closures-draft.pdf">Closures in Lua</a> document. For fibers, upvalues handling and some portions of the garbage collector my gratitude should go to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
+Gravity was supported by a couple of open source projects. The inspiration for closures comes from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language; specifically from the document <a href="http://www.cs.tufts.edu/~nr/cs257/archive/roberto-ierusalimschy/closures-draft.pdf">Closures in Lua</a>. For fibers, upvalues handling and some parts of the garbage collector, my gratitude goes to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
 
 ## Documentation
-<a href="https://marcobambini.github.io/gravity/getting-started.html">Getting Started</a> will guide you about Gravity download and compilation.
-There is also extensive <a href="https://marcobambini.github.io/gravity/index.html">language documentation</a> and an in progress <a href="https://marcobambini.github.io/gravity/internals/index.html">internals book</a>.
+The <a href="https://marcobambini.github.io/gravity/getting-started.html">Getting Started</a> page is a guide for downloading and compiling the language. There is also a more extensive <a href="https://marcobambini.github.io/gravity/index.html">language documentation</a> and an <a href="https://marcobambini.github.io/gravity/internals/index.html">internals book</a>, which is currently in progress.
 
 ## Contributing
 Contributions to Gravity are welcomed and encouraged!
