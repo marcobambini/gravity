@@ -1,5 +1,5 @@
 * Add support for modules
-* Class extension
+* Class extensions
 * Code generation for ternary operator
 * Code generation for switch statement
 * Improve register allocation algorithm
