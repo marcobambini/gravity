@@ -518,8 +518,9 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	
 	// lookup key in class c
 	gravity_object_t *obj = gravity_class_lookup(c, key);
-	gravity_closure_t *closure;
+	if (!obj) goto execute_notfound;
 	
+	gravity_closure_t *closure;
 	if (OBJECT_ISA_CLOSURE(obj)) {
 		closure = (gravity_closure_t *)obj;
 		if (!closure || !closure->f) {
