@@ -13,7 +13,7 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) 
 CFLAGS = $(INCLUDE) -O2
 OBJ = $(SRC:.c=.o)
-LDFLAGS = 
+LDFLAGS = -lm
 
 all: unittest gravity
 
