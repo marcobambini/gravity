@@ -105,7 +105,7 @@
 	
 	// Allocate and bind closures to the newly created class
 	gravity_closure_t *closure = gravity_closure_new(vm, my_function);
-	gravity_class_bind(c, "myfunc", VALUE_FROM_CLOSURE(closure));
+	gravity_class_bind(c, "myfunc", VALUE_FROM_OBJECT(closure));
 	
 	// Register class inside VM
 	gravity_vm_setvalue(vm, "MyClass", VALUE_FROM_OBJECT(c));
