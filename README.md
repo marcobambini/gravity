@@ -72,7 +72,7 @@ Gravity was supported by a couple of open source projects. The inspiration for c
 The <a href="https://marcobambini.github.io/gravity/getting-started.html">Getting Started</a> page is a guide for downloading and compiling the language. There is also a more extensive <a href="https://marcobambini.github.io/gravity/index.html">language documentation</a> and an <a href="https://marcobambini.github.io/gravity/internals/index.html">internals book</a>, which is currently in progress.
 
 ## Community
-Seems like a good idea to make a group chat for people to discuss about Gravity: [![Join the chat at https://gitter.im/gravity-lang/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gravity-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+Seems like a good idea to make a group chat for people to discuss about Gravity.<br> [![Join the chat at https://gitter.im/gravity-lang/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gravity-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Contributing
 Contributions to Gravity are welcomed and encouraged!
