@@ -437,6 +437,8 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 	
 	// lookup key in class c
 	gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(c, key);
+	if (!obj) goto execute_notfound;
+	
 	gravity_closure_t *closure;
 	if (OBJECT_ISA_CLOSURE(obj)) {
 		closure = (gravity_closure_t *)obj;
