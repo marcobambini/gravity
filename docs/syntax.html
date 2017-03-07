@@ -79,7 +79,7 @@
 			<p class="section-content">
 			<strong>Gravity</strong> syntax is designed to be familiar to people coming from C-like languages like Javascript, Swift, C++, C# and many more. We started working on this new language a year before Apple announced Swift and we were happily surprised to discovered how similar both syntax appear. Semicolon separator <strong>;</strong> is optional.
 			<br><br>
-			How a Gravity program looks like:</p>
+			How a Gravity program looks:</p>
 			<pre><code class="swift">
 	class Rectangle {
 		// instance variables
@@ -135,7 +135,7 @@
 			
 			<!-- IDENTIFIERS -->
 			<h4 class="section-h4">Identifiers</h4>
-			<p>Identifiers represent a naming rule used to identifies objects inside your source code.
+			<p>Identifiers represent a naming rule used to identify objects inside your source code.
 			Gravity is a case-sensitive language. Identifiers start with a letter or underscore and may contain letters, digits, and underscores (function identifiers can be any of the <a href="operators.html">built-in operators</a> in order to override a default behaviour):</p>
 			<pre><code class="swift">
 	a
@@ -147,7 +147,7 @@
 			
 			<!-- BLOCKS -->
 			<h4 class="section-h4">Blocks and Scope</h4>
-			<p>Every named identifier introduced in some portion of the source code is introduced in a scope. The scope is the largest part of the source code in which that identifier is valid. The names declared by a declaration are introduced into a specific scope based on the context of the declaration. For instance, local variable declarations introduce the name into the block scope, whereas class member variable declarations introduce the name into class scope.<br><br>There are three scopes defined: <strong>block scope</strong>, <strong>class scope</strong> and <strong>file scope</strong>. Names declared at block become visible immediately after its completed declarator.  This means you cannot refer to a name within block until after it has been fully declared. Names declared at file and class scope become visible immediately upon executing the starting statement of the script. This means you can refer to a name within file or class scope before it has been fully declared.<br><br>These are all valid scopes:</p>
+			<p>Every named identifier introduced in some portion of the source code is introduced in a scope. The scope is the largest part of the source code in which that identifier is valid. The names declared by a declaration are introduced into a specific scope based on the context of the declaration. For instance, local variable declarations introduce the name into the block scope, whereas class member variable declarations introduce the name into class scope.<br><br>There are three scopes defined: <strong>block scope</strong>, <strong>class scope</strong> and <strong>file scope</strong>. Names declared in the block scope become visible immediately after its completed declarator.  This means you cannot refer to a name within the block scope until after it has been fully declared. Names declared in the file and class scopes become visible immediately upon executing the starting statement of the script. This means you can refer to a name within the file or class scopes before it has been fully declared.<br><br>These are all valid scopes:</p>
 			<pre><code class="swift">
 	// file scope can refer to a name
 	// before it has been fully declared
