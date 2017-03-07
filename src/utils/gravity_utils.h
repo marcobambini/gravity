@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #if defined(_WIN32)
+#include <windows.h>
 typedef unsigned __int64 nanotime_t;
 #define DIRREF			HANDLE
 #else

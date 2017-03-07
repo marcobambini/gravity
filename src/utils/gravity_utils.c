@@ -22,6 +22,8 @@
 #endif
 #if defined(_WIN32)
 #include <windows.h>
+#include <Shlwapi.h>
+#include <tchar.h>
 #endif
 
 #include "gravity_utils.h"
@@ -36,7 +38,7 @@ nanotime_t nanotime (void) {
 	
 	#if defined(_WIN32)
 	static LARGE_INTEGER	win_frequency;
-	static BOOL				flag = QueryPerformanceFrequency(&s_frequency);
+	QueryPerformanceFrequency(&win_frequency);
 	LARGE_INTEGER			t;
 	
 	if (!QueryPerformanceCounter(&t)) return 0;
@@ -115,9 +117,9 @@ const char *file_read(const char *path, size_t *len) {
 	buffer[fsize] = 0;
 	
 	fsize2 = read(fd, buffer, fsize);
-	if (fsize != fsize2) goto abort_read;
+	if (fsize2 == -1) goto abort_read;
 	
-	if (len) *len = fsize;
+	if (len) *len = fsize2;
 	close(fd);
 	return (const char *)buffer;
 	
@@ -172,7 +174,13 @@ const char *file_buildpath (const char *filename, const char *dirpath) {
 }
 
 bool file_write (const char *path, const char *buffer, size_t len) {
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH; // RW for owner, R for group, R for others
+	// RW for owner, R for group, R for others
+	#ifdef _WIN32
+	mode_t mode = _S_IWRITE;
+	#else
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+	#endif
+	
 	int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
 	if (fd < 0) return false;
 	
@@ -229,7 +237,7 @@ const char *directory_read (DIRREF ref) {
 		#ifdef WIN32
 		WIN32_FIND_DATA findData;
 		if (FindNextFile(ref, &findData) == 0) {
-			FindClose(dref);
+			FindClose(ref);
 			return NULL;
 		}
 		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
