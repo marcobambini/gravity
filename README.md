@@ -75,7 +75,7 @@ The <a href="https://marcobambini.github.io/gravity/getting-started.html">Gettin
 Seems like a good idea to make a group chat for people to discuss about Gravity.<br> [![Join the chat at https://gitter.im/gravity-lang/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gravity-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Contributing
-Contributions to Gravity are welcomed and encouraged!
+Contributions to Gravity are welcomed and encouraged!<br>
 More information are available in the official [CONTRIBUTING](CONTRIBUTING.md) file.
 * <a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
  * if you need help
