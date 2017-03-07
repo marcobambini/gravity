@@ -76,25 +76,42 @@
 			<!-- BEGIN CONTENT -->
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Getting started</h1><hr>
-         				
+
+			 <!-- Installation -->
+			 <h4 class="section-h4">Install</h4>
+				
 			<p class="section-content">
-			<p>Command line:</p>
+			To install Gravity simple execute the commands given below. It should make two executables: the compiler itself 
+			and test runner. 
 			<pre><code>
 	git clone https://github.com/marcobambini/gravity.git
 	cd gravity
 	make
 			</code></pre>
 			</p>
-			<p>You can also use the <strong>Xcode</strong> project to create the gravity or unittest executables.</p>
-			<p>Unitest usage:</p>
-			<pre><code>
-	./unittest path_to_test_folder
-			</code></pre>
-			<p>You should obtain an output like:
-			<img src="images/unittest.png" width="666px" height="466px">
+
+			<blockquote>
+				<p>If you want to access gravity compiler globally just add it to your <b>PATH</b>!</p>
+			</blockquote>
+
+			<blockquote>
+				<p>You can also use the <strong>Xcode</strong> project to create the gravity or unittest executables.</p>
+			</blockquote>
+
+			<!-- Editor -->
+			<h4 class="section-h4">Configure your editor</h4>
+			<p>
+				Programming is way more enjoyable when you have the right tools! That's why we
+                equipped several code editors with Gravity support!
+				Just click on your favourite editor and configure it accordingly:
+				<ul>
+					<li><a href="https://github.com/Dohxis/vscode-gravity">Visual Studio Code</a></li>
+				</ul>
 			</p>
-			
-			<p>Gravity help:</p>
+
+			<!-- Command line -->
+			<h4 class="section-h4">Command line</h4>
+			<p>To check all possible flags you can run command below:</p>
 			<pre><code>
 	./gravity --help
 			</code></pre>
@@ -113,6 +130,16 @@
 			<pre><code>
 	./gravity myfile.gravity
 			</code></pre>
+
+			<!-- Command line -->
+			<h4 class="section-h4">Unit Tests</h4>
+			<p>You can run unit tests by providing a path to a folder containing all tests:</p>
+			<pre><code>
+	./unittest path_to_test_folder
+			</code></pre>
+			<p>You should obtain an output like:
+			<img src="images/unittest.png" width="666px" height="466px">
+			</p>
 			
          	</div>
          	<!-- END CONTENT -->
