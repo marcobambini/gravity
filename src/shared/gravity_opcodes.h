@@ -12,7 +12,7 @@
 /*
 		Big-endian vs Little-endian machines
  
-		ARM architecture runs both little & big endianess, but the android, iO6, and windows phone platforms run little endian.
+		ARM architecture runs both little & big endianess, but the android, iOS, and windows phone platforms run little endian.
 		95% of modern desktop computers are little-endian.
 		All x86 desktops (which is nearly all desktops with the demise of the PowerPC-based Macs several years ago) are little-endian.
 		It's probably actually a lot more than 95% nowadays. PowerPC was the only non-x86 architecture that has been popular for desktop
