@@ -654,7 +654,7 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	
 	if (index < 0) index = count + index;
 	if (index < 0) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, count-1);
-	if (index > count) {
+	if (index >= count) {
 		// handle list resizing here
 		marray_resize(gravity_value_t, list->array, index-count);
 		marray_nset(list->array, index+1);
