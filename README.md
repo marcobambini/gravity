@@ -76,6 +76,7 @@ Seems like a good idea to make a group chat for people to discuss about Gravity.
 
 ## Contributing
 Contributions to Gravity are welcomed and encouraged!
+More information are available in the official [CONTRIBUTING](CONTRIBUTING.md) file.
 * <a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
  * if you need help
  * if you find a bug
