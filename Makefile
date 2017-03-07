@@ -13,7 +13,12 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR)
 CFLAGS = $(INCLUDE) -O2 -std=gnu99
 OBJ = $(SRC:.c=.o)
-LDFLAGS = -lm
+
+ifeq ($(OS),Windows_NT)
+	LDFLAGS = -lm -lShlwapi
+else
+	LDFLAGS = -lm
+endif
 
 all: unittest gravity
 
