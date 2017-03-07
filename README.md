@@ -73,7 +73,7 @@ The <a href="https://marcobambini.github.io/gravity/getting-started.html">Gettin
 
 ## Community
 Seems like a good idea to make a group chat for people to discuss about Gravity.<br>
-Let's use Slack: <a href="https://gravity-lang.slack.com/signup">https://gravity-lang.slack.com/</a>
+[![Join the chat at https://gitter.im/gravity-lang/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gravity-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Contributing
 Contributions to Gravity are welcomed and encouraged!
