@@ -110,6 +110,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 						case CPOOL_VALUE_ARGUMENTS: special = "ARGUMENTS"; break;
 						case CPOOL_VALUE_TRUE: special = "TRUE"; break;
 						case CPOOL_VALUE_FALSE: special = "FALSE"; break;
+						case CPOOL_VALUE_FUNC: special = "_FUNC"; break;
 						default: ASSERT(0, "Invalid index in LOADK opcode"); break;
 					}
 					DUMP_VM(buffer, bindex, "LOADK %d %s", r1, special);
