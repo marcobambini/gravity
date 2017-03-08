@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 CreoLabs. All rights reserved.
 //
 
+#include <inttypes.h>
 #include "gravity_hash.h"
 #include "gravity_core.h"
 #include "gravity_value.h"
@@ -549,7 +550,7 @@ static void gravity_function_cpool_dump (gravity_function_t *f) {
 		if (v.isa == gravity_class_bool) {
 			printf("%05zu\tBOOL: %d\n", i, (v.n == 0) ? 0 : 1);
 		} else if (v.isa == gravity_class_int) {
-			printf("%05zu\tINT: %lld\n", i, (int64_t)v.n);
+			printf("%05zu\tINT: %" PRId64 "\n", i, (int64_t)v.n);
 		} else if (v.isa == gravity_class_float) {
 			printf("%05zu\tFLOAT: %f\n", i, (double)v.f);
 		} else if (v.isa == gravity_class_function) {
@@ -1615,7 +1616,7 @@ void gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len) {
 		value = buffer;
 	} else if (v.isa == gravity_class_int) {
 		type = "INT";
-		snprintf(buffer, len, "(%s) %lld", type, v.n);
+		snprintf(buffer, len, "(%s) %" PRId64, type, v.n);
 		value = buffer;
 	} else if (v.isa == gravity_class_float) {
 		type = "FLOAT";
@@ -1656,7 +1657,7 @@ void gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len) {
 	} else if (v.isa == gravity_class_range) {
 		type = "RANGE";
 		gravity_range_t *r = VALUE_AS_RANGE(v);
-		snprintf(buffer, len, "(%s) from %lld to %lld", type, r->from, r->to);
+		snprintf(buffer, len, "(%s) from %" PRId64 " to %" PRId64, type, r->from, r->to);
 		value = buffer;
 	} else if (v.isa == gravity_class_object) {
 		type = "OBJECT";

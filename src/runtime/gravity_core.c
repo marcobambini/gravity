@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 CreoLabs. All rights reserved.
 //
 
+#include <inttypes.h>
 #include <math.h>
 #include "gravity_core.h"
 #include "gravity_hash.h"
@@ -302,7 +303,7 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 	if (VALUE_ISA_INT(v)) {
 		char buffer[512];
 		#if GRAVITY_ENABLE_INT64
-		snprintf(buffer, sizeof(buffer), "%lld", v.n);
+		snprintf(buffer, sizeof(buffer), "%" PRId64, v.n);
 		#else
 		snprintf(buffer, sizeof(buffer), "%d", v.n);
 		#endif

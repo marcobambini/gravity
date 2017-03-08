@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 CreoLabs. All rights reserved.
 //
 
+#include <inttypes.h>
 #include "gravity_ast.h"
 #include "gravity_utils.h"
 #include "gravity_visitor.h"
@@ -344,7 +345,7 @@ void gnode_literal_dump (gnode_literal_expr_t *node, char *buffer, int buffersiz
 	switch (node->type) {
 		case LITERAL_STRING: snprintf(buffer, buffersize, "STRING: %.*s", node->len, node->value.str); break;
 		case LITERAL_FLOAT: snprintf(buffer, buffersize, "FLOAT: %.2f", node->value.d); break;
-		case LITERAL_INT: snprintf(buffer, buffersize, "INT: %lld", (int64_t)node->value.n64); break;
+		case LITERAL_INT: snprintf(buffer, buffersize, "INT: %" PRId64, (int64_t)node->value.n64); break;
 		case LITERAL_BOOL: snprintf(buffer, buffersize, "BOOL: %d", (int32_t)node->value.n64); break;
 		default: assert(0); // should never reach this point
 	}

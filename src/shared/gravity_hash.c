@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 CreoLabs. All rights reserved.
 //
 
+#include <inttypes.h>
 #include "gravity_hash.h"
 
 #if GRAVITYHASH_ENABLE_STATS
@@ -315,7 +316,7 @@ uint32_t gravity_hash_compute_buffer (const char *key, uint32_t len) {
 
 uint32_t gravity_hash_compute_int (gravity_int_t n) {
 	char buffer[24];
-	snprintf(buffer, sizeof(buffer), "%lld", n);
+	snprintf(buffer, sizeof(buffer), "%" PRId64, n);
 	return murmur3_32(buffer, (uint32_t)strlen(buffer), HASH_SEED_VALUE);
 }
 
