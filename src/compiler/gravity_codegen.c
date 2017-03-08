@@ -737,7 +737,7 @@ static void process_getter_setter (gvisitor_t *self, gnode_var_t *p, gravity_cla
 		if (!node) continue;
 		
 		// create gravity function
-		uint16_t nparams = (uint16_t)(node->params) ? marray_size(*node->params) : 0;
+		uint16_t nparams = (node->params) ? (uint16_t)marray_size(*node->params) : 0;
 		f2[i] = gravity_function_new(NULL, NULL, nparams, node->nlocals, 0, ircode_create(node->nlocals+nparams));
 		
 		// process inner block
@@ -765,7 +765,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	bool is_class_ctx = OBJECT_ISA_CLASS(context_object);
 	
 	// create new function object
-	uint16_t nparams = (uint16_t)(node->params) ? marray_size(*node->params) : 0;
+	uint16_t nparams = (node->params) ? (uint16_t)marray_size(*node->params) : 0;
 	gravity_function_t *f = gravity_function_new((is_class_ctx) ? NULL : GET_VM(), node->identifier,
 												 nparams, node->nlocals, 0, (void *)ircode_create(node->nlocals+nparams));
 	

@@ -11,7 +11,7 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(UTILS_DIR)/*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR)
-CFLAGS = $(INCLUDE) -O2 -std=gnu99
+CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline
 OBJ = $(SRC:.c=.o)
 
 ifeq ($(OS),Windows_NT)

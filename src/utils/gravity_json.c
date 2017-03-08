@@ -31,6 +31,7 @@
 #include "gravity_utils.h"
 #include "gravity_memory.h"
 
+#include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -245,7 +246,7 @@ void json_add_cstring (json_t *json, const char *key, const char *value) {
 
 void json_add_int (json_t *json, const char *key, int64_t value) {
 	char buffer[512];
-	size_t len = snprintf(buffer, sizeof(buffer), "%lld", value);
+	size_t len = snprintf(buffer, sizeof(buffer), "%" PRId64, value);
 	
 	if (key) {
 		json_write_raw (json, key, strlen(key), true, true);
