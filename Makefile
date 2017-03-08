@@ -15,9 +15,17 @@ CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline
 OBJ = $(SRC:.c=.o)
 
 ifeq ($(OS),Windows_NT)
+	# Windows
 	LDFLAGS = -lm -lShlwapi
 else
-	LDFLAGS = -lm -lrt
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Darwin)
+		# MacOS
+		LDFLAGS = -lm 
+	else
+		# Linux
+		LDFLAGS = -lm -lrt
+	endif
 endif
 
 all: unittest gravity
