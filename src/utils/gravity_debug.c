@@ -48,7 +48,7 @@ const char *opcode_name (opcode_t op) {
 
 #define DUMP_VM_RAW(buffer, bindex, ...)				bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
 
-const char *gravity_disassemble (const char *bcode, uint32_t blen) {
+const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserialize) {
 	uint32_t	*ip = NULL;
 	uint32_t	pc = 0, inst = 0, ninsts = 0;
 	opcode_t	op;
@@ -58,10 +58,15 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen) {
 	uint32_t	balloc = 0;
 	char		*buffer = NULL;
 	
-	// decode textual buffer to real bytecode
-	ip = gravity_bytecode_deserialize(bcode, blen, &ninsts);
-	if ((ip == NULL) || (ninsts == 0)) goto abort_disassemble;
-	
+	if (deserialize) {
+		// decode textual buffer to real bytecode
+		ip = gravity_bytecode_deserialize(bcode, blen, &ninsts);
+		if ((ip == NULL) || (ninsts == 0)) goto abort_disassemble;
+	} else {
+		ip = (uint32_t *)bcode;
+		ninsts = blen;
+	}
+		
 	// allocate a buffer big enought to fit all disassembled bytecode
 	// I assume that each instruction (each row) will be 256 chars long
 	balloc = ninsts * rowlen;
@@ -219,7 +224,6 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen) {
 				
 			case RET0:
 			case RET: {
-				
 				if (op == RET0) {
 					DUMP_VM(buffer, bindex, "RET0");
 				} else {
@@ -288,7 +292,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen) {
 	return buffer;
 	
 abort_disassemble:
-	if (ip) mem_free(ip);
+	if (ip && deserialize) mem_free(ip);
 	if (buffer) mem_free(buffer);
 	return NULL;
 }

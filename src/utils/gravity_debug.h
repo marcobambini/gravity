@@ -13,6 +13,6 @@
 
 const char *opcode_constname (int n);
 const char *opcode_name (opcode_t op);
-const char *gravity_disassemble (const char *bcode, uint32_t blen);
+const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserialize);
 
 #endif

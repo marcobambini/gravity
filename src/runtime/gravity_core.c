@@ -10,6 +10,7 @@
 #include "gravity_core.h"
 #include "gravity_hash.h"
 #include "gravity_value.h"
+#include "gravity_debug.h"
 #include "gravity_opcodes.h"
 #include "gravity_macros.h"
 #include "gravity_memory.h"
@@ -627,26 +628,6 @@ static bool list_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	RETURN_VALUE(VALUE_FROM_INT(marray_size(list->array)), rindex);
 }
 
-static bool list_contains (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
-	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
-	gravity_value_t element = GET_VALUE(1);
-	gravity_value_t result = VALUE_FROM_FALSE;
-	
-	register uint32_t count = (uint32_t)marray_size(list->array);
-	register gravity_int_t i = 0;
-
-	while (i < count) {
-		if (gravity_value_equals(marray_get(list->array, i), element)) {
-			result = VALUE_FROM_TRUE;
-			break;
-		}
-		i++;
-	}
-
-	RETURN_VALUE(result, rindex);
-}
-
 static bool list_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
 	gravity_list_t	*list = VALUE_AS_LIST(GET_VALUE(0));
@@ -962,6 +943,19 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	
 	// in any case set destination register to newly allocated instance
 	RETURN_VALUE(VALUE_FROM_OBJECT(instance), rindex);
+}
+
+// MARK: - Closure Class -
+static bool closure_disassemble (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(nargs)
+	
+	gravity_closure_t *closure = (gravity_closure_t *)(GET_VALUE(0).p);
+	if (closure->f->tag != EXEC_TYPE_NATIVE) RETURN_VALUE(VALUE_FROM_NULL, rindex);
+	
+	const char *buffer = gravity_disassemble((const char *)closure->f->bytecode, closure->f->ninsts, false);
+	if (!buffer) RETURN_VALUE(VALUE_FROM_NULL, rindex);
+	
+	RETURN_VALUE(gravity_string_to_value(vm, buffer, AUTOLENGTH), rindex);
 }
 
 // MARK: - Float Class -
@@ -1643,6 +1637,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_class, "name", NEW_CLOSURE_VALUE(class_name));
 	gravity_class_bind(gravity_class_class, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(class_exec));
 	
+	// CLOSURE CLASS
+	gravity_class_bind(gravity_class_closure, "disassemble", NEW_CLOSURE_VALUE(closure_disassemble));
+	
 	// LIST CLASS
 	gravity_class_bind(gravity_class_list, "count", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(list_count), NULL)));
 	gravity_class_bind(gravity_class_list, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(list_iterator));
@@ -1652,7 +1649,6 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_list, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(list_loop));
 	gravity_class_bind(gravity_class_list, "push", NEW_CLOSURE_VALUE(list_push));
 	gravity_class_bind(gravity_class_list, "pop", NEW_CLOSURE_VALUE(list_pop));
-	gravity_class_bind(gravity_class_list, "contains", NEW_CLOSURE_VALUE(list_contains));
 	
 	// MAP CLASS
 	gravity_class_bind(gravity_class_map, "keys", NEW_CLOSURE_VALUE(map_keys));
