@@ -59,7 +59,7 @@ const char *token_name (gtoken_t token) {
 		case TOK_KEY_EVENT: return "event";
 		case TOK_KEY_NULL: return "null";
 		case TOK_KEY_UNDEFINED: return "undefined";
-		case TOK_KEY_ISA: return "isa";
+		case TOK_KEY_ISA: return "is";
 		case TOK_KEY_CURRARGS: return "_args";
 		case TOK_KEY_CURRFUNC: return "_func";
 		
@@ -131,10 +131,10 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
 			if (string_casencmp(buffer, "if", len) == 0) return TOK_KEY_IF;
 			if (string_casencmp(buffer, "in", len) == 0) return TOK_KEY_IN;
 			if (string_casencmp(buffer, "or", len) == 0) return TOK_OP_OR;
+			if (string_casencmp(buffer, "is", len) == 0) return TOK_KEY_ISA;
 			break;
 			
 		case 3:
-			if (string_casencmp(buffer, "isa", len) == 0) return TOK_KEY_ISA;
 			if (string_casencmp(buffer, "for", len) == 0) return TOK_KEY_FOR;
 			if (string_casencmp(buffer, "var", len) == 0) return TOK_KEY_VAR;
 			if (string_casencmp(buffer, "and", len) == 0) return TOK_OP_AND;

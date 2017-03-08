@@ -32,7 +32,7 @@ const char *opcode_name (opcode_t op) {
 		"LOADK", "LOADG", "LOADI", "LOADU", "MOVE", "STORE", "STOREAT",
 		"STOREG", "STOREU", "JUMP", "JUMPF", "SWITCH", "ADD", "SUB", "DIV",
 		"MUL", "REM", "AND", "OR", "LT", "GT", "EQ", "LEQ", "GEQ", "NEQ",
-		"EQQ", "NEQQ", "ISA", "MATCH", "NEG", "NOT", "LSHIFT", "RSHIFT", "BAND",
+		"EQQ", "NEQQ", "IS", "MATCH", "NEG", "NOT", "LSHIFT", "RSHIFT", "BAND",
 		"BOR", "BXOR", "BNOT", "MAPNEW", "LISTNEW", "RANGENEW", "SETLIST",
 		"CLOSURE", "CLOSE", "RESERVED1", "RESERVED2", "RESERVED3", "RESERVED4",
 		"RESERVED5", "RESERVED6"};
