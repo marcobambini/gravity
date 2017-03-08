@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/marcobambini/gravity.svg?branch=master)](https://travis-ci.org/marcobambini/gravity)
+
 <p align="center" >
 <img src="https://raw.githubusercontent.com/marcobambini/gravity/master/docs/images/logo-gravity.png" height="74px" alt="Gravity Programming Language" title="Gravity Programming Language">
 </p>
