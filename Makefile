@@ -17,7 +17,7 @@ OBJ = $(SRC:.c=.o)
 ifeq ($(OS),Windows_NT)
 	LDFLAGS = -lm -lShlwapi
 else
-	LDFLAGS = -lm
+	LDFLAGS = -lm -lrt
 endif
 
 all: unittest gravity
