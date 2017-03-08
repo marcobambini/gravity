@@ -1,0 +1,8 @@
+#unittest {
+	name: "Unable to find unknown_function into class System meta.";
+	error: RUNTIME;
+};
+
+func main() {
+	System.unknown_function();
+}

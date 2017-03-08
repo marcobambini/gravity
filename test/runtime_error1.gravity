@@ -1,0 +1,13 @@
+#unittest {
+	name: "Unable to find b into class foo.";
+	error: RUNTIME;
+};
+
+class foo {
+	var a;
+}
+
+func main() {
+	var obj = foo();
+	obj.b = 100;
+}
