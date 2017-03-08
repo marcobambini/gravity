@@ -38,6 +38,43 @@ static void report_error (error_type_t error_type, const char *message, error_de
 	printf("%s\n", message);
 }
 
+static void report_log (const char *message, void *xdata) {
+	#pragma unused(xdata)
+	printf("LOG: %s\n", message);
+}
+
+static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata) {
+	#pragma unused(fileid, xdata)
+	
+	// this callback is called each time an import statement is parsed
+	// file arg represents what user wrote after the import keyword, for example:
+	// import "file2"
+	// import "file2.gravity"
+	// import "../file2"
+	// import "/full_path_to_file2"
+	
+	// it is callback's responsability to resolve file path based on current working directory
+	// or based on user defined search paths
+	// and returns:
+	// size of file in *size
+	// fileid (if any) in *fileid
+	// content of file as return value of the function
+	
+	// fileid will then be used each time an error is reported by the compiler
+	// so it is responsability of this function to map somewhere the association
+	// between fileid and real file/path name
+	
+	// fileid is not used in this example
+	// xdata not used here but it the xdata field set in the delegate
+	// please note than in this simple example the imported file must be
+	// in the same folder as the main input file
+	
+	if (!file_exists(file)) return NULL;
+	return file_read(file, size);
+}
+
+// MARK: -
+
 static void print_version (void) {
 	printf("Gravity version %s (%s)\n", GRAVITY_VERSION, GRAVITY_BUILD_DATE);
 }
@@ -115,7 +152,11 @@ int main (int argc, const char* argv[]) {
 	gravity_compiler_t *compiler = NULL;
 	
 	// setup compiler/VM delegate
-	gravity_delegate_t delegate = {.error_callback = report_error};
+	gravity_delegate_t delegate = {
+		.log_callback = report_log,
+		.error_callback = report_error,
+		.loadfile_callback = load_file
+	};
 	
 	// create VM
 	gravity_vm *vm = gravity_vm_new(&delegate);
@@ -136,6 +177,7 @@ int main (int argc, const char* argv[]) {
 		
 		// compile source code into a closure
 		closure = gravity_compiler_run(compiler, source_code, size, 0, false);
+		if (!closure) goto cleanup;
 		
 		// check if closure needs to be serialized
 		if (type == OP_COMPILE) {
