@@ -627,6 +627,26 @@ static bool list_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	RETURN_VALUE(VALUE_FROM_INT(marray_size(list->array)), rindex);
 }
 
+static bool list_contains (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
+	gravity_value_t element = GET_VALUE(1);
+	gravity_value_t result = VALUE_FROM_FALSE;
+	
+	register uint32_t count = (uint32_t)marray_size(list->array);
+	register gravity_int_t i = 0;
+
+	while (i < count) {
+		if (gravity_value_equals(marray_get(list->array, i), element)) {
+			result = VALUE_FROM_TRUE;
+			break;
+		}
+		i++;
+	}
+
+	RETURN_VALUE(result, rindex);
+}
+
 static bool list_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
 	gravity_list_t	*list = VALUE_AS_LIST(GET_VALUE(0));
@@ -1632,6 +1652,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_list, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(list_loop));
 	gravity_class_bind(gravity_class_list, "push", NEW_CLOSURE_VALUE(list_push));
 	gravity_class_bind(gravity_class_list, "pop", NEW_CLOSURE_VALUE(list_pop));
+	gravity_class_bind(gravity_class_list, "contains", NEW_CLOSURE_VALUE(list_contains));
 	
 	// MAP CLASS
 	gravity_class_bind(gravity_class_map, "keys", NEW_CLOSURE_VALUE(map_keys));

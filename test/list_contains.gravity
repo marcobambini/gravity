@@ -1,0 +1,10 @@
+#unittest {
+	name: "Test list contains.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var list = [1, 2, "Hello", 3.1415, true];
+	return list.contains(3.1415);
+}
