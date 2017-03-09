@@ -72,6 +72,11 @@
 #define GRAVITY_NULL_SILENT					1			// if 1 then messages sent to null does not produce any runtime error
 #define GRAVITY_MAP_DOTSUGAR				0			// if 1 then map objects can be accessed with both map[key] and map.key
 
+#ifdef _MSC_VER
+#undef GRAVITY_COMPUTED_GOTO
+#define GRAVITY_COMPUTED_GOTO 0 // MSVC does not support it
+#endif
+
 #define MAIN_FUNCTION						"main"
 #define ITERATOR_INIT_FUNCTION				"iterate"
 #define ITERATOR_NEXT_FUNCTION				"next"
