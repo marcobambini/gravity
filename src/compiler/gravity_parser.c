@@ -1161,7 +1161,7 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 			}
 			
 		} else {
-			enum_value = (gnode_base_t *)gnode_literal_int_expr_create((gtoken_s)NO_TOKEN, enum_autoint);
+			enum_value = (gnode_base_t *)gnode_literal_int_expr_create(NO_TOKEN, enum_autoint);
 			++enum_autoint;
 		}
 		
@@ -1362,10 +1362,10 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
 	// is automatically added
 	if (IS_CLASS_ENCLOSED()) {
 		gnode_r *decls = gnode_array_create();
-		gnode_t *outer_var = gnode_variable_create((gtoken_s)NO_TOKEN, string_dup(OUTER_IVAR_NAME), NULL, 0, NULL);
+		gnode_t *outer_var = gnode_variable_create(NO_TOKEN, string_dup(OUTER_IVAR_NAME), NULL, 0, NULL);
 		gnode_array_push(decls, outer_var);
 		
-		gnode_t *outer_decl = gnode_variable_decl_create((gtoken_s)NO_TOKEN, TOK_KEY_VAR, TOK_KEY_PRIVATE, 0, decls);
+		gnode_t *outer_decl = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, TOK_KEY_PRIVATE, 0, decls);
 		gnode_array_push(declarations, outer_decl);
 	}
 	
@@ -2067,7 +2067,7 @@ static uint32_t parser_run (gravity_parser_t *parser) {
 static void parser_cleanup (gravity_parser_t *parser) {
 	// in case of error (so AST is not returned)
 	// then cleanup internal nodes
-	gnode_t *node= gnode_block_stat_create(NODE_LIST_STAT, (gtoken_s)NO_TOKEN, parser->statements);
+	gnode_t *node= gnode_block_stat_create(NODE_LIST_STAT, NO_TOKEN, parser->statements);
 	gnode_free(node);
 }
 
@@ -2135,7 +2135,7 @@ gnode_t *gravity_parser_run (gravity_parser_t *parser, gravity_delegate_t *deleg
 	if (marray_size(parser->declarations) > 0) return NULL;
 	
 	// return ast
-	return gnode_block_stat_create(NODE_LIST_STAT, (gtoken_s)NO_TOKEN, parser->statements);
+	return gnode_block_stat_create(NODE_LIST_STAT, NO_TOKEN, parser->statements);
 }
 
 void gravity_parser_free (gravity_parser_t *parser) {
