@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26127.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gravity", "gravity\gravity.vcxproj", "{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GravityLang", "gravity\gravity.vcxproj", "{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23D9D4FA-6B0F-4151-9CD6-C56F0C44F646}"
+	ProjectSection(SolutionItems) = preProject
+		exports.def = exports.def
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

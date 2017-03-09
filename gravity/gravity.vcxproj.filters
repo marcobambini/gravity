@@ -182,8 +182,5 @@
     <ClCompile Include="..\src\runtime\gravity_vm.c">
       <Filter>Source Files\runtime</Filter>
     </ClCompile>
-    <ClCompile Include="kludges.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
