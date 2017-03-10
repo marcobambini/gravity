@@ -9,3 +9,5 @@
 
 typedef SSIZE_T ssize_t;
 typedef int mode_t;
+
+// Fix for Visual Studio
