@@ -1,0 +1,225 @@
+LIBRARY gravity
+EXPORTS
+
+;;;	gravity_vm.h
+
+	gravity_vm_new
+	gravity_vm_newmini
+	gravity_vm_set_callbacks
+	gravity_vm_free
+;	gravity_vm_reset
+	gravity_vm_runclosure
+	gravity_vm_run
+	gravity_vm_setvalue
+	gravity_vm_lookup
+	gravity_vm_getvalue
+	gravity_vm_time
+	gravity_vm_result
+	gravity_vm_delegate
+	gravity_vm_fiber
+	gravity_vm_setfiber
+	gravity_vm_seterror
+	gravity_vm_seterror_string
+	gravity_vm_ismini
+	gravity_vm_keyindex
+	gravity_vm_isaborted
+	gravity_vm_setaborted
+
+	gravity_gray_value
+	gravity_gray_object
+	gravity_gc_start
+	gravity_gc_setenabled
+	gravity_gc_push
+	gravity_gc_pop
+
+	gravity_vm_transfer
+	gravity_vm_cleanup
+	gravity_vm_filter
+
+	gravity_vm_loadfile
+	gravity_vm_loadbuffer
+	gravity_vm_initmodule
+
+	gravity_vm_fastlookup
+	gravity_vm_setslot
+	gravity_vm_getslot
+	gravity_vm_setdata
+	gravity_vm_getdata
+	gravity_vm_memupdate
+
+	gravity_vm_get
+	gravity_vm_set
+	gravity_vm_anonymous
+
+;;;	gravity_core.h
+
+	gravity_core_register
+	gravity_iscore_class
+	gravity_core_free
+	gravity_core_identifiers
+
+	convert_value2int
+	convert_value2float
+	convert_value2bool
+	convert_value2string
+
+;;;	gravity_hash.h
+	
+	gravity_hash_create
+	gravity_hash_free
+	gravity_hash_isempty
+	gravity_hash_remove
+	gravity_hash_insert
+	gravity_hash_lookup
+
+	gravity_hash_memsize
+	gravity_hash_count
+	gravity_hash_compute_buffer
+	gravity_hash_compute_int
+	gravity_hash_compute_float
+	gravity_hash_stat
+	gravity_hash_iterate
+	gravity_hash_iterate2
+	gravity_hash_transform
+	gravity_hash_dump
+	gravity_hash_append
+	gravity_hash_resetfree
+
+;;;	gravity_value.h
+
+	gravity_module_new
+	gravity_module_free
+	gravity_module_blacken
+	gravity_module_size
+	
+	gravity_function_new
+	gravity_function_new_internal
+	gravity_function_new_special
+	gravity_function_new_bridged
+	gravity_function_cpool_add
+	gravity_function_cpool_get
+	gravity_function_dump
+;	gravity_function_setouter
+	gravity_function_setxdata
+	gravity_function_serialize
+	gravity_bytecode_deserialize
+	gravity_function_deserialize
+	gravity_function_free
+	gravity_function_blacken
+	gravity_function_size
+
+	gravity_upvalue_new
+	gravity_upvalue_size
+	gravity_upvalue_blacken
+	gravity_upvalue_free
+
+	gravity_class_bind
+	gravity_class_getsuper
+	gravity_class_grow
+	gravity_class_setsuper
+	gravity_class_new_single
+	gravity_class_new_pair
+	gravity_class_get_meta
+	gravity_class_is_meta
+	gravity_class_count_ivars
+	gravity_class_dump
+	gravity_class_setxdata
+	gravity_class_add_ivar
+	gravity_class_serialize
+	gravity_class_deserialize
+	gravity_class_free
+	gravity_class_free_core
+	gravity_class_lookup
+	gravity_class_lookup_closure
+	gravity_class_lookup_constructor
+	gravity_class_blacken
+	gravity_class_size
+
+	gravity_fiber_new
+	gravity_fiber_reassign
+	gravity_fiber_seterror
+	gravity_fiber_free
+	gravity_fiber_blacken
+	gravity_fiber_size
+	
+	gravity_instance_new
+	gravity_instance_dup
+	gravity_instance_setivar
+	gravity_instance_setxdata
+	gravity_instance_free
+	gravity_instance_lookup_event
+	gravity_instance_blacken
+	gravity_instance_size
+	
+	gravity_value_equals
+	gravity_value_hash
+	gravity_value_getclass
+	gravity_value_getsuper
+	gravity_value_free
+	gravity_value_serialize
+	gravity_value_dump
+	gravity_value_isobject
+	gravity_value_xdata
+;	gravity_value_blacken
+	gravity_value_size
+	
+	gravity_object_serialize
+	gravity_object_deserialize
+	gravity_object_free
+	gravity_object_blacken
+	gravity_object_size
+	gravity_object_debug
+	
+	gravity_list_new
+	gravity_list_from_array
+	gravity_list_free
+	gravity_list_append_list
+	gravity_list_blacken
+	gravity_list_size
+	
+	gravity_map_new
+	gravity_map_free
+	gravity_map_append_map
+	gravity_map_insert
+	gravity_map_blacken
+	gravity_map_size
+	
+	gravity_range_new
+	gravity_range_free
+	gravity_range_blacken
+	gravity_range_size
+	
+	gravity_string_to_value
+	gravity_string_new
+	gravity_string_set
+	gravity_string_free
+	gravity_string_blacken
+	gravity_string_size
+	
+	gravity_hash_keyvaluefree
+	gravity_hash_keyfree
+	gravity_hash_valuefree
+
+;;;	gravity_debug.h
+
+	gravity_disassemble
+
+;;;	gravity_compiler.h
+
+	gravity_compiler_create
+	gravity_compiler_run
+	gravity_compiler_serialize
+	gravity_compiler_serialize_infile
+	gravity_compiler_transfer
+	gravity_compiler_ast
+	gravity_compiler_free
+
+;;;	gravity_optimizer.h
+
+	gravity_optimizer
+
+;;;	gravity_parser.h
+
+	gravity_parser_create
+	gravity_parser_run
+	gravity_parser_free
