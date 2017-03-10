@@ -114,7 +114,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;GRAVITY_EXPORTS;%(PreprocessorDefinitions);GRAVITY_API=__declspec(dllexport);inline</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;GRAVITY_EXPORTS;%(PreprocessorDefinitions);GRAVITY_API=__declspec(dllexport);inline=</PreprocessorDefinitions>
       <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
