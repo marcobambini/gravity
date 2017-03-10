@@ -207,7 +207,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 				
 				// add upvalue to all enclosing functions
 				// base_node has index = len - 1 so from (len - 2) up to n-1 levels
-				uint16_t idx = len - 2;
+				uint16_t idx = (uint16_t)(len - 2);
 				while (n > 1) {
 					f = (gnode_function_decl_t *) gnode_array_get(decls, idx);
 					gnode_function_add_upvalue(f, var, --n);

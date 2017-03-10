@@ -509,7 +509,7 @@ uint16_t gravity_function_cpool_add (gravity_vm *vm, gravity_function_t *f, grav
 		gravity_value_t v2 = marray_get(f->cpool, i);
 		if (gravity_value_equals(v,v2)) {
 			gravity_value_free(NULL, v);
-			return i;
+			return (uint16_t)i;
 		}
 	}
 	

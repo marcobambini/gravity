@@ -1,4 +1,4 @@
-LIBRARY gravity
+LIBRARY GravityLang
 EXPORTS
 
 ;;;	gravity_vm.h

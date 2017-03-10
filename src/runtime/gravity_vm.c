@@ -1961,7 +1961,7 @@ void gravity_gc_start (gravity_vm *vm) {
 	gravity_gc_sweep(vm);
 	
 	// dynamically update gcthreshold
-	vm->gcthreshold = vm->memallocated + (vm->memallocated * vm->gcratio / 100);
+	vm->gcthreshold = (gravity_int_t)(vm->memallocated + (vm->memallocated * vm->gcratio / 100));
 	if (vm->gcthreshold < vm->gcminthreshold) vm->gcthreshold = vm->gcminthreshold;
 	
 	#if GRAVITY_GC_STATS
