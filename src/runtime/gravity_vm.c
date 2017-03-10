@@ -343,13 +343,14 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 						
 					case EXEC_TYPE_INTERNAL: {
-						SETVALUE(r1, VALUE_FROM_NULL);
+						// backup register r1 because it can be overwrite to return a closure
+						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
 							
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
 								closure = VALUE_AS_CLOSURE(STACK_GET(r1));
-								SETVALUE(r1, VALUE_FROM_NULL);
+								SETVALUE(r1, r1copy);
 								goto execute_load_function;
 							}
 							
@@ -470,12 +471,13 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 						
 					case EXEC_TYPE_INTERNAL: {
-						SETVALUE(r1, VALUE_FROM_NULL);
+						// backup register r1 because it can be overwrite to return a closure
+						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
 								closure = VALUE_AS_CLOSURE(STACK_GET(r1));
-								SETVALUE(r1, VALUE_FROM_NULL);
+								SETVALUE(r1, r1copy);
 								goto execute_store_function;
 							}
 							
@@ -1021,12 +1023,13 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 						
 					case EXEC_TYPE_INTERNAL: {
-						SETVALUE(r1, VALUE_FROM_NULL);
+						// backup register r1 because it can be overwrite to return a closure
+						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], r3, r1)) {
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
 								closure = VALUE_AS_CLOSURE(STACK_GET(r1));
-								SETVALUE(r1, VALUE_FROM_NULL);
+								SETVALUE(r1, r1copy);
 								goto execute_call_function;
 							}
 							

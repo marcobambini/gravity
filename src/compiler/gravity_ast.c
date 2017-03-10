@@ -265,9 +265,9 @@ bool gnode_is_equal (gnode_t *node1, gnode_t *node2) {
 		gnode_literal_expr_t *e2 = (gnode_literal_expr_t *)node2;
 		if (e1->type != e2->type) return false;
 		// LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL
-		if (e1->type == LITERAL_BOOL) return (e1->value.n64 == e1->value.n64);
-		if (e1->type == LITERAL_INT) return (e1->value.n64 == e1->value.n64);
-		if (e1->type == LITERAL_FLOAT) return (e1->value.d == e1->value.d);
+		if (e1->type == LITERAL_BOOL) return (e1->value.n64 == e2->value.n64);
+		if (e1->type == LITERAL_INT) return (e1->value.n64 == e2->value.n64);
+		if (e1->type == LITERAL_FLOAT) return (e1->value.d == e2->value.d);
 		if (e1->type == LITERAL_STRING) return (strcmp(e1->value.str, e2->value.str)==0);
 	}
 	return false;
