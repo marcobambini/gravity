@@ -16,3 +16,5 @@ Feel free to expand this section with a more formal description of the syntax ru
 If you fix a bug or if you add a new functionality then a unit-test is required.
 A unit-test is a single source code file that is able to run under the unittest executable file.
 You are free to test your functionalities/fixes into a single unit-test file or split the test in more files.
+
+Don't forget to add your name and your email address to the official **CONTRIBUTORS** file!
