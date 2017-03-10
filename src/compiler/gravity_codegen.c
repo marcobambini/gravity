@@ -128,6 +128,9 @@ static opcode_t token2opcode(gtoken_t op) {
 		
 		default: assert(0); break;  // should never reach this point
 	}
+
+	assert(0);
+	return NOT; // huehue, geddit?
 }
 
 #if 0
@@ -789,7 +792,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	if (node->block) {gnode_array_each(node->block->stmts, {visit(val);});}
 	
 	// check for upvalues
-	if (node->uplist) f->nupvalues = gnode_array_size(node->uplist);
+	if (node->uplist) f->nupvalues = (uint16_t)gnode_array_size(node->uplist);
 	
 	// remove current function
 	CONTEXT_POP();

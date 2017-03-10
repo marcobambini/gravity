@@ -205,7 +205,7 @@ static void finalize_function (gravity_function_t *f) {
 	gravity_hash_free(labels);
 	
 	f->bytecode = bytecode;
-	f->purity = (notpure == 0) ? 1.0 : ((float)(notpure * 100) / (float)ninst) / 100.0f;
+	f->purity = (notpure == 0) ? 1.0f : ((float)(notpure * 100) / (float)ninst) / 100.0f;
 }
 
 // MARK: -
@@ -302,7 +302,7 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
 			break;
 			
 		case REM:
-			if (type == DOUBLE_TAG) d = (int64_t)d1 % (int64_t)d2;
+			if (type == DOUBLE_TAG) d = (double)((int64_t)d1 % (int64_t)d2);
 			else n = n1 % n2;
 			break;
 			
@@ -337,7 +337,7 @@ static bool optimize_neg_instruction (ircode_t *code, inst_t *inst, uint32_t i) 
 	uint64_t n = inst1->n;
 	if (n>131072) return false;
 	inst1->p1 = inst->p2;
-	inst1->n = -n;
+	inst1->n = -(int64_t)n;
 	inst_setskip(inst);
 	return true;
 }

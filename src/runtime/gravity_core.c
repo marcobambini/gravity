@@ -659,7 +659,7 @@ static bool list_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	register uint32_t count = (uint32_t)marray_size(list->array);
 	
 	if (index < 0) index = count + index;
-	if ((index < 0) || (index >= count)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, count-1);
+	if ((index < 0) || ((uint32_t)index >= count)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, count-1);
 	
 	RETURN_VALUE(marray_get(list->array, index), rindex);
 }
@@ -676,11 +676,11 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	
 	if (index < 0) index = count + index;
 	if (index < 0) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, count-1);
-	if (index >= count) {
+	if ((uint32_t)index >= count) {
 		// handle list resizing here
 		marray_resize(gravity_value_t, list->array, index-count);
 		marray_nset(list->array, index+1);
-		for (size_t i=count; i<index; ++i) {
+		for (int32_t i=count; i<index; ++i) {
 			marray_set(list->array, i, VALUE_FROM_NULL);
 		}
 		marray_set(list->array, index, value);

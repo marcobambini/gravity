@@ -215,7 +215,8 @@ DIRREF directory_init (const char *dirpath) {
 	WCHAR			path[MAX_PATH];
 	WCHAR			dirpathW[MAX_PATH];
 	HANDLE			hFind;
-	
+	(void)hFind;
+
 	// convert dirpath to dirpathW
 	MultiByteToWideChar(CP_UTF8, 0, dirpath, -1, dirpathW, MAX_PATH);
 	
@@ -236,7 +237,7 @@ const char *directory_read (DIRREF ref) {
 	while (1) {
 		#ifdef WIN32
 		WIN32_FIND_DATA findData;
-		const char 			*file_name;
+		char 			*file_name;
 		
 		if (FindNextFile(ref, &findData) == 0) {
 			FindClose(ref);
@@ -247,7 +248,7 @@ const char *directory_read (DIRREF ref) {
 		if (findData.cFileName[0] == '.') continue;
 
 		file_name = malloc(MAX_PATH);
-		strncpy(file_name, findData.cFileName, MAX_PATH);
+		strncpy(file_name, (const char*)findData.cFileName, MAX_PATH); // TODO: Incompatible types, fix WCHAR* -> const char*
 
 		return (const char *)file_name;
 		#else

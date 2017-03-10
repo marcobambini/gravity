@@ -10,4 +10,9 @@
 typedef SSIZE_T ssize_t;
 typedef int mode_t;
 
+#define open _open
+#define close _close
+#define read _read
+#define write _write
+
 // Fix for Visual Studio
