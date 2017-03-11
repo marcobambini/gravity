@@ -246,11 +246,7 @@ const char *directory_read (DIRREF ref) {
 		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
 		if (findData.cFileName == NULL) continue;
 		if (findData.cFileName[0] == '.') continue;
-
-		file_name = malloc(MAX_PATH);
-		strncpy(file_name, (const char*)findData.cFileName, MAX_PATH); // TODO: Incompatible types, fix WCHAR* -> const char*
-
-		return (const char *)file_name;
+		return (const char*)findData.cFileName;
 		#else
 		struct dirent *d;
 		if ((d = readdir(ref)) == NULL) {
