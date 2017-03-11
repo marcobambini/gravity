@@ -1268,6 +1268,9 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	vm->transfer = gravity_gc_transfer;
 	vm->cleanup = gravity_gc_cleanup;
 	
+	// allocate default fiber
+	vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
+	
 	vm->pc = 0;
 	vm->delegate = delegate;
 	vm->context = gravity_hash_create(/*(context_size) ? context_size : */DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
@@ -1393,6 +1396,17 @@ static void gravity_vm_stats (gravity_vm *vm) {
 }
 #endif
 
+void gravity_vm_loadclosure (gravity_vm *vm, gravity_closure_t *closure) {
+	// closure MUST BE $moduleinit so sanity check here
+	if (string_cmp(closure->f->identifier, INITMODULE_NAME) != 0) return;
+	
+	// re-use main fiber
+	gravity_fiber_reassign(vm->fiber, closure, 0);
+	
+	// execute $moduleinit in order to initialize VM
+	gravity_vm_exec(vm);
+}
+
 bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t selfvalue, gravity_value_t params[], uint16_t nparams) {
 	if (vm->aborted) return false;
 	
@@ -1480,12 +1494,9 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 	return result;
 }
 
-bool gravity_vm_run (gravity_vm *vm, gravity_closure_t *closure) {
-	// f is $moduleinit (first function to be executed)
-	vm->fiber = gravity_fiber_new(vm, closure, 0, 0);
-	
-	// execute $moduleinit in order to initialize VM
-	gravity_vm_exec(vm);
+bool gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure) {
+	// first load closure into vm
+	if (closure) gravity_vm_loadclosure(vm, closure);
 	
 	// lookup main function
 	gravity_value_t main = gravity_vm_getvalue(vm, MAIN_FUNCTION, (uint32_t)strlen(MAIN_FUNCTION));

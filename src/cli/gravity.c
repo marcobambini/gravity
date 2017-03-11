@@ -11,6 +11,7 @@
 #include "gravity_vm.h"
 
 #define DEFAULT_OUTPUT "gravity.json"
+
 typedef enum  {
 	OP_COMPILE,			// just compile source code and exit
 	OP_RUN,				// just run an already compiled file
@@ -36,11 +37,6 @@ static void report_error (error_type_t error_type, const char *message, error_de
 	if (error_type == GRAVITY_ERROR_RUNTIME) printf("RUNTIME ERROR: ");
 	else printf("%s ERROR on %d (%d,%d): ", type, error_desc.fileid, error_desc.lineno, error_desc.colno);
 	printf("%s\n", message);
-}
-
-static void report_log (const char *message, void *xdata) {
-	#pragma unused(xdata)
-	printf("LOG: %s\n", message);
 }
 
 static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata) {
@@ -153,7 +149,6 @@ int main (int argc, const char* argv[]) {
 	
 	// setup compiler/VM delegate
 	gravity_delegate_t delegate = {
-		.log_callback = report_log,
 		.error_callback = report_error,
 		.loadfile_callback = load_file
 	};
@@ -201,7 +196,7 @@ int main (int argc, const char* argv[]) {
 	// sanity check
 	assert(closure);
 	
-	if (gravity_vm_run(vm, closure)) {
+	if (gravity_vm_runmain(vm, closure)) {
 		gravity_value_t result = gravity_vm_result(vm);
 		double t = gravity_vm_time(vm);
 		
