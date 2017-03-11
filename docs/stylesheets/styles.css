@@ -21,6 +21,11 @@ pre {
 	background-color: transparent;
 }
 
+/* Highlight tab size */
+.hljs {
+	tab-size: 2;
+}
+
 /***** NAVBAR *****/
 .navbar-brand {
     padding-top: 7px;
