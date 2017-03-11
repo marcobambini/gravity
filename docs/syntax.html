@@ -161,12 +161,12 @@
 	// block scope can be nested and
 	// can hide other local variables
 	func f3() {
-	    var a = 10;
-	    if (a > 0) {
-		  var a = 20;
-	    }
-	// 10 is returned here
-	return a;
+		var a = 10;
+		if (a > 0) {
+			var a = 20;
+		}
+		// 10 is returned here
+		return a;
 	}
 			</code></pre>
 			
