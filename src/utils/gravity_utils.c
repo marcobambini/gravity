@@ -86,6 +86,22 @@ double millitime (nanotime_t tstart, nanotime_t tend) {
 	return ((double)t / 1000000.0f);
 }
 
+// MARK: - Console Functions -
+
+char *readline (char *prompt, int *length) {
+	char	*line = NULL;
+	size_t	size = 0;
+	
+	printf("%s", prompt);
+	fflush(stdout);
+	
+	ssize_t nread = getline(&line, &size, stdin);
+	if (nread == -1 || feof(stdin)) return NULL;
+	
+	*length = (int)nread;
+	return line;
+}
+
 // MARK: - I/O Functions -
 
 uint64_t file_size (const char *path) {

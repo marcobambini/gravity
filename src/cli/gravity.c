@@ -7,6 +7,7 @@
 //
 
 #include "gravity_compiler.h"
+#include "gravity_utils.h"
 #include "gravity_core.h"
 #include "gravity_vm.h"
 
@@ -87,10 +88,6 @@ static void print_help (void) {
 	printf("file_name          compile file_name and executes it\n");
 }
 
-static void gravity_repl (void) {
-	printf("REPL not yet implemented.\n");
-}
-
 static op_type parse_args (int argc, const char* argv[]) {
 	if (argc == 1) return OP_REPL;
 	
@@ -124,6 +121,12 @@ static op_type parse_args (int argc, const char* argv[]) {
 		return OP_COMPILE_RUN;
 	}
 	return type;
+}
+
+// MARK: -
+
+static void gravity_repl (void) {
+	printf("REPL not yet implemented.\n");
 }
 
 // MARK: -
