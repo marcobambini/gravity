@@ -308,3 +308,5 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 *.xcuserstate
+
+*.xcworkspacedata

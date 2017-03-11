@@ -1,0 +1,419 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A922BAF41E6E0F5C00D9FAD0 /* gravity_ast.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAC21E6E0F5C00D9FAD0 /* gravity_ast.c */; };
+		A922BAF51E6E0F5C00D9FAD0 /* gravity_codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAC41E6E0F5C00D9FAD0 /* gravity_codegen.c */; };
+		A922BAF61E6E0F5C00D9FAD0 /* gravity_compiler.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAC61E6E0F5C00D9FAD0 /* gravity_compiler.c */; };
+		A922BAF71E6E0F5C00D9FAD0 /* gravity_ircode.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAC81E6E0F5C00D9FAD0 /* gravity_ircode.c */; };
+		A922BAF81E6E0F5C00D9FAD0 /* gravity_lexer.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BACA1E6E0F5C00D9FAD0 /* gravity_lexer.c */; };
+		A922BAF91E6E0F5C00D9FAD0 /* gravity_optimizer.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BACC1E6E0F5C00D9FAD0 /* gravity_optimizer.c */; };
+		A922BAFA1E6E0F5C00D9FAD0 /* gravity_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BACE1E6E0F5C00D9FAD0 /* gravity_parser.c */; };
+		A922BAFB1E6E0F5C00D9FAD0 /* gravity_semacheck1.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAD01E6E0F5C00D9FAD0 /* gravity_semacheck1.c */; };
+		A922BAFC1E6E0F5C00D9FAD0 /* gravity_semacheck2.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAD21E6E0F5C00D9FAD0 /* gravity_semacheck2.c */; };
+		A922BAFD1E6E0F5C00D9FAD0 /* gravity_symboltable.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAD41E6E0F5C00D9FAD0 /* gravity_symboltable.c */; };
+		A922BAFE1E6E0F5C00D9FAD0 /* gravity_token.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAD61E6E0F5C00D9FAD0 /* gravity_token.c */; };
+		A922BAFF1E6E0F5C00D9FAD0 /* gravity_visitor.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAD81E6E0F5C00D9FAD0 /* gravity_visitor.c */; };
+		A922BB001E6E0F5C00D9FAD0 /* gravity_core.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BADB1E6E0F5C00D9FAD0 /* gravity_core.c */; };
+		A922BB011E6E0F5C00D9FAD0 /* gravity_vm.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BADD1E6E0F5C00D9FAD0 /* gravity_vm.c */; };
+		A922BB021E6E0F5C00D9FAD0 /* gravity_hash.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAE31E6E0F5C00D9FAD0 /* gravity_hash.c */; };
+		A922BB031E6E0F5C00D9FAD0 /* gravity_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAE61E6E0F5C00D9FAD0 /* gravity_memory.c */; };
+		A922BB041E6E0F5C00D9FAD0 /* gravity_value.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAE91E6E0F5C00D9FAD0 /* gravity_value.c */; };
+		A922BB051E6E0F5C00D9FAD0 /* gravity_debug.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAEC1E6E0F5C00D9FAD0 /* gravity_debug.c */; };
+		A922BB061E6E0F5C00D9FAD0 /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAEE1E6E0F5C00D9FAD0 /* gravity_json.c */; };
+		A922BB071E6E0F5C00D9FAD0 /* gravity_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = A922BAF01E6E0F5C00D9FAD0 /* gravity_utils.c */; };
+		A9BA7D451E74180100259798 /* exec_gravity.c in Sources */ = {isa = PBXBuildFile; fileRef = A9BA7D441E74180100259798 /* exec_gravity.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A922BAAE1E6E0F2600D9FAD0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A922BAB01E6E0F2600D9FAD0 /* exec_gravity */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = exec_gravity; sourceTree = BUILT_PRODUCTS_DIR; };
+		A922BAC11E6E0F5C00D9FAD0 /* debug_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug_macros.h; sourceTree = "<group>"; };
+		A922BAC21E6E0F5C00D9FAD0 /* gravity_ast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_ast.c; sourceTree = "<group>"; };
+		A922BAC31E6E0F5C00D9FAD0 /* gravity_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_ast.h; sourceTree = "<group>"; };
+		A922BAC41E6E0F5C00D9FAD0 /* gravity_codegen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_codegen.c; sourceTree = "<group>"; };
+		A922BAC51E6E0F5C00D9FAD0 /* gravity_codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_codegen.h; sourceTree = "<group>"; };
+		A922BAC61E6E0F5C00D9FAD0 /* gravity_compiler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_compiler.c; sourceTree = "<group>"; };
+		A922BAC71E6E0F5C00D9FAD0 /* gravity_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_compiler.h; sourceTree = "<group>"; };
+		A922BAC81E6E0F5C00D9FAD0 /* gravity_ircode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_ircode.c; sourceTree = "<group>"; };
+		A922BAC91E6E0F5C00D9FAD0 /* gravity_ircode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_ircode.h; sourceTree = "<group>"; };
+		A922BACA1E6E0F5C00D9FAD0 /* gravity_lexer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_lexer.c; sourceTree = "<group>"; };
+		A922BACB1E6E0F5C00D9FAD0 /* gravity_lexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_lexer.h; sourceTree = "<group>"; };
+		A922BACC1E6E0F5C00D9FAD0 /* gravity_optimizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_optimizer.c; sourceTree = "<group>"; };
+		A922BACD1E6E0F5C00D9FAD0 /* gravity_optimizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optimizer.h; sourceTree = "<group>"; };
+		A922BACE1E6E0F5C00D9FAD0 /* gravity_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_parser.c; sourceTree = "<group>"; };
+		A922BACF1E6E0F5C00D9FAD0 /* gravity_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_parser.h; sourceTree = "<group>"; };
+		A922BAD01E6E0F5C00D9FAD0 /* gravity_semacheck1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_semacheck1.c; sourceTree = "<group>"; };
+		A922BAD11E6E0F5C00D9FAD0 /* gravity_semacheck1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_semacheck1.h; sourceTree = "<group>"; };
+		A922BAD21E6E0F5C00D9FAD0 /* gravity_semacheck2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_semacheck2.c; sourceTree = "<group>"; };
+		A922BAD31E6E0F5C00D9FAD0 /* gravity_semacheck2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_semacheck2.h; sourceTree = "<group>"; };
+		A922BAD41E6E0F5C00D9FAD0 /* gravity_symboltable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_symboltable.c; sourceTree = "<group>"; };
+		A922BAD51E6E0F5C00D9FAD0 /* gravity_symboltable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_symboltable.h; sourceTree = "<group>"; };
+		A922BAD61E6E0F5C00D9FAD0 /* gravity_token.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_token.c; sourceTree = "<group>"; };
+		A922BAD71E6E0F5C00D9FAD0 /* gravity_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_token.h; sourceTree = "<group>"; };
+		A922BAD81E6E0F5C00D9FAD0 /* gravity_visitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_visitor.c; sourceTree = "<group>"; };
+		A922BAD91E6E0F5C00D9FAD0 /* gravity_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_visitor.h; sourceTree = "<group>"; };
+		A922BADB1E6E0F5C00D9FAD0 /* gravity_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_core.c; sourceTree = "<group>"; };
+		A922BADC1E6E0F5C00D9FAD0 /* gravity_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_core.h; sourceTree = "<group>"; };
+		A922BADD1E6E0F5C00D9FAD0 /* gravity_vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_vm.c; sourceTree = "<group>"; };
+		A922BADE1E6E0F5C00D9FAD0 /* gravity_vm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_vm.h; sourceTree = "<group>"; };
+		A922BADF1E6E0F5C00D9FAD0 /* gravity_vmmacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_vmmacros.h; sourceTree = "<group>"; };
+		A922BAE11E6E0F5C00D9FAD0 /* gravity_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_array.h; sourceTree = "<group>"; };
+		A922BAE21E6E0F5C00D9FAD0 /* gravity_delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_delegate.h; sourceTree = "<group>"; };
+		A922BAE31E6E0F5C00D9FAD0 /* gravity_hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_hash.c; sourceTree = "<group>"; };
+		A922BAE41E6E0F5C00D9FAD0 /* gravity_hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_hash.h; sourceTree = "<group>"; };
+		A922BAE51E6E0F5C00D9FAD0 /* gravity_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_macros.h; sourceTree = "<group>"; };
+		A922BAE61E6E0F5C00D9FAD0 /* gravity_memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_memory.c; sourceTree = "<group>"; };
+		A922BAE71E6E0F5C00D9FAD0 /* gravity_memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_memory.h; sourceTree = "<group>"; };
+		A922BAE81E6E0F5C00D9FAD0 /* gravity_opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opcodes.h; sourceTree = "<group>"; };
+		A922BAE91E6E0F5C00D9FAD0 /* gravity_value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_value.c; sourceTree = "<group>"; };
+		A922BAEA1E6E0F5C00D9FAD0 /* gravity_value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_value.h; sourceTree = "<group>"; };
+		A922BAEC1E6E0F5C00D9FAD0 /* gravity_debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_debug.c; sourceTree = "<group>"; };
+		A922BAED1E6E0F5C00D9FAD0 /* gravity_debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_debug.h; sourceTree = "<group>"; };
+		A922BAEE1E6E0F5C00D9FAD0 /* gravity_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_json.c; sourceTree = "<group>"; };
+		A922BAEF1E6E0F5C00D9FAD0 /* gravity_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_json.h; sourceTree = "<group>"; };
+		A922BAF01E6E0F5C00D9FAD0 /* gravity_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_utils.c; sourceTree = "<group>"; };
+		A922BAF11E6E0F5C00D9FAD0 /* gravity_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_utils.h; sourceTree = "<group>"; };
+		A9BA7D441E74180100259798 /* exec_gravity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = exec_gravity.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A922BAAD1E6E0F2600D9FAD0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A922BAA71E6E0F2600D9FAD0 = {
+			isa = PBXGroup;
+			children = (
+				A9BA7D441E74180100259798 /* exec_gravity.c */,
+				A922BABC1E6E0F5C00D9FAD0 /* gravity */,
+				A922BAB11E6E0F2600D9FAD0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A922BAB11E6E0F2600D9FAD0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A922BAB01E6E0F2600D9FAD0 /* exec_gravity */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A922BABC1E6E0F5C00D9FAD0 /* gravity */ = {
+			isa = PBXGroup;
+			children = (
+				A922BAC01E6E0F5C00D9FAD0 /* compiler */,
+				A922BADA1E6E0F5C00D9FAD0 /* runtime */,
+				A922BAE01E6E0F5C00D9FAD0 /* shared */,
+				A922BAEB1E6E0F5C00D9FAD0 /* utils */,
+			);
+			name = gravity;
+			path = ../src;
+			sourceTree = "<group>";
+		};
+		A922BAC01E6E0F5C00D9FAD0 /* compiler */ = {
+			isa = PBXGroup;
+			children = (
+				A922BAC11E6E0F5C00D9FAD0 /* debug_macros.h */,
+				A922BAC21E6E0F5C00D9FAD0 /* gravity_ast.c */,
+				A922BAC31E6E0F5C00D9FAD0 /* gravity_ast.h */,
+				A922BAC41E6E0F5C00D9FAD0 /* gravity_codegen.c */,
+				A922BAC51E6E0F5C00D9FAD0 /* gravity_codegen.h */,
+				A922BAC61E6E0F5C00D9FAD0 /* gravity_compiler.c */,
+				A922BAC71E6E0F5C00D9FAD0 /* gravity_compiler.h */,
+				A922BAC81E6E0F5C00D9FAD0 /* gravity_ircode.c */,
+				A922BAC91E6E0F5C00D9FAD0 /* gravity_ircode.h */,
+				A922BACA1E6E0F5C00D9FAD0 /* gravity_lexer.c */,
+				A922BACB1E6E0F5C00D9FAD0 /* gravity_lexer.h */,
+				A922BACC1E6E0F5C00D9FAD0 /* gravity_optimizer.c */,
+				A922BACD1E6E0F5C00D9FAD0 /* gravity_optimizer.h */,
+				A922BACE1E6E0F5C00D9FAD0 /* gravity_parser.c */,
+				A922BACF1E6E0F5C00D9FAD0 /* gravity_parser.h */,
+				A922BAD01E6E0F5C00D9FAD0 /* gravity_semacheck1.c */,
+				A922BAD11E6E0F5C00D9FAD0 /* gravity_semacheck1.h */,
+				A922BAD21E6E0F5C00D9FAD0 /* gravity_semacheck2.c */,
+				A922BAD31E6E0F5C00D9FAD0 /* gravity_semacheck2.h */,
+				A922BAD41E6E0F5C00D9FAD0 /* gravity_symboltable.c */,
+				A922BAD51E6E0F5C00D9FAD0 /* gravity_symboltable.h */,
+				A922BAD61E6E0F5C00D9FAD0 /* gravity_token.c */,
+				A922BAD71E6E0F5C00D9FAD0 /* gravity_token.h */,
+				A922BAD81E6E0F5C00D9FAD0 /* gravity_visitor.c */,
+				A922BAD91E6E0F5C00D9FAD0 /* gravity_visitor.h */,
+			);
+			path = compiler;
+			sourceTree = "<group>";
+		};
+		A922BADA1E6E0F5C00D9FAD0 /* runtime */ = {
+			isa = PBXGroup;
+			children = (
+				A922BADB1E6E0F5C00D9FAD0 /* gravity_core.c */,
+				A922BADC1E6E0F5C00D9FAD0 /* gravity_core.h */,
+				A922BADD1E6E0F5C00D9FAD0 /* gravity_vm.c */,
+				A922BADE1E6E0F5C00D9FAD0 /* gravity_vm.h */,
+				A922BADF1E6E0F5C00D9FAD0 /* gravity_vmmacros.h */,
+			);
+			path = runtime;
+			sourceTree = "<group>";
+		};
+		A922BAE01E6E0F5C00D9FAD0 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				A922BAE11E6E0F5C00D9FAD0 /* gravity_array.h */,
+				A922BAE21E6E0F5C00D9FAD0 /* gravity_delegate.h */,
+				A922BAE31E6E0F5C00D9FAD0 /* gravity_hash.c */,
+				A922BAE41E6E0F5C00D9FAD0 /* gravity_hash.h */,
+				A922BAE51E6E0F5C00D9FAD0 /* gravity_macros.h */,
+				A922BAE61E6E0F5C00D9FAD0 /* gravity_memory.c */,
+				A922BAE71E6E0F5C00D9FAD0 /* gravity_memory.h */,
+				A922BAE81E6E0F5C00D9FAD0 /* gravity_opcodes.h */,
+				A922BAE91E6E0F5C00D9FAD0 /* gravity_value.c */,
+				A922BAEA1E6E0F5C00D9FAD0 /* gravity_value.h */,
+			);
+			path = shared;
+			sourceTree = "<group>";
+		};
+		A922BAEB1E6E0F5C00D9FAD0 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				A922BAEC1E6E0F5C00D9FAD0 /* gravity_debug.c */,
+				A922BAED1E6E0F5C00D9FAD0 /* gravity_debug.h */,
+				A922BAEE1E6E0F5C00D9FAD0 /* gravity_json.c */,
+				A922BAEF1E6E0F5C00D9FAD0 /* gravity_json.h */,
+				A922BAF01E6E0F5C00D9FAD0 /* gravity_utils.c */,
+				A922BAF11E6E0F5C00D9FAD0 /* gravity_utils.h */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A922BAAF1E6E0F2600D9FAD0 /* exec_gravity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A922BAB71E6E0F2600D9FAD0 /* Build configuration list for PBXNativeTarget "exec_gravity" */;
+			buildPhases = (
+				A922BAAC1E6E0F2600D9FAD0 /* Sources */,
+				A922BAAD1E6E0F2600D9FAD0 /* Frameworks */,
+				A922BAAE1E6E0F2600D9FAD0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = exec_gravity;
+			productName = api;
+			productReference = A922BAB01E6E0F2600D9FAD0 /* exec_gravity */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A922BAA81E6E0F2600D9FAD0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0820;
+				ORGANIZATIONNAME = Creolabs;
+				TargetAttributes = {
+					A922BAAF1E6E0F2600D9FAD0 = {
+						CreatedOnToolsVersion = 8.2.1;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A922BAAB1E6E0F2600D9FAD0 /* Build configuration list for PBXProject "api" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = A922BAA71E6E0F2600D9FAD0;
+			productRefGroup = A922BAB11E6E0F2600D9FAD0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A922BAAF1E6E0F2600D9FAD0 /* exec_gravity */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A922BAAC1E6E0F2600D9FAD0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9BA7D451E74180100259798 /* exec_gravity.c in Sources */,
+				A922BB021E6E0F5C00D9FAD0 /* gravity_hash.c in Sources */,
+				A922BB041E6E0F5C00D9FAD0 /* gravity_value.c in Sources */,
+				A922BAFE1E6E0F5C00D9FAD0 /* gravity_token.c in Sources */,
+				A922BAFF1E6E0F5C00D9FAD0 /* gravity_visitor.c in Sources */,
+				A922BAF91E6E0F5C00D9FAD0 /* gravity_optimizer.c in Sources */,
+				A922BAF71E6E0F5C00D9FAD0 /* gravity_ircode.c in Sources */,
+				A922BAF41E6E0F5C00D9FAD0 /* gravity_ast.c in Sources */,
+				A922BAF81E6E0F5C00D9FAD0 /* gravity_lexer.c in Sources */,
+				A922BAFD1E6E0F5C00D9FAD0 /* gravity_symboltable.c in Sources */,
+				A922BB061E6E0F5C00D9FAD0 /* gravity_json.c in Sources */,
+				A922BAFA1E6E0F5C00D9FAD0 /* gravity_parser.c in Sources */,
+				A922BAFC1E6E0F5C00D9FAD0 /* gravity_semacheck2.c in Sources */,
+				A922BB051E6E0F5C00D9FAD0 /* gravity_debug.c in Sources */,
+				A922BAFB1E6E0F5C00D9FAD0 /* gravity_semacheck1.c in Sources */,
+				A922BB001E6E0F5C00D9FAD0 /* gravity_core.c in Sources */,
+				A922BB011E6E0F5C00D9FAD0 /* gravity_vm.c in Sources */,
+				A922BAF51E6E0F5C00D9FAD0 /* gravity_codegen.c in Sources */,
+				A922BB031E6E0F5C00D9FAD0 /* gravity_memory.c in Sources */,
+				A922BB071E6E0F5C00D9FAD0 /* gravity_utils.c in Sources */,
+				A922BAF61E6E0F5C00D9FAD0 /* gravity_compiler.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A922BAB51E6E0F2600D9FAD0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A922BAB61E6E0F2600D9FAD0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A922BAB81E6E0F2600D9FAD0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A922BAB91E6E0F2600D9FAD0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A922BAAB1E6E0F2600D9FAD0 /* Build configuration list for PBXProject "api" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A922BAB51E6E0F2600D9FAD0 /* Debug */,
+				A922BAB61E6E0F2600D9FAD0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A922BAB71E6E0F2600D9FAD0 /* Build configuration list for PBXNativeTarget "exec_gravity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A922BAB81E6E0F2600D9FAD0 /* Debug */,
+				A922BAB91E6E0F2600D9FAD0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A922BAA81E6E0F2600D9FAD0 /* Project object */;
+}
