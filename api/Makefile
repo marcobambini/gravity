@@ -3,6 +3,7 @@ RUNTIME_DIR = ../src/runtime/
 SHARED_DIR = ../src/shared/
 UTILS_DIR = ../src/utils/
 EXEC_GRAVITY_SRC = exec_gravity.c
+EXEC_C_SRC = exec_c.c
 
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(RUNTIME_DIR)/*.c) \
@@ -27,12 +28,15 @@ else
 	endif
 endif
 
-all: exec_gravity
+all: exec_gravity exec_c
 
 exec_gravity:	$(OBJ) $(EXEC_GRAVITY_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	
+exec_c:	$(OBJ) $(EXEC_C_SRC)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-.PHONY: all clean exec_gravity
+.PHONY: all clean exec_gravity exec_c
 
 clean:
-	rm -f $(OBJ) exec_gravity
+	rm -f $(OBJ) exec_gravity exec_c
