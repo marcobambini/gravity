@@ -762,6 +762,53 @@ static bool list_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
 }
 
+static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
+	const char *sep = NULL;
+	if ((nargs > 1) && VALUE_ISA_STRING(GET_VALUE(1))) sep = VALUE_AS_CSTRING(GET_VALUE(1));
+	
+	// create a new empty buffer
+	uint32_t alloc = (uint32_t) (marray_size(list->array) * 64);
+	uint32_t len = 0;
+	uint32_t seplen = (sep) ? VALUE_AS_STRING(GET_VALUE(1))->len : 0;
+	char *buffer = mem_alloc(alloc);
+	assert(buffer);
+	
+	register gravity_int_t n = marray_size(list->array);
+	register gravity_int_t i = 0;
+	
+	// traverse list and append each item
+	while (i < n) {
+		gravity_value_t value = convert_value2string(vm, marray_get(list->array, i));
+		if (VALUE_ISA_ERROR(value)) RETURN_VALUE(value, rindex);
+		
+		const char *s2 = VALUE_AS_STRING(value)->s;
+		uint32_t req = VALUE_AS_STRING(value)->len;
+		uint32_t free = alloc - len;
+		
+		// check if buffer needs to be reallocated
+		if (free < req + seplen) {
+			buffer = mem_realloc(buffer, (alloc * 2) + req + seplen);
+			alloc += alloc + req + seplen;
+		}
+		
+		// copy s2 to into buffer
+		memcpy(buffer+len, s2, req);
+		len += req;
+		
+		// check for separator string
+		if (i+1 < n && seplen) {
+			memcpy(buffer+len, sep, seplen);
+			len += seplen;
+		}
+		
+		++i;
+	}
+	
+	gravity_string_t *result = gravity_string_new(vm, buffer, len, alloc);
+	RETURN_VALUE(VALUE_FROM_OBJECT(result), rindex);
+}
+
 // MARK: - Map Class -
 
 static bool map_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1668,6 +1715,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_list, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(list_loadat));
 	gravity_class_bind(gravity_class_list, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(list_storeat));
 	gravity_class_bind(gravity_class_list, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(list_loop));
+	gravity_class_bind(gravity_class_list, "join", NEW_CLOSURE_VALUE(list_join));
 	gravity_class_bind(gravity_class_list, "push", NEW_CLOSURE_VALUE(list_push));
 	gravity_class_bind(gravity_class_list, "pop", NEW_CLOSURE_VALUE(list_pop));
 	gravity_class_bind(gravity_class_list, "contains", NEW_CLOSURE_VALUE(list_contains));
