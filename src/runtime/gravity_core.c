@@ -1599,6 +1599,13 @@ static bool system_set (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	RETURN_NOVALUE();
 }
 
+static bool system_exit (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused (vm, nargs, rindex)
+	int n = (VALUE_ISA_INT(GET_VALUE(1))) ? (int)GET_VALUE(1).n : 0;
+	exit(n);
+	RETURN_NOVALUE();
+}
+
 
 // MARK: - CORE -
 
@@ -1826,7 +1833,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_NANOTIME_NAME, NEW_CLOSURE_VALUE(system_nanotime));
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PRINT_NAME, NEW_CLOSURE_VALUE(system_print));
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PUT_NAME, NEW_CLOSURE_VALUE(system_put));
-
+	gravity_class_bind(system_meta, "exit", NEW_CLOSURE_VALUE(system_exit));
+	
 	gravity_value_t value = VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set)));
 	gravity_class_bind(system_meta, "gcenabled", value);
 	gravity_class_bind(system_meta, "gcminthreshold", value);
