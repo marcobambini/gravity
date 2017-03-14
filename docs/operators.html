@@ -124,7 +124,7 @@
 				<li>Greater than or equal (>=)</li>
 				<li>Identical (===)</li>
 				<li>Not identical (!==)</li>
-				<li>Type check (isa)</li>
+				<li>Type check (is)</li>
 				<li>Pattern match (~=)</li>
 			</ul>
 			</p>
@@ -136,7 +136,7 @@
 	1 > 2		// false because 1 is not greater than 2
 	1 >= 1		// true because 1 is greater than or equal to 1
 	1 === 1		// true because 1 is identical to 1 (same value and same class)
-	1 isa Int	// true because 1 is of class Int
+	1 is Int	// true because 1 is of class Int
 			</code></pre>
 			<p>Gravity performs some conversions at runtime, so 1 == "1" but not 1 === '1'.</p>
 
