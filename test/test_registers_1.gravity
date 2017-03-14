@@ -1,0 +1,12 @@
+#unittest {
+	name: "Consecutive registers in list expression.";
+	error: NONE;
+	result: "[1,2,3,4]";
+};
+
+func main() {
+	50;
+	var nums = [1, 2, 3, 4];
+	100;
+	return nums.String();
+}

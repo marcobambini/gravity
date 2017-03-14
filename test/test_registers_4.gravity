@@ -1,0 +1,14 @@
+#unittest {
+	name: "Consecutive registers in nested calls.";
+	error: NONE;
+	result: true;
+};
+
+func test(a,b) {
+	return b - a;
+};
+
+func main() {
+	var n = test(System.nanotime(), System.nanotime());
+	return n != 0;
+}

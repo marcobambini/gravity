@@ -95,7 +95,8 @@ uint32_t	ircode_register_pop_protect (ircode_t *code, bool protect);
 void		ircode_register_protect (ircode_t *code, uint32_t nreg);
 uint32_t	ircode_register_last (ircode_t *code);
 uint32_t	ircode_register_count (ircode_t *code);
-void		ircode_register_clean (ircode_t *code, uint32_t nreg);
+void		ircode_register_clear (ircode_t *code, uint32_t nreg);
 void		ircode_register_dump (ircode_t *code);
+void		ircode_register_clear_temps (ircode_t *code);
 
 #endif

@@ -432,7 +432,7 @@ static uint32_t ircode_register_new (ircode_t *code) {
 
 uint32_t ircode_register_push (ircode_t *code, uint32_t nreg) {
 	marray_push(uint32_t, code->registers, nreg);
-	if (nreg >= code->nlocals) ++code->ntemps;
+	if (ircode_register_istemp(code, nreg)) ++code->ntemps;
 	
 	DEBUG_REGISTER("PUSH REGISTER %d", nreg);
 	return nreg;
@@ -468,7 +468,7 @@ void ircode_register_protect (ircode_t *code, uint32_t nreg) {
 	context[nreg] = false;
 }
 
-void ircode_register_clean (ircode_t *code, uint32_t nreg) {
+void ircode_register_clear (ircode_t *code, uint32_t nreg) {
 	// cleanup busy mask only if it is a temp register
 	if (nreg >= code->nlocals) code->state[nreg] = false;
 }
@@ -480,9 +480,8 @@ uint32_t ircode_register_last (ircode_t *code) {
 	return value;
 }
 
-bool ircode_register_istemp (ircode_t *code, uint32_t n) {
-	uint32_t n1 = (uint32_t)code->nlocals;
-	return (n>=n1);
+bool ircode_register_istemp (ircode_t *code, uint32_t nreg) {
+	return (nreg >= (uint32_t)code->nlocals);
 }
 
 void ircode_register_dump (ircode_t *code) {
@@ -496,4 +495,11 @@ void ircode_register_dump (ircode_t *code) {
 
 uint32_t ircode_register_count (ircode_t *code) {
 	return (uint32_t)marray_size(code->registers);
+}
+
+void ircode_register_clear_temps (ircode_t *code) {
+	// clear all temporary registers (this code must be optimized)
+	for (uint32_t i=code->nlocals; i<=code->maxtemp; ++i) {
+		code->state[i] = false;
+	}
 }

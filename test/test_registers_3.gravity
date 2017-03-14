@@ -1,0 +1,20 @@
+#unittest {
+	name: "Consecutive registers in list expression with nested calls.";
+	error: NONE;
+	result: "[1,2,3,4]";
+};
+
+class c1 {
+	var v;
+	func value() {
+		return v;
+	}
+	func init() {
+		v = 2;
+	}
+}
+
+func main() {
+	var nums = [1, c1().value(), 3, 4];
+	return nums.String();
+}

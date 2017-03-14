@@ -49,7 +49,7 @@ typedef struct codegen_t codegen_t;
 
 #define IS_LAST_LOOP(n1,n2)				(n1+1==n2)
 
-#if 1
+#if 0
 #define CODEGEN_COUNT_REGISTERS(_n)						uint32_t _n = ircode_register_count(code)
 #define CODEGEN_ASSERT_REGISTERS(_n1,_n2,_v)			assert(_n2 -_n1 == (_v))
 #else
@@ -789,7 +789,15 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	}
 	
 	// process inner block
-	if (node->block) {gnode_array_each(node->block->stmts, {visit(val);});}
+	ircode_t *code = (ircode_t *)f->bytecode;
+	if (node->block) {
+		gnode_array_each(node->block->stmts, {
+			// process node
+			visit(val);
+			// reset temp registers after each node
+			ircode_register_clear_temps(code);
+		});
+	}
 	
 	// check for upvalues
 	if (node->uplist) f->nupvalues = (uint16_t)gnode_array_size(node->uplist);
@@ -1160,7 +1168,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			
 			// check dest register
 			bool dest_is_temp = ircode_register_istemp(code, dest_register);
-			if (!dest_is_temp) dest_register = ircode_register_push_temp(code);
+			if (!dest_is_temp) {
+				dest_register = ircode_register_push_temp(code);
+				dest_is_temp = true;
+			}
 			
 			// add target register (must be temp)
 			uint32_t temp_target_register = ircode_register_push_temp(code);
@@ -1186,6 +1197,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 					uint32_t temp = ircode_register_push_temp(code);
 					if (temp == 0) return; // temp value == 0 means codegen error (error will be automatically reported later in visit_function_decl
 					ircode_add(code, MOVE, temp, nreg, 0);
+					ircode_register_clear(code, nreg);
 					nreg = ircode_register_pop_protect(code, true);
 				}
 				assert(nreg == temp_target_register + j + 2);
@@ -1196,12 +1208,12 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			ircode_add(code, CALL, dest_register, temp_target_register, (uint32_t)n+1);
 			
 			// cleanup temp registers
-			ircode_register_clean(code, temp_target_register);
-			ircode_register_clean(code, temp_self_register);
+			ircode_register_clear(code, temp_target_register);
+			ircode_register_clear(code, temp_self_register);
 			n = gnode_array_size(subnode->args);
 			for (size_t j=0; j<n; ++j) {
 				uint32_t reg = marray_get(args, j);
-				ircode_register_clean(code, reg);
+				ircode_register_clear(code, reg);
 			}
 			
 			// update self list
@@ -1516,25 +1528,34 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 		ircode_push_context(code);
 			
 		// process each node
-		for (size_t j=idxstart; j<idxend; ++j) {
+		for (size_t i=1, j=idxstart; j<idxend; ++j) {
 			gnode_t *e = gnode_array_get(node->list1, j);
 			visit(e);
 			uint32_t nreg = ircode_register_pop_protect(code, true);
-			if (!ircode_register_istemp(code, nreg)) {
+			
+			if (nreg != dest + i) {
 				uint32_t temp_register = ircode_register_push_temp(code);
 				ircode_add(code, MOVE, temp_register, nreg, 0);
+				ircode_register_clear(code, nreg);
 				ircode_register_pop_protect(code, true);
+				assert(temp_register == dest + i);
 			}
+			
 			if (ismap) {
 				e = gnode_array_get(node->list2, j);
 				visit(e);
 				nreg = ircode_register_pop_protect(code, true);
-				if (!ircode_register_istemp(code, nreg)) {
+				
+				if (nreg != dest + i + 1) {
 					uint32_t temp_register = ircode_register_push_temp(code);
 					ircode_add(code, MOVE, temp_register, nreg, 0);
+					ircode_register_clear(code, nreg);
 					ircode_register_pop_protect(code, true);
+					assert(temp_register == dest + i + 1);
 				}
 			}
+			
+			i += (ismap) ? 2 : 1;
 		}
 		
 		// emit proper SETLIST instruction
