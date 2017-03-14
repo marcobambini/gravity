@@ -275,7 +275,8 @@ bool token_isexpression_statement (gtoken_t token) {
 	// unary_operator: '+' | '-' | '!' | 'not'
 	// raise_expression: 'raise'
 	
-	return (token_isprimary_expression(token) || (token == TOK_OP_ADD) || (token == TOK_OP_SUB) || (token == TOK_OP_NOT));
+	return (token_isprimary_expression(token) || (token == TOK_OP_ADD) || (token == TOK_OP_SUB) ||
+			(token == TOK_OP_NOT) || (token == TOK_KEY_CURRARGS) || (token == TOK_KEY_CURRFUNC));
 }
 
 bool token_islabel_statement (gtoken_t token) {
