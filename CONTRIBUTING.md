@@ -17,4 +17,9 @@ If you fix a bug or if you add a new functionality then a unit-test is required.
 A unit-test is a single source code file that is able to run under the unittest executable file.
 You are free to test your functionalities/fixes into a single unit-test file or split the test in more files.
 
+####Add Docs
+If you add new functionality, or edit the way that current functionality works,
+add or edit the docs to reflect this so that there is documentation of the new
+changes for new users.
+
 Don't forget to add your name and your email address to the official **CONTRIBUTORS** file!
