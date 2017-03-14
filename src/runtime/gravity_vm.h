@@ -12,6 +12,10 @@
 #include "gravity_delegate.h"
 #include "gravity_value.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef bool (*vm_filter_cb) (gravity_object_t *obj);
 typedef void (*vm_transfer_cb) (gravity_vm *vm, gravity_object_t *obj);
 typedef void (*vm_cleanup_cb) (gravity_vm *vm);
@@ -64,6 +68,10 @@ void				gravity_vm_memupdate (gravity_vm *vm, gravity_int_t value);
 gravity_value_t		gravity_vm_get (gravity_vm *vm, const char *key);
 bool				gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value);
 char				*gravity_vm_anonymous (gravity_vm *vm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
