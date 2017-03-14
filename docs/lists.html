@@ -118,7 +118,7 @@
 			</code></pre>
 			
 			<h4 class="section-h4">List as a stack</h4>
-			<p>The List class implements the push/pop methods as a convenient way to threat a list as a stack:</p> 
+			<p>The List class implements the push/pop methods as a convenient way to treat a list as a stack:</p> 
 			<pre><code class="swift">
 	var list = [10,20,30,40,50];
 	list.push(100);		// add 100 to the list
@@ -132,6 +132,15 @@
 	var list = [1, 2, "Hello", 3.1415, true];
 	return list.contains(3.1415); // Returns: true
 			</code></pre>
+            
+			<h4 class="section-h4">List Joins</h4>
+			<p>The List class implements the join method as a convenient way to
+			interpret a list as a string:</p> 
+			<pre><code class="swift">
+	var list = [1,2,3,4,5];
+	list.join(" + "); // Becomes: "1 + 2 + 3 + 4 + 5"
+			</code></pre>
+            
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
      </div> <!-- /container -->
