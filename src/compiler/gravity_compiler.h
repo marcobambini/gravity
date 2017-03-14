@@ -15,6 +15,10 @@
 #include "gravity_value.h"
 #include "gravity_ast.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // opaque compiler data type
 typedef struct gravity_compiler_t	gravity_compiler_t;
 
@@ -25,5 +29,9 @@ bool				gravity_compiler_serialize_infile (gravity_compiler_t *compiler, gravity
 void				gravity_compiler_transfer (gravity_compiler_t *compiler, gravity_vm *vm);
 gnode_t				*gravity_compiler_ast (gravity_compiler_t *compiler);
 void				gravity_compiler_free (gravity_compiler_t *compiler);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

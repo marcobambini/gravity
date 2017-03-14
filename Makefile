@@ -11,7 +11,7 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(UTILS_DIR)/*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR)
-CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline
+CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline -fPIC
 OBJ = $(SRC:.c=.o)
 
 ifeq ($(OS),Windows_NT)
@@ -38,5 +38,8 @@ gravity:	$(OBJ) $(GRAVITY_SRC)
 
 .PHONY: all clean unittest gravity
 
+lib: gravity
+	$(CC) -shared -o libgravity.so $(OBJ)
+
 clean:
-	rm -f $(OBJ) unittest gravity
+	rm -f $(OBJ) unittest gravity libgravity.so

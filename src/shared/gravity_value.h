@@ -62,6 +62,10 @@
 // gravity_string_t			48
 // gravity_range_t			40
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GRAVITY_VERSION						"0.2.5"
 #define GRAVITY_VERSION_NUMBER				0x000205
 #define GRAVITY_BUILD_DATE					__DATE__
@@ -481,5 +485,9 @@ uint32_t			gravity_string_size (gravity_vm *vm, gravity_string_t *string);
 void				gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
 void				gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
 void				gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
