@@ -124,6 +124,21 @@
 	}
 				</code></pre>
 				
+				<h4 class="section-h4">System Exit</h4>
+				<p>There are times where it could be useful to have main() return an
+				error code back to your shell:</p>
+				<pre><code class="swift">
+	func main() {
+		foo(); // Do something useful
+		System.exit(5);
+	}
+				</code></pre>
+				<p>In your terminal, you can now reference the return code:
+				<pre><code class="bash">
+	# Returns: 5
+	$ echo $?
+				</code></pre>
+				
          	</div>
          	<!-- END CONTENT -->
          	
