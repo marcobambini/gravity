@@ -1,0 +1,9 @@
+#unittest {
+	name: "Runtime error generation via Fiber.abort.";
+	error: RUNTIME;
+};
+
+func main() {
+	var a = 10;
+	if (a == 10) Fiber.abort("Runtime error generation!");
+}

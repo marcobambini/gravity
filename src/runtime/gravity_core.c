@@ -96,6 +96,7 @@ gravity_class_t *gravity_class_system;
 													char buffer[4096];														\
 													snprintf(buffer, sizeof(buffer), __VA_ARGS__);							\
 													gravity_fiber_seterror(gravity_vm_fiber(vm), (const char *) buffer);	\
+													gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);						\
 													return false;															\
 												} while(0)
 
@@ -1469,8 +1470,6 @@ static bool fiber_status (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 }
 
 static bool fiber_abort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(rindex)
-	
 	gravity_value_t msg = (nargs > 0) ? GET_VALUE(1) : VALUE_FROM_NULL;
 	if (!VALUE_ISA_STRING(msg)) RETURN_ERROR("Fiber.abort expects a string as argument.");
 	
@@ -1800,7 +1799,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_fiber, "try", NEW_CLOSURE_VALUE(fiber_try));
 	gravity_class_bind(fiber_meta, "yield", NEW_CLOSURE_VALUE(fiber_yield));
 	gravity_class_bind(gravity_class_fiber, "status", NEW_CLOSURE_VALUE(fiber_status));
-	gravity_class_bind(gravity_class_fiber, "abort", NEW_CLOSURE_VALUE(fiber_abort));
+	gravity_class_bind(fiber_meta, "abort", NEW_CLOSURE_VALUE(fiber_abort));
 	
 	// BASIC OPERATIONS added also to NULL CLASS (and UNDEFINED since they points to the same class)
 	// this is required because every variable is initialized by default to NULL
