@@ -91,12 +91,16 @@ bool		ircode_register_istemp (ircode_t *code, uint32_t n);
 uint32_t	ircode_register_push_temp (ircode_t *code);
 uint32_t	ircode_register_push (ircode_t *code, uint32_t nreg);
 uint32_t	ircode_register_pop (ircode_t *code);
-uint32_t	ircode_register_pop_protect (ircode_t *code, bool protect);
-void		ircode_register_protect (ircode_t *code, uint32_t nreg);
+uint32_t	ircode_register_pop_context_protect (ircode_t *code, bool protect);
+void		ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg);
+void		ircode_register_protect_in_context (ircode_t *code, uint32_t nreg);
 uint32_t	ircode_register_last (ircode_t *code);
 uint32_t	ircode_register_count (ircode_t *code);
 void		ircode_register_clear (ircode_t *code, uint32_t nreg);
 void		ircode_register_dump (ircode_t *code);
+
+void		ircode_register_set_skip_clear (ircode_t *code, uint32_t nreg);
+void		ircode_register_unset_skip_clear (ircode_t *code, uint32_t nreg);
 void		ircode_register_clear_temps (ircode_t *code);
 
 #endif

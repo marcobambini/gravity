@@ -6,7 +6,6 @@
 //  Copyright (c) 2014 CreoLabs. All rights reserved.
 //
 
-#include <inttypes.h>
 #include "gravity_ircode.h"
 #include "gravity_value.h"
 #include "gravity_debug.h"
@@ -15,20 +14,21 @@ typedef marray_t(inst_t *)		code_r;
 typedef marray_t(bool *)		context_r;
 
 struct ircode_t {
-	code_r		*list;					// array of ircode instructions
+	code_r		*list;						// array of ircode instructions
 	
-	uint32_r	label_true;				// labels used in loops
+	uint32_r	label_true;					// labels used in loops
 	uint32_r	label_false;
 	uint32_t	label_counter;
 	
-	uint32_t	maxtemp;				// maximum number of temp registers used in this ircode
-	uint32_t	ntemps;					// current number of temp registers in use
-	uint16_t	nlocals;				// number of local registers (params + local variables)
-	bool		error;					// error flag set when no more registers are availables
+	uint32_t	maxtemp;					// maximum number of temp registers used in this ircode
+	uint32_t	ntemps;						// current number of temp registers in use
+	uint16_t	nlocals;					// number of local registers (params + local variables)
+	bool		error;						// error flag set when no more registers are availables
 	
-	bool		state[MAX_REGISTERS];	// registers mask
-	uint32_r	registers;				// registers stack
-	context_r	context;				// context array
+	bool		state[MAX_REGISTERS];		// registers mask
+	bool		skipclear[MAX_REGISTERS];	// registers protection for temps used in for loop
+	uint32_r	registers;					// registers stack
+	context_r	context;					// context array
 };
 
 ircode_t *ircode_create (uint16_t nlocals) {
@@ -53,34 +53,6 @@ ircode_t *ircode_create (uint16_t nlocals) {
 		code->state[i] = true;
 	}
 	return code;
-}
-
-#if 0
-static void dump_context(bool *context) {
-	for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
-		printf("%d ", context[i]);
-	}
-	printf("\n");
-}
-#endif
-
-void ircode_push_context (ircode_t *code) {
-	bool *context = mem_alloc(sizeof(bool) * MAX_REGISTERS);
-	marray_push(bool *, code->context, context);
-}
-
-void ircode_pop_context (ircode_t *code) {
-	bool *context = marray_pop(code->context);
-	// apply context mask
-	for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
-		if (context[i]) code->state[i] = false;
-	}
-	mem_free(context);
-}
-
-static void ircode_add_context (ircode_t *code, uint32_t n) {
-	bool *context = marray_last(code->context);
-	context[n] = true;
 }
 
 void ircode_free (ircode_t *code) {
@@ -297,6 +269,7 @@ void ircode_dump  (void *_code) {
 		int32_t		p2 = inst->p2;
 		int32_t		p3 = inst->p3;
 		if (inst->tag == SKIP_TAG) continue;
+		if (inst->tag == PRAGMA_OPTIMIZATION) continue;
 		if (inst->tag == LABEL_TAG) {printf("LABEL %d:\n", p1); continue;}
 		
 		uint8_t n = opcode_numop(op);
@@ -314,7 +287,7 @@ void ircode_dump  (void *_code) {
 			case 2: {
 				if (op == LOADI) {
 					if (inst->tag == DOUBLE_TAG) printf("%05d\t%s %d %.2f\n", line, opcode_name(op), p1, inst->d);
-					else printf("%05d\t%s %d %" PRId64 "\n", line, opcode_name(op), p1, inst->n);
+					else printf("%05d\t%s %d %lld\n", line, opcode_name(op), p1, inst->n);
 				} else if (op == LOADK) {
 					if (p2 < CPOOL_INDEX_MAX) printf("%05d\t%s %d %d\n", line, opcode_name(op), p1, p2);
 					else printf("%05d\t%s %d %s\n", line, opcode_name(op), p1, opcode_constname(p2));
@@ -416,6 +389,60 @@ void ircode_add_skip (ircode_t *code) {
 	marray_push(inst_t*, *code->list, inst);
 }
 
+// MARK: - Context based functions -
+
+#if 0
+static void dump_context(bool *context) {
+	for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
+		printf("%d ", context[i]);
+	}
+	printf("\n");
+}
+#endif
+
+void ircode_push_context (ircode_t *code) {
+	bool *context = mem_alloc(sizeof(bool) * MAX_REGISTERS);
+	marray_push(bool *, code->context, context);
+}
+
+void ircode_pop_context (ircode_t *code) {
+	bool *context = marray_pop(code->context);
+	// apply context mask
+	for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
+		if (context[i]) code->state[i] = false;
+	}
+	mem_free(context);
+}
+
+uint32_t ircode_register_pop_context_protect (ircode_t *code, bool protect) {
+	assert(marray_size(code->registers) != 0);
+	uint32_t value = (uint32_t)marray_pop(code->registers);
+	
+	if (protect) code->state[value] = true;
+	else if (value >= code->nlocals) code->state[value] = false;
+	
+	if (protect && value >= code->nlocals) {
+		bool *context = marray_last(code->context);
+		context[value] = true;
+	}
+	
+	DEBUG_REGISTER("POP REGISTER %d", value);
+	return value;
+}
+
+void ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg) {
+	if (nreg < code->nlocals) return;
+	assert(code->state[nreg]);
+	bool *context = marray_last(code->context);
+	context[nreg] = false;
+}
+
+void ircode_register_protect_in_context (ircode_t *code, uint32_t nreg) {
+	assert(code->state[nreg]);
+	bool *context = marray_last(code->context);
+	context[nreg] = true;
+}
+
 // MARK: -
 
 static uint32_t ircode_register_new (ircode_t *code) {
@@ -448,24 +475,7 @@ uint32_t ircode_register_push_temp (ircode_t *code) {
 }
 
 uint32_t ircode_register_pop (ircode_t *code) {
-	return ircode_register_pop_protect(code, false);
-}
-
-uint32_t ircode_register_pop_protect (ircode_t *code, bool protect) {
-	assert(marray_size(code->registers) != 0);
-	uint32_t value = (uint32_t)marray_pop(code->registers);
-	if (protect) code->state[value] = true;
-	else if (value >= code->nlocals) code->state[value] = false;
-	if (protect && value >= code->nlocals) ircode_add_context(code, value);
-	
-	DEBUG_REGISTER("POP REGISTER %d", value);
-	return value;
-}
-
-void ircode_register_protect (ircode_t *code, uint32_t nreg) {
-	if (nreg < code->nlocals) return;
-	bool *context = marray_last(code->context);
-	context[nreg] = false;
+	return ircode_register_pop_context_protect(code, false);
 }
 
 void ircode_register_clear (ircode_t *code, uint32_t nreg) {
@@ -497,9 +507,19 @@ uint32_t ircode_register_count (ircode_t *code) {
 	return (uint32_t)marray_size(code->registers);
 }
 
+// MARK: -
+
+void ircode_register_set_skip_clear (ircode_t *code, uint32_t nreg) {
+	code->skipclear[nreg] = true;
+}
+
+void ircode_register_unset_skip_clear (ircode_t *code, uint32_t nreg) {
+	code->skipclear[nreg] = false;
+}
+
 void ircode_register_clear_temps (ircode_t *code) {
-	// clear all temporary registers (this code must be optimized)
+	// clear all temporary registers (if not protected)
 	for (uint32_t i=code->nlocals; i<=code->maxtemp; ++i) {
-		code->state[i] = false;
+		if (!code->skipclear[i]) code->state[i] = false;
 	}
 }

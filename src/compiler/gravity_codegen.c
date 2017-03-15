@@ -259,7 +259,21 @@ static void visit_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 
 static void visit_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 	DEBUG_CODEGEN("visit_compound_stmt");
-	gnode_array_each(node->stmts, {visit(val);});
+	
+	gnode_array_each(node->stmts, {
+		visit(val);
+		
+		// check if context is a function
+		DECLARE_CONTEXT();
+		bool is_func_ctx = OBJECT_ISA_FUNCTION(context_object);
+		if (!is_func_ctx) continue;
+		
+		// in case of function context cleanup temporary registers
+		gravity_function_t *f = (gravity_function_t*)context_object;
+		ircode_t *code = (ircode_t *)f->bytecode;
+		ircode_register_clear_temps(code);
+	});
+	
 	if (node->nclose != UINT32_MAX) {
 		DECLARE_CODE();
 		ircode_add(code, CLOSE, node->nclose, 0, 0);
@@ -429,6 +443,10 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 	
 	uint32_t $expr = ircode_register_push_temp(code);			// ++TEMP => 1
 	uint32_t $value = ircode_register_push_temp(code);			// ++TEMP => 2
+	// $expr and $value are temporary registers that must not be cleared by ircode_register_clear_temps
+	// in visit_compound_statement, so mark them to skip clear
+	ircode_register_set_skip_clear(code, $expr);
+	ircode_register_set_skip_clear(code, $value);
 	
 	uint16_t iterate_idx = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, ITERATOR_INIT_FUNCTION));
 	uint16_t next_idx = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, ITERATOR_NEXT_FUNCTION));
@@ -443,11 +461,13 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 	uint32_t iterate_fn = ircode_register_push_temp(code);		// ++TEMP => 3
 	ircode_add(code, LOADK, iterate_fn, iterate_idx, 0);
 	ircode_add(code, LOAD, iterate_fn, $expr, iterate_fn);
+	ircode_register_set_skip_clear(code, iterate_fn);
 	
 	uint32_t next_fn = ircode_register_push_temp(code);			// ++TEMP => 4
 	ircode_add(code, LOADK, next_fn, next_idx, 0);
 	ircode_add(code, LOAD, next_fn, $expr, next_fn);
-		
+	ircode_register_set_skip_clear(code, next_fn);
+	
 	uint32_t temp1 = ircode_register_push_temp(code);			// ++TEMP => 5
 	ircode_add(code, MOVE, temp1, iterate_fn, 0);
 	uint32_t temp2 = ircode_register_push_temp(code);			// ++TEMP => 6
@@ -510,6 +530,11 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 	ircode_register_pop(code);									// --TEMP => 2
 	ircode_register_pop(code);									// --TEMP => 1
 	ircode_register_pop(code);									// --TEMP => 0
+	
+	ircode_register_unset_skip_clear(code, $expr);
+	ircode_register_unset_skip_clear(code, $value);
+	ircode_register_unset_skip_clear(code, iterate_fn);
+	ircode_register_unset_skip_clear(code, next_fn);
 	
 	if (node->nclose != UINT32_MAX) {
 		ircode_add(code, CLOSE, node->nclose, 0, 0);
@@ -1130,7 +1155,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	bool is_super = IS_SUPER(node->id);
 	
 	// register that contains callable object
-	uint32_t target_register = ircode_register_pop_protect(code, true);
+	uint32_t target_register = ircode_register_pop_context_protect(code, true);
 	
 	// register where to store final result
 	uint32_t dest_register = target_register;
@@ -1176,13 +1201,13 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			// add target register (must be temp)
 			uint32_t temp_target_register = ircode_register_push_temp(code);
 			ircode_add(code, MOVE, temp_target_register, target_register, 0);
-			ircode_register_pop_protect(code, true);
+			ircode_register_pop_context_protect(code, true);
 			
 			// always add SELF parameter (must be temp+1)
 			uint32_t self_register = marray_pop(self_list);
 			uint32_t temp_self_register = ircode_register_push_temp(code);
 			ircode_add(code, MOVE, temp_self_register, self_register, 0);
-			ircode_register_pop_protect(code, true);
+			ircode_register_pop_context_protect(code, true);
 			
 			// process each parameter (each must be temp+2 ... temp+n)
 			marray_decl_init(uint32_r, args);
@@ -1191,14 +1216,14 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 				// process each argument
 				gnode_t *arg = (gnode_t *)gnode_array_get(subnode->args, j);
 				visit(arg);
-				uint32_t nreg = ircode_register_pop_protect(code, true);
+				uint32_t nreg = ircode_register_pop_context_protect(code, true);
 				// make sure args are in consecutive register locations (from temp_target_register + 1 to temp_target_register + n)
 				if (nreg != temp_target_register + j + 2) {
 					uint32_t temp = ircode_register_push_temp(code);
 					if (temp == 0) return; // temp value == 0 means codegen error (error will be automatically reported later in visit_function_decl
 					ircode_add(code, MOVE, temp, nreg, 0);
 					ircode_register_clear(code, nreg);
-					nreg = ircode_register_pop_protect(code, true);
+					nreg = ircode_register_pop_context_protect(code, true);
 				}
 				assert(nreg == temp_target_register + j + 2);
 				marray_push(uint32_t, args, nreg);
@@ -1228,7 +1253,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 					if (dest_is_temp && last_register == dest_register) dest_is_temp = false;
 				}
 				if (dest_is_temp) ircode_register_push(code, dest_register);
-				ircode_register_protect(code, dest_register);
+				ircode_register_protect_outside_context(code, dest_register);
 			}
 			
 			// free temp args array
@@ -1246,7 +1271,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			dest_register = (is_real_assigment) ? ircode_register_pop(code) : ircode_register_push_temp(code);
 			if (is_super) ircode_add(code, LOADS, dest_register, target_register, index_register);
 			else ircode_add(code, (is_real_assigment) ? STORE : LOAD, dest_register, target_register, index_register);
-			if ((!is_real_assigment) && (i+1<count)) ircode_register_pop_protect(code, true);
+			if ((!is_real_assigment) && (i+1<count)) ircode_register_pop_context_protect(code, true);
 			
 			// update self list (if latest instruction)
 			// this was added in order to properly emit instructions for nested_class.gravity unit test
@@ -1263,7 +1288,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			// generate LOADAT/STOREAT instruction
 			dest_register = (is_real_assigment) ? ircode_register_pop(code) : ircode_register_push_temp(code);
 			ircode_add(code, (is_assignment) ? STOREAT : LOADAT, dest_register, target_register, index);
-			if ((!is_real_assigment) && (i+1<count)) ircode_register_pop_protect(code, true);
+			if ((!is_real_assigment) && (i+1<count)) ircode_register_pop_context_protect(code, true);
 		}
 		
 		// reset is_super flag
@@ -1531,26 +1556,26 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 		for (size_t i=1, j=idxstart; j<idxend; ++j) {
 			gnode_t *e = gnode_array_get(node->list1, j);
 			visit(e);
-			uint32_t nreg = ircode_register_pop_protect(code, true);
+			uint32_t nreg = ircode_register_pop_context_protect(code, true);
 			
 			if (nreg != dest + i) {
 				uint32_t temp_register = ircode_register_push_temp(code);
 				ircode_add(code, MOVE, temp_register, nreg, 0);
 				ircode_register_clear(code, nreg);
-				ircode_register_pop_protect(code, true);
+				ircode_register_pop_context_protect(code, true);
 				assert(temp_register == dest + i);
 			}
 			
 			if (ismap) {
 				e = gnode_array_get(node->list2, j);
 				visit(e);
-				nreg = ircode_register_pop_protect(code, true);
+				nreg = ircode_register_pop_context_protect(code, true);
 				
 				if (nreg != dest + i + 1) {
 					uint32_t temp_register = ircode_register_push_temp(code);
 					ircode_add(code, MOVE, temp_register, nreg, 0);
 					ircode_register_clear(code, nreg);
-					ircode_register_pop_protect(code, true);
+					ircode_register_pop_context_protect(code, true);
 					assert(temp_register == dest + i + 1);
 				}
 			}
