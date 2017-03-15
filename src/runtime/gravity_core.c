@@ -1015,6 +1015,7 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 }
 
 // MARK: - Closure Class -
+
 static bool closure_disassemble (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(nargs)
 	
@@ -1025,6 +1026,20 @@ static bool closure_disassemble (gravity_vm *vm, gravity_value_t *args, uint16_t
 	if (!buffer) RETURN_VALUE(VALUE_FROM_NULL, rindex);
 	
 	RETURN_VALUE(gravity_string_to_value(vm, buffer, AUTOLENGTH), rindex);
+}
+
+static bool closure_apply (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	if (nargs != 3) RETURN_ERROR("Two arguments are needed by the apply function.");
+	if (!VALUE_ISA_LIST(GET_VALUE(2))) RETURN_ERROR("A list of arguments is required in the apply function.");
+	
+	gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(0));
+	gravity_value_t self_value = GET_VALUE(1);
+	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(2));
+	
+	gravity_vm_runclosure(vm, closure, self_value, list->array.p, (uint16_t)marray_size(list->array));
+	gravity_value_t result = gravity_vm_result(vm);
+	
+	RETURN_VALUE(result, rindex);
 }
 
 // MARK: - Float Class -
@@ -1737,6 +1752,7 @@ static void gravity_core_init (void) {
 	
 	// CLOSURE CLASS
 	gravity_class_bind(gravity_class_closure, "disassemble", NEW_CLOSURE_VALUE(closure_disassemble));
+	gravity_class_bind(gravity_class_closure, "apply", NEW_CLOSURE_VALUE(closure_apply));
 	
 	// LIST CLASS
 	gravity_class_bind(gravity_class_list, "count", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(list_count), NULL)));

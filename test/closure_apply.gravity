@@ -1,0 +1,13 @@
+#unittest {
+	name: "Simple closure.apply";
+	error: NONE;
+	result: 3;
+};
+
+func add(a,b) {
+	return a + b;
+}
+
+func main() {
+	return add.apply(self, [1,2]);
+}
