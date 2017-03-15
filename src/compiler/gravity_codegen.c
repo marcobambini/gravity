@@ -91,7 +91,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 }
 
 // MARK: -
-static opcode_t token2opcode(gtoken_t op) {
+static opcode_t token2opcode (gtoken_t op) {
 	switch (op) {
 		// BIT
 		case TOK_OP_SHIFT_LEFT: return LSHIFT;
@@ -213,7 +213,7 @@ static bool check_literals_list (gvisitor_t *self, gnode_list_expr_t *node, bool
 }
 #endif
 
-static uint32_t node2index(gnode_t * node) {
+static uint32_t node2index (gnode_t * node) {
 	// node can be a VARIABLE declaration or a local IDENTIFIER
 	
 	if (NODE_ISA(node, NODE_VARIABLE_DECL)) {
@@ -235,7 +235,7 @@ static uint32_t node2index(gnode_t * node) {
 	return UINT32_MAX;
 }
 
-static void fix_superclasses(gvisitor_t *self) {
+static void fix_superclasses (gvisitor_t *self) {
 	// this function cannot fail because superclasses was already checked in samecheck2 so I am sure that they exist somewhere
 	codegen_t		*data = (codegen_t *)self->data;
 	gnode_class_r	*superfix = &data->superfix;
@@ -248,6 +248,35 @@ static void fix_superclasses(gvisitor_t *self) {
 		gravity_class_t	*c = (gravity_class_t *)node->data;
 		gravity_class_setsuper(c, (gravity_class_t *)super->data);
 	}
+}
+
+// this function can be called ONLY from visit_postfix_expr where a context has been pushed
+static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t target_register) {
+	DEBUG_CODEGEN("compute_self_register");
+	DECLARE_CODE();
+	
+	// check for special implicit self slot
+	if (IS_IMPLICIT_SELF(node)) return 0;
+	
+	// check for super keyword
+	if (IS_SUPER(node)) return 0;
+	
+	// if node refers to an outer class then load outer class from hidden _outer ivar and return its register
+	if ((NODE_ISA(node, NODE_IDENTIFIER_EXPR) && ((gnode_identifier_expr_t *)node)->location.type == LOCATION_CLASS_IVAR_OUTER)) {
+		gnode_identifier_expr_t *expr = (gnode_identifier_expr_t *)node;
+		uint32_t dest = ircode_register_push_temp(code);
+		uint32_t target = 0;
+		
+		for (uint16_t i=0; i<expr->location.nup; ++i) {
+			ircode_add(code, LOAD, dest, target, 0 + MAX_REGISTERS);
+			target = dest;
+		}
+		
+		return ircode_register_pop_context_protect(code, true);
+	}
+	
+	// no special register found, so just return the target
+	return target_register;
 }
 
 // MARK: - Statements -
@@ -1162,7 +1191,8 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	
 	// mandatory self register (initialized to 0 in case of implicit self or explicit super)
 	uint32_r self_list; marray_init(self_list);
-	marray_push(uint32_t, self_list, ((IS_IMPLICIT_SELF(node->id)) || (is_super)) ? 0 : target_register);
+	uint32_t first_self_register = compute_self_register(self, node->id, target_register);
+	marray_push(uint32_t, self_list, first_self_register);
 	
 	// process each subnode and set is_assignment flag
 	bool is_assignment = node->base.is_assignment;

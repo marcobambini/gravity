@@ -1,0 +1,35 @@
+#unittest {
+	name: "Check if right self is passed while calling a method of the outer class.";
+	error: NONE;
+	result: 300;
+};
+
+class CustomView {
+	var p1;
+	var toggle1;
+	
+	func Action(value) {
+		p1 = value;
+	}
+	
+	class Toggle {
+		func Changed(value) {
+			Action(value)
+		}
+	}
+	
+	func init() {
+		p1 = 0;
+		toggle1 = Toggle();
+	}
+}
+
+func main() {
+	var cw1 = CustomView();
+	var cw2 = CustomView();
+	
+	cw1.toggle1.Changed(100);
+	cw2.toggle1.Changed(200);
+	
+	return cw1.p1 + cw2.p1;
+}
