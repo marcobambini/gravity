@@ -8,7 +8,7 @@ func main() {
 	if (true) {
 		System.nanotime();
 		var nums = [1, 2, 3, 4];
-		System.print(nums);
+		System.nanotime();
 		return nums.String();
 	}
 }

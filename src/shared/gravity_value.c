@@ -116,7 +116,7 @@ void gravity_module_blacken (gravity_vm *vm, gravity_module_t *m) {
 
 void gravity_class_bind (gravity_class_t *c, const char *key, gravity_value_t value) {
 	if (VALUE_ISA_CLASS(value)) {
-		// set outer has_outer when bind a class inside another class
+		// set has_outer when bind a class inside another class
 		gravity_class_t *obj = VALUE_AS_CLASS(value);
 		obj->has_outer = true;
 	}
