@@ -311,7 +311,7 @@ typedef struct gravity_class_s {
 	uint32_t				nivars;				// number of instance variables
 	//cstring_r				debug;				// ivar index to name debug info
 	gravity_value_t			*ivars;				// static variables
-} gravity_class_t;
+} gravity_class_s;
 
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
