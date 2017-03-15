@@ -676,6 +676,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				
 				// check fast bit math operation first (only if both v2 and v3 are int)
 				CHECK_FAST_BINARY_BIT(r1, r2, r3, v2, v3, &);
+				CHECK_FAST_BINBOOL_BIT(r1, v2, v3, &);
 				
 				// prepare function call for binary operation
 				PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_BAND_INDEX, rwin);
@@ -694,6 +695,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				
 				// check fast bit math operation first (only if both v2 and v3 are int)
 				CHECK_FAST_BINARY_BIT(r1, r2, r3, v2, v3, |);
+				CHECK_FAST_BINBOOL_BIT(r1, v2, v3, |);
 				
 				// prepare function call for binary operation
 				PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_BOR_INDEX, rwin);
@@ -712,6 +714,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				
 				// check fast bit math operation first (only if both v2 and v3 are int)
 				CHECK_FAST_BINARY_BIT(r1, r2, r3, v2, v3, ^);
+				CHECK_FAST_BINBOOL_BIT(r1, v2, v3, ^);
 				
 				// prepare function call for binary operation
 				PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_BXOR_INDEX, rwin);

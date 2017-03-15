@@ -185,7 +185,7 @@
 
 #define CHECK_FAST_BINARY_BOOL(r1,r2,r3,v2,v3,OP)	DEFINE_STACK_VARIABLE(v2,r2);																\
 													DEFINE_STACK_VARIABLE(v3,r3);																\
-													if (VALUE_ISA_BOOL(v2) && VALUE_ISA_BOOL(v3)) FMATH_BIN_BOOL(r1, v2.n, v3.n, OP);
+													if (VALUE_ISA_BOOL(v2) && VALUE_ISA_BOOL(v3)) FMATH_BIN_BOOL(r1, v2.n, v3.n, OP)
 
 #define CHECK_FAST_UNARY_BOOL(r1,r2,v2,OP)			DEFINE_STACK_VARIABLE(v2,r2);																\
 													if (VALUE_ISA_BOOL(v2)) {SETVALUE(r1, VALUE_FROM_BOOL(OP v2.n)); DISPATCH();}
@@ -210,11 +210,13 @@
 
 #define CHECK_FAST_BINARY_REM(r1,r2,r3,v2,v3)		DEFINE_STACK_VARIABLE(v2,r2);																\
 													DEFINE_STACK_VARIABLE(v3,r3);																\
-													if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, %);
+													if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, %)
 
 #define CHECK_FAST_BINARY_BIT(r1,r2,r3,v2,v3,OP)	DEFINE_STACK_VARIABLE(v2,r2);																\
 													DEFINE_STACK_VARIABLE(v3,r3);																\
-													if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, OP);
+													if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, OP)
+
+#define CHECK_FAST_BINBOOL_BIT(r1,v2,v3,OP)			if (VALUE_ISA_BOOL(v2) && VALUE_ISA_BOOL(v3)) FMATH_BIN_BOOL(r1, v2.n, v3.n, OP)
 
 #define DECODE_BINARY_OPERATION(r1,r2,r3)			OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);	\
 													DEBUG_VM("%s %d %d %d", opcode_name(op), r1, r2, r3)
