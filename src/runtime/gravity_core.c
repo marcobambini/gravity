@@ -1282,6 +1282,30 @@ static bool operator_bool_or (gravity_vm *vm, gravity_value_t *args, uint16_t na
 	RETURN_VALUE(VALUE_FROM_BOOL(v1.n || v2.n), rindex);
 }
 
+static bool operator_bool_bitor (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+
+	DECLARE_2VARIABLES(v1, v2, 0, 1);
+	INTERNAL_CONVERT_BOOL(v1);
+	RETURN_VALUE(VALUE_FROM_BOOL(v1.n | v2.n), rindex);
+}
+
+static bool operator_bool_bitand (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+
+	DECLARE_2VARIABLES(v1, v2, 0, 1);
+	INTERNAL_CONVERT_BOOL(v1);
+	RETURN_VALUE(VALUE_FROM_BOOL(v1.n & v2.n), rindex);
+}
+
+static bool operator_bool_bitxor (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+
+	DECLARE_2VARIABLES(v1, v2, 0, 1);
+	INTERNAL_CONVERT_BOOL(v1);
+	RETURN_VALUE(VALUE_FROM_BOOL(v1.n ^ v2.n), rindex);
+}
+
 static bool operator_bool_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	return operator_int_cmp(vm, args, nargs, rindex);
 }
@@ -1786,6 +1810,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_REM_NAME, NEW_CLOSURE_VALUE(operator_bool_rem));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_AND_NAME, NEW_CLOSURE_VALUE(operator_bool_and));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_OR_NAME,  NEW_CLOSURE_VALUE(operator_bool_or));
+	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_BOR_NAME, NEW_CLOSURE_VALUE(operator_bool_bitor));
+	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_BAND_NAME, NEW_CLOSURE_VALUE(operator_bool_bitand));
+	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_BXOR_NAME, NEW_CLOSURE_VALUE(operator_bool_bitxor));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_CMP_NAME, NEW_CLOSURE_VALUE(operator_bool_cmp));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_bool_neg));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_NOT_NAME, NEW_CLOSURE_VALUE(operator_bool_not));

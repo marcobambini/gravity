@@ -1,0 +1,37 @@
+#unittest {
+	name: "Bitwise and on a bool";
+	error: NONE;
+	result: true;
+};
+
+func b_and() {
+	var bool_ff = false & false; // false
+	var bool_tf = true  & false; // false
+	var bool_ft = false & true;  // false
+	var bool_tt = true  & true;  // true
+
+	return !bool_ff && !bool_tf && !bool_ft && bool_tt;
+}
+
+func b_or() {
+	var bool_ff = false | false; // false
+	var bool_tf = true  | false; // true
+	var bool_ft = false | true;  // true
+	var bool_tt = true  | true;  // true
+
+	return !bool_ff && bool_tf && bool_ft && bool_tt;
+}
+
+func b_xor() {
+	var bool_ff = false ^ false; // false
+	var bool_tf = true  ^ false; // true
+	var bool_ft = false ^ true;  // true
+	var bool_tt = true  ^ true;  // false
+
+	return !bool_ff && bool_tf && bool_ft && !bool_tt;
+}
+
+func main() {
+	return b_and() && b_or() && b_xor();
+}
+
