@@ -7,6 +7,5 @@
 * Improve parser error handling
 
 **DOCUMENTATION AND EXAMPLES**
-* Add documentation about import statement
 * Add examples with projects about API usage (C <-> Gravity)
 * Add the objc bridge with documentation

@@ -122,6 +122,27 @@
 		multi-line
 		comment
 	*/</code></pre>
+
+			<!-- IMPORTS -->
+			<h4 class="section-h4">Import</h4>
+			<p><b>NOTE:</b> currently, the path to the imported file is relative to
+			the location that the gravity executable was run.</p>
+			<p>Gravity supports importing code from other gravity files using the
+			import statement:</p>
+			<pre><code class="swift">
+	// adder.gravity
+	func add(x, y) {
+		return x+y;
+	}
+			</code></pre>
+			<pre><code class="swift">
+	// main.gravity
+	import "adder.gravity"
+
+	func main() {
+		System.print("5+4=" + add(5,4));
+	}
+			</code></pre>
 			
 			<!-- RESERVED KEYWORDS -->
 			<h4 class="section-h4">Reserved Keywords</h4>
