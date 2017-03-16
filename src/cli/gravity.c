@@ -131,6 +131,19 @@ static void gravity_repl (void) {
 
 // MARK: -
 
+int icounter = 0;
+
+static bool should_preempt(gravity_vm *vm, void *xdata) {
+	icounter++;
+	// Preempt ever 5 ins
+	if (icounter % 5 == 0) {
+		return true;
+	}
+	return false;
+}
+
+// MARK: -
+
 int main (int argc, const char* argv[]) {
 	// parse arguments and return operation type
 	op_type type = parse_args(argc, argv);
@@ -158,6 +171,7 @@ int main (int argc, const char* argv[]) {
 	
 	// create VM
 	gravity_vm *vm = gravity_vm_new(&delegate);
+	delegate.preempt_callback = &should_preempt;
 	
 	// check if input file is source code that needs to be compiled
 	if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN)) {
@@ -198,8 +212,15 @@ int main (int argc, const char* argv[]) {
 	
 	// sanity check
 	assert(closure);
-	
-	if (gravity_vm_runmain(vm, closure)) {
+
+	bool result;
+	result = gravity_vm_runmain(vm, closure, true);
+
+	while (!result && gravity_vm_preempted(vm)) {
+		result = gravity_vm_run_resume_main(vm, closure, true);
+	}
+
+	if (result) {
 		gravity_value_t result = gravity_vm_result(vm);
 		double t = gravity_vm_time(vm);
 		

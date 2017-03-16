@@ -26,7 +26,9 @@ void				gravity_vm_set_callbacks (gravity_vm *vm, vm_transfer_cb vm_transfer, vm
 void				gravity_vm_free (gravity_vm *vm);
 void				gravity_vm_reset (gravity_vm *vm);
 bool				gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t selfvalue, gravity_value_t params[], uint16_t nparams);
-bool				gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure);
+
+bool				gravity_vm_runmain(gravity_vm *vm, gravity_closure_t *closure, bool preemptable);
+bool				gravity_vm_run_resume_main(gravity_vm *vm, gravity_closure_t *closure, bool preemptable);
 void				gravity_vm_loadclosure (gravity_vm *vm, gravity_closure_t *closure);
 void				gravity_vm_setvalue (gravity_vm *vm, const char *key, gravity_value_t value);
 gravity_value_t		gravity_vm_lookup (gravity_vm *vm, gravity_value_t key);
@@ -69,9 +71,10 @@ gravity_value_t		gravity_vm_get (gravity_vm *vm, const char *key);
 bool				gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value);
 char				*gravity_vm_anonymous (gravity_vm *vm);
 
+bool				gravity_vm_preempted (gravity_vm *vm);
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

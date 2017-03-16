@@ -132,7 +132,7 @@ static void test_folder (const char *folder_path, test_data *data) {
 		gravity_compiler_free(compiler);
 		
 		if (closure) {
-			if (gravity_vm_runmain(vm, closure)) {
+			if (gravity_vm_runmain(vm, closure, NULL)) {
 				data->processed = true;
 				gravity_value_t result = gravity_vm_result(vm);
 				if (gravity_value_equals(result, data->expected_value)) {

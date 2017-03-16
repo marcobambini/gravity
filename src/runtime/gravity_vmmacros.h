@@ -52,6 +52,7 @@
 #define GRAVITY_GC_STRESSTEST							0
 #define GRAVITY_GC_DEBUG								0
 #define GRAVITY_STACK_DEBUG								0
+#define GRAVITY_VM_PREEMPTION							1
 
 #if GRAVITY_STACK_DEBUG
 #define DEBUG_STACK()									gravity_stack_dump(fiber)
@@ -115,6 +116,11 @@
 // macro the count number of registers needed by the _f function which is the sum of local variables, temp variables and formal parameters
 #define FN_COUNTREG(_f,_nargs)							(MAXNUM(_f->nparams,_nargs) + _f->nlocals + _f->ntemps)
 
+#if GRAVITY_VM_PREEMPTION
+#define MAYBE_PREEMPT                                   if (preempt_cb && preempt_cb(vm, vm->delegate->xdata)) goto DO_PREEMPT;
+#else
+#define MAYBE_PREEMPT
+#endif
 #if GRAVITY_COMPUTED_GOTO
 #define DECLARE_DISPATCH_TABLE		static void* dispatchTable[] = {								\
 									&&RET0,			&&HALT,			&&NOP,			&&RET,			\
@@ -135,9 +141,9 @@
 #define INTERPRET_LOOP				DISPATCH();
 #define CASE_CODE(name)				START_MICROBENCH(vm); name
 #if GRAVITY_VM_STATS
-#define DISPATCH()					DEBUG_STACK();INC_PC;inst = *ip++;op = (opcode_t)OPCODE_GET_OPCODE(inst);UPDATE_STATS(vm,op);goto *dispatchTable[op];
+#define DISPATCH()					DEBUG_STACK();MAYBE_PREEMPT;INC_PC;inst = *ip++;op = (opcode_t)OPCODE_GET_OPCODE(inst);UPDATE_STATS(vm,op);goto *dispatchTable[op];
 #else
-#define DISPATCH()					DEBUG_STACK();INC_PC;inst = *ip++;goto *dispatchTable[op = (opcode_t)OPCODE_GET_OPCODE(inst)];
+#define DISPATCH()					DEBUG_STACK();MAYBE_PREEMPT;INC_PC;inst = *ip++;goto *dispatchTable[op = (opcode_t)OPCODE_GET_OPCODE(inst)];
 #endif
 #else
 #define DECLARE_DISPATCH_TABLE
