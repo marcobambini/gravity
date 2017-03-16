@@ -1668,6 +1668,10 @@ void gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len) {
 		type = "FIBER";
 		snprintf(buffer, len, "(%s) %p", type, v.p);
 		value = buffer;
+	} else if (v.isa == gravity_class_closure) {
+		type = "CLOSURE";
+		snprintf(buffer, len, "(%s) %p", type, v.p);
+		value = buffer;
 	} else {
 		type = "N/A";
 		value = "N/A";
