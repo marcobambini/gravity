@@ -122,6 +122,18 @@
 		multi-line
 		comment
 	*/</code></pre>
+			<p>While Gravity uses C-Style comments, Gravity still supports the common
+			"#!" shebang to tell your shell what program to execute the file with.
+			The shebang must be on the first line of the file in order to use it in
+			this way however:</p>
+			<pre><code class="swift">
+	#!/path/to/gravity
+
+	func main() {
+		System.print("Execute as: path/to/file.gravity");
+		System.print("Instead of: gravity path/to/file.gravity");
+	}
+			</code></pre>
 
 			<!-- IMPORTS -->
 			<h4 class="section-h4">Import</h4>
