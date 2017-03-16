@@ -38,7 +38,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -72,17 +72,17 @@
 				</div>
 			</div>
 			<!-- END SIDEBAR -->
-			
+
 			<!-- BEGIN CONTENT -->
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Getting started</h1><hr>
 
 			 <!-- Installation -->
 			 <h4 class="section-h4">Install</h4>
-				
+
 			<p class="section-content">
-			To install Gravity simple execute the commands given below. It should make two executables: the compiler itself 
-			and test runner. 
+			To install Gravity, simply execute the commands given below. It should make two executables: the compiler itself
+			and test runner.
 			<pre><code>
 	git clone https://github.com/marcobambini/gravity.git
 	cd gravity
@@ -91,7 +91,7 @@
 			</p>
 
 			<blockquote>
-				<p>If you want to access gravity compiler globally just add it to your <b>PATH</b>!</p>
+				<p>If you want to access the gravity compiler globally just add it to your <b>PATH</b>!</p>
 			</blockquote>
 
 			<blockquote>
@@ -106,26 +106,28 @@
 				Just click on your favourite editor and configure it accordingly:
 				<ul>
 					<li><a href="https://github.com/Dohxis/vscode-gravity">Visual Studio Code</a></li>
+					<li><a href="https://github.com/Tribex/atom-language-gravity">Atom</a></li>
+					<li><a href="https://github.com/hallzy/gravity.vim">vim</a></li>
 				</ul>
 			</p>
 
 			<!-- Command line -->
 			<h4 class="section-h4">Command line</h4>
-			<p>To check all possible flags you can run command below:</p>
+			<p>To view all possible flags you can run the command below:</p>
 			<pre><code>
 	./gravity --help
 			</code></pre>
-			
+
 			<p>To compile a gravity file to a exec.json executable:</p>
 			<pre><code>
 	./gravity -c myfile.gravity -o exec.json
 			</code></pre>
-			
+
 			<p>To execute a precompiled json executable file:</p>
 			<pre><code>
 	./gravity -x exec.json
 			</code></pre>
-			
+
 			<p>To directly execute a gravity file (without first serializing it to json):</p>
 			<pre><code>
 	./gravity myfile.gravity
@@ -140,10 +142,10 @@
 			<p>You should obtain an output like:
 			<img src="images/unittest.png" width="666px" height="466px">
 			</p>
-			
+
          	</div>
          	<!-- END CONTENT -->
-         	
+
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
      </div> <!-- /container -->
@@ -156,14 +158,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>
