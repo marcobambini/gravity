@@ -1307,21 +1307,29 @@ static bool gravity_vm_exec(gravity_vm *vm, bool preemptable) {
 	return false;
 }
 
-gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_size, gravity_int_t gcminthreshold, gravity_int_t gcthreshold, gravity_float_t gcratio*/) {
+gravity_vm *gravity_vm_new(
+		gravity_delegate_t *delegate/*, uint32_t context_size, gravity_int_t gcminthreshold, gravity_int_t gcthreshold, gravity_float_t gcratio*/) {
 	gravity_vm *vm = mem_alloc(sizeof(gravity_vm));
 	if (!vm) return NULL;
-	
+
+	gravity_vm_init(vm, delegate);
+
+	return vm;
+}
+
+void gravity_vm_init(gravity_vm *vm, gravity_delegate_t *delegate) {
 	// setup default callbacks
 	vm->transfer = gravity_gc_transfer;
 	vm->cleanup = gravity_gc_cleanup;
-	
+
 	// allocate default fiber
 	vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
-	
+
 	vm->pc = 0;
 	vm->delegate = delegate;
-	vm->context = gravity_hash_create(/*(context_size) ? context_size : */DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
-	
+	vm->context = gravity_hash_create(/*(context_size) ? context_size : */DEFAULT_CONTEXT_SIZE, gravity_value_hash,
+																		  gravity_value_equals, NULL, NULL);
+
 	// garbage collector
 	vm->gcenabled = true;
 	vm->gcminthreshold = /*(gcminthreshold) ? gcminthreshold :*/ DEFAULT_CG_MINTHRESHOLD;
@@ -1330,13 +1338,14 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	vm->memallocated = 0;
 	marray_init(vm->graylist);
 	marray_init(vm->gcsave);
-	
+
 	// init base and core
 	gravity_core_register(vm);
 	gravity_cache_setup();
-	
+
+	vm->preempted = false;
+
 	RESET_STATS(vm);
-	return vm;
 }
 
 gravity_vm *gravity_vm_newmini (void) {

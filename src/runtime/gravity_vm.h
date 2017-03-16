@@ -21,6 +21,7 @@ typedef void (*vm_transfer_cb) (gravity_vm *vm, gravity_object_t *obj);
 typedef void (*vm_cleanup_cb) (gravity_vm *vm);
 
 gravity_vm			*gravity_vm_new (gravity_delegate_t *delegate);
+void				gravity_vm_init (gravity_vm *vm, gravity_delegate_t *delegate);
 gravity_vm			*gravity_vm_newmini (void);
 void				gravity_vm_set_callbacks (gravity_vm *vm, vm_transfer_cb vm_transfer, vm_cleanup_cb vm_cleanup);
 void				gravity_vm_free (gravity_vm *vm);
