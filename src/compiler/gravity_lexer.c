@@ -601,6 +601,22 @@ gtoken_t gravity_lexer_token_type (gravity_lexer_t *lexer) {
 	return lexer->token.type;
 }
 
+void gravity_lexer_skip_line (gravity_lexer_t *lexer) {
+	while (!IS_EOF) {
+		int c = next_utf8(lexer);
+		if (is_newline(lexer, c)) {
+			INC_LINE;
+			break;
+		}
+	}
+}
+
+uint32_t gravity_lexer_lineno (gravity_lexer_t *lexer) {
+	return lexer->lineno;
+}
+
+// MARK: -
+
 void gravity_lexer_token_dump (gtoken_s token) {
 	printf("(%02d, %02d) %s: ", token.lineno, token.colno, token_name(token.type));
 	printf("%.*s\t(offset: %d len:%d)\n", token.bytes, token.value, token.position, token.bytes);

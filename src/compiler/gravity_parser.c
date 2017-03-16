@@ -1943,6 +1943,18 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
 	gtoken_t type = gravity_lexer_next(lexer);
 	assert(type == TOK_MACRO);
 	
+	// check for #! and interpret #! shebang bash as one line comment
+	// only if found on first line (https://github.com/marcobambini/gravity/issues/86)
+	if (gravity_lexer_peek(lexer) == TOK_OP_NOT && gravity_lexer_lineno(lexer) == 1) {
+		// consume special ! symbol
+		type = gravity_lexer_next(lexer);
+		assert(type == TOK_OP_NOT);
+		
+		// skip until EOL
+		gravity_lexer_skip_line(lexer);
+		return NULL;
+	}
+	
 	// macro has its own parser because I don't want to mess standard syntax
 	const char *macroid = parse_identifier(parser);
 	if (macroid == NULL) goto handle_error;

@@ -50,6 +50,9 @@ gtoken_s			gravity_lexer_token (gravity_lexer_t *lexer);
 gtoken_s			gravity_lexer_token_next (gravity_lexer_t *lexer);
 gtoken_t			gravity_lexer_token_type (gravity_lexer_t *lexer);
 void				gravity_lexer_token_dump (gtoken_s token);
+void				gravity_lexer_skip_line (gravity_lexer_t *lexer);
+uint32_t			gravity_lexer_lineno (gravity_lexer_t *lexer);
+
 
 #if GRAVITY_LEXER_DEGUB
 void				gravity_lexer_debug (gravity_lexer_t *lexer);
