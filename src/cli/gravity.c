@@ -11,7 +11,7 @@
 #include "gravity_core.h"
 #include "gravity_vm.h"
 
-#define DEFAULT_OUTPUT "gravity.json"
+#define DEFAULT_OUTPUT "gravity.g"
 
 typedef enum  {
 	OP_COMPILE,			// just compile source code and exit
@@ -127,6 +127,29 @@ static op_type parse_args (int argc, const char* argv[]) {
 
 static void gravity_repl (void) {
 	printf("REPL not yet implemented.\n");
+	exit(0);
+	
+	/*
+	// setup compiler/VM delegate
+	gravity_delegate_t delegate = {
+		.error_callback = report_error,
+	};
+	
+	gravity_compiler_t	*compiler = gravity_compiler_create(&delegate);
+	gravity_vm	*vm = gravity_vm_new(&delegate);
+	char		*line = NULL;
+	int			length = 0;
+
+	printf("Welcome to Gravity v%s\n", GRAVITY_VERSION);
+	while((line = readline("> ", &length)) != NULL) {
+		// to be implemented
+		//	gravity_compiler_eval(compiler, vm, line, length);
+		free(line);
+	}
+	
+	gravity_compiler_free(compiler);
+	gravity_vm_free(vm);
+	 */
 }
 
 // MARK: -
@@ -136,10 +159,7 @@ int main (int argc, const char* argv[]) {
 	op_type type = parse_args(argc, argv);
 	
 	// special repl case
-	if (type == OP_REPL) {
-		gravity_repl();
-		exit(0);
-	}
+	if (type == OP_REPL) gravity_repl();
 	
 	// initialize memory debugger (if activated)
 	mem_init();
