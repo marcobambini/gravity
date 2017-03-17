@@ -712,7 +712,7 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 	gnode_t *node = prefix(parser);
 	
 	gtoken_t peek = gravity_lexer_peek(lexer);
-	if (type == TOK_EOF) return NULL;
+	if (peek == TOK_EOF) return NULL;
 	
 	while (precedence < rules[peek].precedence) {
 		gtoken_t tok = gravity_lexer_next(lexer);
@@ -723,7 +723,7 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 		node = rule->infix(parser);
 		
 		peek = gravity_lexer_peek(lexer);
-		if (type == TOK_EOF) return NULL;
+		if (peek == TOK_EOF) return NULL;
 	}
 	
 	return node;
