@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gravity: API</title>
+    <title>Gravity: Date</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800">
@@ -64,9 +64,9 @@
 				</ul>
 				<h4>ADVANCED</h4>
 				<ul>
-					<li><a href="api.html" class="active"><span>Embedding API</span></a></li>
+					<li><a href="api.html"><span>Embedding API</span></a></li>
 					<li><a href="system.html"><span>System class</span></a></li>
-					<li><a href="date.html"><span>Date class</span></a></li>
+					<li><a href="date.html" class="active"><span>Date class</span></a></li>
 					<li><a href="unit-test.html"><span>Unit test</span></a></li>
 					<li><a href="contributing.html"><span>Contributing</span></a></li>
 				</ul>
@@ -76,62 +76,45 @@
 			
 			<!-- BEGIN CONTENT -->
        		<div class="col-sm-9 border-left section-right">
-         	<h1 class="section-header">API</h1><hr>
+         	<h1 class="section-header">Date</h1><hr>
          				
 			<p class="section-content">
-				Gravity can be extended at runtime using C API. The right step to proceed is usually to create a new class, then add methods and proporties to it and finally register that class inside the VM.
-			</p>
-			<pre><code class="cpp">
-	// report error callback function
-	void report_error (error_type_t error_type, const char *message,
-	                   error_desc_t error_desc, void *xdata) {
-		printf("%s\n", message);
-		exit(0);
-	}
-	
-	// function to be execute inside Gravity VM		
-	bool my_function (gravity_vm *vm, gravity_value_t *args,
-	                  uint16_t nargs, uint32_t rindex) {
-		// do something useful here
-	}
-	
-	// Configure VM delegate		
-	gravity_delegate_t delegate = {.error_callback = report_error};
-	
-	// Create a new VM
-	gravity_vm *vm = gravity_vm_new(&delegate);
-	
-	// Create a new class
-	gravity_class_t *c = gravity_class_new_pair (vm, "MyClass", NULL, 0, 0);
-	
-	// Allocate and bind closures to the newly created class
-	gravity_closure_t *closure = gravity_closure_new(vm, my_function);
-	gravity_class_bind(c, "myfunc", VALUE_FROM_OBJECT(closure));
-	
-	// Register class inside VM
-	gravity_vm_setvalue(vm, "MyClass", VALUE_FROM_OBJECT(c));
-			</code></pre>
-			
-			<p>Using the above C code a "MyClass" class has been registered inside the VM and ready to be used by Gravity:</p>
-			<pre><code class="swift">		
+				System class is a class registered in every Gravity VM that offers some useful methods and properties.</p>
+				<h4 class="section-h4">Methods</h4>
+				<pre><code class="swift">
 	func main() {
-		// allocate a new class
-		var foo = MyClass();
-		
-		// execute the myfunc C function
-		foo.myfunc();
+		// Returns epoch time
+		var t = Date.time()
+
+		// Returns the current seconds (0-59)
+		    t = Date.second()
+
+		// Returns the current minute (0-59)
+		    t = Date.minute()
+
+		// Returns the current hour (0-23)
+		    t = Date.hour()
+
+		// Returns the day of the month (1-31)
+		    t = Date.month_day()
+
+		// Returns the current month (1-12)
+		    t = Date.month()
+
+		// Returns the current year
+		    t = Date.year()
+
+		// Returns the current day of the week (1-7)
+		    t = Date.week_day()
+
+		// Returns the current day of the year (1-366)
+		    t = Date.year_day()
+
+		// Returns a boolean based on if daylight savings is in effect
+		    t = Date.daylight_savings()
 	}
-			</code></pre>
-			
-			<!--<h4 class="section-h4">Execute Gravity code from C</h4>
-			<p></p>
-			<pre><code class="cpp">
-			</code></pre>-->
-			
-			<h4 class="section-h4">Bridge API</h4>
-			<p>Gravity C API offers much more flexibility using the delegate bridge API.
-			<br>TO DO: more information here.</p>
-			<br>TO DO: post objc bridge.</p>
+				</code></pre>
+				
          	</div>
          	<!-- END CONTENT -->
          	
