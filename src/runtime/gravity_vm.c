@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 CreoLabs. All rights reserved.
 //
 
+#include <gravity_delegate.h>
 #include "gravity_hash.h"
 #include "gravity_array.h"
 #include "gravity_debug.h"
@@ -26,6 +27,15 @@ static void gravity_gc_transform (gravity_hash_t *hashtable, gravity_value_t key
 // Internal cache to speed up common operations lookup
 static uint32_t cache_refcount = 0;
 static gravity_value_t cache[GRAVITY_VTABLE_SIZE];
+
+struct vm_state {
+	gravity_fiber_t				*fiber;
+	gravity_delegate_t			*delegate;
+	gravity_callframe_t			*frame;
+	gravity_function_t			*func;
+	gravity_value_t				*stackstart;
+	uint32_t			*ip;
+};
 
 // Opaque VM struct
 struct gravity_vm {
@@ -65,6 +75,9 @@ struct gravity_vm {
 	double				tstat[GRAVITY_LATEST_OPCODE];		// internal used to collect microbenchmarks
 	nanotime_t			t;									// internal timer
 	#endif
+
+	bool                preempted;                         // Set to true if the VM was preempted -- check flag if returns false
+	struct vm_state     vm_state;
 };
 
 // MARK: -
@@ -275,7 +288,7 @@ static void gravity_vm_loadclass (gravity_vm *vm, gravity_class_t *c) {
 
 // MARK: -
 
-static bool gravity_vm_exec (gravity_vm *vm) {
+static bool gravity_vm_exec(gravity_vm *vm, bool preemptable) {
 	DECLARE_DISPATCH_TABLE;
 	
 	gravity_fiber_t				*fiber = vm->fiber;			// current fiber
@@ -286,16 +299,36 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 	register uint32_t			*ip;						// IP => instruction pointer
 	register uint32_t			inst;						// IR => instruction register
 	register opcode_t			op;							// OP => opcode register
-	
-	// load current callframe
-	LOAD_FRAME();
-	DEBUG_CALL("Executing", func);
-	
-	// sanity check
-	if ((ip == NULL) || (!func->bytecode) || (func->ninsts == 0)) return true;
-	
-	DEBUG_STACK();
-	
+	gravity_preempt_callback    preempt_cb = NULL;          // Callback to cause preemption
+
+
+
+	// Set preempt_cb if running in a preemptable context
+	if (preemptable) {
+		preempt_cb = vm->delegate->preempt_callback;
+	}
+
+	if (vm->preempted) {
+		// Restore the VM state
+		delegate = vm->vm_state.delegate;
+		fiber = vm->vm_state.fiber;
+		frame = vm->vm_state.frame;
+		func = vm->vm_state.func;
+		ip = vm->vm_state.ip;
+		stackstart = vm->vm_state.stackstart;
+		vm->preempted = false;
+	} else {
+		// load current callframe
+		LOAD_FRAME();
+		DEBUG_CALL("Executing", func);
+
+		// sanity check
+		if ((ip == NULL) || (!func->bytecode) || (func->ninsts == 0)) return true;
+
+		DEBUG_STACK();
+	}
+
+
 	while (1) {
 		INTERPRET_LOOP {
 			
@@ -1261,23 +1294,42 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 	};
 	
 	return true;
+
+	DO_PREEMPT:
+	vm->preempted = true;
+	vm->vm_state.delegate = delegate;
+	vm->vm_state.fiber = fiber;
+	vm->vm_state.frame = frame;
+	vm->vm_state.func = func;
+	vm->vm_state.ip = ip;
+	vm->vm_state.stackstart = stackstart;
+
+	return false;
 }
 
-gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_size, gravity_int_t gcminthreshold, gravity_int_t gcthreshold, gravity_float_t gcratio*/) {
+gravity_vm *gravity_vm_new(
+		gravity_delegate_t *delegate/*, uint32_t context_size, gravity_int_t gcminthreshold, gravity_int_t gcthreshold, gravity_float_t gcratio*/) {
 	gravity_vm *vm = mem_alloc(sizeof(gravity_vm));
 	if (!vm) return NULL;
-	
+
+	gravity_vm_init(vm, delegate);
+
+	return vm;
+}
+
+void gravity_vm_init(gravity_vm *vm, gravity_delegate_t *delegate) {
 	// setup default callbacks
 	vm->transfer = gravity_gc_transfer;
 	vm->cleanup = gravity_gc_cleanup;
-	
+
 	// allocate default fiber
 	vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
-	
+
 	vm->pc = 0;
 	vm->delegate = delegate;
-	vm->context = gravity_hash_create(/*(context_size) ? context_size : */DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
-	
+	vm->context = gravity_hash_create(/*(context_size) ? context_size : */DEFAULT_CONTEXT_SIZE, gravity_value_hash,
+																		  gravity_value_equals, NULL, NULL);
+
 	// garbage collector
 	vm->gcenabled = true;
 	vm->gcminthreshold = /*(gcminthreshold) ? gcminthreshold :*/ DEFAULT_CG_MINTHRESHOLD;
@@ -1286,13 +1338,14 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	vm->memallocated = 0;
 	marray_init(vm->graylist);
 	marray_init(vm->gcsave);
-	
+
 	// init base and core
 	gravity_core_register(vm);
 	gravity_cache_setup();
-	
+
+	vm->preempted = false;
+
 	RESET_STATS(vm);
-	return vm;
 }
 
 gravity_vm *gravity_vm_newmini (void) {
@@ -1407,7 +1460,7 @@ void gravity_vm_loadclosure (gravity_vm *vm, gravity_closure_t *closure) {
 	gravity_fiber_reassign(vm->fiber, closure, 0);
 	
 	// execute $moduleinit in order to initialize VM
-	gravity_vm_exec(vm);
+	gravity_vm_exec(vm, false);
 }
 
 bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t selfvalue, gravity_value_t params[], uint16_t nparams) {
@@ -1475,7 +1528,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 	bool result = false;
 	switch (f->tag) {
 		case EXEC_TYPE_NATIVE:
-			result = gravity_vm_exec(vm);
+			result = gravity_vm_exec(vm, false);
 			break;
 			
 		case EXEC_TYPE_INTERNAL:
@@ -1497,7 +1550,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 	return result;
 }
 
-bool gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure) {
+bool gravity_vm_runmain(gravity_vm *vm, gravity_closure_t *closure, bool preemptable) {
 	// first load closure into vm
 	if (closure) gravity_vm_loadclosure(vm, closure);
 	
@@ -1514,14 +1567,22 @@ bool gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure) {
 	
 	// execute main function
 	RESET_STATS(vm);
+
+	return gravity_vm_run_resume_main(vm, closure, preemptable);
+}
+
+bool gravity_vm_run_resume_main(gravity_vm *vm, gravity_closure_t *closure, bool preemptable) {
 	nanotime_t tstart = nanotime();
-	bool result = gravity_vm_exec(vm);
+	bool result = gravity_vm_exec(vm, preemptable);
 	nanotime_t tend = nanotime();
-	vm->time = millitime(tstart, tend);
-	
-	PRINT_STATS(vm);
+	vm->time += millitime(tstart, tend);
+
+	if (!gravity_vm_preempted(vm))
+			PRINT_STATS(vm);
+
 	return result;
 }
+
 
 // MARK: - User -
 
@@ -2058,4 +2119,8 @@ void gravity_gc_push (gravity_vm *vm, gravity_object_t *obj) {
 
 void gravity_gc_pop (gravity_vm *vm) {
 	marray_pop(vm->gcsave);
+}
+
+bool gravity_vm_preempted (gravity_vm *vm) {
+	return vm->preempted;
 }
