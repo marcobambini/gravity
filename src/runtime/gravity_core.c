@@ -1545,11 +1545,17 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	}
 	
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
-	for (int i = 0; i < main_str->len; i++) {
-		main_str->s[i] = toupper(main_str->s[i]);
+
+	// I don't want this function to modify the main_str directly. I just want
+	// this method to return a new capitalized string, so copy main_str to a
+	// different string and manipulate that.
+	char new_str[main_str->len + 1]; // + 1 for the null character
+
+	for (int i = 0; i <= main_str->len; i++) {
+		new_str[i] = toupper(main_str->s[i]);
 	}
 
-	RETURN_VALUE(VALUE_FROM_STRING(vm, main_str->s, main_str->len), rindex);
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
 }
 
 static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1560,11 +1566,17 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	}
 
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
-	for (int i = 0; i < main_str->len; i++) {
-		main_str->s[i] = tolower(main_str->s[i]);
+
+	// I don't want this function to modify the main_str directly. I just want
+	// this method to return a new capitalized string, so copy main_str to a
+	// different string and manipulate that.
+	char new_str[main_str->len + 1]; // + 1 for the null character
+
+	for (int i = 0; i <= main_str->len; i++) {
+		new_str[i] = tolower(main_str->s[i]);
 	}
 
-	RETURN_VALUE(VALUE_FROM_STRING(vm, main_str->s, main_str->len), rindex);
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
 }
 
 static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
