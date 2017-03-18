@@ -23,6 +23,7 @@
 #define IS_SKIP(inst)					(inst->tag == SKIP_TAG)
 #define IS_LABEL(inst)					(inst->tag == LABEL_TAG)
 #define IS_NOTNULL(inst)				(inst)
+#define IS_PRAGMA_MOVE_OPT(inst)		(inst->tag == PRAGMA_MOVE_OPTIMIZATION)
 
 // http://www.mathsisfun.com/binary-decimal-hexadecimal-converter.html
 #define OPCODE_SET(op,code)								op = (code & 0x3F) << 26
@@ -59,6 +60,7 @@ static void finalize_function (gravity_function_t *f) {
 	for (uint32_t i=0; i<count; ++i) {
 		inst_t *inst = ircode_get(code, i);
 		if (IS_SKIP(inst)) continue;
+		if (IS_PRAGMA_MOVE_OPT(inst)) continue;
 		if (IS_LABEL(inst)) {
 			// insert key inst->p1 into hash table labels with value ninst (next instruction)
 			gravity_hash_insert(labels, VALUE_FROM_INT(inst->p1), VALUE_FROM_INT(ninst));
@@ -77,6 +79,7 @@ static void finalize_function (gravity_function_t *f) {
 		inst_t *inst = ircode_get(code, i);
 		if (IS_SKIP(inst)) continue;
 		if (IS_LABEL(inst)) continue;
+		if (IS_PRAGMA_MOVE_OPT(inst)) continue;
 		
 		uint32_t op = 0x0;
 		switch (inst->op) {
@@ -383,7 +386,6 @@ static bool optimize_math_instruction (ircode_t *code, inst_t *inst, uint32_t i)
 }
 
 static bool optimize_move_instruction (ircode_t *code, inst_t *inst, uint32_t i) {
-	return false;
 	inst_t *inst1 = NULL;
 	pop1_instruction(code, i, &inst1);
 	if (inst1 == NULL) return false;
@@ -456,6 +458,7 @@ gravity_function_t *gravity_optimizer(gravity_function_t *f) {
 	
 	ircode_t	*code = (ircode_t *)f->bytecode;
 	uint32_t	count = ircode_count(code);
+	bool		optimizer = true;
 	
 	f->ntemps = ircode_ntemps(code);
 	
@@ -478,9 +481,11 @@ gravity_function_t *gravity_optimizer(gravity_function_t *f) {
 	}
 	
 	loop_move:
+	optimizer = true;
 	for (uint32_t i=0; i<count; ++i) {
 		inst_t *inst = current_instruction(code, i);
-		if (IS_MOVE(inst)) {
+		if (IS_PRAGMA_MOVE_OPT(inst)) optimizer = (bool)inst->p1;
+		if (optimizer && IS_MOVE(inst)) {
 			bool b = optimize_move_instruction (code, inst, i);
 			if (b) goto loop_move;
 		}

@@ -1178,6 +1178,9 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	CODEGEN_COUNT_REGISTERS(n1);
 	ircode_push_context(code);
 	
+	// disable MOVE optimization
+	ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
+	
 	// generate code for the common id node
 	visit(node->id);
 	
@@ -1245,7 +1248,9 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			for (size_t j=0; j<n; ++j) {
 				// process each argument
 				gnode_t *arg = (gnode_t *)gnode_array_get(subnode->args, j);
+				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1);
 				visit(arg);
+				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
 				uint32_t nreg = ircode_register_pop_context_protect(code, true);
 				// make sure args are in consecutive register locations (from temp_target_register + 1 to temp_target_register + n)
 				if (nreg != temp_target_register + j + 2) {
@@ -1312,7 +1317,9 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			
 		} else if (tag == NODE_SUBSCRIPT_EXPR) {
 			// process index
+			ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1);
 			visit(subnode->expr);
+			ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
 			uint32_t index = ircode_register_pop(code);
 			
 			// generate LOADAT/STOREAT instruction
@@ -1333,6 +1340,9 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	
 	CODEGEN_COUNT_REGISTERS(n2);
 	CODEGEN_ASSERT_REGISTERS(n1, n2, (is_assignment) ? -1 : 1);
+	
+	// re-enable MOVE optimization
+	ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1);
 }
 
 static void visit_file_expr (gvisitor_t *self, gnode_file_expr_t *node) {
@@ -1570,6 +1580,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 	if (n % max_fields != 0) ++nloops;
 	uint32_t nprocessed = 0;
 	
+	ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
 	while (nprocessed < n) {
 		size_t k = (n - nprocessed > max_fields) ? max_fields : (n - nprocessed);
 		size_t idxstart = nprocessed;
@@ -1598,7 +1609,9 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 			
 			if (ismap) {
 				e = gnode_array_get(node->list2, j);
+				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1);
 				visit(e);
+				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
 				nreg = ircode_register_pop_context_protect(code, true);
 				
 				if (nreg != dest + i + 1) {
@@ -1622,6 +1635,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 		ircode_pop_context(code);
 	}
 	
+	ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1);
 	CODEGEN_COUNT_REGISTERS(n2);
 	CODEGEN_ASSERT_REGISTERS(n1, n2, 1);
 }
