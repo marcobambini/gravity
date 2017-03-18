@@ -9,6 +9,7 @@
 #ifndef __GRAVITY_TOKEN__
 #define __GRAVITY_TOKEN__
 
+#include <stdint.h>
 #include "debug_macros.h"
 
 //	================
