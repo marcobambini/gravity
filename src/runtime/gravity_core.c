@@ -1451,7 +1451,7 @@ static bool string_length (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 }
 
 static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
+	#pragma unused(vm)
 
 	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
 		RETURN_ERROR("String.index() expects a string as an argument");
@@ -1469,12 +1469,12 @@ static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	}
 	// otherwise, return the difference, which is the index that the string starts at
 	else {
-		RETURN_VALUE(VALUE_FROM_INT(ptr-main_str->s), rindex);
+		RETURN_VALUE(VALUE_FROM_INT(ptr - main_str->s), rindex);
 	}
 }
 
 static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
+	#pragma unused(vm)
 
 	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
 		RETURN_ERROR("String.count() expects a string as an argument");
@@ -1512,8 +1512,6 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 
 static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
-	
 	if ((nargs != 2) || (!VALUE_ISA_INT(GET_VALUE(1)))) {
 		RETURN_ERROR("String.repeat() expects an integer argument");
 	}
@@ -1538,8 +1536,6 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 }
 
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
-
 	if (nargs != 1) {
 		RETURN_ERROR("String.upper() expects no argument");
 	}
@@ -1553,8 +1549,6 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 }
 
 static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
-
 	if (nargs != 1) {
 		RETURN_ERROR("String.lower() expects no argument");
 	}
@@ -1568,7 +1562,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 }
 
 static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
+	#pragma unused(nargs)
 	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_value_t value = GET_VALUE(1);
 	if (!VALUE_ISA_INT(value)) RETURN_ERROR("An integer index is required to access a string item.");
