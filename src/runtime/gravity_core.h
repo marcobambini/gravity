@@ -11,16 +11,24 @@
 
 #include "gravity_vm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // core functions
-void gravity_core_register (gravity_vm *vm);
-bool gravity_iscore_class (gravity_class_t *c);
-void gravity_core_free (void);
-uint32_t gravity_core_identifiers (const char ***id);
+GRAVITY_DLL void gravity_core_register (gravity_vm *vm);
+GRAVITY_DLL bool gravity_iscore_class (gravity_class_t *c);
+GRAVITY_DLL void gravity_core_free (void);
+GRAVITY_DLL uint32_t gravity_core_identifiers (const char ***id);
 
 // conversion functions
 gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v);
 gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v);
 gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v);
 gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

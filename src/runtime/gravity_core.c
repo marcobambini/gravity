@@ -67,24 +67,24 @@ static bool core_inited = false;		// initialize global classes just once
 static uint32_t refcount = 0;			// protect deallocation of global classes
 
 // boxed
-gravity_class_t *gravity_class_int;
-gravity_class_t *gravity_class_float;
-gravity_class_t *gravity_class_bool;
-gravity_class_t	*gravity_class_null;
+GRAVITY_DLL gravity_class_t *gravity_class_int;
+GRAVITY_DLL gravity_class_t *gravity_class_float;
+GRAVITY_DLL gravity_class_t *gravity_class_bool;
+GRAVITY_DLL gravity_class_t	*gravity_class_null;
 // objects
-gravity_class_t *gravity_class_string;
-gravity_class_t *gravity_class_object;
-gravity_class_t *gravity_class_function;
-gravity_class_t *gravity_class_closure;
-gravity_class_t *gravity_class_fiber;
-gravity_class_t *gravity_class_class;
-gravity_class_t *gravity_class_instance;
-gravity_class_t *gravity_class_module;
-gravity_class_t *gravity_class_list;
-gravity_class_t *gravity_class_map;
-gravity_class_t *gravity_class_range;
-gravity_class_t *gravity_class_upvalue;
-gravity_class_t *gravity_class_system;
+GRAVITY_DLL gravity_class_t *gravity_class_string;
+GRAVITY_DLL gravity_class_t *gravity_class_object;
+GRAVITY_DLL gravity_class_t *gravity_class_function;
+GRAVITY_DLL gravity_class_t *gravity_class_closure;
+GRAVITY_DLL gravity_class_t *gravity_class_fiber;
+GRAVITY_DLL gravity_class_t *gravity_class_class;
+GRAVITY_DLL gravity_class_t *gravity_class_instance;
+GRAVITY_DLL gravity_class_t *gravity_class_module;
+GRAVITY_DLL gravity_class_t *gravity_class_list;
+GRAVITY_DLL gravity_class_t *gravity_class_map;
+GRAVITY_DLL gravity_class_t *gravity_class_range;
+GRAVITY_DLL gravity_class_t *gravity_class_upvalue;
+GRAVITY_DLL gravity_class_t *gravity_class_system;
 
 #define SETMETA_INITED(c)						gravity_class_get_meta(c)->is_inited = true
 #define GET_VALUE(_idx)							args[_idx]
