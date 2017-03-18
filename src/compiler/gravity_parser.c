@@ -510,6 +510,30 @@ static gnode_t *parse_identifier_expression (gravity_parser_t *parser) {
 	return gnode_identifier_expr_create(token, identifier, NULL);
 }
 
+static gnode_t *parse_identifier_or_keyword_expression (gravity_parser_t *parser) {
+	DEBUG_PARSER("parse_identifier_expression");
+	DECLARE_LEXER;
+	
+	// check if token is a keyword
+	uint32_t idx_start, idx_end;
+	token_keywords_indexes(&idx_start, &idx_end);
+	
+	gtoken_t peek = gravity_lexer_peek(lexer);
+	if ((peek >= idx_start) && (peek <= idx_end)) {
+		
+		// consume token keyword
+		gtoken_t keyword = gravity_lexer_next(lexer);
+		gtoken_s token = gravity_lexer_token(lexer);
+		
+		// convert from keyword to identifier
+		const char	*identifier = string_dup(token_name(keyword));
+		return gnode_identifier_expr_create(token, identifier, NULL);
+	}
+	
+	// default case
+	return parse_identifier_expression(parser);
+}
+
 static gnode_t *parse_number_expression (gtoken_s token) {
 	DEBUG_PARSER("parse_number_expression");
 	
@@ -655,7 +679,10 @@ static gnode_t *parse_postfix_expression (gravity_parser_t *parser, gtoken_t tok
 			parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
 			node = gnode_postfix_subexpr_create(subtoken, NODE_CALL_EXPR, NULL, args);
 		} else if (tok == TOK_OP_DOT) {
-			gnode_t *expr = parse_identifier_expression(parser);
+			// was parse_identifier_expression but we need to allow also keywords here in order
+			// to be able to supports expressions like name.repeat (repeat is a keyword but in this
+			// context it should be interpreted as an identifier)
+			gnode_t *expr = parse_identifier_or_keyword_expression(parser);
 			gtoken_s subtoken = gravity_lexer_token(lexer);
 			node = gnode_postfix_subexpr_create(subtoken, NODE_ACCESS_EXPR, expr, NULL);
 		} else {
@@ -1944,7 +1971,7 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
 	assert(type == TOK_MACRO);
 	
 	// check for #! and interpret #! shebang bash as one line comment
-	// only if found on first line (https://github.com/marcobambini/gravity/issues/86)
+	// only if found on first line
 	if (gravity_lexer_peek(lexer) == TOK_OP_NOT && gravity_lexer_lineno(lexer) == 1) {
 		// consume special ! symbol
 		type = gravity_lexer_next(lexer);

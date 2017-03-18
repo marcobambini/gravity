@@ -9,8 +9,6 @@
 #ifndef __GRAVITY_TOKEN__
 #define __GRAVITY_TOKEN__
 
-#include <stdint.h>
-
 #include "debug_macros.h"
 
 //	================
@@ -66,7 +64,7 @@ typedef enum {
 	TOK_EOF	= 0, TOK_ERROR, TOK_COMMENT, TOK_STRING, TOK_NUMBER, TOK_IDENTIFIER, TOK_SPECIAL, TOK_MACRO,
 	
 	// Keywords (36)
-	// remember to keep in sync functions token_count and token_value
+	// remember to keep in sync functions token_keywords_indexes and token_name
 	TOK_KEY_FUNC, TOK_KEY_SUPER, TOK_KEY_DEFAULT, TOK_KEY_TRUE, TOK_KEY_FALSE, TOK_KEY_IF,
 	TOK_KEY_ELSE, TOK_KEY_SWITCH, TOK_KEY_BREAK, TOK_KEY_CONTINUE, TOK_KEY_RETURN, TOK_KEY_WHILE,
 	TOK_KEY_REPEAT, TOK_KEY_FOR, TOK_KEY_IN, TOK_KEY_ENUM, TOK_KEY_CLASS, TOK_KEY_STRUCT, TOK_KEY_PRIVATE,
