@@ -86,7 +86,6 @@ gravity_class_t *gravity_class_map;
 gravity_class_t *gravity_class_range;
 gravity_class_t *gravity_class_upvalue;
 gravity_class_t *gravity_class_system;
-gravity_class_t *gravity_class_date;
 
 #define SETMETA_INITED(c)						gravity_class_get_meta(c)->is_inited = true
 #define GET_VALUE(_idx)							args[_idx]
@@ -1647,82 +1646,6 @@ static bool system_exit (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	RETURN_NOVALUE();
 }
 
-// MARK: - Date -
-
-static bool date_time (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	int t = (int)time(NULL);
-	RETURN_VALUE(VALUE_FROM_INT(t), rindex);
-}
-
-static bool date_second (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	int tm = localtime(&t)->tm_sec;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_minute (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	int tm = localtime(&t)->tm_min;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_hour (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	int tm = localtime(&t)->tm_hour;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_month_day (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	int tm = localtime(&t)->tm_mday;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_month (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	// Plus 1 because tm_mon is a base 0 number
-	int tm = localtime(&t)->tm_mon + 1;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_year (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	// Plus 1900 because tm_year is the number of years since 1900
-	int tm = localtime(&t)->tm_year + 1900;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_week_day (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	// Plus 1 because tm_wday is a base 0 number
-	int tm = localtime(&t)->tm_wday + 1;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_year_day (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	// Plus 1 because tm_yday is a base 0 number
-	int tm = localtime(&t)->tm_yday + 1;
-	RETURN_VALUE(VALUE_FROM_INT(tm), rindex);
-}
-
-static bool date_daylight_savings (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args,nargs)
-	time_t t = time(NULL);
-	int tm = localtime(&t)->tm_isdst;
-	RETURN_VALUE(VALUE_FROM_BOOL(tm), rindex);
-}
-
-
 
 // MARK: - CORE -
 
@@ -1962,20 +1885,6 @@ static void gravity_core_init (void) {
 	gravity_class_bind(system_meta, "gcthreshold", value);
 	gravity_class_bind(system_meta, "gcratio", value);
 
-	// DATE class
-	gravity_class_date = gravity_class_new_pair(NULL, GRAVITY_CLASS_DATE_NAME, NULL, 0, 0);
-	gravity_class_t *date_meta = gravity_class_get_meta(gravity_class_date);
-	gravity_class_bind(date_meta, GRAVITY_DATE_TIME_NAME, NEW_CLOSURE_VALUE(date_time));
-	gravity_class_bind(date_meta, GRAVITY_DATE_SECOND_NAME, NEW_CLOSURE_VALUE(date_second));
-	gravity_class_bind(date_meta, GRAVITY_DATE_MINUTE_NAME, NEW_CLOSURE_VALUE(date_minute));
-	gravity_class_bind(date_meta, GRAVITY_DATE_HOUR_NAME, NEW_CLOSURE_VALUE(date_hour));
-	gravity_class_bind(date_meta, GRAVITY_DATE_MONTH_DAY_NAME, NEW_CLOSURE_VALUE(date_month_day));
-	gravity_class_bind(date_meta, GRAVITY_DATE_MONTH_NAME, NEW_CLOSURE_VALUE(date_month));
-	gravity_class_bind(date_meta, GRAVITY_DATE_YEAR_NAME, NEW_CLOSURE_VALUE(date_year));
-	gravity_class_bind(date_meta, GRAVITY_DATE_WEEK_DAY_NAME, NEW_CLOSURE_VALUE(date_week_day));
-	gravity_class_bind(date_meta, GRAVITY_DATE_YEAR_DAY_NAME, NEW_CLOSURE_VALUE(date_year_day));
-	gravity_class_bind(date_meta, GRAVITY_DATE_DAYLIGHT_SAVINGS_NAME, NEW_CLOSURE_VALUE(date_daylight_savings));
-	
 	// INIT META
 	SETMETA_INITED(gravity_class_int);
 	SETMETA_INITED(gravity_class_float);
@@ -2042,11 +1951,6 @@ void gravity_core_free (void) {
 	{STATICVALUE_FROM_STRING(key, "gcratio", strlen("gcratio")); gravity_hash_remove(system_meta->htable, key);}
 	gravity_class_free_core(NULL, system_meta);
 	gravity_class_free_core(NULL, gravity_class_system);
-
-	// before freeing the meta class we need to remove entries with duplicated functions
-	gravity_class_t *date_meta = gravity_class_get_meta(gravity_class_date);
-	gravity_class_free_core(NULL, date_meta);
-	gravity_class_free_core(NULL, gravity_class_date);
 	
 	// object must be the last class to be freed
 	gravity_class_free_core(NULL, gravity_class_class);
@@ -2078,7 +1982,7 @@ uint32_t gravity_core_identifiers (const char ***id) {
 	static const char *list[] = {GRAVITY_CLASS_OBJECT_NAME, GRAVITY_CLASS_CLASS_NAME, GRAVITY_CLASS_BOOL_NAME, GRAVITY_CLASS_NULL_NAME,
 		GRAVITY_CLASS_INT_NAME, GRAVITY_CLASS_FLOAT_NAME, GRAVITY_CLASS_FUNCTION_NAME, GRAVITY_CLASS_FIBER_NAME, GRAVITY_CLASS_STRING_NAME,
 		GRAVITY_CLASS_INSTANCE_NAME, GRAVITY_CLASS_LIST_NAME, GRAVITY_CLASS_MAP_NAME, GRAVITY_CLASS_RANGE_NAME, GRAVITY_CLASS_SYSTEM_NAME,
-		GRAVITY_CLASS_DATE_NAME, GRAVITY_CLASS_CLOSURE_NAME, GRAVITY_CLASS_UPVALUE_NAME};
+		GRAVITY_CLASS_CLOSURE_NAME, GRAVITY_CLASS_UPVALUE_NAME};
 	*id = list;
 	return (sizeof(list) / sizeof(const char *));
 }
@@ -2106,7 +2010,6 @@ void gravity_core_register (gravity_vm *vm) {
 	gravity_vm_setvalue(vm, GRAVITY_CLASS_RANGE_NAME, VALUE_FROM_OBJECT(gravity_class_range));
 	gravity_vm_setvalue(vm, GRAVITY_CLASS_UPVALUE_NAME, VALUE_FROM_OBJECT(gravity_class_upvalue));
 	gravity_vm_setvalue(vm, GRAVITY_CLASS_SYSTEM_NAME, VALUE_FROM_OBJECT(gravity_class_system));
-	gravity_vm_setvalue(vm, GRAVITY_CLASS_DATE_NAME, VALUE_FROM_OBJECT(gravity_class_date));
 }
 
 bool gravity_iscore_class (gravity_class_t *c) {
