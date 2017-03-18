@@ -1,0 +1,13 @@
+#unittest {
+	name: "index() method for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	if (s.index("H")==s.index("Hel") and s.index("H")==0 and s.index("d")==10) {
+		return true;
+	}
+	return false;
+}

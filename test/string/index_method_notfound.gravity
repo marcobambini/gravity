@@ -1,0 +1,10 @@
+#unittest {
+	name: "index() method for string - not found";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	return s.index("qwerty") == null
+}

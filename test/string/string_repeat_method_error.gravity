@@ -1,0 +1,9 @@
+#unittest {
+	name: "string_repeat() method for string - error";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "Hello World"
+	return s.string_repeat(0)
+}

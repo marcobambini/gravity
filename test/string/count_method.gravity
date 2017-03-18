@@ -1,0 +1,10 @@
+#unittest {
+	name: "count() method for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	return s.count("l") == 3 and s.count("World") == 1 and s.count("xyz") == 0
+}

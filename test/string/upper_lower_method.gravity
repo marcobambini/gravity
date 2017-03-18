@@ -1,0 +1,12 @@
+#unittest {
+	name: "upper() and lower methods for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	var u = s.upper() == "HELLO WORLD"
+	var l = s.lower() == "hello world"
+	return u && l
+}
