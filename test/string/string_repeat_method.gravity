@@ -6,7 +6,7 @@
 
 func main () {
 	var s = "Hello World"
-	var b = s.string_repeat(3) == "Hello WorldHello WorldHello World"
-	var c = s.string_repeat(1) == s
+	var b = s.repeat(3) == "Hello WorldHello WorldHello World"
+	var c = s.repeat(1) == s
 	return b && c
 }
