@@ -33,25 +33,25 @@ typedef void  		(*gravity_hash_iterate2_fn) (gravity_hash_t *hashtable, gravity_
 typedef void		(*gravity_hash_transform_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t *value, void *data);
 
 // PUBLIC functions
-GRAVITY_DLL gravity_hash_t		*gravity_hash_create (uint32_t size, gravity_hash_compute_fn compute, gravity_hash_isequal_fn isequal, gravity_hash_iterate_fn free, void *data);
-GRAVITY_DLL void				gravity_hash_free (gravity_hash_t *hashtable);
-GRAVITY_DLL bool				gravity_hash_isempty (gravity_hash_t *hashtable);
-GRAVITY_DLL bool				gravity_hash_remove  (gravity_hash_t *hashtable, gravity_value_t key);
-GRAVITY_DLL bool				gravity_hash_insert (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value);
-GRAVITY_DLL gravity_value_t		*gravity_hash_lookup (gravity_hash_t *hashtable, gravity_value_t key);
+GRAVITY_API gravity_hash_t		*gravity_hash_create (uint32_t size, gravity_hash_compute_fn compute, gravity_hash_isequal_fn isequal, gravity_hash_iterate_fn free, void *data);
+GRAVITY_API void				gravity_hash_free (gravity_hash_t *hashtable);
+GRAVITY_API bool				gravity_hash_isempty (gravity_hash_t *hashtable);
+GRAVITY_API bool				gravity_hash_remove  (gravity_hash_t *hashtable, gravity_value_t key);
+GRAVITY_API bool				gravity_hash_insert (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value);
+GRAVITY_API gravity_value_t		*gravity_hash_lookup (gravity_hash_t *hashtable, gravity_value_t key);
 
-GRAVITY_DLL uint32_t			gravity_hash_memsize (gravity_hash_t *hashtable);
-GRAVITY_DLL uint32_t			gravity_hash_count (gravity_hash_t *hashtable);
-GRAVITY_DLL uint32_t			gravity_hash_compute_buffer (const char *key, uint32_t len);
-GRAVITY_DLL uint32_t			gravity_hash_compute_int (gravity_int_t n);
-GRAVITY_DLL uint32_t			gravity_hash_compute_float (gravity_float_t f);
-GRAVITY_DLL void				gravity_hash_stat (gravity_hash_t *hashtable);
-GRAVITY_DLL void				gravity_hash_iterate (gravity_hash_t *hashtable, gravity_hash_iterate_fn iterate, void *data);
-GRAVITY_DLL void				gravity_hash_iterate2 (gravity_hash_t *hashtable, gravity_hash_iterate2_fn iterate, void *data1, void *data2);
-GRAVITY_DLL void				gravity_hash_transform (gravity_hash_t *hashtable, gravity_hash_transform_fn iterate, void *data);
-GRAVITY_DLL void				gravity_hash_dump (gravity_hash_t *hashtable);
-GRAVITY_DLL void				gravity_hash_append (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2);
-GRAVITY_DLL void				gravity_hash_resetfree (gravity_hash_t *hashtable);
+GRAVITY_API uint32_t			gravity_hash_memsize (gravity_hash_t *hashtable);
+GRAVITY_API uint32_t			gravity_hash_count (gravity_hash_t *hashtable);
+GRAVITY_API uint32_t			gravity_hash_compute_buffer (const char *key, uint32_t len);
+GRAVITY_API uint32_t			gravity_hash_compute_int (gravity_int_t n);
+GRAVITY_API uint32_t			gravity_hash_compute_float (gravity_float_t f);
+GRAVITY_API void				gravity_hash_stat (gravity_hash_t *hashtable);
+GRAVITY_API void				gravity_hash_iterate (gravity_hash_t *hashtable, gravity_hash_iterate_fn iterate, void *data);
+GRAVITY_API void				gravity_hash_iterate2 (gravity_hash_t *hashtable, gravity_hash_iterate2_fn iterate, void *data1, void *data2);
+GRAVITY_API void				gravity_hash_transform (gravity_hash_t *hashtable, gravity_hash_transform_fn iterate, void *data);
+GRAVITY_API void				gravity_hash_dump (gravity_hash_t *hashtable);
+GRAVITY_API void				gravity_hash_append (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2);
+GRAVITY_API void				gravity_hash_resetfree (gravity_hash_t *hashtable);
 
 #ifdef __cplusplus
 }

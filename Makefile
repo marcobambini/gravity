@@ -11,7 +11,7 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(UTILS_DIR)/*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR)
-CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_DLL
+CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
 OBJ = $(SRC:.c=.o)
 
 ifeq ($(OS),Windows_NT)
@@ -19,13 +19,14 @@ ifeq ($(OS),Windows_NT)
 	LIBTARGET = gravity.dll
 	LDFLAGS = -lm -lShlwapi
 else
-	LIBTARGET = libgravity.so
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
 		# MacOS
+		LIBTARGET = libgravity.dylib
 		LDFLAGS = -lm 
 	else
 		# Linux
+		LIBTARGET = libgravity.so
 		LDFLAGS = -lm -lrt
 	endif
 endif

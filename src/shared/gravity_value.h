@@ -133,13 +133,13 @@ extern "C" {
 
 //DLL export/import support for Windows.
 #ifdef _WIN32
-	#ifdef BUILD_GRAVITY_DLL
-		#define GRAVITY_DLL __declspec(dllexport)
+	#ifdef BUILD_GRAVITY_API
+		#define GRAVITY_API __declspec(dllexport)
 	#else
-		#define GRAVITY_DLL __declspec(dllimport)
+		#define GRAVITY_API __declspec(dllimport)
 	#endif
 #else
-	#define GRAVITY_DLL
+	#define GRAVITY_API
 #endif
 
 // MARK: - STRUCT -
@@ -365,137 +365,137 @@ typedef marray_t(gravity_class_t*)			gravity_class_r;		// array of classes
 typedef marray_t(gravity_object_t*)			gravity_object_r;		// array of objects
 
 // MARK: - MODULE -
-GRAVITY_DLL gravity_module_t	*gravity_module_new (gravity_vm *vm, const char *identifier);
-GRAVITY_DLL void				gravity_module_free (gravity_vm *vm, gravity_module_t *m);
-GRAVITY_DLL void				gravity_module_blacken (gravity_vm *vm, gravity_module_t *m);
-GRAVITY_DLL uint32_t			gravity_module_size (gravity_vm *vm, gravity_module_t *m);
+GRAVITY_API gravity_module_t	*gravity_module_new (gravity_vm *vm, const char *identifier);
+GRAVITY_API void				gravity_module_free (gravity_vm *vm, gravity_module_t *m);
+GRAVITY_API void				gravity_module_blacken (gravity_vm *vm, gravity_module_t *m);
+GRAVITY_API uint32_t			gravity_module_size (gravity_vm *vm, gravity_module_t *m);
 
 // MARK: - FUNCTION -
-GRAVITY_DLL gravity_function_t	*gravity_function_new (gravity_vm *vm, const char *identifier, uint16_t nparams, uint16_t nlocals, uint16_t ntemps, void *code);
-GRAVITY_DLL gravity_function_t	*gravity_function_new_internal (gravity_vm *vm, const char *identifier, gravity_c_internal exec, uint16_t nparams);
-GRAVITY_DLL gravity_function_t	*gravity_function_new_special (gravity_vm *vm, const char *identifier, uint16_t index, void *getter, void *setter);
-GRAVITY_DLL gravity_function_t	*gravity_function_new_bridged (gravity_vm *vm, const char *identifier, void *xdata);
-GRAVITY_DLL uint16_t			gravity_function_cpool_add (gravity_vm *vm, gravity_function_t *f, gravity_value_t v);
-GRAVITY_DLL gravity_value_t		gravity_function_cpool_get (gravity_function_t *f, uint16_t i);
-GRAVITY_DLL void				gravity_function_dump (gravity_function_t *f, code_dump_function codef);
-GRAVITY_DLL void				gravity_function_setouter (gravity_function_t *f, gravity_object_t *outer);
-GRAVITY_DLL void				gravity_function_setxdata (gravity_function_t *f, void *xdata);
-GRAVITY_DLL void				gravity_function_serialize (gravity_function_t *f, json_t *json);
-GRAVITY_DLL uint32_t			*gravity_bytecode_deserialize (const char *buffer, size_t len, uint32_t *ninst);
-GRAVITY_DLL gravity_function_t	*gravity_function_deserialize (gravity_vm *vm, json_value *json);
-GRAVITY_DLL void				gravity_function_free (gravity_vm *vm, gravity_function_t *f);
-GRAVITY_DLL void				gravity_function_blacken (gravity_vm *vm, gravity_function_t *f);
-GRAVITY_DLL uint32_t			gravity_function_size (gravity_vm *vm, gravity_function_t *f);
+GRAVITY_API gravity_function_t	*gravity_function_new (gravity_vm *vm, const char *identifier, uint16_t nparams, uint16_t nlocals, uint16_t ntemps, void *code);
+GRAVITY_API gravity_function_t	*gravity_function_new_internal (gravity_vm *vm, const char *identifier, gravity_c_internal exec, uint16_t nparams);
+GRAVITY_API gravity_function_t	*gravity_function_new_special (gravity_vm *vm, const char *identifier, uint16_t index, void *getter, void *setter);
+GRAVITY_API gravity_function_t	*gravity_function_new_bridged (gravity_vm *vm, const char *identifier, void *xdata);
+GRAVITY_API uint16_t			gravity_function_cpool_add (gravity_vm *vm, gravity_function_t *f, gravity_value_t v);
+GRAVITY_API gravity_value_t		gravity_function_cpool_get (gravity_function_t *f, uint16_t i);
+GRAVITY_API void				gravity_function_dump (gravity_function_t *f, code_dump_function codef);
+GRAVITY_API void				gravity_function_setouter (gravity_function_t *f, gravity_object_t *outer);
+GRAVITY_API void				gravity_function_setxdata (gravity_function_t *f, void *xdata);
+GRAVITY_API void				gravity_function_serialize (gravity_function_t *f, json_t *json);
+GRAVITY_API uint32_t			*gravity_bytecode_deserialize (const char *buffer, size_t len, uint32_t *ninst);
+GRAVITY_API gravity_function_t	*gravity_function_deserialize (gravity_vm *vm, json_value *json);
+GRAVITY_API void				gravity_function_free (gravity_vm *vm, gravity_function_t *f);
+GRAVITY_API void				gravity_function_blacken (gravity_vm *vm, gravity_function_t *f);
+GRAVITY_API uint32_t			gravity_function_size (gravity_vm *vm, gravity_function_t *f);
 
 // MARK: - CLOSURE -
-GRAVITY_DLL gravity_closure_t	*gravity_closure_new (gravity_vm *vm, gravity_function_t *f);
-GRAVITY_DLL void				gravity_closure_free (gravity_vm *vm, gravity_closure_t *closure);
-GRAVITY_DLL uint32_t			gravity_closure_size (gravity_vm *vm, gravity_closure_t *closure);
-GRAVITY_DLL void				gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure);
+GRAVITY_API gravity_closure_t	*gravity_closure_new (gravity_vm *vm, gravity_function_t *f);
+GRAVITY_API void				gravity_closure_free (gravity_vm *vm, gravity_closure_t *closure);
+GRAVITY_API uint32_t			gravity_closure_size (gravity_vm *vm, gravity_closure_t *closure);
+GRAVITY_API void				gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure);
 
 // MARK: - UPVALUE -
-GRAVITY_DLL gravity_upvalue_t	*gravity_upvalue_new (gravity_vm *vm, gravity_value_t *value);
-GRAVITY_DLL uint32_t			gravity_upvalue_size (gravity_vm *vm, gravity_upvalue_t *upvalue);
-GRAVITY_DLL void				gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue);
-GRAVITY_DLL void				gravity_upvalue_free(gravity_vm *vm, gravity_upvalue_t *upvalue);
+GRAVITY_API gravity_upvalue_t	*gravity_upvalue_new (gravity_vm *vm, gravity_value_t *value);
+GRAVITY_API uint32_t			gravity_upvalue_size (gravity_vm *vm, gravity_upvalue_t *upvalue);
+GRAVITY_API void				gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue);
+GRAVITY_API void				gravity_upvalue_free(gravity_vm *vm, gravity_upvalue_t *upvalue);
 
 // MARK: - CLASS -
-GRAVITY_DLL void				gravity_class_bind (gravity_class_t *c, const char *key, gravity_value_t value);
-GRAVITY_DLL gravity_class_t		*gravity_class_getsuper (gravity_class_t *c);
-GRAVITY_DLL bool				gravity_class_grow (gravity_class_t *c, uint32_t n);
-GRAVITY_DLL bool				gravity_class_setsuper (gravity_class_t *subclass, gravity_class_t *superclass);
-GRAVITY_DLL gravity_class_t		*gravity_class_new_single (gravity_vm *vm, const char *identifier, uint32_t nfields);
-GRAVITY_DLL gravity_class_t		*gravity_class_new_pair (gravity_vm *vm, const char *identifier, gravity_class_t *superclass, uint32_t nivar, uint32_t nsvar);
-GRAVITY_DLL gravity_class_t		*gravity_class_get_meta (gravity_class_t *c);
-GRAVITY_DLL bool				gravity_class_is_meta (gravity_class_t *c);
-GRAVITY_DLL uint32_t			gravity_class_count_ivars (gravity_class_t *c);
-GRAVITY_DLL void				gravity_class_dump (gravity_class_t *c);
-GRAVITY_DLL void				gravity_class_setxdata (gravity_class_t *c, void *xdata);
-GRAVITY_DLL int16_t				gravity_class_add_ivar (gravity_class_t *c, const char *identifier);
-GRAVITY_DLL void				gravity_class_serialize (gravity_class_t *c, json_t *json);
-GRAVITY_DLL gravity_class_t		*gravity_class_deserialize (gravity_vm *vm, json_value *json);
-GRAVITY_DLL void				gravity_class_free (gravity_vm *vm, gravity_class_t *c);
-GRAVITY_DLL void				gravity_class_free_core (gravity_vm *vm, gravity_class_t *c);
-GRAVITY_DLL gravity_object_t	*gravity_class_lookup (gravity_class_t *c, gravity_value_t key);
-GRAVITY_DLL gravity_closure_t	*gravity_class_lookup_closure (gravity_class_t *c, gravity_value_t key);
-GRAVITY_DLL gravity_closure_t	*gravity_class_lookup_constructor (gravity_class_t *c, uint32_t nparams);
-GRAVITY_DLL void				gravity_class_blacken (gravity_vm *vm, gravity_class_t *c);
-GRAVITY_DLL uint32_t			gravity_class_size (gravity_vm *vm, gravity_class_t *c);
+GRAVITY_API void				gravity_class_bind (gravity_class_t *c, const char *key, gravity_value_t value);
+GRAVITY_API gravity_class_t		*gravity_class_getsuper (gravity_class_t *c);
+GRAVITY_API bool				gravity_class_grow (gravity_class_t *c, uint32_t n);
+GRAVITY_API bool				gravity_class_setsuper (gravity_class_t *subclass, gravity_class_t *superclass);
+GRAVITY_API gravity_class_t		*gravity_class_new_single (gravity_vm *vm, const char *identifier, uint32_t nfields);
+GRAVITY_API gravity_class_t		*gravity_class_new_pair (gravity_vm *vm, const char *identifier, gravity_class_t *superclass, uint32_t nivar, uint32_t nsvar);
+GRAVITY_API gravity_class_t		*gravity_class_get_meta (gravity_class_t *c);
+GRAVITY_API bool				gravity_class_is_meta (gravity_class_t *c);
+GRAVITY_API uint32_t			gravity_class_count_ivars (gravity_class_t *c);
+GRAVITY_API void				gravity_class_dump (gravity_class_t *c);
+GRAVITY_API void				gravity_class_setxdata (gravity_class_t *c, void *xdata);
+GRAVITY_API int16_t				gravity_class_add_ivar (gravity_class_t *c, const char *identifier);
+GRAVITY_API void				gravity_class_serialize (gravity_class_t *c, json_t *json);
+GRAVITY_API gravity_class_t		*gravity_class_deserialize (gravity_vm *vm, json_value *json);
+GRAVITY_API void				gravity_class_free (gravity_vm *vm, gravity_class_t *c);
+GRAVITY_API void				gravity_class_free_core (gravity_vm *vm, gravity_class_t *c);
+GRAVITY_API gravity_object_t	*gravity_class_lookup (gravity_class_t *c, gravity_value_t key);
+GRAVITY_API gravity_closure_t	*gravity_class_lookup_closure (gravity_class_t *c, gravity_value_t key);
+GRAVITY_API gravity_closure_t	*gravity_class_lookup_constructor (gravity_class_t *c, uint32_t nparams);
+GRAVITY_API void				gravity_class_blacken (gravity_vm *vm, gravity_class_t *c);
+GRAVITY_API uint32_t			gravity_class_size (gravity_vm *vm, gravity_class_t *c);
 
 // MARK: - FIBER -
-GRAVITY_DLL gravity_fiber_t		*gravity_fiber_new (gravity_vm *vm, gravity_closure_t *closure, uint32_t nstack, uint32_t nframes);
-GRAVITY_DLL void				gravity_fiber_reassign (gravity_fiber_t *fiber, gravity_closure_t *closure, uint16_t nargs);
-GRAVITY_DLL void				gravity_fiber_seterror (gravity_fiber_t *fiber, const char *error);
-GRAVITY_DLL void				gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber);
-GRAVITY_DLL void				gravity_fiber_blacken (gravity_vm *vm, gravity_fiber_t *fiber);
-GRAVITY_DLL uint32_t			gravity_fiber_size (gravity_vm *vm, gravity_fiber_t *fiber);
+GRAVITY_API gravity_fiber_t		*gravity_fiber_new (gravity_vm *vm, gravity_closure_t *closure, uint32_t nstack, uint32_t nframes);
+GRAVITY_API void				gravity_fiber_reassign (gravity_fiber_t *fiber, gravity_closure_t *closure, uint16_t nargs);
+GRAVITY_API void				gravity_fiber_seterror (gravity_fiber_t *fiber, const char *error);
+GRAVITY_API void				gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber);
+GRAVITY_API void				gravity_fiber_blacken (gravity_vm *vm, gravity_fiber_t *fiber);
+GRAVITY_API uint32_t			gravity_fiber_size (gravity_vm *vm, gravity_fiber_t *fiber);
 
 // MARK: - INSTANCE -
-GRAVITY_DLL gravity_instance_t	*gravity_instance_new (gravity_vm *vm, gravity_class_t *c);
-GRAVITY_DLL gravity_instance_t	*gravity_instance_dup (gravity_vm *vm, gravity_instance_t *src);
-GRAVITY_DLL void				gravity_instance_setivar (gravity_instance_t *instance, uint32_t idx, gravity_value_t value);
-GRAVITY_DLL void				gravity_instance_setxdata (gravity_instance_t *i, void *xdata);
-GRAVITY_DLL void				gravity_instance_free (gravity_vm *vm, gravity_instance_t *i);
-GRAVITY_DLL gravity_closure_t	*gravity_instance_lookup_event (gravity_instance_t *i, const char *name);
-GRAVITY_DLL void				gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i);
-GRAVITY_DLL uint32_t			gravity_instance_size (gravity_vm *vm, gravity_instance_t *i);
+GRAVITY_API gravity_instance_t	*gravity_instance_new (gravity_vm *vm, gravity_class_t *c);
+GRAVITY_API gravity_instance_t	*gravity_instance_dup (gravity_vm *vm, gravity_instance_t *src);
+GRAVITY_API void				gravity_instance_setivar (gravity_instance_t *instance, uint32_t idx, gravity_value_t value);
+GRAVITY_API void				gravity_instance_setxdata (gravity_instance_t *i, void *xdata);
+GRAVITY_API void				gravity_instance_free (gravity_vm *vm, gravity_instance_t *i);
+GRAVITY_API gravity_closure_t	*gravity_instance_lookup_event (gravity_instance_t *i, const char *name);
+GRAVITY_API void				gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i);
+GRAVITY_API uint32_t			gravity_instance_size (gravity_vm *vm, gravity_instance_t *i);
 
 // MARK: - VALUE -
-GRAVITY_DLL bool				gravity_value_equals (gravity_value_t v1, gravity_value_t v2);
-GRAVITY_DLL uint32_t			gravity_value_hash (gravity_value_t value);
-GRAVITY_DLL gravity_class_t		*gravity_value_getclass (gravity_value_t v);
-GRAVITY_DLL gravity_class_t		*gravity_value_getsuper (gravity_value_t v);
-GRAVITY_DLL void				gravity_value_free (gravity_vm *vm, gravity_value_t v);
-GRAVITY_DLL void				gravity_value_serialize (gravity_value_t v, json_t *json);
-GRAVITY_DLL void				gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len);
-GRAVITY_DLL bool				gravity_value_isobject (gravity_value_t v);
-GRAVITY_DLL void				*gravity_value_xdata (gravity_value_t value);
-GRAVITY_DLL void				gravity_value_blacken (gravity_vm *vm, gravity_value_t v);
-GRAVITY_DLL uint32_t			gravity_value_size (gravity_vm *vm, gravity_value_t v);
+GRAVITY_API bool				gravity_value_equals (gravity_value_t v1, gravity_value_t v2);
+GRAVITY_API uint32_t			gravity_value_hash (gravity_value_t value);
+GRAVITY_API gravity_class_t		*gravity_value_getclass (gravity_value_t v);
+GRAVITY_API gravity_class_t		*gravity_value_getsuper (gravity_value_t v);
+GRAVITY_API void				gravity_value_free (gravity_vm *vm, gravity_value_t v);
+GRAVITY_API void				gravity_value_serialize (gravity_value_t v, json_t *json);
+GRAVITY_API void				gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len);
+GRAVITY_API bool				gravity_value_isobject (gravity_value_t v);
+GRAVITY_API void				*gravity_value_xdata (gravity_value_t value);
+GRAVITY_API void				gravity_value_blacken (gravity_vm *vm, gravity_value_t v);
+GRAVITY_API uint32_t			gravity_value_size (gravity_vm *vm, gravity_value_t v);
 
 // MARK: - OBJECT -
-GRAVITY_DLL void				gravity_object_serialize (gravity_object_t *obj, json_t *json);
-GRAVITY_DLL bool				gravity_object_deserialize (gravity_vm *vm, json_value *entry, gravity_object_t **obj);
-GRAVITY_DLL void				gravity_object_free (gravity_vm *vm, gravity_object_t *obj);
-GRAVITY_DLL void				gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj);
-GRAVITY_DLL uint32_t			gravity_object_size (gravity_vm *vm, gravity_object_t *obj);
-GRAVITY_DLL const char			*gravity_object_debug (gravity_object_t *obj);
+GRAVITY_API void				gravity_object_serialize (gravity_object_t *obj, json_t *json);
+GRAVITY_API bool				gravity_object_deserialize (gravity_vm *vm, json_value *entry, gravity_object_t **obj);
+GRAVITY_API void				gravity_object_free (gravity_vm *vm, gravity_object_t *obj);
+GRAVITY_API void				gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj);
+GRAVITY_API uint32_t			gravity_object_size (gravity_vm *vm, gravity_object_t *obj);
+GRAVITY_API const char			*gravity_object_debug (gravity_object_t *obj);
 
 // MARK: - LIST -
-GRAVITY_DLL gravity_list_t		*gravity_list_new (gravity_vm *vm, uint32_t n);
-GRAVITY_DLL gravity_list_t		*gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_value_t *p);
-GRAVITY_DLL void				gravity_list_free (gravity_vm *vm, gravity_list_t *list);
-GRAVITY_DLL void				gravity_list_append_list (gravity_vm *vm, gravity_list_t *list1, gravity_list_t *list2);
-GRAVITY_DLL void				gravity_list_blacken (gravity_vm *vm, gravity_list_t *list);
-GRAVITY_DLL uint32_t			gravity_list_size (gravity_vm *vm, gravity_list_t *list);
+GRAVITY_API gravity_list_t		*gravity_list_new (gravity_vm *vm, uint32_t n);
+GRAVITY_API gravity_list_t		*gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_value_t *p);
+GRAVITY_API void				gravity_list_free (gravity_vm *vm, gravity_list_t *list);
+GRAVITY_API void				gravity_list_append_list (gravity_vm *vm, gravity_list_t *list1, gravity_list_t *list2);
+GRAVITY_API void				gravity_list_blacken (gravity_vm *vm, gravity_list_t *list);
+GRAVITY_API uint32_t			gravity_list_size (gravity_vm *vm, gravity_list_t *list);
 
 // MARK: - MAP -
-GRAVITY_DLL gravity_map_t		*gravity_map_new (gravity_vm *vm, uint32_t n);
-GRAVITY_DLL void				gravity_map_free (gravity_vm *vm, gravity_map_t *map);
-GRAVITY_DLL void				gravity_map_append_map (gravity_vm *vm, gravity_map_t *map1, gravity_map_t *map2);
-GRAVITY_DLL void				gravity_map_insert (gravity_vm *vm, gravity_map_t *map, gravity_value_t key, gravity_value_t value);
-GRAVITY_DLL void				gravity_map_blacken (gravity_vm *vm, gravity_map_t *map);
-GRAVITY_DLL uint32_t			gravity_map_size (gravity_vm *vm, gravity_map_t *map);
+GRAVITY_API gravity_map_t		*gravity_map_new (gravity_vm *vm, uint32_t n);
+GRAVITY_API void				gravity_map_free (gravity_vm *vm, gravity_map_t *map);
+GRAVITY_API void				gravity_map_append_map (gravity_vm *vm, gravity_map_t *map1, gravity_map_t *map2);
+GRAVITY_API void				gravity_map_insert (gravity_vm *vm, gravity_map_t *map, gravity_value_t key, gravity_value_t value);
+GRAVITY_API void				gravity_map_blacken (gravity_vm *vm, gravity_map_t *map);
+GRAVITY_API uint32_t			gravity_map_size (gravity_vm *vm, gravity_map_t *map);
 
 // MARK: - RANGE -
-GRAVITY_DLL gravity_range_t		*gravity_range_new (gravity_vm *vm, gravity_int_t from, gravity_int_t to, bool inclusive);
-GRAVITY_DLL void				gravity_range_free (gravity_vm *vm, gravity_range_t *range);
-GRAVITY_DLL void				gravity_range_blacken (gravity_vm *vm, gravity_range_t *range);
-GRAVITY_DLL uint32_t			gravity_range_size (gravity_vm *vm, gravity_range_t *range);
+GRAVITY_API gravity_range_t		*gravity_range_new (gravity_vm *vm, gravity_int_t from, gravity_int_t to, bool inclusive);
+GRAVITY_API void				gravity_range_free (gravity_vm *vm, gravity_range_t *range);
+GRAVITY_API void				gravity_range_blacken (gravity_vm *vm, gravity_range_t *range);
+GRAVITY_API uint32_t			gravity_range_size (gravity_vm *vm, gravity_range_t *range);
 
 /// MARK: - STRING -
-GRAVITY_DLL gravity_value_t		gravity_string_to_value (gravity_vm *vm, const char *s, uint32_t len);
-GRAVITY_DLL gravity_string_t	*gravity_string_new (gravity_vm *vm, char *s, uint32_t len, uint32_t alloc);
+GRAVITY_API gravity_value_t		gravity_string_to_value (gravity_vm *vm, const char *s, uint32_t len);
+GRAVITY_API gravity_string_t	*gravity_string_new (gravity_vm *vm, char *s, uint32_t len, uint32_t alloc);
             inline void			gravity_string_set (gravity_string_t *obj, char *s, uint32_t len);
-GRAVITY_DLL void				gravity_string_free (gravity_vm *vm, gravity_string_t *value);
-GRAVITY_DLL void				gravity_string_blacken (gravity_vm *vm, gravity_string_t *string);
-GRAVITY_DLL uint32_t			gravity_string_size (gravity_vm *vm, gravity_string_t *string);
+GRAVITY_API void				gravity_string_free (gravity_vm *vm, gravity_string_t *value);
+GRAVITY_API void				gravity_string_blacken (gravity_vm *vm, gravity_string_t *string);
+GRAVITY_API uint32_t			gravity_string_size (gravity_vm *vm, gravity_string_t *string);
 
 // MARK: - CALLBACKS -
 // HASH FREE CALLBACK FUNCTION
-GRAVITY_DLL void				gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
-GRAVITY_DLL void				gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
-GRAVITY_DLL void				gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void				gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void				gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void				gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
 
 #ifdef __cplusplus
 }
