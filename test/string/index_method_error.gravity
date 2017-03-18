@@ -1,0 +1,9 @@
+#unittest {
+	name: "index() method for string - error";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "Hello World"
+	return s.index(2)
+}

@@ -1,0 +1,12 @@
+#unittest {
+	name: "string_repeat() method for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	var b = s.repeat(3) == "Hello WorldHello WorldHello World"
+	var c = s.repeat(1) == s
+	return b && c
+}

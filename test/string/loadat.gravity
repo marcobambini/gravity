@@ -1,0 +1,13 @@
+#unittest {
+	name: "Loadat an index for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	if (s[6] == s[-5] and s[6] == "W") {
+		return true
+	}
+	return false
+}
