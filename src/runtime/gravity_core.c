@@ -1593,9 +1593,9 @@ static int parse_arguments_for_upper_and_lower(gravity_vm *vm, int (*is_case)(in
 			++iterations;
 		} while(isNotInfiniteLoop = iterations < ret_len);
 								// Breaks out when no matches are found
-								// We should never break out of this loop by this condition, as
-								// we should break out once we have no more matches. This is
-								// just a fail safe.
+								// We should never break out of this loop by this while
+								// condition, as we should break out once we have no more
+								// matches (when ptr == NULL). This is just a fail safe.
 		if (!isNotInfiniteLoop) {
 			return -2;
 		}
