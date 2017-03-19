@@ -1,0 +1,41 @@
+#unittest {
+	name: "upper() methods for string -- multiple args";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "This is just a really long test string to try and get as MUCH variation as possible"
+
+	// UPPER
+	var a = s.upper("v", 1) == "THis is just a really long test string to try and get as MUCH Variation as possible"
+	if (a == false) { System.print("a) upper failed"); return false }
+
+	// Try swappings the order
+	var b = s.upper(1, "v") == s.upper("v", 1)
+	if (b == false) { System.print("b) upper failed"); return false }
+
+	var c = s.upper("really", "MUCH", -1 "tr") == "This is just a REALLY long test sTRing to TRy and get as MUCH variation as possiblE"
+	if (c == false) { System.print("c) upper failed"); return false }
+
+	// Try a different order
+	var d = s.upper(-1, "tr", "really", "MUCH") == s.upper("really", "MUCH", -1 "tr")
+	if (d == false) { System.print("d) upper failed"); return false }
+
+
+	// LOWER
+	a = s.lower("M", 0) == "this is just a really long test string to try and get as mUCH variation as possible"
+	if (a == false) { System.print("a) lower failed"); return false }
+
+	b = s.lower(0, "M") == s.lower("M", 0)
+	if (b == false) { System.print("b) lower failed"); return false }
+
+	c = s.lower("REALLY", "MU", -83 "H") == "this is just a really long test string to try and get as muCh variation as possible"
+	if (c == false) { System.print("c) lower failed"); return false }
+
+	// Try a different order
+	d = s.lower(-83, "H", "REALLY", "MU") == s.lower("REALLY", "MU", -83 "H")
+	if (d == false) { System.print("d) lower failed"); return false }
+
+	return true
+}
