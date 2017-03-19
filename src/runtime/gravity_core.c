@@ -1577,7 +1577,7 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 				// If it is all uppercase already, go to the next argument
 				if (is_all_upper) {
-				 continue;
+					continue;
 				}
 
 				// Otherwise, parse it, and uppercase it.
@@ -1585,7 +1585,7 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 					char *ptr = strstr(ret, search_str->s);
 
 					if (ptr == NULL) {
-					 break;
+						break;
 					}
 
 					int match_index_ret = ptr - ret;
@@ -1652,7 +1652,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 				// If it is all lowercase already, go to the next argument
 				if (is_all_lower) {
-				 continue;
+					continue;
 				}
 
 				// Otherwise, parse it, and lowercase it.
@@ -1660,7 +1660,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 					char *ptr = strstr(ret, search_str->s);
 
 					if (ptr == NULL) {
-					 break;
+						break;
 					}
 
 					int match_index_ret = ptr - ret;
