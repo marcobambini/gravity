@@ -1536,7 +1536,9 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 }
 
 
-// Returns -1 for error, and 0 otherwise
+// Returns -1 for out of bounds error
+// Returns -2 if we exit the loop wrong.
+// Returns 0 otherwise
 // Also return function arguments: index and ret
 // index: will help us to print out a runtime error if we go out of bounds
 // ret: is the returned string that our upper() and lower() methods return.
@@ -1557,7 +1559,8 @@ static int parse_arguments_for_upper_and_lower(gravity_vm *vm, int (*is_case)(in
 		// Check if all of search_string is already the case we want
 		bool is_all_correct_case = true;
 		for (int j = 0; j < search_str->len; ++j) {
-			if (!is_case(search_str->s[j])) {
+		 	// Better also make sure that it is an alpha character.
+			if (!is_case(search_str->s[j]) && isalpha(search_str->s[j])) {
 				is_all_correct_case = false;
 				break;
 			}
@@ -1568,7 +1571,9 @@ static int parse_arguments_for_upper_and_lower(gravity_vm *vm, int (*is_case)(in
 			return 0;
 		}
 
-		// Otherwise, parse it, and change the case it.
+		// Otherwise, parse it, and change the case
+		int iterations = 0;
+		bool isNotInfiniteLoop;
 		do {
 			char *ptr = strstr(ret, search_str->s);
 
@@ -1585,10 +1590,15 @@ static int parse_arguments_for_upper_and_lower(gravity_vm *vm, int (*is_case)(in
 				}
 				ret[j] = to_case(ret[j]);
 			}
-		} while(1); // Breaks out when no matches are found
-								// This results in an infinite loop if the user searches for
-								// a string that is already the correct case completely. Hence,
-								// the check further up
+			++iterations;
+		} while(isNotInfiniteLoop = iterations < ret_len);
+								// Breaks out when no matches are found
+								// We should never break out of this loop by this condition, as
+								// we should break out once we have no more matches. This is
+								// just a fail safe.
+		if (!isNotInfiniteLoop) {
+			return -2;
+		}
 	}
 	return 0;
 }
@@ -1623,6 +1633,9 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 			// If the parse through a -1 error, the argument was ou of bounds
 			if (err == -1) {
 				RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+			}
+			else if (err == -2) {
+				RETURN_ERROR("search parse ran into an infinite loop");
 			}
 		}
 	}

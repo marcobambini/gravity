@@ -1,0 +1,63 @@
+#unittest {
+	name: "upper() and lower methods for string -- non alpha tests";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello, World!"
+
+	// Full string
+	var a = s.upper() == "HELLO, WORLD!"
+	if (a == false) { System.print("a) failed"); return false }
+
+	var b = s.lower() == "hello, world!"
+	if (b == false) { System.print("b) failed"); return false }
+
+	// Single integer or string -- upper
+	var c = s.upper(5) == s
+	if (c == false) { System.print("c) failed"); return false }
+
+	var d = s.upper(",") == s
+	if (d == false) { System.print("d) failed"); return false }
+
+	// Single integer or string -- lower
+	var e = s.lower(5) == s
+	if (e == false) { System.print("e) failed"); return false }
+
+	var f = s.lower(",") == s
+	if (f == false) { System.print("f) failed"); return false }
+
+
+	// Longer strings -- upper
+	var g = s.upper("o,") == "HellO, World!"
+	if (g == false) { System.print("g) failed"); return false }
+
+	// Longer strings -- lower
+	var h = s.lower("o,") == s
+	if (h == false) { System.print("h) failed"); return false }
+
+	s = "HELLO, WORLD!"
+	var i = s.upper("O,") == s
+	if (i == false) { System.print("i) failed"); return false }
+
+	var j = s.lower("O,") == "HELLo, WORLD!"
+	if (j == false) { System.print("j) failed"); return false }
+
+	s = ","
+	var k = s.upper(",") == s
+	if (k == false) { System.print("k) failed"); return false }
+
+	var l = s.lower(",") == s
+	if (l == false) { System.print("l) failed"); return false }
+
+
+	s = ",!?:|"
+	var m = s.upper("!?") == s
+	if (m == false) { System.print("m) failed"); return false }
+
+	var n = s.lower("!?") == s
+	if (n == false) { System.print("m) failed"); return false }
+
+	return true
+}
