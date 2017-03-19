@@ -1535,11 +1535,70 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
 }
 
+
+// Returns -1 for error, and 0 otherwise
+// Also return function arguments: index and ret
+// index: will help us to print out a runtime error if we go out of bounds
+// ret: is the returned string that our upper() and lower() methods return.
+static int parse_arguments_for_upper_and_lower(gravity_vm *vm, int (*is_case)(int), int (*to_case)(int), gravity_value_t value, int32_t *index, char *ret, int ret_len) {
+	// If argument is an integer, capitalize the character specified by that integer
+	if (VALUE_ISA_INT(value)) {
+		*index = (int32_t)VALUE_AS_INT(value);
+
+		if (*index < 0) *index = ret_len + *index;
+		if ((*index < 0) || ((uint32_t)*index >= ret_len)) return -1;
+
+		ret[*index] = to_case(ret[*index]);
+	}
+	// If argument is a string, capitalize the characters specified by that string
+	else if (VALUE_ISA_STRING(value)) {
+		gravity_string_t *search_str = VALUE_AS_STRING(value);
+
+		// Check if all of search_string is already the case we want
+		bool is_all_correct_case = true;
+		for (int j = 0; j < search_str->len; ++j) {
+			if (!is_case(search_str->s[j])) {
+				is_all_correct_case = false;
+				break;
+			}
+		}
+
+		// If it is all the correct case already, go to the next argument
+		if (is_all_correct_case) {
+			return 0;
+		}
+
+		// Otherwise, parse it, and change the case it.
+		do {
+			char *ptr = strstr(ret, search_str->s);
+
+			if (ptr == NULL) {
+				break;
+			}
+
+			int match_index_ret = ptr - ret;
+
+			for (int j = match_index_ret; j < match_index_ret + search_str->len; ++j) {
+				if (is_case(ret[j])) {
+				 // Skip if it is already the correct case
+				 continue;
+				}
+				ret[j] = to_case(ret[j]);
+			}
+		} while(1); // Breaks out when no matches are found
+								// This results in an infinite loop if the user searches for
+								// a string that is already the correct case completely. Hence,
+								// the check further up
+	}
+	return 0;
+}
+
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
 	char ret[main_str->len + 1];
 	strcpy(ret, main_str->s);
+	int err;
 
 	// if no arguments passed, change case of the whole string
 	if (nargs == 1) {
@@ -1551,61 +1610,20 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	else {
 		for (int i = 1; i < nargs; ++i) {
 			gravity_value_t value = GET_VALUE(i);
-
-			// If argument is an integer, capitalize the character specified by that integer
-			if (VALUE_ISA_INT(value)) {
-				int32_t index = (int32_t)VALUE_AS_INT(value);
-
-				if (index < 0) index = main_str->len + index;
-				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
-
-				ret[index] = toupper(ret[index]);
-			}
-			// If argument is a string, capitalize the characters specified by that string
-			else if (VALUE_ISA_STRING(value)) {
-				// TODO: right now this will infinite loop if we are passed a uppercase string
-				gravity_string_t *search_str = VALUE_AS_STRING(value);
-
-				// Check if all of search_string is already uppercase
-				bool is_all_upper = true;
-				for (int j = 0; j < search_str->len; ++j) {
-					if (!isupper(search_str->s[j])) {
-						is_all_upper = false;
-						break;
-					}
-				}
-
-				// If it is all uppercase already, go to the next argument
-				if (is_all_upper) {
-					continue;
-				}
-
-				// Otherwise, parse it, and uppercase it.
-				do {
-					char *ptr = strstr(ret, search_str->s);
-
-					if (ptr == NULL) {
-						break;
-					}
-
-					int match_index_ret = ptr - ret;
-
-					for (int j = match_index_ret; j < match_index_ret + search_str->len; ++j) {
-						if (isupper(ret[j])) {
-						 // Skip if it is already uppercase
-						 continue;
-						}
-						ret[j] = toupper(ret[j]);
-					}
-				} while(1); // Breaks out when no matches are found
-				            // This results in an infinite loop if the user searches for
-				            // a string that is already uppercase completely. Hence, the
-				            // check further up
+			int32_t index = (int32_t)VALUE_AS_INT(value);
+			// if the argument is a string or int, proceed, otherwise we throw a
+			// runtime error
+			if (VALUE_ISA_STRING(value) || VALUE_ISA_INT(value)) {
+			 // new string is returned by the "ret" argument
+				err = parse_arguments_for_upper_and_lower(vm, isupper, toupper, value, &index, ret, strlen(ret));
 			}
 			else {
-			 RETURN_ERROR("upper() expects either no arguments, or arguments that are Strings or Ints only.");
+				RETURN_ERROR("upper() expects either no arguments, or arguments that are Strings or Ints only.");
 			}
-
+			// If the parse through a -1 error, the argument was ou of bounds
+			if (err == -1) {
+				RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+			}
 		}
 	}
 	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
@@ -1616,6 +1634,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 	char ret[main_str->len + 1];
 	strcpy(ret, main_str->s);
+	int err;
 
 	// if no arguments passed, change case of the whole string
 	if (nargs == 1) {
@@ -1627,60 +1646,20 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	else {
 		for (int i = 1; i < nargs; ++i) {
 			gravity_value_t value = GET_VALUE(i);
-
-			// If argument is an integer, change case to lower the character specified by that integer
-			if (VALUE_ISA_INT(value)) {
-				int32_t index = (int32_t)VALUE_AS_INT(value);
-
-				if (index < 0) index = main_str->len + index;
-				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
-
-				ret[index] = tolower(ret[index]);
-			}
-			// If argument is a string, capitalize the characters specified by that string
-			else if (VALUE_ISA_STRING(value)) {
-				gravity_string_t *search_str = VALUE_AS_STRING(value);
-
-				// Check if all of search_string is already lowercase
-				bool is_all_lower = true;
-				for (int j = 0; j < search_str->len; ++j) {
-					if (!islower(search_str->s[j])) {
-						is_all_lower = false;
-						break;
-					}
-				}
-
-				// If it is all lowercase already, go to the next argument
-				if (is_all_lower) {
-					continue;
-				}
-
-				// Otherwise, parse it, and lowercase it.
-				do {
-					char *ptr = strstr(ret, search_str->s);
-
-					if (ptr == NULL) {
-						break;
-					}
-
-					int match_index_ret = ptr - ret;
-
-					for (int j = match_index_ret; j < match_index_ret + search_str->len; ++j) {
-						if (islower(ret[j])) {
-						 // Skip if it is already lowercase
-						 continue;
-						}
-						ret[j] = tolower(ret[j]);
-					}
-				} while(1); // Breaks out when no matches are found
-				            // This results in an infinite loop if the user searches for
-				            // a string that is already lowercase completely. Hence, the
-				            // check further up
+			int32_t index = (int32_t)VALUE_AS_INT(value);
+			// if the argument is a string or int, proceed, otherwise we throw a
+			// runtime error
+			if (VALUE_ISA_STRING(value) || VALUE_ISA_INT(value)) {
+			 // new string is returned by the "ret" argument
+				err = parse_arguments_for_upper_and_lower(vm, islower, tolower, value, &index, ret, strlen(ret));
 			}
 			else {
-			 RETURN_ERROR("lower() expects either no arguments, or arguments that are Strings or Ints only.");
+				RETURN_ERROR("lower() expects either no arguments, or arguments that are Strings or Ints only.");
 			}
-
+			// If the parse through a -1 error, the argument was ou of bounds
+			if (err == -1) {
+				RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+			}
 		}
 	}
 	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
