@@ -1673,6 +1673,9 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 			if (err == -1) {
 				RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
 			}
+			else if (err == -2) {
+				RETURN_ERROR("search parse ran into an infinite loop");
+			}
 		}
 	}
 	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
