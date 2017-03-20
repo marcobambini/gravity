@@ -1536,41 +1536,67 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 }
 
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	if (nargs != 1) {
-		RETURN_ERROR("String.upper() expects no argument");
-	}
-	
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
-	// I don't want this function to modify the main_str directly. I just want
-	// this method to return a new capitalized string, so copy main_str to a
-	// different string and manipulate that.
-	char new_str[main_str->len + 1]; // + 1 for the null character
+	char ret[main_str->len + 1];
+	strcpy(ret, main_str->s);
 
-	for (int i = 0; i <= main_str->len; i++) {
-		new_str[i] = toupper(main_str->s[i]);
+	// if no arguments passed, change the whole string to uppercase
+	if (nargs == 1) {
+		for (int i = 0; i <= main_str->len; i++) {
+		 ret[i] = toupper(ret[i]);
+		}
 	}
+	// otherwise, evaluate all the arguments
+	else {
+		for (int i = 1; i < nargs; ++i) {
+			gravity_value_t value = GET_VALUE(i);
+			if (VALUE_ISA_INT(value)) {
+				int32_t index = (int32_t)VALUE_AS_INT(value);
 
-	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
+				if (index < 0) index = main_str->len + index;
+				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+
+				ret[index] = toupper(ret[index]);
+			}
+			else {
+				RETURN_ERROR("upper() expects either no arguments, or integer arguments.");
+			}
+		}
+	}
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
 }
 
 static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	if (nargs != 1) {
-		RETURN_ERROR("String.lower() expects no argument");
-	}
-
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
-	// I don't want this function to modify the main_str directly. I just want
-	// this method to return a new capitalized string, so copy main_str to a
-	// different string and manipulate that.
-	char new_str[main_str->len + 1]; // + 1 for the null character
+	char ret[main_str->len + 1];
+	strcpy(ret, main_str->s);
 
-	for (int i = 0; i <= main_str->len; i++) {
-		new_str[i] = tolower(main_str->s[i]);
+	// if no arguments passed, change the whole string to lowercase
+	if (nargs == 1) {
+		for (int i = 0; i <= main_str->len; i++) {
+		 ret[i] = tolower(ret[i]);
+		}
 	}
+	// otherwise, evaluate all the arguments
+	else {
+		for (int i = 1; i < nargs; ++i) {
+			gravity_value_t value = GET_VALUE(i);
+			if (VALUE_ISA_INT(value)) {
+				int32_t index = (int32_t)VALUE_AS_INT(value);
 
-	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
+				if (index < 0) index = main_str->len + index;
+				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+
+				ret[index] = tolower(ret[index]);
+			}
+			else {
+				RETURN_ERROR("lower() expects either no arguments, or integer arguments.");
+			}
+		}
+	}
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
 }
 
 static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {

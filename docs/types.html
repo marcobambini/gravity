@@ -115,8 +115,12 @@
 
 	n = "A".repeat(10)      // n is now "AAAAAAAAAA"
 
+	// upper() and lower() operate on the whole string when 0 arguments are passed
 	n = b.upper()           // n is now "HELLO WORLD"
 	n = b.lower()           // n is now "hello world"
+
+	// upper() and lower() can both take multiple integer arguments
+	n = b.upper(1, -1)     // n is now "HEllo WorlD"
 
 	// You are also able to edit strings by character...
 	b[0] = "Z"              // b is now "Zello World"

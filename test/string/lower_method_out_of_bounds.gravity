@@ -1,0 +1,9 @@
+#unittest {
+	name: "lower() method out of bounds";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "Hello"
+	s.lower(5)
+}
