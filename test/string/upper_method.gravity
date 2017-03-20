@@ -7,27 +7,6 @@
 func main () {
 	var s = "This is just a really long test string to try and get as MUCH variation as possible"
 
-	// 1 match
-	var a_str = s.upper("v") == "This is just a really long test string to try and get as MUCH Variation as possible"
-	if (a_str == false) { System.print("a) string failed"); return false }
-
-	// multiple matches
-	var b_str = s.upper("i") == "ThIs Is just a really long test strIng to try and get as MUCH varIatIon as possIble"
-	if (b_str == false) { System.print("b) string failed"); return false }
-
-	// 1 match, longer search string
-	var c_str = s.upper("is") == "ThIS IS just a really long test string to try and get as MUCH variation as possible"
-	if (c_str == false) { System.print("c) string failed"); return false }
-
-	// Try a character that is already uppercase, combined with a lowercase
-	var d_str = s.upper("Th") == "THis is just a really long test string to try and get as MUCH variation as possible"
-	if (d_str == false) { System.print("d) string failed"); return false }
-
-	// Try a completely uppercase string
-	var e_str = s.upper("MUC") == "This is just a really long test string to try and get as MUCH variation as possible"
-	if (e_str == false) { System.print("e) string failed"); return false }
-
-
 	// Numbers Only
 	// the v in variation
 	var a_int = s.upper(62) == "This is just a really long test string to try and get as MUCH Variation as possible"

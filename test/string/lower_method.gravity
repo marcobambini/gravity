@@ -7,23 +7,6 @@
 func main () {
 	var s = "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much VARIATION AS POSSIBLE"
 
-	var a_str = s.lower("V") == "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much vARIATION AS POSSIBLE"
-	if (a_str == false) { System.print("a) string failed\n"); return false }
-
-	var b_str = s.lower("I") == "tHiS iS JUST A REALLY LONG TEST STRiNG TO TRY AND GET AS much VARiATiON AS POSSiBLE"
-	if (a_str == false) { System.print("b) string failed\n"); return false }
-
-	var c_str = s.lower("IS") == "tHis is JUST A REALLY LONG TEST STRING TO TRY AND GET AS much VARIATION AS POSSIBLE"
-	if (a_str == false) { System.print("c) string failed\n"); return false }
-
-	// Try a character that is already lower
-	var d_str = s.lower("h V") == "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much vARIATION AS POSSIBLE"
-	if (a_str == false) { System.print("d) string failed\n"); return false }
-
-	var e_str = s.lower("muc") == "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much VARIATION AS POSSIBLE"
-	if (a_str == false) { System.print("e) string failed\n"); return false }
-
-
 	// Numbers Only
 	// The V in VARIATION
 	var a_int = s.lower(62) == "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much vARIATION AS POSSIBLE"
