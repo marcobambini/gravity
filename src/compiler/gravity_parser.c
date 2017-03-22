@@ -615,36 +615,54 @@ static gnode_t *parse_keyword_expression (gravity_parser_t *parser) {
 }
 
 static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
-	DEBUG_PARSER("parse_call_expression_list");
+	DEBUG_PARSER("parse_arguments_expression");
 	DECLARE_LEXER;
 	
 	// it's OK for a call_expression_list to be empty
 	if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) return NULL;
 	
+	bool arg_expected = true;
 	gnode_r *list = gnode_array_create();
+	
 	while (1) {
 		gtoken_t peek = gravity_lexer_peek(lexer);
 		
 		if (peek == TOK_OP_COMMA) {
 			// added the ability to convert ,, to ,undefined,
 			gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+			arg_expected = true;
 			
 			// consume next TOK_OP_COMMA and check for special ,) case
 			gravity_lexer_next(lexer);
-			if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+			if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS)
+				gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+			
 		} else {
 			// check exit condition
-			if ((peek == TOK_EOF) || (peek == TOK_OP_CLOSED_PARENTHESIS)) break;
+			if ((peek == TOK_EOF) || (peek == TOK_OP_CLOSED_PARENTHESIS))
+				break;
+			
+			// I am going to parse and expression but is it allowed?
+			if (!arg_expected) {
+				REPORT_ERROR(gravity_lexer_token_next(lexer), "Missing , in function call.");
+				return list;
+			}
 			
 			// parse expression
 			gnode_t *expr = parse_expression(parser);
 			if (expr) gnode_array_push(list, expr);
 			
 			// consume next TOK_OP_COMMA and check for special ,) case
-			if (gravity_lexer_peek(lexer) == TOK_OP_COMMA) {
+			peek = gravity_lexer_peek(lexer);
+			if (peek == TOK_OP_COMMA) {
 				gravity_lexer_next(lexer);
-				if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+				if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS)
+					gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
 			}
+			
+			// arg is expected only if a comma is consumed
+			// this fixes syntax errors like System.print("Hello" " World")
+			arg_expected = (peek == TOK_OP_COMMA);
 		}
 	}
 	
