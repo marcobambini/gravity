@@ -1,0 +1,8 @@
+#unittest {
+	name: "Test System.random() no arguments";
+	error: RUNTIME;
+};
+
+func main() {
+	return System.random()
+}
