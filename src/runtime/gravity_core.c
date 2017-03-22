@@ -8,6 +8,7 @@
 
 #include <inttypes.h>
 #include <math.h>
+#include <time.h>
 #include "gravity_core.h"
 #include "gravity_hash.h"
 #include "gravity_value.h"
@@ -2083,7 +2084,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(system_meta, "gcminthreshold", value);
 	gravity_class_bind(system_meta, "gcthreshold", value);
 	gravity_class_bind(system_meta, "gcratio", value);
-	
+
 	// INIT META
 	SETMETA_INITED(gravity_class_int);
 	SETMETA_INITED(gravity_class_float);

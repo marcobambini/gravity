@@ -222,4 +222,16 @@ typedef enum {
 #define GRAVITY_SYSTEM_PUT_NAME			"put"
 #define GRAVITY_SYSTEM_NANOTIME_NAME	"nanotime"
 
+#define GRAVITY_CLASS_DATE_NAME		"Date"
+#define GRAVITY_DATE_TIME_NAME	"time"
+#define GRAVITY_DATE_SECOND_NAME	"second"
+#define GRAVITY_DATE_MINUTE_NAME	"minute"
+#define GRAVITY_DATE_HOUR_NAME	"hour"
+#define GRAVITY_DATE_MONTH_DAY_NAME	"month_day"
+#define GRAVITY_DATE_MONTH_NAME	"month"
+#define GRAVITY_DATE_YEAR_NAME	"year"
+#define GRAVITY_DATE_WEEK_DAY_NAME	"week_day"
+#define GRAVITY_DATE_YEAR_DAY_NAME	"year_day"
+#define GRAVITY_DATE_DAYLIGHT_SAVINGS_NAME	"daylight_savings"
+
 #endif
