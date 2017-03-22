@@ -1,0 +1,9 @@
+#unittest {
+	name: "upper() method out of bounds";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "Hello"
+	s.upper(5)
+}

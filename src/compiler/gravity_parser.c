@@ -510,6 +510,30 @@ static gnode_t *parse_identifier_expression (gravity_parser_t *parser) {
 	return gnode_identifier_expr_create(token, identifier, NULL);
 }
 
+static gnode_t *parse_identifier_or_keyword_expression (gravity_parser_t *parser) {
+	DEBUG_PARSER("parse_identifier_expression");
+	DECLARE_LEXER;
+	
+	// check if token is a keyword
+	uint32_t idx_start, idx_end;
+	token_keywords_indexes(&idx_start, &idx_end);
+	
+	gtoken_t peek = gravity_lexer_peek(lexer);
+	if ((peek >= idx_start) && (peek <= idx_end)) {
+		
+		// consume token keyword
+		gtoken_t keyword = gravity_lexer_next(lexer);
+		gtoken_s token = gravity_lexer_token(lexer);
+		
+		// convert from keyword to identifier
+		const char	*identifier = string_dup(token_name(keyword));
+		return gnode_identifier_expr_create(token, identifier, NULL);
+	}
+	
+	// default case
+	return parse_identifier_expression(parser);
+}
+
 static gnode_t *parse_number_expression (gtoken_s token) {
 	DEBUG_PARSER("parse_number_expression");
 	
@@ -591,36 +615,54 @@ static gnode_t *parse_keyword_expression (gravity_parser_t *parser) {
 }
 
 static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
-	DEBUG_PARSER("parse_call_expression_list");
+	DEBUG_PARSER("parse_arguments_expression");
 	DECLARE_LEXER;
 	
 	// it's OK for a call_expression_list to be empty
 	if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) return NULL;
 	
+	bool arg_expected = true;
 	gnode_r *list = gnode_array_create();
+	
 	while (1) {
 		gtoken_t peek = gravity_lexer_peek(lexer);
 		
 		if (peek == TOK_OP_COMMA) {
 			// added the ability to convert ,, to ,undefined,
 			gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+			arg_expected = true;
 			
 			// consume next TOK_OP_COMMA and check for special ,) case
 			gravity_lexer_next(lexer);
-			if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+			if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS)
+				gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+			
 		} else {
 			// check exit condition
-			if ((peek == TOK_EOF) || (peek == TOK_OP_CLOSED_PARENTHESIS)) break;
+			if ((peek == TOK_EOF) || (peek == TOK_OP_CLOSED_PARENTHESIS))
+				break;
+			
+			// I am going to parse and expression but is it allowed?
+			if (!arg_expected) {
+				REPORT_ERROR(gravity_lexer_token_next(lexer), "Missing , in function call.");
+				return list;
+			}
 			
 			// parse expression
 			gnode_t *expr = parse_expression(parser);
 			if (expr) gnode_array_push(list, expr);
 			
 			// consume next TOK_OP_COMMA and check for special ,) case
-			if (gravity_lexer_peek(lexer) == TOK_OP_COMMA) {
+			peek = gravity_lexer_peek(lexer);
+			if (peek == TOK_OP_COMMA) {
 				gravity_lexer_next(lexer);
-				if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
+				if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS)
+					gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN));
 			}
+			
+			// arg is expected only if a comma is consumed
+			// this fixes syntax errors like System.print("Hello" " World")
+			arg_expected = (peek == TOK_OP_COMMA);
 		}
 	}
 	
@@ -655,7 +697,10 @@ static gnode_t *parse_postfix_expression (gravity_parser_t *parser, gtoken_t tok
 			parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
 			node = gnode_postfix_subexpr_create(subtoken, NODE_CALL_EXPR, NULL, args);
 		} else if (tok == TOK_OP_DOT) {
-			gnode_t *expr = parse_identifier_expression(parser);
+			// was parse_identifier_expression but we need to allow also keywords here in order
+			// to be able to supports expressions like name.repeat (repeat is a keyword but in this
+			// context it should be interpreted as an identifier)
+			gnode_t *expr = parse_identifier_or_keyword_expression(parser);
 			gtoken_s subtoken = gravity_lexer_token(lexer);
 			node = gnode_postfix_subexpr_create(subtoken, NODE_ACCESS_EXPR, expr, NULL);
 		} else {
@@ -712,7 +757,7 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 	gnode_t *node = prefix(parser);
 	
 	gtoken_t peek = gravity_lexer_peek(lexer);
-	if (type == TOK_EOF) return NULL;
+	if (peek == TOK_EOF) return NULL;
 	
 	while (precedence < rules[peek].precedence) {
 		gtoken_t tok = gravity_lexer_next(lexer);
@@ -723,7 +768,7 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 		node = rule->infix(parser);
 		
 		peek = gravity_lexer_peek(lexer);
-		if (type == TOK_EOF) return NULL;
+		if (peek == TOK_EOF) return NULL;
 	}
 	
 	return node;
@@ -1444,7 +1489,7 @@ loop:
 	return params;
 }
 
-// MARK: - UnitTest -
+// MARK: - Macro -
 
 typedef enum {
 	UNITTEST_NONE,
@@ -1456,7 +1501,7 @@ typedef enum {
 	UNITTEST_NOTE
 } unittest_t;
 
-static unittest_t parse_unittest_identifier(const char *identifier) {
+static unittest_t parse_unittest_identifier (const char *identifier) {
 	if (string_cmp(identifier, "name") == 0) return UNITTEST_NAME;
 	if (string_cmp(identifier, "note") == 0) return UNITTEST_NOTE;
 	if (string_cmp(identifier, "error") == 0) return UNITTEST_ERROR;
@@ -1467,9 +1512,9 @@ static unittest_t parse_unittest_identifier(const char *identifier) {
 	return UNITTEST_NONE;
 }
 
-static gnode_t *parse_unittest_declaration(gravity_parser_t *parser) {
+static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
+	DEBUG_PARSER("parse_unittest_macro");
 	DECLARE_LEXER;
-	DEBUG_PARSER("parse_unittest_declaration");
 	
 	// @unittest {
 	//		name: "Unit test name";
@@ -1629,6 +1674,65 @@ static gnode_t *parse_unittest_declaration(gravity_parser_t *parser) {
 	
 	// always return NULL
 handle_error:
+	return NULL;
+}
+
+static gnode_t *parse_include_macro (gravity_parser_t *parser) {
+	DEBUG_PARSER("parse_include_macro");
+	DECLARE_LEXER;
+	
+	// process filename (can be an identifier or a literal string)
+	// only literals are supported in this version
+	gtoken_t		type;
+	gtoken_s		token;
+	const char		*module_name;
+	gravity_lexer_t	*newlexer;
+	
+loop:
+	newlexer = NULL;
+	type = gravity_lexer_next(lexer);
+	token = gravity_lexer_token(lexer);
+	
+	// check if it is a string token
+	if (type != TOK_STRING) {
+		REPORT_ERROR(token, "Expected file name but found %s.", token_name(type));
+		return NULL;
+	}
+	
+	// check pre-requisites
+	if ((!parser->delegate) || (!parser->delegate->loadfile_callback)) {
+		REPORT_ERROR(gravity_lexer_token(lexer), "%s", "Unable to load file because no loadfile callback registered in delegate.");
+		return NULL;
+	}
+	
+	// parse string
+	module_name = cstring_from_token(parser, token);
+	size_t size = 0;
+	uint32_t fileid = 0;
+	
+	// module_name is a filename and it is used by lexer to store filename into tokens
+	// tokens are then stored inside AST nodes in order to locate errors into source code
+	// AST can live a lot longer than both lexer and parser so we need a way to persistent
+	// store these chuncks of memory
+	const char *source = parser->delegate->loadfile_callback(module_name, &size, &fileid, parser->delegate->xdata);
+	if (source) newlexer = gravity_lexer_create(source, size, fileid, false);
+	
+	if (newlexer) {
+		// push new lexer into lexer stack
+		marray_push(gravity_lexer_t*, *parser->lexer, newlexer);
+	} else {
+		REPORT_ERROR(token, "Unable to load file %s.", module_name);
+	}
+	
+	// check for optional comma
+	if (gravity_lexer_peek(lexer) == TOK_OP_COMMA) {
+		gravity_lexer_next(lexer); // consume TOK_OP_COMMA
+		goto loop;
+	}
+	
+	// parse semicolon
+	parse_semicolon(parser);
+	
 	return NULL;
 }
 
@@ -1872,70 +1976,20 @@ static gnode_t *parse_declaration_statement (gravity_parser_t *parser) {
 }
 
 static gnode_t *parse_import_statement (gravity_parser_t *parser) {
+	#pragma unused(parser)
 	DEBUG_PARSER("parse_import_statement");
 	
-	DECLARE_LEXER;
-
-	// parse import keyword
-	gravity_lexer_next(lexer);
-	
-	// process filename (can be an identifier or a literal string)
-	// identifier to import modules ?
-	// only literals are supported in this version
-	gtoken_t		type;
-	gtoken_s		token;
-	const char		*module_name;
-	gravity_lexer_t	*newlexer;
-	
-loop:
-	newlexer = NULL;
-	type = gravity_lexer_next(lexer);
-	token = gravity_lexer_token(lexer);
-	
-	// check if it is a string token
-	if (type != TOK_STRING) {
-		REPORT_ERROR(token, "Expected file name but found %s.", token_name(type));
-		return NULL;
-	}
-	
-	// check pre-requisites
-	if ((!parser->delegate) || (!parser->delegate->loadfile_callback)) {
-		REPORT_ERROR(gravity_lexer_token(lexer), "%s", "Unable to load file because no loadfile callback registered in delegate.");
-		return NULL;
-	}
-	
-	// parse string
-	module_name = cstring_from_token(parser, token);
-	size_t size = 0;
-	uint32_t fileid = 0;
-	
-	// module_name is a filename and it is used by lexer to store filename into tokens
-	// tokens are then stored inside AST nodes in order to locate errors into source code
-	// AST can live a lot longer than both lexer and parser so we need a way to persistent
-	// store these chuncks of memory
-	const char *source = parser->delegate->loadfile_callback(module_name, &size, &fileid, parser->delegate->xdata);
-	if (source) newlexer = gravity_lexer_create(source, size, fileid, false);
-
-	if (newlexer) {
-		// push new lexer into lexer stack
-		marray_push(gravity_lexer_t*, *parser->lexer, newlexer);
-	} else {
-		REPORT_ERROR(token, "Unable to load file %s.", module_name);
-	}
-	
-	// check for optional comma
-	if (gravity_lexer_peek(lexer) == TOK_OP_COMMA) {
-		gravity_lexer_next(lexer); // consume TOK_OP_COMMA
-		goto loop;
-	}
-
-	// parse semicolon
-	parse_semicolon(parser);
-	
+	// import is a syntactic sugar for System.import
 	return NULL;
 }
 
 static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
+	typedef enum {
+		MACRO_UNKNOWN = 0,
+		MACRO_UNITEST = 1,
+		MACRO_INCLUDE = 2
+	} builtin_macro;
+	
 	DEBUG_PARSER("parse_macro_statement");
 	DECLARE_LEXER;
 	
@@ -1944,7 +1998,7 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
 	assert(type == TOK_MACRO);
 	
 	// check for #! and interpret #! shebang bash as one line comment
-	// only if found on first line (https://github.com/marcobambini/gravity/issues/86)
+	// only if found on first line
 	if (gravity_lexer_peek(lexer) == TOK_OP_NOT && gravity_lexer_lineno(lexer) == 1) {
 		// consume special ! symbol
 		type = gravity_lexer_next(lexer);
@@ -1959,12 +2013,23 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
 	const char *macroid = parse_identifier(parser);
 	if (macroid == NULL) goto handle_error;
 	
-	// check #unittest macro
-	bool is_unittest = (string_cmp(macroid, "unittest") == 0);
+	// check macro
+	builtin_macro macro_type = MACRO_UNKNOWN;
+	if (string_cmp(macroid, "unittest") == 0) macro_type = MACRO_UNITEST;
+	else if (string_cmp(macroid, "include") == 0) macro_type = MACRO_INCLUDE;
 	mem_free(macroid);
 	
-	if (is_unittest) {
-		return parse_unittest_declaration(parser);
+	switch (macro_type) {
+		case MACRO_UNITEST:
+			return parse_unittest_macro(parser);
+			break;
+			
+		case MACRO_INCLUDE:
+			return parse_include_macro(parser);
+			break;
+			
+		case MACRO_UNKNOWN:
+			break;
 	}
 	
 handle_error:

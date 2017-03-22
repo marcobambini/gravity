@@ -37,7 +37,7 @@ typedef enum {
 		SKIP_TAG,
 		RANGE_INCLUDE_TAG,
 		RANGE_EXCLUDE_TAG,
-		PRAGMA_OPTIMIZATION
+		PRAGMA_MOVE_OPTIMIZATION
 } optag_t;
 
 typedef struct {
@@ -77,6 +77,7 @@ void		ircode_marklabel (ircode_t *code, uint32_t nlabel);
 void		inst_setskip (inst_t *inst);
 uint8_t		opcode_numop (opcode_t op);
 
+void		ircode_pragma (ircode_t *code, optag_t tag, uint32_t value);
 void		ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
 void		ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag);
 void		ircode_add_array (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_r r);

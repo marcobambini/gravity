@@ -1,0 +1,29 @@
+#unittest {
+	name: "upper() methods for string -- complex";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "This is just a really long test string to try and get as MUCH variation as possible"
+
+	// Numbers Only
+	// the v in variation
+	var a_int = s.upper(62) == "This is just a really long test string to try and get as MUCH Variation as possible"
+	if (a_int == false) { System.print("a) int failed"); return false }
+
+	var b_int = s.upper(-21) == s.upper(62)
+	if (b_int == false) { System.print("b) int failed"); return false }
+
+	var c_int = s.upper(2) == "ThIs is just a really long test string to try and get as MUCH variation as possible"
+	if (c_int == false) { System.print("c) int failed"); return false }
+
+	var d_int = s.upper(-81) == s.upper(2)
+	if (d_int == false) { System.print("d) int failed"); return false }
+
+	// Try a character that is already uppercase
+	var e_int = s.upper(0) == "This is just a really long test string to try and get as MUCH variation as possible"
+	if (e_int == false) { System.print("e) int failed"); return false }
+	
+	return true
+}

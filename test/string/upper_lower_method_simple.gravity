@@ -1,0 +1,21 @@
+#unittest {
+	name: "upper() and lower methods for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	var u = s.upper() == "HELLO WORLD"
+	var l = s.lower() == "hello world"
+
+	// calling the method returns the change, but should not physically change the
+	// base string
+	s.upper()
+	var unchanged_u = s == "Hello World"
+
+	s.lower()
+	var unchanged_l = s == "Hello World"
+
+	return u and l and unchanged_u and unchanged_l
+}

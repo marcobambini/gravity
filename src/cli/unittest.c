@@ -24,6 +24,8 @@ typedef struct {
 	int32_t			expected_col;
 } test_data;
 
+static const char *test_folder_path;
+
 static void unittest_init (const char *target_file, test_data *data) {
 	#pragma unused(target_file)
 	++data->ncount;
@@ -78,7 +80,16 @@ static void callback_error (error_type_t error_type, const char *message, error_
 
 static const char *callback_read (const char *path, size_t *size, uint32_t *fileid, void *xdata) {
 	#pragma unused(fileid,xdata)
-	return file_read(path, size);
+	if (file_exists(path)) return file_read(path, size);
+	
+	// this unittest is able to resolve path only next to main test folder (not in nested folders)
+	const char *newpath = file_buildpath(path, test_folder_path);
+	if (!newpath) return NULL;
+	
+	const char *buffer = file_read(newpath, size);
+	mem_free(newpath);
+	
+	return buffer;
 }
 
 static void test_folder (const char *folder_path, test_data *data) {
@@ -103,6 +114,9 @@ static void test_folder (const char *folder_path, test_data *data) {
 			test_folder(full_path, data);
 			continue;
 		}
+		
+		// test only files with a .gravity extension
+		if (strstr(full_path, ".gravity") == NULL) continue;
 		
 		// load source code
 		size_t size = 0;
@@ -179,6 +193,7 @@ int main (int argc, const char* argv[]) {
 	
 	mem_init();
 	nanotime_t tstart = nanotime();
+	test_folder_path = argv[1];
 	test_folder(argv[1], &data);
 	nanotime_t tend = nanotime();
 	

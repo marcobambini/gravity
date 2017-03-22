@@ -8,6 +8,8 @@
 
 #include <inttypes.h>
 #include <math.h>
+#include <time.h>
+#include <stdlib.h>
 #include "gravity_core.h"
 #include "gravity_hash.h"
 #include "gravity_value.h"
@@ -67,24 +69,24 @@ static bool core_inited = false;		// initialize global classes just once
 static uint32_t refcount = 0;			// protect deallocation of global classes
 
 // boxed
-gravity_class_t *gravity_class_int;
-gravity_class_t *gravity_class_float;
-gravity_class_t *gravity_class_bool;
-gravity_class_t	*gravity_class_null;
+GRAVITY_API gravity_class_t *gravity_class_int;
+GRAVITY_API gravity_class_t *gravity_class_float;
+GRAVITY_API gravity_class_t *gravity_class_bool;
+GRAVITY_API gravity_class_t	*gravity_class_null;
 // objects
-gravity_class_t *gravity_class_string;
-gravity_class_t *gravity_class_object;
-gravity_class_t *gravity_class_function;
-gravity_class_t *gravity_class_closure;
-gravity_class_t *gravity_class_fiber;
-gravity_class_t *gravity_class_class;
-gravity_class_t *gravity_class_instance;
-gravity_class_t *gravity_class_module;
-gravity_class_t *gravity_class_list;
-gravity_class_t *gravity_class_map;
-gravity_class_t *gravity_class_range;
-gravity_class_t *gravity_class_upvalue;
-gravity_class_t *gravity_class_system;
+GRAVITY_API gravity_class_t *gravity_class_string;
+GRAVITY_API gravity_class_t *gravity_class_object;
+GRAVITY_API gravity_class_t *gravity_class_function;
+GRAVITY_API gravity_class_t *gravity_class_closure;
+GRAVITY_API gravity_class_t *gravity_class_fiber;
+GRAVITY_API gravity_class_t *gravity_class_class;
+GRAVITY_API gravity_class_t *gravity_class_instance;
+GRAVITY_API gravity_class_t *gravity_class_module;
+GRAVITY_API gravity_class_t *gravity_class_list;
+GRAVITY_API gravity_class_t *gravity_class_map;
+GRAVITY_API gravity_class_t *gravity_class_range;
+GRAVITY_API gravity_class_t *gravity_class_upvalue;
+GRAVITY_API gravity_class_t *gravity_class_system;
 
 #define SETMETA_INITED(c)						gravity_class_get_meta(c)->is_inited = true
 #define GET_VALUE(_idx)							args[_idx]
@@ -1432,6 +1434,18 @@ static bool operator_string_neg (gravity_vm *vm, gravity_value_t *args, uint16_t
 	RETURN_VALUE(VALUE_FROM_OBJECT(string), rindex);
 }
 
+static bool operator_string_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	
+	DECLARE_2VARIABLES(v1, v2, 0, 1);
+	INTERNAL_CONVERT_STRING(v2);
+	
+	gravity_string_t *s1 = VALUE_AS_STRING(v1);
+	gravity_string_t *s2 = VALUE_AS_STRING(v2);
+	
+	RETURN_VALUE(VALUE_FROM_INT(strcmp(s1->s, s2->s)), rindex);
+}
+
 static bool string_length (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
 
@@ -1441,16 +1455,197 @@ static bool string_length (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	RETURN_VALUE(VALUE_FROM_INT(s1->len), rindex);
 }
 
-static bool operator_string_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(vm, nargs)
+static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm)
 
-	DECLARE_2VARIABLES(v1, v2, 0, 1);
-	INTERNAL_CONVERT_STRING(v2);
+	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
+		RETURN_ERROR("String.index() expects a string as an argument");
+	}
+	
+	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
+	gravity_string_t *str_to_index = VALUE_AS_STRING(GET_VALUE(1));
 
-	gravity_string_t *s1 = VALUE_AS_STRING(v1);
-	gravity_string_t *s2 = VALUE_AS_STRING(v2);
+	// search for the string
+	char *ptr = strstr(main_str->s, str_to_index->s);
 
-	RETURN_VALUE(VALUE_FROM_INT(strcmp(s1->s, s2->s)), rindex);
+	// if it doesn't exist, return null
+	if (ptr == NULL) {
+		RETURN_VALUE(VALUE_FROM_NULL, rindex);
+	}
+	// otherwise, return the difference, which is the index that the string starts at
+	else {
+		RETURN_VALUE(VALUE_FROM_INT(ptr - main_str->s), rindex);
+	}
+}
+
+static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm)
+
+	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
+		RETURN_ERROR("String.count() expects a string as an argument");
+	}
+	
+	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
+	gravity_string_t *str_to_count = VALUE_AS_STRING(GET_VALUE(1));
+
+	int j = 0;
+	int count = 0;
+
+	// iterate through whole string
+	for (int i = 0; i < main_str->len; i++) {
+		if (main_str->s[i] == str_to_count->s[j]) {
+			// if the characters match and we are on the last character of the search
+			// string, then we have found a match
+			if (j == str_to_count->len - 1) {
+				count++;
+				j = 0;
+				continue;
+			}
+		}
+		// reset if it isn't a match
+		else {
+			j = 0;
+			continue;
+		}
+		// move forward in the search string if we found a match but we aren't
+		// finished checking all the characters of the search string yet
+		j++;
+	}
+
+	RETURN_VALUE(VALUE_FROM_INT(count), rindex);
+}
+
+
+static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	if ((nargs != 2) || (!VALUE_ISA_INT(GET_VALUE(1)))) {
+		RETURN_ERROR("String.repeat() expects an integer argument");
+	}
+	
+	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
+	gravity_int_t times_to_repeat = VALUE_AS_INT(GET_VALUE(1));
+	if (times_to_repeat < 1) {
+		RETURN_ERROR("String.repeat() expects an integer >= 1");
+	}
+
+	// figure out the size of the array we need to make to hold the new string
+	uint32_t new_size = (uint32_t)(main_str->len * times_to_repeat);
+	char new_str[new_size+1];
+	
+	// this code could be much faster with a memcpy
+	strcpy(new_str, main_str->s);
+	for (int i = 0; i < times_to_repeat-1; ++i) {
+		strcat(new_str, main_str->s);
+	}
+
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
+}
+
+static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
+
+	char ret[main_str->len + 1];
+	strcpy(ret, main_str->s);
+
+	// if no arguments passed, change the whole string to uppercase
+	if (nargs == 1) {
+		for (int i = 0; i <= main_str->len; i++) {
+		 ret[i] = toupper(ret[i]);
+		}
+	}
+	// otherwise, evaluate all the arguments
+	else {
+		for (int i = 1; i < nargs; ++i) {
+			gravity_value_t value = GET_VALUE(i);
+			if (VALUE_ISA_INT(value)) {
+				int32_t index = (int32_t)VALUE_AS_INT(value);
+
+				if (index < 0) index = main_str->len + index;
+				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+
+				ret[index] = toupper(ret[index]);
+			}
+			else {
+				RETURN_ERROR("upper() expects either no arguments, or integer arguments.");
+			}
+		}
+	}
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
+}
+
+static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
+
+	char ret[main_str->len + 1];
+	strcpy(ret, main_str->s);
+
+	// if no arguments passed, change the whole string to lowercase
+	if (nargs == 1) {
+		for (int i = 0; i <= main_str->len; i++) {
+		 ret[i] = tolower(ret[i]);
+		}
+	}
+	// otherwise, evaluate all the arguments
+	else {
+		for (int i = 1; i < nargs; ++i) {
+			gravity_value_t value = GET_VALUE(i);
+			if (VALUE_ISA_INT(value)) {
+				int32_t index = (int32_t)VALUE_AS_INT(value);
+
+				if (index < 0) index = main_str->len + index;
+				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+
+				ret[index] = tolower(ret[index]);
+			}
+			else {
+				RETURN_ERROR("lower() expects either no arguments, or integer arguments.");
+			}
+		}
+	}
+	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
+}
+
+static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(nargs)
+	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
+	gravity_value_t value = GET_VALUE(1);
+	if (!VALUE_ISA_INT(value)) RETURN_ERROR("An integer index is required to access a string item.");
+	
+	int32_t index = (int32_t)VALUE_AS_INT(value);
+	
+	if (index < 0) index = string->len + index;
+	if ((index < 0) || ((uint32_t)index >= string->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, string->len-1);
+
+	// this code is not UTF-8 safe
+	char c[2] = "\0";
+	c[0] = string->s[index];
+	
+	RETURN_VALUE(VALUE_FROM_STRING(vm, c, 1), rindex);
+}
+
+static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs, rindex)
+	
+	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
+	gravity_value_t idxvalue = GET_VALUE(1);
+	if (!VALUE_ISA_INT(idxvalue)) RETURN_ERROR("An integer index is required to access a string item.");
+	if (!VALUE_ISA_STRING(GET_VALUE(2))) RETURN_ERROR("A string needs to be assigned to a string index");
+
+	gravity_string_t *value = VALUE_AS_STRING(GET_VALUE(2));
+	register int32_t index = (int32_t)VALUE_AS_INT(idxvalue);
+	
+	if (index < 0) index = string->len + index;
+	if (index < 0 || index >= string->len) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, string->len-1);
+	if (index+value->len - 1 >= string->len) RETURN_ERROR("Out of bounds error: End of inserted string exceeds the length of the initial string");
+
+	// this code is not UTF-8 safe
+	for (int i = index; i < index+value->len; ++i) {
+		string->s[i] = value->s[i-index];
+	}
+	
+	// characters inside string changed so we need to re-compute hash
+	string->hash = gravity_hash_compute_buffer((const char *)string->s, string->len);
+	
+	RETURN_NOVALUE();
 }
 
 // MARK: - Fiber Class -
@@ -1601,6 +1796,37 @@ static bool system_nanotime (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 	#pragma unused(args,nargs)
 	nanotime_t t = nanotime();
 	RETURN_VALUE(VALUE_FROM_INT(t), rindex);
+}
+
+static bool system_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(args)
+	if (nargs != 3) RETURN_ERROR("System.random() expects 2 integer arguments");
+
+	if (!VALUE_ISA_INT(GET_VALUE(1)) || !VALUE_ISA_INT(GET_VALUE(2))) RETURN_ERROR("System.random() arguments must be integers");
+
+	gravity_int_t num1 = VALUE_AS_INT(GET_VALUE(1));
+	gravity_int_t num2 = VALUE_AS_INT(GET_VALUE(2));
+
+	// Only Seed once
+	static bool already_seeded = false;
+	if (!already_seeded) {
+		srand(time(NULL));
+		already_seeded = true;
+	}
+
+	int r;
+	// if num1 is lower, consider it min, otherwise, num2 is min
+	if (num1 < num2) {
+		// returns a random integer between num1 and num2 inclusive
+		r = (rand() % (num2 - num1 + 1)) + num1;
+	}
+	else if (num1 > num2) {
+		r = (rand() % (num1 - num2 + 1)) + num2;
+	}
+	else {
+		r = num1;
+	}
+	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
 
 static bool system_realprint (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex, bool cr) {
@@ -1843,8 +2069,15 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_OR_NAME,  NEW_CLOSURE_VALUE(operator_string_or));
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_CMP_NAME, NEW_CLOSURE_VALUE(operator_string_cmp));
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_string_neg));
+	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(string_loadat));
+	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(string_storeat));
 	gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(string_length), NULL)));
-
+	gravity_class_bind(gravity_class_string, "index", NEW_CLOSURE_VALUE(string_index));
+	gravity_class_bind(gravity_class_string, "count", NEW_CLOSURE_VALUE(string_count));
+	gravity_class_bind(gravity_class_string, "repeat", NEW_CLOSURE_VALUE(string_repeat));
+	gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));
+	gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
+	
 	// FIBER CLASS
 	gravity_class_t *fiber_meta = gravity_class_get_meta(gravity_class_fiber);
 	gravity_class_bind(fiber_meta, "create", NEW_CLOSURE_VALUE(fiber_create));
@@ -1879,6 +2112,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_NANOTIME_NAME, NEW_CLOSURE_VALUE(system_nanotime));
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PRINT_NAME, NEW_CLOSURE_VALUE(system_print));
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PUT_NAME, NEW_CLOSURE_VALUE(system_put));
+	gravity_class_bind(system_meta, "random", NEW_CLOSURE_VALUE(system_random));
 	gravity_class_bind(system_meta, "exit", NEW_CLOSURE_VALUE(system_exit));
 
 	gravity_value_t value = VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set)));

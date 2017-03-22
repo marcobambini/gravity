@@ -122,13 +122,23 @@
 		multi-line
 		comment
 	*/</code></pre>
+			<p>While Gravity uses C-Style comments, Gravity still supports the common
+			"#!" shebang to tell your shell what program to execute the file with.
+			The shebang must be on the first line of the file in order to use it in
+			this way however:</p>
+			<pre><code class="swift">
+	#!/path/to/gravity
+
+	func main() {
+		System.print("Execute as: path/to/file.gravity");
+		System.print("Instead of: gravity path/to/file.gravity");
+	}
+			</code></pre>
 
 			<!-- IMPORTS -->
-			<h4 class="section-h4">Import</h4>
-			<p><b>NOTE:</b> currently, the path to the imported file is relative to
+			<h4 class="section-h4">Include</h4>
+			<p><b>NOTE:</b> currently, the path to the included file is relative to
 			the location that the gravity executable was run.</p>
-			<p>Gravity supports importing code from other gravity files using the
-			import statement:</p>
 			<pre><code class="swift">
 	// adder.gravity
 	func add(x, y) {
@@ -137,12 +147,17 @@
 			</code></pre>
 			<pre><code class="swift">
 	// main.gravity
-	import "adder.gravity"
+	#include "adder.gravity"
 
 	func main() {
 		System.print("5+4=" + add(5,4));
 	}
 			</code></pre>
+			
+			<h4 class="section-h4">Import</h4>
+			<p>While #include is used to include file at compilation time, the import statement enables you to load modules at runtime...</p>
+			<!--<p>Gravity supports importing code from other gravity files using the
+			import statement:</p>-->
 			
 			<!-- RESERVED KEYWORDS -->
 			<h4 class="section-h4">Reserved Keywords</h4>

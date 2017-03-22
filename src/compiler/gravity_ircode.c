@@ -269,7 +269,7 @@ void ircode_dump  (void *_code) {
 		int32_t		p2 = inst->p2;
 		int32_t		p3 = inst->p3;
 		if (inst->tag == SKIP_TAG) continue;
-		if (inst->tag == PRAGMA_OPTIMIZATION) continue;
+		if (inst->tag == PRAGMA_MOVE_OPTIMIZATION) continue;
 		if (inst->tag == LABEL_TAG) {printf("LABEL %d:\n", p1); continue;}
 		
 		uint8_t n = opcode_numop(op);
@@ -343,6 +343,11 @@ uint32_t ircode_getlabel_false (ircode_t *code) {
 void ircode_marklabel (ircode_t *code, uint32_t nlabel) {
 	inst_t *inst = inst_new(0, nlabel, 0, 0, LABEL_TAG, 0, 0.0);
 	marray_push(inst_t*, *code->list, inst);
+}
+
+// MARK: -
+void ircode_pragma (ircode_t *code, optag_t tag, uint32_t value) {
+	ircode_add_tag(code, 0, value, 0, 0, tag);
 }
 
 // MARK: -
@@ -517,7 +522,7 @@ void ircode_register_unset_skip_clear (ircode_t *code, uint32_t nreg) {
 	code->skipclear[nreg] = false;
 }
 
-void ircode_register_clear_temps (ircode_t *code) {
+void ircode_register_clear_temps (ircode_t *code) {	
 	// clear all temporary registers (if not protected)
 	for (uint32_t i=code->nlocals; i<=code->maxtemp; ++i) {
 		if (!code->skipclear[i]) code->state[i] = false;

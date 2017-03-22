@@ -1,0 +1,17 @@
+#unittest {
+	name: "Test #include macro.";
+	error: NONE;
+	result: 90;
+};
+
+#include "test.inc"
+
+func sum2 (a, b) {
+	return a + b;
+}
+
+func main() {
+	var n1 = sum2(10, 20);
+	var n2 = sum3(10, 20, 30);
+	return n1 + n2;
+}

@@ -1,0 +1,9 @@
+#unittest {
+	name: "lower() bad argument";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "HELLO"
+	s.lower(2.3)
+}

@@ -101,11 +101,35 @@
 			<h4 class="section-h4">String</h4>
 			<p>Strings are an immutable sequence of characters. String literals can be surrounded in double or single quotes.</p>
 			<pre><code class="swift">
-	var a = "Hello World";	// double quotes
-	var b = 'Hello World';	// single quotes
+	var a = "Hello World";  // double quotes
+	var b = 'Hello World';  // single quotes
 	
 	// Strings have also a length property
-	var n = b.length;	// n is now 11
+	var n = b.length;       // n is now 11
+
+	// Strings also have some built in methods
+	n = b.index("Wor")      // n is now 6.
+
+	n = b.count("l")        // n is now 3.
+	n = b.count("llo")      // n is now 1.
+
+	n = "A".repeat(10)      // n is now "AAAAAAAAAA"
+
+	// upper() and lower() operate on the whole string when 0 arguments are passed
+	n = b.upper()           // n is now "HELLO WORLD"
+	n = b.lower()           // n is now "hello world"
+
+	// upper() and lower() can both take multiple integer arguments
+	n = b.upper(1, -1)     // n is now "HEllo WorlD"
+
+	// You are also able to edit strings by character...
+	b[0] = "Z"              // b is now "Zello World"
+	b[1] = "abc"            // b is now "Zabco World"
+	b[-7] = "QWERTY"        // b is now "ZabcQWERTYd"
+
+	// and retrieve those characters
+	n = a[6]                // n is now "W"
+	n = a[-7]               // n is now "o"
 			</code></pre>
 			
 			<h4 class="section-h4">Bool</h4>

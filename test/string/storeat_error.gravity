@@ -1,0 +1,10 @@
+#unittest {
+	name: "storeat an index for string - error";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "Hello World";
+	s[11] = "z";
+	return s;
+}

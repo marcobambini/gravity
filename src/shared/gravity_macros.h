@@ -12,6 +12,12 @@
 #define AUTOLENGTH							UINT32_MAX
 
 // MARK: -
+// pragma unused is not recognized by VC
+#define UNUSED_PARAM(_x)					(void)(_x)
+#define UNUSED_PARAM2(_x,_y)				UNUSED_PARAM(_x),UNUSED_PARAM(_y)
+#define UNUSED_PARAM3(_x,_y,_z)				UNUSED_PARAM(_x),UNUSED_PARAM(_y),UNUSED_PARAM(_z)
+
+// MARK: -
 #define VALUE_AS_OBJECT(x)					((x).p)
 #define VALUE_AS_STRING(x)					((gravity_string_t *)VALUE_AS_OBJECT(x))
 #define VALUE_AS_FIBER(x)					((gravity_fiber_t *)VALUE_AS_OBJECT(x))
