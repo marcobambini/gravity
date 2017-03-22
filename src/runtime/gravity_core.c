@@ -1037,6 +1037,7 @@ static bool closure_apply (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(0));
 	gravity_value_t self_value = GET_VALUE(1);
 	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(2));
+
 	uint16_t argsCount = (uint16_t)marray_size(list->array);
 
 	printf("apply args size: %d\n", argsCount);
@@ -1436,13 +1437,13 @@ static bool operator_string_neg (gravity_vm *vm, gravity_value_t *args, uint16_t
 
 static bool operator_string_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
-	
+
 	DECLARE_2VARIABLES(v1, v2, 0, 1);
 	INTERNAL_CONVERT_STRING(v2);
-	
+
 	gravity_string_t *s1 = VALUE_AS_STRING(v1);
 	gravity_string_t *s2 = VALUE_AS_STRING(v2);
-	
+
 	RETURN_VALUE(VALUE_FROM_INT(strcmp(s1->s, s2->s)), rindex);
 }
 
@@ -1461,7 +1462,7 @@ static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
 		RETURN_ERROR("String.index() expects a string as an argument");
 	}
-	
+
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_string_t *str_to_index = VALUE_AS_STRING(GET_VALUE(1));
 
@@ -1484,7 +1485,7 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
 		RETURN_ERROR("String.count() expects a string as an argument");
 	}
-	
+
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_string_t *str_to_count = VALUE_AS_STRING(GET_VALUE(1));
 
@@ -1520,7 +1521,7 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	if ((nargs != 2) || (!VALUE_ISA_INT(GET_VALUE(1)))) {
 		RETURN_ERROR("String.repeat() expects an integer argument");
 	}
-	
+
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_int_t times_to_repeat = VALUE_AS_INT(GET_VALUE(1));
 	if (times_to_repeat < 1) {
@@ -1530,7 +1531,7 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	// figure out the size of the array we need to make to hold the new string
 	uint32_t new_size = (uint32_t)(main_str->len * times_to_repeat);
 	char new_str[new_size+1];
-	
+
 	// this code could be much faster with a memcpy
 	strcpy(new_str, main_str->s);
 	for (int i = 0; i < times_to_repeat-1; ++i) {
@@ -1609,22 +1610,22 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_value_t value = GET_VALUE(1);
 	if (!VALUE_ISA_INT(value)) RETURN_ERROR("An integer index is required to access a string item.");
-	
+
 	int32_t index = (int32_t)VALUE_AS_INT(value);
-	
+
 	if (index < 0) index = string->len + index;
 	if ((index < 0) || ((uint32_t)index >= string->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, string->len-1);
 
 	// this code is not UTF-8 safe
 	char c[2] = "\0";
 	c[0] = string->s[index];
-	
+
 	RETURN_VALUE(VALUE_FROM_STRING(vm, c, 1), rindex);
 }
 
 static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs, rindex)
-	
+
 	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_value_t idxvalue = GET_VALUE(1);
 	if (!VALUE_ISA_INT(idxvalue)) RETURN_ERROR("An integer index is required to access a string item.");
@@ -1632,7 +1633,7 @@ static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t narg
 
 	gravity_string_t *value = VALUE_AS_STRING(GET_VALUE(2));
 	register int32_t index = (int32_t)VALUE_AS_INT(idxvalue);
-	
+
 	if (index < 0) index = string->len + index;
 	if (index < 0 || index >= string->len) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, string->len-1);
 	if (index+value->len - 1 >= string->len) RETURN_ERROR("Out of bounds error: End of inserted string exceeds the length of the initial string");
@@ -1641,10 +1642,10 @@ static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t narg
 	for (int i = index; i < index+value->len; ++i) {
 		string->s[i] = value->s[i-index];
 	}
-	
+
 	// characters inside string changed so we need to re-compute hash
 	string->hash = gravity_hash_compute_buffer((const char *)string->s, string->len);
-	
+
 	RETURN_NOVALUE();
 }
 
@@ -2077,7 +2078,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, "repeat", NEW_CLOSURE_VALUE(string_repeat));
 	gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));
 	gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
-	
+
 	// FIBER CLASS
 	gravity_class_t *fiber_meta = gravity_class_get_meta(gravity_class_fiber);
 	gravity_class_bind(fiber_meta, "create", NEW_CLOSURE_VALUE(fiber_create));
