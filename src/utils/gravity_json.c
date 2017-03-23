@@ -155,16 +155,18 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
 
 
 void json_begin_object (json_t *json, const char *key) {
+	// ignore given key if not inside an object
+	if (JSON_CURR_XTX(json) != json_ctx_object) {
+		key = NULL;
+	}
+
 	if (key) {
-		// check context here and if context is json_ctx_array skip
-		if (JSON_CURR_XTX(json) == json_ctx_object) {
-			json_write_raw (json, key, strlen(key), true, true);
-			JSON_WRITE_SEP;
-		}
+		json_write_raw (json, key, strlen(key), true, true);
+		JSON_WRITE_SEP;
 	}
 	
 	JSON_PUSH_CTX(json, json_ctx_object);
-	json_write_raw(json, "{", 1, false, false);
+	json_write_raw(json, "{", 1, false, (key == NULL));
 	json_write_raw(json, JSON_NEWLINE, 1, false, false);
 	
 	++json->ident;
@@ -187,13 +189,18 @@ void json_end_object (json_t *json) {
 }
 
 void json_begin_array (json_t *json, const char *key) {
+	// ignore given key if not inside an object
+	if (JSON_CURR_XTX(json) != json_ctx_object) {
+		key = NULL;
+	}
+
 	if (key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
 	}
 	
 	JSON_PUSH_CTX(json, json_ctx_array);
-	json_write_raw(json, "[", 1, false, false);
+	json_write_raw(json, "[", 1, false, (key == NULL));
 	json_write_raw(json, JSON_NEWLINE, 1, false, false);
 	
 	++json->ident;
