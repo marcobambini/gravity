@@ -1450,7 +1450,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 		}
 		
 		STORE_FRAME();
-		PUSH_FRAME(closure, &stackstart[rwin], rwin, nparams);
+		PUSH_FRAME(closure, &stackstart[rwin], rwin, nparams+1);
 		SETFRAME_OUTLOOP(cframe);
 	} else {
 		// there are no execution frames when called outside main function
@@ -1462,6 +1462,10 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 		for (uint16_t i=0; i<nparams; ++i) {
 			SETVALUE(rwin+i+1, params[i]);
 		}
+		
+		// check if closure uses the special _args instruction
+		gravity_callframe_t *frame = &fiber->frames[0];
+		frame->args = (USE_ARGS(closure)) ? gravity_list_from_array(vm, nparams, &stackstart[rwin]+1) : NULL;
 	}
 	
 	// f can be native, internal or bridge because this function

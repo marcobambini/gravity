@@ -157,14 +157,15 @@
 									func = frame->closure->f;																			\
 									DEBUG_VM_RAW("******\tEXEC %s (%p) ******\n", func->identifier, func);
 
-#define PUSH_FRAME(_c,_n,_r,_p)		gravity_callframe_t *cframe = gravity_new_callframe(vm, fiber);										\
+#define USE_ARGS(_c)				(_c->f->tag == EXEC_TYPE_NATIVE && _c->f->useargs)
+#define PUSH_FRAME(_c,_s,_r,_n)		gravity_callframe_t *cframe = gravity_new_callframe(vm, fiber);										\
 									cframe->closure = _c;																				\
-									cframe->stackstart = _n;																			\
+									cframe->stackstart = _s;																			\
 									cframe->ip = _c->f->bytecode;																		\
 									cframe->dest = _r;																					\
-									cframe->nargs = _p;																					\
+									cframe->nargs = _n;																					\
 									cframe->outloop = false;																			\
-									cframe->args = (_c->f->useargs) ? gravity_list_from_array(vm, _p-1, _n+1) : NULL;					\
+									cframe->args = (USE_ARGS(_c)) ? gravity_list_from_array(vm, _n-1, _s+1) : NULL;						\
 
 #define SYNC_STACKTOP(_c,_n)		if (_c->f->tag != EXEC_TYPE_NATIVE) fiber->stacktop -= _n
 #define SETFRAME_OUTLOOP(cframe)	(cframe)->outloop = true

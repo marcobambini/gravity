@@ -1807,7 +1807,7 @@ static bool system_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	// Only Seed once
 	static bool already_seeded = false;
 	if (!already_seeded) {
-		srand(time(NULL));
+		srand((unsigned)time(NULL));
 		already_seeded = true;
 	}
 
@@ -1815,13 +1815,13 @@ static bool system_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	// if num1 is lower, consider it min, otherwise, num2 is min
 	if (num1 < num2) {
 		// returns a random integer between num1 and num2 inclusive
-		r = (rand() % (num2 - num1 + 1)) + num1;
+		r = (int)((rand() % (num2 - num1 + 1)) + num1);
 	}
 	else if (num1 > num2) {
-		r = (rand() % (num1 - num2 + 1)) + num2;
+		r = (int)((rand() % (num1 - num2 + 1)) + num2);
 	}
 	else {
-		r = num1;
+		r = (int)num1;
 	}
 	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }

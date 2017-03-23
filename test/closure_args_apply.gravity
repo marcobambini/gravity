@@ -1,0 +1,13 @@
+#unittest {
+	name: "Simple closure.apply with _args.";
+	error: NONE;
+	result: 3;
+};
+
+func add() {
+	return _args[0] + _args[1];
+}
+
+func main() {
+	return add.apply(self, [1,2]);
+}
