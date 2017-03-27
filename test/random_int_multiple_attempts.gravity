@@ -1,5 +1,5 @@
 #unittest {
-	name: "System.random() test multiple calls of the same random() call";
+	name: "Int.random() test multiple calls of the same random() call";
 	error: NONE;
 	result: true;
 };
@@ -12,28 +12,28 @@ func main() {
 	var min = 1
 	var max = 3
 
-  var r = System.random(min, max)
+  var r = Int.random(min, max)
   var b = r >= min and r <= max
 
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
-  r = System.random(min, max)
+  r = Int.random(min, max)
   b = r >= min and r <= max and b
 
   return b;
