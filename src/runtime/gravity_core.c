@@ -1261,6 +1261,38 @@ static bool int_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 	RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
 }
 
+static bool int_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(args)
+	if (nargs != 3) RETURN_ERROR("Int.random() expects 2 integer arguments");
+
+	if (!VALUE_ISA_INT(GET_VALUE(1)) || !VALUE_ISA_INT(GET_VALUE(2))) RETURN_ERROR("Int.random() arguments must be integers");
+
+	gravity_int_t num1 = VALUE_AS_INT(GET_VALUE(1));
+	gravity_int_t num2 = VALUE_AS_INT(GET_VALUE(2));
+
+	// Only Seed once
+	static bool already_seeded = false;
+	if (!already_seeded) {
+		srand((unsigned)time(NULL));
+		already_seeded = true;
+	}
+
+	int r;
+	// if num1 is lower, consider it min, otherwise, num2 is min
+	if (num1 < num2) {
+		// returns a random integer between num1 and num2 inclusive
+		r = (int)((rand() % (num2 - num1 + 1)) + num1);
+	}
+	else if (num1 > num2) {
+		r = (int)((rand() % (num1 - num2 + 1)) + num2);
+	}
+	else {
+		r = (int)num1;
+	}
+	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
+}
+
+
 // MARK: - Bool Class -
 
 static bool operator_bool_add (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1795,37 +1827,6 @@ static bool system_nanotime (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 	RETURN_VALUE(VALUE_FROM_INT(t), rindex);
 }
 
-static bool system_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	#pragma unused(args)
-	if (nargs != 3) RETURN_ERROR("System.random() expects 2 integer arguments");
-
-	if (!VALUE_ISA_INT(GET_VALUE(1)) || !VALUE_ISA_INT(GET_VALUE(2))) RETURN_ERROR("System.random() arguments must be integers");
-
-	gravity_int_t num1 = VALUE_AS_INT(GET_VALUE(1));
-	gravity_int_t num2 = VALUE_AS_INT(GET_VALUE(2));
-
-	// Only Seed once
-	static bool already_seeded = false;
-	if (!already_seeded) {
-		srand((unsigned)time(NULL));
-		already_seeded = true;
-	}
-
-	int r;
-	// if num1 is lower, consider it min, otherwise, num2 is min
-	if (num1 < num2) {
-		// returns a random integer between num1 and num2 inclusive
-		r = (int)((rand() % (num2 - num1 + 1)) + num1);
-	}
-	else if (num1 > num2) {
-		r = (int)((rand() % (num1 - num2 + 1)) + num2);
-	}
-	else {
-		r = (int)num1;
-	}
-	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
-}
-
 static bool system_realprint (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex, bool cr) {
 	#pragma unused (rindex)
 	for (uint16_t i=1; i<nargs; ++i) {
@@ -2028,6 +2029,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_int, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_int_neg));
 	gravity_class_bind(gravity_class_int, GRAVITY_OPERATOR_NOT_NAME, NEW_CLOSURE_VALUE(operator_int_not));
 	gravity_class_bind(gravity_class_int, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(int_loop));
+	// Meta
+	gravity_class_t *int_meta = gravity_class_get_meta(gravity_class_int);
+	gravity_class_bind(int_meta, "random", NEW_CLOSURE_VALUE(int_random));
 	
 	// FLOAT CLASS
 	gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_float_add));
@@ -2109,7 +2113,6 @@ static void gravity_core_init (void) {
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_NANOTIME_NAME, NEW_CLOSURE_VALUE(system_nanotime));
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PRINT_NAME, NEW_CLOSURE_VALUE(system_print));
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PUT_NAME, NEW_CLOSURE_VALUE(system_put));
-	gravity_class_bind(system_meta, "random", NEW_CLOSURE_VALUE(system_random));
 	gravity_class_bind(system_meta, "exit", NEW_CLOSURE_VALUE(system_exit));
 	
 	gravity_value_t value = VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set)));

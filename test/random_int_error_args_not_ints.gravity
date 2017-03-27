@@ -1,8 +1,8 @@
 #unittest {
-	name: "Test System.random() args not ints";
+	name: "Test Int.random() args not ints";
 	error: RUNTIME;
 };
 
 func main() {
-	return System.random("test", 1)
+	return Int.random("test", 1)
 }
