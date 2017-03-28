@@ -181,7 +181,7 @@ int main (int argc, const char* argv[]) {
 	
 	if (argc != 2) {
 		printf("Usage: unittest /path/to/unitest/\n");
-		return 0;
+		return 1;
 	}
 	
 	// print console header
@@ -208,5 +208,9 @@ int main (int argc, const char* argv[]) {
 	printf("==============================================\n");
 	printf("\n");
 	
+	// If we have 1 or more failures, return an error.
+	if (data.nfailure != 0) {
+		return 1;
+	}
 	return 0;
 }
