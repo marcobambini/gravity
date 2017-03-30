@@ -1678,26 +1678,30 @@ static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t narg
 }
 
 static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	// sanity check
+	if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) RETURN_ERROR("String.split() expects 1 string separator.");
+	
+	// setup arguments
 	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
-	const char *sep = NULL;
-	if ((nargs == 2) && VALUE_ISA_STRING(GET_VALUE(1))) sep = VALUE_AS_CSTRING(GET_VALUE(1));
-	else RETURN_ERROR("String.split() expects 1 string separator.");
-
-	// Initialize the list to have a size of 0
+	gravity_string_t *substr = VALUE_AS_STRING(GET_VALUE(1));
+	const char *sep = substr->s;
+	uint32_t seplen = substr->len;
+	
+	// initialize the list to have a size of 0
 	gravity_list_t *list = gravity_list_new(vm, 0);
-
-	char *str = strdup(string->s);
-
+	
+	// split loop
+	char *original = string->s;
 	while (1) {
-		char *to_push = strdup(str);
-		char *p = strstr(str, sep);
+		char *p = strstr(original, sep);
 		if (p == NULL) {
-			marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, to_push, strlen(to_push)));
+			marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, (uint32_t)strlen(original)));
 			break;
 		}
-		to_push[strlen(str) - strlen(p)] = '\0';
-		str = p + strlen(sep);
-		marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, to_push, strlen(to_push)));
+		marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, (uint32_t)(p-original)));
+		
+		// update original pointer
+		original = p + seplen;
 	}
 	RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
@@ -2097,13 +2101,13 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_string_neg));
 	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(string_loadat));
 	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(string_storeat));
-	gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
 	gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(string_length), NULL)));
 	gravity_class_bind(gravity_class_string, "index", NEW_CLOSURE_VALUE(string_index));
 	gravity_class_bind(gravity_class_string, "count", NEW_CLOSURE_VALUE(string_count));
 	gravity_class_bind(gravity_class_string, "repeat", NEW_CLOSURE_VALUE(string_repeat));
 	gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));
 	gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
+	gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
 	
 	// FIBER CLASS
 	gravity_class_t *fiber_meta = gravity_class_get_meta(gravity_class_fiber);
