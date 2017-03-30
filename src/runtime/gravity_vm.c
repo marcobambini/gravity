@@ -1758,9 +1758,8 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
 		// each entry must be an object
 		if (entry->type != json_object) goto abort_load;
 		
-		gravity_object_t *obj = NULL;
-		if (!gravity_object_deserialize(vm, entry, &obj)) goto abort_load;
-		if (!obj) continue;
+		gravity_object_t *obj = gravity_object_deserialize(vm, entry);
+		if (!obj) goto abort_load;
 		
 		// save object for further processing
 		marray_push(void*, objects, obj);

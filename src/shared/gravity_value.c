@@ -325,12 +325,12 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 				for (uint32_t j=0; j<m; ++j) {
 					json_value *r = value->u.array.values[j];
 					if (r->type != json_object) continue;
-					gravity_object_t *obj = NULL;
-					bool result = gravity_object_deserialize(vm, r, &obj);
+					gravity_object_t *obj = gravity_object_deserialize(vm, r);
+					if (!obj) goto abort_load;
 					
 					const char *identifier = obj->identifier;
 					if (OBJECT_ISA_FUNCTION(obj)) obj = (gravity_object_t *)gravity_closure_new(vm, (gravity_function_t *)obj);
-					if ((result) && (obj)) gravity_class_bind(meta, identifier, VALUE_FROM_OBJECT(obj));
+					if (obj) gravity_class_bind(meta, identifier, VALUE_FROM_OBJECT(obj));
 					else goto abort_load;
 				}
 				continue;
@@ -341,8 +341,7 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 		}
 		
 		if (value->type == json_object) {
-			gravity_object_t *obj = NULL;
-			if (!gravity_object_deserialize(vm, value, &obj)) goto abort_load;
+			gravity_object_t *obj = gravity_object_deserialize(vm, value);
 			if (!obj) goto abort_load;
 			
 			const char *identifier = obj->identifier;
@@ -841,10 +840,9 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 						break;
 						
 					case json_object: {
-						gravity_object_t *obj = NULL;
-						bool result = gravity_object_deserialize(vm, r, &obj);
-						if ((result) && (obj)) gravity_function_cpool_add(NULL, f, VALUE_FROM_OBJECT(obj));
-						else goto abort_load;
+						gravity_object_t *obj = gravity_object_deserialize(vm, r);
+						if (!obj) goto abort_load;
+						gravity_function_cpool_add(NULL, f, VALUE_FROM_OBJECT(obj));
 						break;
 					}
 						
@@ -1147,48 +1145,42 @@ void gravity_object_serialize (gravity_object_t *obj, json_t *json) {
 	else assert(0);
 }
 
-bool gravity_object_deserialize (gravity_vm *vm, json_value *entry, gravity_object_t **obj) {
+gravity_object_t *gravity_object_deserialize (gravity_vm *vm, json_value *entry) {
 	// this function is able to deserialize ONLY objects with a type label
 	
 	// sanity check
-	if (entry->type != json_object) return false;
-	if (entry->u.object.length == 0) return false;
+	if (entry->type != json_object) return NULL;
+	if (entry->u.object.length == 0) return NULL;
 	
 	// the first entry value must specify gravity object type
 	const char *label = entry->u.object.values[0].name;
 	json_value *value = entry->u.object.values[0].value;
 	
-	if (string_casencmp(label, GRAVITY_JSON_LABELTYPE, 4) != 0) return false;
-	if (value->type != json_string) return false;
+	if (string_casencmp(label, GRAVITY_JSON_LABELTYPE, 4) != 0) return NULL;
+	if (value->type != json_string) return NULL;
 	
 	// FUNCTION case
 	if (string_casencmp(value->u.string.ptr, GRAVITY_JSON_FUNCTION, value->u.string.length) == 0) {
 		gravity_function_t *f = gravity_function_deserialize(vm, entry);
-		if (!f) return false;
-		*obj = (gravity_object_t *)f;
-		return true;
+		return (gravity_object_t *)f;
 	}
 	
 	// CLASS case
 	if (string_casencmp(value->u.string.ptr, GRAVITY_JSON_CLASS, value->u.string.length) == 0) {
 		gravity_class_t *c = gravity_class_deserialize(vm, entry);
-		if (!c) return false;
-		*obj = (gravity_object_t *)c;
-		return true;
+		return (gravity_object_t *)c;
 	}
 	
 	// MAP/ENUM case
 	if ((string_casencmp(value->u.string.ptr, GRAVITY_JSON_MAP, value->u.string.length) == 0) ||
 		(string_casencmp(value->u.string.ptr, GRAVITY_JSON_ENUM, value->u.string.length) == 0)) {
 		gravity_map_t *m = gravity_map_deserialize(vm, entry);
-		if (!m) return false;
-		*obj = (gravity_object_t *)m;
-		return true;
+		return (gravity_object_t *)m;
 	}
 	
 	// unhandled case
 	DEBUG_DESERIALIZE("gravity_object_deserialize unknown type");
-	return false;
+	return NULL;
 }
 #undef REPORT_JSON_ERROR
 

@@ -455,7 +455,7 @@ GRAVITY_API uint32_t			gravity_value_size (gravity_vm *vm, gravity_value_t v);
 
 // MARK: - OBJECT -
 GRAVITY_API void				gravity_object_serialize (gravity_object_t *obj, json_t *json);
-GRAVITY_API bool				gravity_object_deserialize (gravity_vm *vm, json_value *entry, gravity_object_t **obj);
+GRAVITY_API gravity_object_t	*gravity_object_deserialize (gravity_vm *vm, json_value *entry);
 GRAVITY_API void				gravity_object_free (gravity_vm *vm, gravity_object_t *obj);
 GRAVITY_API void				gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj);
 GRAVITY_API uint32_t			gravity_object_size (gravity_vm *vm, gravity_object_t *obj);
