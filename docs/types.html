@@ -124,6 +124,12 @@
 	// upper() and lower() can both take multiple integer arguments
 	n = b.upper(1, -1)     // n is now "HEllo WorlD"
 
+	// split() is the opposite of a list join
+	var string = "Roses are Red, Violets are Blue"
+	var list = string.split(", ")
+	list[0]                // "Roses are Red"
+	list[1]                // "Violets are Blue"
+
 	// You are also able to edit strings by character...
 	b[0] = "Z"              // b is now "Zello World"
 	b[1] = "abc"            // b is now "Zabco World"

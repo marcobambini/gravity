@@ -1677,6 +1677,31 @@ static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t narg
 	RETURN_NOVALUE();
 }
 
+static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
+	const char *sep = NULL;
+	if ((nargs == 2) && VALUE_ISA_STRING(GET_VALUE(1))) sep = VALUE_AS_CSTRING(GET_VALUE(1));
+	else RETURN_ERROR("String.split() expects 1 string separator.");
+
+	// Initialize the list to have a size of 0
+	gravity_list_t *list = gravity_list_new(vm, 0);
+
+	char *str = strdup(string->s);
+
+	while (1) {
+		char *to_push = strdup(str);
+		char *p = strstr(str, sep);
+		if (p == NULL) {
+			marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, to_push, strlen(to_push)));
+			break;
+		}
+		to_push[strlen(str) - strlen(p)] = '\0';
+		str = p + strlen(sep);
+		marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, to_push, strlen(to_push)));
+	}
+	RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
+}
+
 // MARK: - Fiber Class -
 
 static bool fiber_create (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2072,6 +2097,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_string_neg));
 	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(string_loadat));
 	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(string_storeat));
+	gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
 	gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(string_length), NULL)));
 	gravity_class_bind(gravity_class_string, "index", NEW_CLOSURE_VALUE(string_index));
 	gravity_class_bind(gravity_class_string, "count", NEW_CLOSURE_VALUE(string_count));
