@@ -186,7 +186,7 @@ int main (int argc, const char* argv[]) {
 		// load source code
 		const char *source_code = file_read(input_file, &size);
 		if (!source_code) {
-			printf("Error loading file %s", input_file);
+			printf("Error loading file %s\n", input_file);
 			goto cleanup;
 		}
 		
