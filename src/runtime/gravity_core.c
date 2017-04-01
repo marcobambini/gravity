@@ -1637,18 +1637,55 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	#pragma unused(nargs)
 	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_value_t value = GET_VALUE(1);
-	if (!VALUE_ISA_INT(value)) RETURN_ERROR("An integer index is required to access a string item.");
-	
-	int32_t index = (int32_t)VALUE_AS_INT(value);
-	
-	if (index < 0) index = string->len + index;
-	if ((index < 0) || ((uint32_t)index >= string->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, string->len-1);
 
-	// this code is not UTF-8 safe
-	char c[2] = "\0";
-	c[0] = string->s[index];
-	
-	RETURN_VALUE(VALUE_FROM_STRING(vm, c, 1), rindex);
+	int32_t first_index;
+	int32_t second_index;
+
+	if (VALUE_ISA_INT(value)) {
+		first_index = (int32_t)VALUE_AS_INT(value);
+		second_index = first_index;
+	}
+	else if (VALUE_ISA_RANGE(value)) {
+		gravity_range_t *range = VALUE_AS_RANGE(value);
+		first_index = range->from;
+		second_index = range->to;
+	}
+	else {
+		RETURN_ERROR("An integer index or index range is required to access string items.");
+	}
+
+	if (first_index < 0) first_index = string->len + first_index;
+	if ((first_index < 0) || ((uint32_t)first_index >= string->len)) RETURN_ERROR("Out of bounds error: first_index %d beyond bounds 0...%d", first_index, string->len-1);
+
+	if (second_index < 0) second_index = string->len + second_index;
+	if ((second_index < 0) || ((uint32_t)second_index >= string->len)) RETURN_ERROR("Out of bounds error: second_index %d beyond bounds 0...%d", second_index, string->len-1);
+
+	uint32_t substr_len = first_index < second_index ? second_index - first_index + 1 : first_index - second_index + 1;
+
+	bool is_forward = first_index <= second_index;
+	if (!is_forward) {
+		char original[string->len];
+		// without copying it, we would be modifying the original string
+		strncpy((char *)original, string->s, string->len);
+
+		// Reverse the string, and reverse the indices
+		first_index = strlen(original) - first_index -1;
+		second_index = strlen(original) - second_index -1;
+
+		// reverse the String
+		int i = strlen(original) - 1;
+		int j = 0;
+		char c;
+		while (i > j) {
+			c = original[i];
+			original[i] = original[j];
+			original[j] = c;
+			--i;
+			++j;
+		}
+		RETURN_VALUE(VALUE_FROM_STRING(vm, original + first_index, substr_len), rindex);
+	}
+	RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + first_index, substr_len), rindex);
 }
 
 static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2108,7 +2145,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));
 	gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
 	gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
-	
+
 	// FIBER CLASS
 	gravity_class_t *fiber_meta = gravity_class_get_meta(gravity_class_fiber);
 	gravity_class_bind(fiber_meta, "create", NEW_CLOSURE_VALUE(fiber_create));

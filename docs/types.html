@@ -138,6 +138,10 @@
 	// and retrieve those characters
 	n = a[6]                // n is now "W"
 	n = a[-7]               // n is now "o"
+	n = a[0...4]            // n is now "Hello"
+	n = a[-5...-1]          // n is now "World"
+	n = a[-5...10]          // n is now "World"
+	n = a[-1...-5]          // n is now "dlroW"
 			</code></pre>
 			
 			<h4 class="section-h4">Bool</h4>
