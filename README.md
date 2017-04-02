@@ -36,7 +36,8 @@ class Vector {
   	
 	// instance method (built-in String conversion overriding)
 	func String() {
-		return "[" + x.String() + "," + y.String() + "," + z.String() + "]";
+	        // string interpolation support
+		return "[\(x),\(y),\(z)]";
 	}
 }
 
