@@ -198,12 +198,13 @@ typedef struct {
 
 typedef struct {
 	gnode_t				base;				// LITERAL
-	gliteral_t			type;				// LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL
+	gliteral_t			type;				// LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL, LITERAL_INTERPOLATION
 	uint32_t			len;				// used only for TYPE_STRING
 	union {
 		char			*str;				// LITERAL_STRING
 		double			d;					// LITERAL_FLOAT
 		int64_t			n64;				// LITERAL_INT or LITERAL_BOOL
+		gnode_r			*r;					// LITERAL_STRING_INTERPOLATED
 	} value;
 } gnode_literal_expr_t;
 
@@ -239,7 +240,7 @@ typedef struct {
 
 typedef struct {
 	gnode_t				base;				// LIST_EXPR
-	bool				ismap;				// flag to check if the node represents a map (otehrwise it is a list)
+	bool				ismap;				// flag to check if the node represents a map (otherwise it is a list)
 	gnode_r				*list1;				// node items (cannot use a symtable here because order is mandatory in array)
 	gnode_r				*list2;				// used only in case of map
 } gnode_list_expr_t;
@@ -263,7 +264,8 @@ gnode_t *gnode_binary_expr_create (gtoken_t op, gnode_t *left, gnode_t *right);
 gnode_t *gnode_unary_expr_create (gtoken_t op, gnode_t *expr);
 gnode_t *gnode_file_expr_create (gtoken_s token, cstring_r *list);
 gnode_t *gnode_identifier_expr_create (gtoken_s token, const char *identifier, const char *identifier2);
-gnode_t *gnode_literal_string_expr_create (gtoken_s token, const char *s, uint32_t len);
+gnode_t *gnode_string_interpolation_create (gtoken_s token, gnode_r *r);
+gnode_t *gnode_literal_string_expr_create (gtoken_s token, char *s, uint32_t len, bool allocated);
 gnode_t *gnode_literal_float_expr_create (gtoken_s token, double f);
 gnode_t *gnode_literal_int_expr_create (gtoken_s token, int64_t n);
 gnode_t *gnode_literal_bool_expr_create (gtoken_s token, int32_t n);

@@ -90,7 +90,7 @@ typedef enum {
 } gtoken_t;
 
 typedef enum {
-	LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL
+	LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL, LITERAL_STRING_INTERPOLATED
 } gliteral_t;
 
 struct gtoken_s {
@@ -101,13 +101,12 @@ struct gtoken_s {
 	uint32_t			bytes;		// token length in bytes
 	uint32_t			length;		// token length (UTF-8)
 	uint32_t			fileid;		// token file id
-	bool				escaped;	// if true then string_unescape is called when token is finalized
 	const char			*value;		// token value (not null terminated)
 };
 typedef struct gtoken_s	gtoken_s;
 
-#define NO_TOKEN				(gtoken_s){0,0,0,0,0,0,0,0,NULL}
-#define UNDEF_TOKEN				(gtoken_s){TOK_KEY_UNDEFINED,0,0,0,0,0,0,0,NULL}
+#define NO_TOKEN				(gtoken_s){0,0,0,0,0,0,0,NULL}
+#define UNDEF_TOKEN				(gtoken_s){TOK_KEY_UNDEFINED,0,0,0,0,0,0,NULL}
 #define TOKEN_BYTES(_tok)		_tok.bytes
 #define TOKEN_VALUE(_tok)		_tok.value
 
@@ -139,6 +138,5 @@ bool			token_isaccess_specifier (gtoken_t token);
 bool			token_isstorage_specifier (gtoken_t token);
 bool			token_isprimary_expression (gtoken_t token);
 bool			token_isexpression_statement (gtoken_t token);
-bool			token_identical (gtoken_s *token1, gtoken_s *token2);
 
 #endif

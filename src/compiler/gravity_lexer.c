@@ -60,7 +60,6 @@ typedef enum {
 #define INC_TOKUTF8LEN			++lexer->token.length
 #define INC_TOKLEN				INC_TOKBYTES; INC_TOKUTF8LEN
 #define DEC_TOKLEN				--lexer->token.bytes; --lexer->token.length
-#define SET_TOKESCAPED(value)	lexer->token.escaped = value
 #define SET_TOKTYPE(t)			lexer->token.type = t
 
 #define LEXER_CALL_CALLBACK()	if ((lexer->peeking == false) && (lexer->delegate) && (lexer->delegate->parser_callback)) {	\
@@ -340,7 +339,6 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 	// no memory allocation here
 	c = NEXT;					// save escaped character
 	TOKEN_RESET;				// save offset
-	SET_TOKESCAPED(false);		// set escaped flag to false
 	
 	while ((c2 = (unsigned char)PEEK_CURRENT) != c) {
 		if (IS_EOF) {return lexer_error(lexer, "Unexpected EOF inside a string literal");}
@@ -348,7 +346,6 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 		
 		// handle escaped characters
 		if (c2 == '\\') {
-			SET_TOKESCAPED(true);
 			INC_OFFSET_POSITION;
 			INC_OFFSET_POSITION;
 			INC_TOKLEN;

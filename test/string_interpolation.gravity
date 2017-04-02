@@ -1,0 +1,19 @@
+#unittest {
+	name: "String interpolation.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var a = 10;
+	var b = "World";
+	var c = false;
+	
+	// string interpolation
+	var s1 = "Hello \(b) is 5 == \(a)? \(c)";
+	
+	// static string
+	var s2 = "Hello World is 5 == 10? false";
+	
+	return s1 == s2;
+}

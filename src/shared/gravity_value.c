@@ -640,7 +640,7 @@ abort_conversion:
 
 void gravity_function_dump (gravity_function_t *f, code_dump_function codef) {
 	printf("Function: %s\n", (f->identifier) ? f->identifier : "$anon");
-	printf("Params:%d Locals:%d Temp:%d Upvalues:%d\n", f->nparams, f->nlocals, f->ntemps, f->nupvalues);
+	printf("Params:%d Locals:%d Temp:%d Upvalues:%d Tag:%d xdata:%p\n", f->nparams, f->nlocals, f->ntemps, f->nupvalues, f->tag, f->xdata);
 	
 	if (f->tag == EXEC_TYPE_NATIVE) {
 		if (marray_size(f->cpool)) printf("======= CPOOL =======\n");

@@ -1012,6 +1012,12 @@ static void visit_literal_expr (gvisitor_t *self, gnode_literal_expr_t *node) {
 	DEBUG_SEMANTIC("visit_literal_expr %s", value);
 	DEBUG_SEMANTIC("end visit_literal_expr");
 	#endif
+	
+	if (node->type == LITERAL_STRING_INTERPOLATED) {
+		gnode_array_each(node->value.r, {
+			visit(val);
+		});
+	}
 }
 
 static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *node) {

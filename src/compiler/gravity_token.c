@@ -199,6 +199,7 @@ const char *token_literal_name (gliteral_t value) {
 	else if (value == LITERAL_FLOAT) return "FLOAT";
 	else if (value == LITERAL_INT) return "INTEGER";
 	else if (value == LITERAL_BOOL) return "BOOLEAN";
+	else if (value == LITERAL_STRING_INTERPOLATED) return "STRING INTERPOLATED";
 	return "N/A";
 }
 
@@ -213,6 +214,8 @@ bool token_isvariable_declaration (gtoken_t token) {
 }
 
 bool token_isstatement (gtoken_t token) {
+	if (token == TOK_EOF) return false;
+	
 	// label_statement (case, default)
 	// expression_statement ('+' | '-' | '!' | 'not' | new | raise | file | isPrimaryExpression)
 	// flow_statement (if, select)
@@ -339,11 +342,4 @@ bool token_iserror (gtoken_t token) {
 
 bool token_iseof (gtoken_t token) {
 	return (token == TOK_EOF);
-}
-
-bool token_identical (gtoken_s *t1, gtoken_s *t2) {
-	// we can't use memcmp to compare structs for equality due to potential random padding characters between field in structs
-	return ((t1->type == t2->type) && (t1->lineno == t2->lineno) && (t1->colno == t2->colno) && (t1->position == t2->position) &&
-			(t1->bytes == t2->bytes) && (t1->length == t2->length) && (t1->fileid == t2->fileid) && (t1->escaped == t2->escaped) &&
-			(memcmp(t1->value, t2->value, t1->bytes) == 0));
 }

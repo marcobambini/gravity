@@ -58,7 +58,6 @@ typedef struct codegen_t codegen_t;
 #endif
 
 // MARK: -
-
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
 	// increment internal error counter
 	++self->nerr;
@@ -128,9 +127,10 @@ static opcode_t token2opcode (gtoken_t op) {
 		
 		default: assert(0); break;  // should never reach this point
 	}
-
+	
+	// should never reach this point
 	assert(0);
-	return NOT; // huehue, geddit?
+	return NOT;
 }
 
 #if 0
@@ -472,6 +472,7 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 	
 	uint32_t $expr = ircode_register_push_temp(code);			// ++TEMP => 1
 	uint32_t $value = ircode_register_push_temp(code);			// ++TEMP => 2
+	
 	// $expr and $value are temporary registers that must not be cleared by ircode_register_clear_temps
 	// in visit_compound_statement, so mark them to skip clear
 	ircode_register_set_skip_clear(code, $expr);
@@ -637,6 +638,8 @@ static void store_declaration (gvisitor_t *self, gravity_object_t *obj, bool is_
 		
 		// if it is a function then generate a CLOSURE opcode instead of LOADK
 		if (OBJECT_ISA_FUNCTION(obj)) {
+			assert(node);
+			
 			gravity_function_t *f = (gravity_function_t *)obj;
 			uint32_t regnum = ircode_register_push_temp(code);
 			ircode_add(code, CLOSURE, regnum, index, 0);
@@ -1106,8 +1109,10 @@ static void visit_binary_expr (gvisitor_t *self, gnode_binary_expr_t *node) {
 	// assignment is right associative
 	if (node->op == TOK_OP_ASSIGN) {
 		CODEGEN_COUNT_REGISTERS(n1);
+		
 		visit(node->right);
 		visit(node->left);	// left expression can be: IDENTIFIER, FILE, POSTIFIX (not a call)
+		
 		CODEGEN_COUNT_REGISTERS(n2);
 		CODEGEN_ASSERT_REGISTERS(n1, n2, 0);
 		return;
@@ -1411,6 +1416,50 @@ static void visit_literal_expr (gvisitor_t *self, gnode_literal_expr_t *node) {
 			ircode_add_constant(code, value);
 			DEBUG_CODEGEN("visit_literal_expr (bool) %lld", node->value.n64);
 		} break;
+			
+		case LITERAL_STRING_INTERPOLATED: {
+			// codegen for string interpolation is like a list.join()
+			
+			gnode_list_expr_t *list = (gnode_list_expr_t *)gnode_list_expr_create(node->base.token, node->value.r, NULL, false);
+			visit((gnode_t *)list);
+			
+			// list
+			uint32_t listreg = ircode_register_last(code);
+			
+			// LOADK
+			uint16_t index = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, "join"));
+			ircode_add_constant(code, index);
+			uint32_t temp1 = ircode_register_last(code);
+			
+			// LOAD
+			ircode_add(code, LOAD, temp1, listreg, temp1);
+			
+			// temp1+1 register used for parameter passing
+			uint32_t temp2 = ircode_register_push_temp(code);
+			
+			// MOVE
+			ircode_add(code, MOVE, temp2, listreg, 0);
+			
+			// CALL
+			ircode_add(code, CALL, listreg, temp1, 1);
+			
+			// cleanup
+			mem_free(list);
+			ircode_register_pop(code);	// temp2
+			ircode_register_pop(code);	// temp1
+			
+			/*
+			 
+			 00012	LOADK 6 4
+			 00013	LOAD 6 4 6
+			 00014	MOVE 7 6
+			 00015	MOVE 8 4
+			 00016	CALL 6 7 1
+			 
+			 */
+			
+			break;
+		}
 			
 		default: assert(0);
 	}

@@ -53,7 +53,6 @@ void				gravity_lexer_token_dump (gtoken_s token);
 void				gravity_lexer_skip_line (gravity_lexer_t *lexer);
 uint32_t			gravity_lexer_lineno (gravity_lexer_t *lexer);
 
-
 #if GRAVITY_LEXER_DEGUB
 void				gravity_lexer_debug (gravity_lexer_t *lexer);
 #endif

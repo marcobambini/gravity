@@ -335,34 +335,6 @@ const char *string_ndup (const char *s1, size_t n) {
 	return s;
 }
 
-char *string_unescape (const char *s1, uint32_t *s1len, char *buffer) {
-	uint32_t len = *s1len;
-	uint32_t orig_len = len;
-	
-	for (uint32_t i=0, j=0; i<orig_len; ++i, ++j) {
-		char c = s1[i];
-		if ((c == '\\') && (i+1<orig_len)) {
-			c = s1[i+1];
-			switch (c) {
-				case '"':
-				case '\\':
-				case '\b':
-				case '\f':
-				case '\n':
-				case '\r':
-				case '\t':
-					++i; --len; break;
-				default:
-					c = s1[i]; break;
-			}
-		}
-		buffer[j] = c;
-	}
-	
-	*s1len = len;
-	return buffer;
-}
-
 // From: http://stackoverflow.com/questions/198199/how-do-you-reverse-a-string-in-place-in-c-or-c
 void string_reverse (char *p) {
 	char *q = p;
@@ -403,6 +375,58 @@ inline uint32_t utf8_charbytes (const char *s, uint32_t i) {
 	if ((c >= 240) && (c <= 244)) return 4;
 	
 	// means error
+	return 0;
+}
+
+uint32_t utf8_nbytes (uint32_t n) {
+	if (n <= 0x7f) return 1;		// 127
+	if (n <= 0x7ff) return 2;		// 2047
+	if (n <= 0xffff) return 3;		// 65535
+	if (n <= 0x10ffff) return 4;	// 1114111
+
+	return 0;
+}
+
+// from: https://github.com/munificent/wren/blob/master/src/vm/wren_utils.c
+uint32_t utf8_encode(char *buffer, uint32_t value) {
+	char *bytes = buffer;
+	
+	if (value <= 0x7f) {
+		// single byte (i.e. fits in ASCII).
+		*bytes = value & 0x7f;
+		return 1;
+	}
+	
+	if (value <= 0x7ff) {
+		// two byte sequence: 110xxxxx 10xxxxxx.
+		*bytes = 0xc0 | ((value & 0x7c0) >> 6);
+		++bytes;
+		*bytes = 0x80 | (value & 0x3f);
+		return 2;
+	}
+	
+	if (value <= 0xffff) {
+		// three byte sequence: 1110xxxx 10xxxxxx 10xxxxxx.
+		*bytes = 0xe0 | ((value & 0xf000) >> 12);
+		++bytes;
+		*bytes = 0x80 | ((value & 0xfc0) >> 6);
+		++bytes;
+		*bytes = 0x80 | (value & 0x3f);
+		return 3;
+	}
+	
+	if (value <= 0x10ffff) {
+		// four byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx.
+		*bytes = 0xf0 | ((value & 0x1c0000) >> 18);
+		++bytes;
+		*bytes = 0x80 | ((value & 0x3f000) >> 12);
+		++bytes;
+		*bytes = 0x80 | ((value & 0xfc0) >> 6);
+		++bytes;
+		*bytes = 0x80 | (value & 0x3f);
+		return 4;
+	}
+	
 	return 0;
 }
 

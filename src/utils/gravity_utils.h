@@ -48,12 +48,13 @@ int			string_casencmp (const char *s1, const char *s2, size_t n);
 int			string_cmp (const char *s1, const char *s2);
 const char	*string_dup (const char *s1);
 const char	*string_ndup (const char *s1, size_t n);
-char		*string_unescape (const char *s1, uint32_t *s1len, char *buffer);
 void		string_reverse (char *p);
 uint32_t	string_size (const char *p);
 
 // UTF-8
 uint32_t	utf8_charbytes (const char *s, uint32_t i);
+uint32_t	utf8_nbytes (uint32_t n);
+uint32_t	utf8_encode(char *buffer, uint32_t value);
 uint32_t	utf8_len (const char *s, uint32_t nbytes);
 void		utf8_reverse (char *p);
 

@@ -578,6 +578,118 @@ report_node:
 	return NULL;
 }
 
+static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s token, const char *s, uint32_t len) {
+	// used in string interpolation
+	gnode_r *r = NULL;
+	
+	// analyze s (of length len) for escaped characters or for interpolations
+	char *buffer = mem_alloc(len+1);
+	uint32_t length = 0;
+	
+	for (uint32_t i=0; i<len;) {
+		int c = s[i];
+		if (c == '\\') {
+			// handle escape sequence here
+			if (i+1 >= len) {REPORT_ERROR(token, "Unexpected EOF inside a string literal"); goto return_string;}
+			switch (s[i+1]) {
+				case '\'': c = '\''; ++i; break;
+				case '"':  c = '"'; ++i; break;
+				case '\\': c = '\\'; ++i; break;
+				case 'a': c = '\a'; ++i; break;
+				case 'b': c = '\b'; ++i; break;
+				case 'f': c = '\f'; ++i; break;
+				case 'n': c = '\n'; ++i; break;
+				case 'r': c = '\r'; ++i; break;
+				case 't': c = '\t'; ++i; break;
+				case 'v': c = '\v'; ++i; break;
+				case 'x': {
+					// double hex digits sequence
+					// \XFF
+					if (i+1+2 >= len) {REPORT_ERROR(token, "Unexpected EOF inside a string literal"); goto return_string;}
+					// setup a static buffer assuming the next two characters are hex
+					char b[3] = {s[i+2], s[i+3], 0};
+					// convert from base 16 to base 10 (FF is at maximum 255)
+					c = (int)strtoul(b, NULL, 16);
+					buffer[length] = c;
+					// i+2 is until \x plus 2 hex characters
+					i+=2+2; ++length;
+					continue;
+				}
+				case 'u':  {
+					// 4 digits unicode sequence
+					// \uXXXX
+					if (i+1+4 >= len) {REPORT_ERROR(token, "Unexpected EOF inside a string literal"); goto return_string;}
+					// setup a static buffer assuming the next four characters are hex
+					char b[5] = {s[i+2], s[i+3], s[i+4], s[i+5], 0};
+					// convert from base 16 to base 10 (FFFF is at maximum 65535)
+					uint32_t n = (uint32_t)strtoul(b, NULL, 16);
+					length += utf8_encode(&buffer[length], n);
+					i+=2+4;
+					continue;
+				}
+				case 'U':  {
+					// 8 digits unicode sequence
+					// \uXXXXXXXX
+					if (i+1+8 >= len) {REPORT_ERROR(token, "Unexpected EOF inside a string literal"); goto return_string;}
+					// setup a static buffer assuming the next height characters are hex
+					char b[9] = {s[i+2], s[i+3], s[i+4], s[i+5], s[i+6], s[i+7], s[i+8], s[i+9], 0};
+					// convert from base 16 to base 10 (FFFF is at maximum 4294967295)
+					uint32_t n = (uint32_t)strtoul(b, NULL, 16);
+					length += utf8_encode(&buffer[length], n);
+					i+=2+8;
+					continue;
+				}
+				case '(': {
+					// string interpolation case
+					i+=2; // skip \ and (
+					uint32_t j=i;
+					bool subfound = false;
+					while (i<len) {
+						if (s[i] == ')') subfound = true;
+						++i;
+						if (subfound) break;
+					}
+					if (!subfound) {REPORT_ERROR(token, "Malformed interpolation string not closed by )"); goto return_string;}
+					
+					uint32_t sublen = i - j;
+					
+					// create a new temp lexer
+					gravity_lexer_t	*sublexer = gravity_lexer_create(&s[j], sublen, 0, true);
+					marray_push(gravity_lexer_t*, *parser->lexer, sublexer);
+					
+					// parse interpolated expression
+					gnode_t *subnode = parse_expression(parser);
+					if (!subnode) goto return_string;
+					
+					// add expression to r
+					if (!r) r = gnode_array_create();
+					if (length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true));
+					gnode_array_push(r, subnode);
+					
+					// free temp lexer
+					marray_pop(*parser->lexer);
+					gravity_lexer_free(sublexer);
+					
+					buffer = mem_alloc(len+1);
+					length = 0;
+					
+					continue;
+				}
+				default:
+					// ignore unknown sequence
+					break;
+			}
+			
+		}
+		buffer[length] = c;
+		++i; ++length;
+	}
+	
+return_string:
+	// return a node (even in case of error) so its memory will be automatically freed
+	return (r) ? gnode_string_interpolation_create(token, r) : gnode_literal_string_expr_create(token, buffer, length, true);
+}
+
 static gnode_t *parse_literal_expression (gravity_parser_t *parser) {
 	DEBUG_PARSER("parse_literal_expression");
 	DECLARE_LEXER;
@@ -589,7 +701,10 @@ static gnode_t *parse_literal_expression (gravity_parser_t *parser) {
 		uint32_t len = 0;
 		const char *value = token_string(token, &len);
 		DEBUG_PARSER("STRING: %.*s", len, value);
-		return gnode_literal_string_expr_create(token, value, len);
+		// run string analyzer because string is returned as is from the lexer
+		// but string can contains escaping sequences and interpolations that
+		// need to be processed
+		return parse_analyze_literal_string(parser, token, value, len);
 	}
 	
 	if (type == TOK_KEY_TRUE || type == TOK_KEY_FALSE) {
@@ -743,32 +858,37 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 	DEBUG_PARSER("parse_precedence (level %d)", precedence);
 	DECLARE_LEXER;
 	
-	// peek next
+	// peek next and check for EOF
 	gtoken_t type = gravity_lexer_peek(lexer);
 	if (type == TOK_EOF) return NULL;
 	
 	parse_func prefix = rules[type].prefix;
 	if (prefix == NULL) {
-		// gravity_lexer_token reports the latest succesfully scanned token but since we need to report
-		// an error for a peeked token then we force reporting "next" token
-		REPORT_ERROR(gravity_lexer_token_next(lexer), "Expected expression but found %s.", token_name(type));
+		// we need to consume next token because error was triggered in peek
+		gravity_lexer_next(lexer);
+		REPORT_ERROR(gravity_lexer_token(lexer), "Expected expression but found %s.", token_name(type));
 		return NULL;
 	}
+	
+	// execute prefix callback
 	gnode_t *node = prefix(parser);
 	
+	// peek next and check for EOF
 	gtoken_t peek = gravity_lexer_peek(lexer);
-	if (peek == TOK_EOF) return NULL;
+	if (peek == TOK_EOF) return node;
 	
 	while (precedence < rules[peek].precedence) {
 		gtoken_t tok = gravity_lexer_next(lexer);
 		grammar_rule *rule = &rules[tok];
 		
+		// execute infix callback
 		parser->current_token = tok;
 		parser->current_node = node;
 		node = rule->infix(parser);
 		
+		// peek next and check for EOF
 		peek = gravity_lexer_peek(lexer);
-		if (peek == TOK_EOF) return NULL;
+		if (peek == TOK_EOF) break;
 	}
 	
 	return node;
@@ -776,22 +896,7 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 
 static gnode_t *parse_expression (gravity_parser_t *parser) {
 	DEBUG_PARSER("parse_expression");
-	DECLARE_LEXER;
-	
-	// parse_expression is the default case called when no other case in parse_statament can be resolved
-	// due to some syntax errors an infinte loop condition can be verified
-	gtoken_s tok1 = gravity_lexer_token(lexer);
-	
-	gnode_t *expr = parse_precedence(parser, PREC_LOWEST);
-	
-	// expr is NULL means than an error condition has been encountered (and a potential infite loop)
-	if (expr == NULL) {
-		gtoken_s tok2 = gravity_lexer_token(lexer);
-		// if current token is equal to the token saved before the recursion than skip token in order to avoid infinite loop
-		if (token_identical(&tok1, &tok2)) gravity_lexer_next(lexer);
-	}
-	
-	return expr;
+	return parse_precedence(parser, PREC_LOWEST);
 }
 
 static gnode_t *parse_unary (gravity_parser_t *parser) {
@@ -1978,8 +2083,10 @@ static gnode_t *parse_declaration_statement (gravity_parser_t *parser) {
 static gnode_t *parse_import_statement (gravity_parser_t *parser) {
 	#pragma unused(parser)
 	DEBUG_PARSER("parse_import_statement");
+	DECLARE_LEXER;
 	
 	// import is a syntactic sugar for System.import
+	gravity_lexer_next(lexer);
 	return NULL;
 }
 

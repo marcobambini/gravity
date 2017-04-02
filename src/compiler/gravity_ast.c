@@ -264,11 +264,12 @@ bool gnode_is_equal (gnode_t *node1, gnode_t *node2) {
 		gnode_literal_expr_t *e1 = (gnode_literal_expr_t *)node1;
 		gnode_literal_expr_t *e2 = (gnode_literal_expr_t *)node2;
 		if (e1->type != e2->type) return false;
-		// LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL
+		// LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL, LITERAL_STRING_INTERPOLATED
 		if (e1->type == LITERAL_BOOL) return (e1->value.n64 == e2->value.n64);
 		if (e1->type == LITERAL_INT) return (e1->value.n64 == e2->value.n64);
 		if (e1->type == LITERAL_FLOAT) return (e1->value.d == e2->value.d);
 		if (e1->type == LITERAL_STRING) return (strcmp(e1->value.str, e2->value.str)==0);
+		// there is no way to check node equality for a LITERAL_STRING_INTERPOLATED at compile time
 	}
 	return false;
 }
@@ -298,7 +299,7 @@ bool gnode_is_literal_string (gnode_t *node) {
 bool gnode_is_literal_number (gnode_t *node) {
 	if (gnode_is_literal(node) == false) return false;
 	gnode_literal_expr_t *_node = (gnode_literal_expr_t *)node;
-	return (_node->type != LITERAL_STRING);
+	return (_node->type != LITERAL_STRING && _node->type != LITERAL_STRING_INTERPOLATED);
 }
 
 gnode_t *gnode_binary_expr_create (gtoken_t op, gnode_t *left, gnode_t *right) {
@@ -343,6 +344,7 @@ gnode_t *gnode_identifier_expr_create (gtoken_s token, const char *identifier, c
 
 void gnode_literal_dump (gnode_literal_expr_t *node, char *buffer, int buffersize) {
 	switch (node->type) {
+		case LITERAL_STRING_INTERPOLATED: snprintf(buffer, buffersize, "INTERPOLATED: %d", (uint32_t)gnode_array_size(node->value.r)); break;
 		case LITERAL_STRING: snprintf(buffer, buffersize, "STRING: %.*s", node->len, node->value.str); break;
 		case LITERAL_FLOAT: snprintf(buffer, buffersize, "FLOAT: %.2f", node->value.d); break;
 		case LITERAL_INT: snprintf(buffer, buffersize, "INT: %" PRId64, (int64_t)node->value.n64); break;
@@ -363,22 +365,27 @@ static gnode_t *gnode_literal_value_expr_create (gtoken_s token, gliteral_t type
 		case LITERAL_FLOAT: node->value.d = d; node->len = (d < FLT_MAX) ? 32 : 64; break;
 		case LITERAL_INT: node->value.n64 = n64; node->len = (n64 < 2147483647) ? 32 : 64; break;
 		case LITERAL_BOOL: node->value.n64 = n64; node->len = 32; break;
+		case LITERAL_STRING_INTERPOLATED: break;
 		default: assert(0); // should never reach this point
 	}
 	
 	return (gnode_t *)node;
 }
 
-gnode_t *gnode_literal_string_expr_create (gtoken_s token, const char *s, uint32_t len) {
+gnode_t *gnode_string_interpolation_create (gtoken_s token, gnode_r *r) {
+	gnode_literal_expr_t *node = (gnode_literal_expr_t *)gnode_literal_value_expr_create(token, LITERAL_STRING_INTERPOLATED, NULL, 0, 0);
+	node->value.r = r;
+	return (gnode_t *)node;
+}
+	
+gnode_t *gnode_literal_string_expr_create (gtoken_s token, char *s, uint32_t len, bool allocated) {
 	gnode_literal_expr_t *node = (gnode_literal_expr_t *)gnode_literal_value_expr_create(token, LITERAL_STRING, NULL, 0, 0);
 	
-	node->len = len;
-	node->value.str = (char *)mem_alloc(len+1);
-	
-	if (token.escaped) {
-		node->value.str = string_unescape(s, &len, node->value.str);
 		node->len = len;
+	if (allocated) {
+		node->value.str = s;
 	} else {
+		node->value.str = (char *)mem_alloc(len+1);
 		memcpy((void *)node->value.str, (const void *)s, len);
 	}
 	
@@ -658,6 +665,10 @@ static void free_literal_expr (gvisitor_t *self, gnode_literal_expr_t *node) {
 	#pragma unused(self)
 	CHECK_REFCOUNT(node);
 	if (node->type == LITERAL_STRING) mem_free((void *)node->value.str);
+	else if (node->type == LITERAL_STRING_INTERPOLATED) {
+		gnode_array_each(node->value.r, {visit(val);})
+		gnode_array_free(node->value.r);
+	}
 	mem_free((void *)node);
 }
 

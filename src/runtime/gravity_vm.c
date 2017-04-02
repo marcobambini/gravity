@@ -1806,6 +1806,7 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
 	
 abort_load:
 	report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "%s", "Unable to parse JSON executable file.");
+	marray_destroy(objects);
 	if (json) json_value_free(json);
 	gravity_gc_setenabled(vm, true);
 	return NULL;

@@ -1,0 +1,24 @@
+#unittest {
+	name: "String escaping cases.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// hex escape
+	var s1 = "Hello\x20World";
+	var s2 = "Hello World";
+	var b1 = (s1 == s2);
+	
+	// c-like escape
+	var s3 = "Hello\tWorld";
+	var s4 = "Hello	World";
+	var b2 = (s3 == s4);
+	
+	// UTF-8 4 characters escape
+	var s5 = "Hello \U0001F601 World";
+	var s6 = "Hello 😁 World";
+	var b3 = (s5 == s6);
+	
+	return (b1 && b2 && b3)
+}

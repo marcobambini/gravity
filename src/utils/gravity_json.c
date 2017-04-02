@@ -130,6 +130,7 @@ static void json_write_raw (json_t *json, const char *buffer, size_t len, bool e
 }
 
 static void json_write_escaped (json_t *json, const char *buffer, size_t len, bool escape, bool is_pretty) {
+	if (!len) return;
 	char	*new_buffer = mem_alloc (len*2);
 	size_t	j = 0;
 	assert(new_buffer);

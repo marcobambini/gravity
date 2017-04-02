@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.2.5"
-#define GRAVITY_VERSION_NUMBER				0x000205
+#define GRAVITY_VERSION						"0.2.6"
+#define GRAVITY_VERSION_NUMBER				0x000206
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #define GRAVITY_ENABLE_DOUBLE				1			// if 1 enable gravity_float_t to be a double (instead of a float)
