@@ -686,6 +686,9 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 	}
 	
 return_string:
+	// append the last string if any and if interpolation mode is on
+	if (r && length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true));
+	
 	// return a node (even in case of error) so its memory will be automatically freed
 	return (r) ? gnode_string_interpolation_create(token, r) : gnode_literal_string_expr_create(token, buffer, length, true);
 }
