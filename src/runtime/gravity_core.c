@@ -1647,8 +1647,8 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	}
 	else if (VALUE_ISA_RANGE(value)) {
 		gravity_range_t *range = VALUE_AS_RANGE(value);
-		first_index = range->from;
-		second_index = range->to;
+		first_index = (int32_t)range->from;
+		second_index = (int32_t)range->to;
 	}
 	else {
 		RETURN_ERROR("An integer index or index range is required to access string items.");
@@ -1667,13 +1667,14 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 		char original[string->len];
 		// without copying it, we would be modifying the original string
 		strncpy((char *)original, string->s, string->len);
-
+		uint32_t original_len = (uint32_t) string->len;
+		
 		// Reverse the string, and reverse the indices
-		first_index = strlen(original) - first_index -1;
-		second_index = strlen(original) - second_index -1;
+		first_index = original_len - first_index -1;
+		second_index = original_len - second_index -1;
 
 		// reverse the String
-		int i = strlen(original) - 1;
+		int i = original_len - 1;
 		int j = 0;
 		char c;
 		while (i > j) {
