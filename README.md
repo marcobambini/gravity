@@ -82,12 +82,12 @@ Seems like a good idea to make a group chat for people to discuss about Gravity.
 Contributions to Gravity are welcomed and encouraged!<br>
 More information are available in the official [CONTRIBUTING](CONTRIBUTING.md) file.
 * <a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
- * if you need help
- * if you find a bug
- * if you have a feature request
- * to ask a general question
+	* if you need help
+	* if you find a bug
+	* if you have a feature request
+	* to ask a general question
 * <a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
- * if you want to contribute
+	* if you want to contribute
 
 ## License
 Gravity is available under the permissive MIT license.
