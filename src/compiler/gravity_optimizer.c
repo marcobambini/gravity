@@ -23,7 +23,7 @@
 #define IS_SKIP(inst)					(inst->tag == SKIP_TAG)
 #define IS_LABEL(inst)					(inst->tag == LABEL_TAG)
 #define IS_NOTNULL(inst)				(inst)
-#define IS_PRAGMA_MOVE_OPT(inst)		(inst->tag == PRAGMA_MOVE_OPTIMIZATION)
+#define IS_PRAGMA_MOVE_OPT(inst)		((inst) && (inst->tag == PRAGMA_MOVE_OPTIMIZATION))
 
 // http://www.mathsisfun.com/binary-decimal-hexadecimal-converter.html
 #define OPCODE_SET(op,code)								op = (code & 0x3F) << 26
@@ -299,12 +299,13 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
 			
 		case DIV:
 			// don't optimize in case of division by 0
-			if (d2 == 0) return false;
+			if ((int64_t)d2 == 0) return false;
 			if (type == DOUBLE_TAG) d = d1 / d2;
 			else n = n1 / n2;
 			break;
 			
 		case REM:
+			if ((int64_t)d2 == 0) return false;
 			if (type == DOUBLE_TAG) d = (double)((int64_t)d1 % (int64_t)d2);
 			else n = n1 % n2;
 			break;

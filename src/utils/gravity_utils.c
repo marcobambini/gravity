@@ -447,7 +447,7 @@ uint32_t utf8_len (const char *s, uint32_t nbytes) {
 }
 
 // From: http://stackoverflow.com/questions/198199/how-do-you-reverse-a-string-in-place-in-c-or-c
-void utf8_reverse (char *p) {
+bool utf8_reverse (char *p) {
 	char *q = p;
 	string_reverse(p);
 	
@@ -456,20 +456,24 @@ void utf8_reverse (char *p) {
 	while(p < --q)
 		switch( (*q & 0xF0) >> 4 ) {
 			case 0xF: /* U+010000-U+10FFFF: four bytes. */
+				if (q-p < 4) return false;
 				SWP(*(q-0), *(q-3));
 				SWP(*(q-1), *(q-2));
 				q -= 3;
 				break;
 			case 0xE: /* U+000800-U+00FFFF: three bytes. */
+				if (q-p < 3) return false;
 				SWP(*(q-0), *(q-2));
 				q -= 2;
 				break;
 			case 0xC: /* fall-through */
 			case 0xD: /* U+000080-U+0007FF: two bytes. */
+				if (q-p < 1) return false;
 				SWP(*(q-0), *(q-1));
 				q--;
 				break;
 		}
+	return true;
 }
 
 // MARK: - Math -

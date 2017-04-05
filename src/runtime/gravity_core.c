@@ -1204,6 +1204,8 @@ static bool operator_int_rem (gravity_vm *vm, gravity_value_t *args, uint16_t na
 	#pragma unused (nargs)
 	DECLARE_2VARIABLES(v1, v2, 0, 1);
 	INTERNAL_CONVERT_INT(v2);
+	
+	if (v2.n == 0) RETURN_ERROR("Reminder by 0 error.");
 	RETURN_VALUE(VALUE_FROM_INT(v1.n % v2.n), rindex);
 }
 
@@ -1456,8 +1458,8 @@ static bool operator_string_neg (gravity_vm *vm, gravity_value_t *args, uint16_t
 	
 	// reverse the string
 	gravity_string_t *s1 = VALUE_AS_STRING(v1);
-	char *s = (char *)string_dup(s1->s);
-	utf8_reverse(s);
+	char *s = (char *)string_ndup(s1->s, s1->len);
+	if (!utf8_reverse(s)) RETURN_ERROR("Unable to reverse a malformed string.");
 	
 	gravity_string_t *string = gravity_string_new(vm, s, s1->len, s1->len);
 	RETURN_VALUE(VALUE_FROM_OBJECT(string), rindex);

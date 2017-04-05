@@ -555,6 +555,10 @@ static void visit_flow_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
 		visit(node->cond);
 		visit(node->stmt);
 		POP_STATEMENT();
+	} else if (type == TOK_OP_TERNARY) {
+		visit(node->cond);
+		visit(node->stmt);
+		visit(node->elsestmt);
 	}
 }
 

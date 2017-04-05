@@ -211,6 +211,7 @@
 
 #define CHECK_FAST_BINARY_REM(r1,r2,r3,v2,v3)		DEFINE_STACK_VARIABLE(v2,r2);																\
 													DEFINE_STACK_VARIABLE(v3,r3);																\
+													CHECK_ZERO(v3);																				\
 													if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, %)
 
 #define CHECK_FAST_BINARY_BIT(r1,r2,r3,v2,v3,OP)	DEFINE_STACK_VARIABLE(v2,r2);																\

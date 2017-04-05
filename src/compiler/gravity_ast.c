@@ -446,6 +446,8 @@ gnode_t *gnode_list_expr_create (gtoken_s token, gnode_r *list1, gnode_r *list2,
 // MARK: -
 
 gnode_t *gnode_duplicate (gnode_t *node, bool deep) {
+	if (!node) return NULL;
+	
 	if (deep == true) {
 		// deep is true so I need to examine node and perform a real duplication (only of the outer nodes)
 		// deep is true ONLY when node can also be part of an assignment and its assignment flag can be
@@ -472,8 +474,8 @@ gnode_t *gnode_duplicate (gnode_t *node, bool deep) {
 			gnode_array_each(expr->list, {gnode_array_push(list, gnode_duplicate(val, false));});
 			return gnode_postfix_expr_create(expr->base.token, id, list);
 		} else {
-			printf("gnode_duplicate UNHANDLED case\n");
-			assert(0); // should never reach this point
+			// gnode_duplicate UNHANDLED case
+			return NULL;
 		}
 		// just return the original node and since it is invalid for an assignment a semantic error will be generated
 	}

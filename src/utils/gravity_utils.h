@@ -56,7 +56,7 @@ uint32_t	utf8_charbytes (const char *s, uint32_t i);
 uint32_t	utf8_nbytes (uint32_t n);
 uint32_t	utf8_encode(char *buffer, uint32_t value);
 uint32_t	utf8_len (const char *s, uint32_t nbytes);
-void		utf8_reverse (char *p);
+bool		utf8_reverse (char *p);
 
 // MATH and NUMBERS
 uint32_t	power_of2_ceil (uint32_t n);

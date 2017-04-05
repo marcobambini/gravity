@@ -62,7 +62,7 @@ typedef enum {
 #define DEC_TOKLEN				--lexer->token.bytes; --lexer->token.length
 #define SET_TOKTYPE(t)			lexer->token.type = t
 
-#define LEXER_CALL_CALLBACK()	if ((lexer->peeking == false) && (lexer->delegate) && (lexer->delegate->parser_callback)) {	\
+#define LEXER_CALL_CALLBACK()	if ((!lexer->peeking) && (lexer->delegate) && (lexer->delegate->parser_callback)) {	\
 									lexer->delegate->parser_callback(&lexer->token, lexer->delegate->xdata); }
 
 // MARK: -
@@ -170,21 +170,22 @@ static gtoken_t lexer_error(gravity_lexer_t *lexer, const char *message) {
 	return TOK_ERROR;
 }
 
-static inline int next_utf8(gravity_lexer_t *lexer) {
+static inline bool next_utf8(gravity_lexer_t *lexer, int *result) {
 	int c = NEXT;
 	INC_TOKLEN;
 	
 	uint32_t len = utf8_charbytes((const char *)&c, 0);
-	if (len == 1) return c;
+	if (len == 0) return false;
 	
 	switch(len) {
-		case 0: lexer_error(lexer, "Unknown character inside a string literal"); return 0;
+		case 1: break;
 		case 2: INC_OFFSET; INC_TOKBYTES; break;
 		case 3: INC_OFFSET; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; break;
 		case 4: INC_OFFSET; INC_OFFSET; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; INC_TOKBYTES; INC_POSITION; INC_TOKUTF8LEN; break;
 	}
 	
-	return c;
+	if (result) *result = c;
+	return true;
 }
 
 static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
@@ -200,11 +201,13 @@ static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
 	// count necessary only to support nested comments
 	int count = 1;
 	while (!IS_EOF) {
-		int c = next_utf8(lexer);
+		int c;
+		next_utf8(lexer, &c);
 		
 		if (isLineComment){
 			if (is_newline(lexer, c)) {INC_LINE; break;}
 		} else {
+			if (IS_EOF) break;
 			int c2 = PEEK_CURRENT;
 			if ((c == '/') && (c2 == '*')) ++count;
 			if ((c == '*') && (c2 == '/')) {--count; NEXT; INC_TOKLEN; if (count == 0) break;}
@@ -341,7 +344,7 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 	TOKEN_RESET;				// save offset
 	
 	while ((c2 = (unsigned char)PEEK_CURRENT) != c) {
-		if (IS_EOF) {return lexer_error(lexer, "Unexpected EOF inside a string literal");}
+		if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
 		if (is_newline(lexer, c2)) INC_LINE;
 		
 		// handle escaped characters
@@ -354,7 +357,7 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 		}
 		
 		// scan next
-		next_utf8(lexer);
+		if (!next_utf8(lexer, NULL)) return lexer_error(lexer, "Unknown character inside a string literal");
 	}
 	
 	// skip last escape character
@@ -600,7 +603,8 @@ gtoken_t gravity_lexer_token_type (gravity_lexer_t *lexer) {
 
 void gravity_lexer_skip_line (gravity_lexer_t *lexer) {
 	while (!IS_EOF) {
-		int c = next_utf8(lexer);
+		int c;
+		next_utf8(lexer, &c);
 		if (is_newline(lexer, c)) {
 			INC_LINE;
 			break;

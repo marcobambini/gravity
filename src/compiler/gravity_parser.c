@@ -109,7 +109,7 @@ static gnode_t *parse_compound_statement (gravity_parser_t *parser);
 static gnode_t *parse_expression (gravity_parser_t *parser);
 static gnode_t *parse_declaration_statement (gravity_parser_t *parser);
 static gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier);
-static gnode_t *adjust_assignment_expression (gtoken_t tok, gnode_t *lnode, gnode_t *rnode);
+static gnode_t *adjust_assignment_expression (gravity_parser_t *parser, gtoken_t tok, gnode_t *lnode, gnode_t *rnode);
 
 // MARK: - Utils functions -
 
@@ -865,16 +865,16 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 	gtoken_t type = gravity_lexer_peek(lexer);
 	if (type == TOK_EOF) return NULL;
 	
+	// execute prefix callback (if any)
 	parse_func prefix = rules[type].prefix;
-	if (prefix == NULL) {
+	gnode_t *node = (prefix) ? prefix(parser) : NULL;
+	
+	if (!prefix || !node) {
 		// we need to consume next token because error was triggered in peek
 		gravity_lexer_next(lexer);
 		REPORT_ERROR(gravity_lexer_token(lexer), "Expected expression but found %s.", token_name(type));
 		return NULL;
 	}
-	
-	// execute prefix callback
-	gnode_t *node = prefix(parser);
 	
 	// peek next and check for EOF
 	gtoken_t peek = gravity_lexer_peek(lexer);
@@ -922,13 +922,13 @@ static gnode_t *parse_infix (gravity_parser_t *parser) {
 	prec_level precedence = (rule->right) ? rule->precedence-1 : rule->precedence;
 	
 	gnode_t *rnode = parse_precedence(parser, precedence);
-	if ((tok != TOK_OP_ASSIGN) && token_isassignment(tok)) return adjust_assignment_expression(tok, lnode, rnode);
+	if ((tok != TOK_OP_ASSIGN) && token_isassignment(tok)) return adjust_assignment_expression(parser, tok, lnode, rnode);
 	return gnode_binary_expr_create(tok, lnode, rnode);
 }
 
 // MARK: -
 
-static gnode_t *adjust_assignment_expression (gtoken_t tok, gnode_t *lnode, gnode_t *rnode) {
+static gnode_t *adjust_assignment_expression (gravity_parser_t *parser, gtoken_t tok, gnode_t *lnode, gnode_t *rnode) {
 	DEBUG_PARSER("adjust_assignment_expression");
 	
 	// called when tok is an assignment != TOK_OP_ASSIGN
@@ -962,7 +962,9 @@ static gnode_t *adjust_assignment_expression (gtoken_t tok, gnode_t *lnode, gnod
 	}
 	
 	// duplicate node is mandatory here, otherwise the deallocator will try to free memory occopied by the same node twice
-	rnode = gnode_binary_expr_create(t, gnode_duplicate(lnode, true), rnode);
+	gnode_t *duplicate = gnode_duplicate(lnode, true);
+	if (!duplicate) {DECLARE_LEXER; REPORT_ERROR(gravity_lexer_token(lexer), "An unexpected error occurred in %s", token_name(tok)); return NULL;}
+	rnode = gnode_binary_expr_create(t, duplicate, rnode);
 	tok = TOK_OP_ASSIGN;
 	
 	// its an assignment expression so switch the order
@@ -1881,14 +1883,14 @@ static gnode_t *parse_flow_statement (gravity_parser_t *parser) {
 	gtoken_s token = gravity_lexer_token(lexer);
 	assert((type == TOK_KEY_IF) || (type == TOK_KEY_SWITCH));
 	
-	// check optional TOK_OP_OPEN_PARENTHESIS
-	bool is_parenthesize = parse_optional(parser, TOK_OP_OPEN_PARENTHESIS);
+	// check required TOK_OP_OPEN_PARENTHESIS
+	parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
 	
 	// parse common expression
 	gnode_t *cond = parse_expression(parser);
 	
 	// check and consume TOK_OP_CLOSED_PARENTHESIS
-	if (is_parenthesize) parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
+	parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
 	
 	// parse common statement
 	gnode_t *stmt1 = parse_statement(parser);
