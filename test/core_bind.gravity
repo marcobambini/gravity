@@ -1,0 +1,17 @@
+#unittest {
+	name: "Forbid bind on core classes.";
+	error: RUNTIME;
+};
+
+class foo {
+	func f1() {return 10;}
+}
+
+func main() {
+	var obj = foo();
+	var n1 = obj.f1();
+
+	func test() {return 1000;}
+	Int.bind("test", test);
+
+}
