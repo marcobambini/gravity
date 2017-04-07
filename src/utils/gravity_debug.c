@@ -8,8 +8,8 @@
 
 #include <assert.h>
 #include "gravity_value.h"
-#include "gravity_vmmacros.h"
 #include "gravity_debug.h"
+#include "gravity_vmmacros.h"
 
 const char *opcode_constname (int n) {
 	switch (n) {
@@ -21,8 +21,6 @@ const char *opcode_constname (int n) {
 		case CPOOL_VALUE_FALSE: return "FALSE";
 		case CPOOL_VALUE_FUNC: return "FUNC";
 	}
-	
-	assert(0);
 	return "N/A";
 }
 
@@ -111,7 +109,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 						case CPOOL_VALUE_TRUE: special = "TRUE"; break;
 						case CPOOL_VALUE_FALSE: special = "FALSE"; break;
 						case CPOOL_VALUE_FUNC: special = "_FUNC"; break;
-						default: ASSERT(0, "Invalid index in LOADK opcode"); break;
+						default: special = "Invalid index in LOADK opcode"; break;
 					}
 					DUMP_VM(buffer, bindex, "LOADK %d %s", r1, special);
 				}
@@ -133,7 +131,8 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 			}
 				
 			case LOADU: {
-				ASSERT(0, "To be implemented");
+				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
+				DUMP_VM(buffer, bindex, "LOADU %d %d", r1, r2);
 				break;
 			}
 				
@@ -144,7 +143,8 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 			}
 				
 			case STOREU: {
-				ASSERT(0, "To be implemented");
+				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
+				DUMP_VM(buffer, bindex, "STOREU %d %d", r1, r2);
 				break;
 			}
 				
@@ -240,7 +240,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 			}
 				
 			case SWITCH: {
-				ASSERT(0, "To be implemented");
+				DUMP_VM(buffer, bindex, "SWITCH instruction not yet implemented");
 				break;
 			}
 				

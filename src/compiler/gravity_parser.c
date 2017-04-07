@@ -218,7 +218,10 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
 	if (!is_implicit) {
 		gtoken_t type = gravity_lexer_next(lexer);
 		token = gravity_lexer_token(lexer);
-		assert(type == TOK_KEY_FUNC);
+		if (type != TOK_KEY_FUNC) {
+			REPORT_ERROR(token, "Invalid function expression.");
+			return NULL;
+		}
 	}
 	
 	// parse IDENTIFIER
@@ -1393,7 +1396,12 @@ static gnode_t *parse_event_declaration (gravity_parser_t *parser, gtoken_t acce
 	// 'event' IDENTIFIER '(' parameter_declaration_clause? ')' ';'
 	
 	// NODE_EVENT_DECL
-	assert(0);
+	DECLARE_LEXER;
+	gtoken_t type = gravity_lexer_next(lexer);
+	gtoken_s token = gravity_lexer_token(lexer);
+	assert(type == TOK_KEY_EVENT);
+	
+	REPORT_ERROR(token, "Event declarations not yet supported.");
 	return NULL;
 }
 

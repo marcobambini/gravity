@@ -362,7 +362,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 						
 					case EXEC_TYPE_BRIDGED: {
-						ASSERT(delegate->bridge_getvalue, "bridge_getvalue delegate callback is mandatory");
+						DEBUG_ASSERT(delegate->bridge_getvalue, "bridge_getvalue delegate callback is mandatory");
 						if (!delegate->bridge_getvalue(vm, closure->f->xdata, v2, VALUE_AS_CSTRING(v3), r1)) {
 							if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
 						}
@@ -489,7 +489,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 					
 					case EXEC_TYPE_BRIDGED: {
-						ASSERT(delegate->bridge_setvalue, "bridge_setvalue delegate callback is mandatory");
+						DEBUG_ASSERT(delegate->bridge_setvalue, "bridge_setvalue delegate callback is mandatory");
 						if (!delegate->bridge_setvalue(vm, closure->f->xdata, v2, VALUE_AS_CSTRING(v3), v1)) {
 							if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
 						}
@@ -1046,12 +1046,12 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					case EXEC_TYPE_BRIDGED: {
 						bool result;
 						if (VALUE_ISA_CLASS(v)) {
-							ASSERT(delegate->bridge_initinstance, "bridge_initinstance delegate callback is mandatory");
+							DEBUG_ASSERT(delegate->bridge_initinstance, "bridge_initinstance delegate callback is mandatory");
 							gravity_instance_t *instance = (gravity_instance_t *)VALUE_AS_OBJECT(stackstart[rwin]);
 							result = delegate->bridge_initinstance(vm, closure->f->xdata, instance, &stackstart[rwin], r3);
 							SETVALUE(r1, VALUE_FROM_OBJECT(instance));
 						} else {
-							ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");
+							DEBUG_ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");
 							result = delegate->bridge_execute(vm, closure->f->xdata, &stackstart[rwin], r3, r1);
 						}
 						if (!result && fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
@@ -1083,7 +1083,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				}
 				
 				// sanity check
-				ASSERT(fiber->nframes > 0, "Number of active frames cannot be 0.");
+				DEBUG_ASSERT(fiber->nframes > 0, "Number of active frames cannot be 0.");
 				
 				// POP frame
 				--fiber->nframes;
@@ -1122,7 +1122,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 			
 			// MARK: SWITCH
 			CASE_CODE(SWITCH): {
-				ASSERT(0, "To be implemented");
+				DEBUG_ASSERT(0, "To be implemented");
 				DISPATCH();
 			}
 			
@@ -1225,7 +1225,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t p1, const uint32_t p2);
 					
 					// p2 can be 1 (means that upvalue is in the current call frame) or 0 (means that upvalue is in the upvalue list of the caller)
-					ASSERT(op == MOVE, "Wrong OPCODE in CLOSURE statement");
+					DEBUG_ASSERT(op == MOVE, "Wrong OPCODE in CLOSURE statement");
 					closure->upvalue[i] = (p2) ? gravity_capture_upvalue (vm, fiber, &stackstart[p1]) : frame->closure->upvalue[p1];
 				}
 				

@@ -131,5 +131,19 @@
 
 #define GRAVITY_VM_ANONYMOUS_PREFIX			"$$"
 
+// MARK: -
+
+#if 1
+#define DEBUG_ASSERT(condition, message)	do { \
+												if (!(condition)) { \
+													fprintf(stderr, "[%s:%d] Assert failed in %s(): %s\n", \
+													__FILE__, __LINE__, __func__, message); \
+													abort(); \
+												} \
+											} \
+											while(0)
+#else
+#define DEBUG_ASSERT(condition, message)
+#endif
 
 #endif

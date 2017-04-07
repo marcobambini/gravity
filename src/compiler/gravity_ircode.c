@@ -80,7 +80,6 @@ uint32_t ircode_count (ircode_t *code) {
 
 inst_t *ircode_get (ircode_t *code, uint32_t index) {
 	uint32_t n = (uint32_t)marray_size(*code->list);
-	if (index == IRCODE_LATEST) index = n-1;
 	return (index >= n) ? NULL : marray_get(*code->list, index);
 }
 
@@ -287,7 +286,7 @@ void ircode_dump  (void *_code) {
 			case 2: {
 				if (op == LOADI) {
 					if (inst->tag == DOUBLE_TAG) printf("%05d\t%s %d %.2f\n", line, opcode_name(op), p1, inst->d);
-					else printf("%05d\t%s %d %lld\n", line, opcode_name(op), p1, inst->n);
+					else printf("%05d\t%s %d %"PRId64"\n", line, opcode_name(op), p1, inst->n);
 				} else if (op == LOADK) {
 					if (p2 < CPOOL_INDEX_MAX) printf("%05d\t%s %d %d\n", line, opcode_name(op), p1, p2);
 					else printf("%05d\t%s %d %s\n", line, opcode_name(op), p1, opcode_constname(p2));
@@ -420,7 +419,7 @@ void ircode_pop_context (ircode_t *code) {
 }
 
 uint32_t ircode_register_pop_context_protect (ircode_t *code, bool protect) {
-	assert(marray_size(code->registers) != 0);
+	if (marray_size(code->registers) == 0) return REGISTER_ERROR;
 	uint32_t value = (uint32_t)marray_pop(code->registers);
 	
 	if (protect) code->state[value] = true;
@@ -484,15 +483,14 @@ uint32_t ircode_register_pop (ircode_t *code) {
 }
 
 void ircode_register_clear (ircode_t *code, uint32_t nreg) {
+	if (nreg == REGISTER_ERROR) return;
 	// cleanup busy mask only if it is a temp register
 	if (nreg >= code->nlocals) code->state[nreg] = false;
 }
 
 uint32_t ircode_register_last (ircode_t *code) {
-	assert(marray_size(code->registers) != 0);
-	uint32_t value = (uint32_t)marray_last(code->registers);
-	
-	return value;
+	if (marray_size(code->registers) == 0) return REGISTER_ERROR;
+	return (uint32_t)marray_last(code->registers);
 }
 
 bool ircode_register_istemp (ircode_t *code, uint32_t nreg) {

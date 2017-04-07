@@ -9,20 +9,6 @@
 #ifndef __GRAVITY_VMMACROS__
 #define __GRAVITY_VMMACROS__
 
-// Assertions add significant overhead, so are only enabled in debug builds.
-#if 1
-#define ASSERT(condition, message)						do { \
-															if (!(condition)) { \
-																fprintf(stderr, "[%s:%d] Assert failed in %s(): %s\n", \
-																__FILE__, __LINE__, __func__, message); \
-																abort(); \
-															} \
-														} \
-														while(0)
-#else
-#define ASSERT(condition, message)
-#endif
-
 #if 0
 #define DEBUG_CALL(s, f)								printf("%s %s\n", s, f->identifier)
 #else
@@ -262,7 +248,7 @@
 														}																					\
 													} break;																				\
 													case EXEC_TYPE_BRIDGED:	{																\
-														ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");	\
+														DEBUG_ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");	\
 														if (!delegate->bridge_execute(vm, _c->f->xdata, &stackstart[rwin], nargs, r1)) {	\
 															if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);							\
 														}																					\

@@ -592,17 +592,18 @@ static bool object_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
 	
 	// check if instance has already an anonymous class added to its hierarchy
-	if (string_nocasencmp(c->identifier, GRAVITY_VM_ANONYMOUS_PREFIX, strlen(GRAVITY_VM_ANONYMOUS_PREFIX) != 0)) {
+	if (string_casencmp(c->identifier, GRAVITY_VM_ANONYMOUS_PREFIX, strlen(GRAVITY_VM_ANONYMOUS_PREFIX) != 0)) {
 		// no super anonymous class found so create a new one, set its super as c, and add it to the hierarchy
 		char *name = gravity_vm_anonymous(vm);
 		gravity_class_t *anon = gravity_class_new_pair(NULL, name, c, 0, 0);
+		gravity_class_t *anon_meta = gravity_class_get_meta(anon);
 		object->objclass = anon;
 		c = anon;
 		
 		// store anonymous class (and its meta) into VM special GC stack
 		// manually retains anonymous class that will retain its bound functions
 		gravity_gc_push(vm, (gravity_object_t *)anon);
-		gravity_gc_push(vm, (gravity_object_t *)gravity_class_get_meta(anon));
+		gravity_gc_push(vm, (gravity_object_t *)anon_meta);
 	}
 	
 	// add closure to anonymous class

@@ -198,10 +198,10 @@ static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
 	// because I already scanned /* or //
 	lexer->token.bytes = lexer->token.length = 2;
 	
-	// count necessary only to support nested comments
+	// count variable used only to support nested comments
 	int count = 1;
 	while (!IS_EOF) {
-		int c;
+		int c = 0;
 		next_utf8(lexer, &c);
 		
 		if (isLineComment){

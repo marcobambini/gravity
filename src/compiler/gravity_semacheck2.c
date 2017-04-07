@@ -107,6 +107,7 @@ static symboltable_t *symtable_from_node (gnode_t *node) {
 // lookup identifier into node
 static gnode_t *lookup_node (gnode_t *node, const char *identifier) {
 	symboltable_t *symtable = symtable_from_node(node);
+	if (!symtable) return NULL;
 	return symboltable_lookup(symtable, identifier);
 }
 

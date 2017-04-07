@@ -27,7 +27,7 @@
 #include "gravity_opcodes.h"
 #include "gravity_array.h"
 
-#define IRCODE_LATEST	UINT32_MAX
+#define REGISTER_ERROR	UINT32_MAX
 
 typedef enum {
 		NO_TAG = 0,
@@ -87,6 +87,17 @@ void		ircode_add_constant (ircode_t *code, uint32_t index);
 void		ircode_add_skip (ircode_t *code);
 void		ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
 void		ircode_setarray_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_r r);
+
+// IMPORTANT NOTE
+//
+// The following functions can return REGISTER_ERROR and so an error check is mandatory
+// ircode_register_pop
+// ircode_register_pop_context_protect
+// ircode_register_last
+//
+// The following functions can return 0 if no temp registers are available
+// ircode_register_push_temp
+//
 
 bool		ircode_register_istemp (ircode_t *code, uint32_t n);
 uint32_t	ircode_register_push_temp (ircode_t *code);
