@@ -580,9 +580,7 @@ static bool object_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	if (!VALUE_ISA_CLOSURE(GET_VALUE(2))) RETURN_ERROR("Second argument must be a Closure.");
 	
 	gravity_object_t *object = NULL;
-	if (VALUE_ISA_INSTANCE(GET_VALUE(0))) {
-		object = VALUE_AS_OBJECT(GET_VALUE(0));
-	} else if (VALUE_ISA_CLASS(GET_VALUE(0))) {
+	if (VALUE_ISA_INSTANCE(GET_VALUE(0)) || VALUE_ISA_CLASS(GET_VALUE(0))) {
 		object = VALUE_AS_OBJECT(GET_VALUE(0));
 	} else {
 		RETURN_ERROR("bind method can be applied only to instances or classes.");
@@ -590,6 +588,13 @@ static bool object_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	
 	gravity_string_t *key = VALUE_AS_STRING(GET_VALUE(1));
 	gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+	
+	// in this version core classes are shared among all VM instances and
+	// this could be an issue in case of bound methods so it would be probably
+	// a good idea to play safe and forbid bind on core classes
+	if (gravity_iscore_class(c)) {
+		RETURN_ERROR("Unable to bind method to a Gravity core class.");
+	}
 	
 	// check if instance has already an anonymous class added to its hierarchy
 	if (string_casencmp(c->identifier, GRAVITY_VM_ANONYMOUS_PREFIX, strlen(GRAVITY_VM_ANONYMOUS_PREFIX) != 0)) {
@@ -2320,10 +2325,21 @@ void gravity_core_register (gravity_vm *vm) {
 }
 
 bool gravity_iscore_class (gravity_class_t *c) {
-	return ((c == gravity_class_object) || (c == gravity_class_class) || (c == gravity_class_bool) ||
+	// first check if it is a class
+	if ((c == gravity_class_object) || (c == gravity_class_class) || (c == gravity_class_bool) ||
 			(c == gravity_class_null) || (c == gravity_class_int) || (c == gravity_class_float) ||
 			(c == gravity_class_function) || (c == gravity_class_fiber) || (c == gravity_class_string) ||
 			(c == gravity_class_instance) || (c == gravity_class_list) || (c == gravity_class_map) ||
 			(c == gravity_class_range) || (c == gravity_class_system) || (c == gravity_class_closure) ||
-			(c == gravity_class_upvalue));
+		(c == gravity_class_upvalue)) return true;
+	
+	// if class check is false then check for meta
+	return ((c == gravity_class_get_meta(gravity_class_object)) || (c == gravity_class_get_meta(gravity_class_class)) ||
+			(c == gravity_class_get_meta(gravity_class_bool)) || (c == gravity_class_get_meta(gravity_class_null)) ||
+			(c == gravity_class_get_meta(gravity_class_int)) || (c == gravity_class_get_meta(gravity_class_float)) ||
+			(c == gravity_class_get_meta(gravity_class_function)) || (c == gravity_class_get_meta(gravity_class_fiber)) ||
+			(c == gravity_class_get_meta(gravity_class_string)) || (c == gravity_class_get_meta(gravity_class_instance)) ||
+			(c == gravity_class_get_meta(gravity_class_list)) || (c == gravity_class_get_meta(gravity_class_map)) ||
+			(c == gravity_class_get_meta(gravity_class_range)) || (c == gravity_class_get_meta(gravity_class_system)) ||
+			(c == gravity_class_get_meta(gravity_class_closure)) || (c == gravity_class_get_meta(gravity_class_upvalue)));
 }
