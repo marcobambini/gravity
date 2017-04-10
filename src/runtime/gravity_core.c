@@ -1044,7 +1044,11 @@ static bool closure_apply (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	gravity_value_t self_value = GET_VALUE(1);
 	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(2));
 	
-	gravity_vm_runclosure(vm, closure, self_value, list->array.p, (uint16_t)marray_size(list->array));
+	uint16_t argsCount = (uint16_t)marray_size(list->array);
+
+	printf("apply args size: %d\n", argsCount);
+	printf("args: %ld %ld\n", list->array.p[0].n, list->array.p[1].n);
+	gravity_vm_runclosure(vm, closure, self_value, list->array.p, argsCount + 1);
 	gravity_value_t result = gravity_vm_result(vm);
 	
 	RETURN_VALUE(result, rindex);
