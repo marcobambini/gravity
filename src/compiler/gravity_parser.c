@@ -17,6 +17,7 @@
 #include "gravity_ast.h"
 
 typedef marray_t(gravity_lexer_t*)		lexer_r;
+#define MAX_RECURSION_DEPTH             1000
 
 struct gravity_parser_t {
 	lexer_r								*lexer;
@@ -28,6 +29,7 @@ struct gravity_parser_t {
 	uint32_t							nerrors;
 	uint32_t							unique_id;
 	uint32_t							last_error_lineno;
+    uint32_t                            depth;
 	
 	// state ivars used by Pratt parser
 	gtoken_t							current_token;
@@ -2029,7 +2031,12 @@ static gnode_t *parse_compound_statement (gravity_parser_t *parser) {
 	gtoken_s token = gravity_lexer_token(lexer);
 	gnode_r *stmts = gnode_array_create();
 	while (token_isstatement(gravity_lexer_peek(lexer))) {
+        if (++parser->depth > MAX_RECURSION_DEPTH) {
+            REPORT_ERROR(gravity_lexer_token(lexer), "Maximum statament recursion depth reached.");
+            return NULL;
+        }
 		gnode_t *node = parse_statement(parser);
+        --parser->depth;
 		if (node) gnode_array_push(stmts, node);
 	}
 	
