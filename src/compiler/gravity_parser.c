@@ -17,7 +17,6 @@
 #include "gravity_ast.h"
 
 typedef marray_t(gravity_lexer_t*)		lexer_r;
-#define MAX_RECURSION_DEPTH             1000
 
 struct gravity_parser_t {
 	lexer_r								*lexer;
@@ -81,6 +80,7 @@ typedef struct {
 static grammar_rule rules[TOK_END];
 
 // MARK: - Internal macros -
+#define MAX_RECURSION_DEPTH                     1000
 #define SEMICOLON_IS_OPTIONAL					1
 
 #define REPORT_ERROR(_tok,...)					report_error(parser, GRAVITY_ERROR_SYNTAX, _tok, __VA_ARGS__)

@@ -42,6 +42,8 @@ GRAVITY_API bool				gravity_vm_ismini (gravity_vm *vm);
 GRAVITY_API gravity_value_t		gravity_vm_keyindex (gravity_vm *vm, uint32_t index);
 GRAVITY_API bool				gravity_vm_isaborted (gravity_vm *vm);
 GRAVITY_API void				gravity_vm_setaborted (gravity_vm *vm);
+GRAVITY_API gravity_closure_t   *gravity_vm_getclosure (gravity_vm *vm);
+    
 
 GRAVITY_API void				gravity_gray_value (gravity_vm* vm, gravity_value_t v);
 GRAVITY_API void				gravity_gray_object (gravity_vm* vm, gravity_object_t *obj);

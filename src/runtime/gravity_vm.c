@@ -1529,6 +1529,14 @@ bool gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure) {
 
 // MARK: - User -
 
+gravity_closure_t *gravity_vm_getclosure (gravity_vm *vm) {
+    if (!vm->fiber) return NULL;
+    if (!vm->fiber->nframes) return NULL;
+    
+    gravity_callframe_t *frame = &(vm->fiber->frames[vm->fiber->nframes-1]);
+    return frame->closure;
+}
+
 void gravity_vm_setslot (gravity_vm *vm, gravity_value_t value, uint32_t index) {
 	if (index == GRAVITY_FIBER_REGISTER) {
 		vm->fiber->result = value;

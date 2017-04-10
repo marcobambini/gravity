@@ -244,7 +244,8 @@ inline gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_INT_INDEX);
 	
 	// sanity check (and break recursion)
-	if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_int))) return VALUE_FROM_ERROR(NULL);
+	if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_int)) ||
+        gravity_vm_getclosure(vm) == closure) return VALUE_FROM_ERROR(NULL);
 	
 	// execute closure and return its value
 	if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) return gravity_vm_result(vm);
@@ -266,7 +267,8 @@ inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_FLOAT_INDEX);
 	
 	// sanity check (and break recursion)
-	if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_float))) return VALUE_FROM_ERROR(NULL);
+    if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_float)) ||
+        gravity_vm_getclosure(vm) == closure) return VALUE_FROM_ERROR(NULL);
 	
 	// execute closure and return its value
 	if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) return gravity_vm_result(vm);
@@ -292,7 +294,8 @@ inline gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_BOOL_INDEX);
 	
 	// sanity check (and break recursion)
-	if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_bool))) return VALUE_FROM_BOOL(1);
+    if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_bool)) ||
+        gravity_vm_getclosure(vm) == closure) return VALUE_FROM_BOOL(1);
 	
 	// execute closure and return its value
 	if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) return gravity_vm_result(vm);
@@ -355,7 +358,8 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_STRING_INDEX);
 	
 	// sanity check (and break recursion)
-	if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_string))) return VALUE_FROM_ERROR(NULL);
+    if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_string)) ||
+        gravity_vm_getclosure(vm) == closure) return VALUE_FROM_ERROR(NULL);
 	
 	// execute closure and return its value
 	if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) return gravity_vm_result(vm);
