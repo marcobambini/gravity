@@ -818,6 +818,16 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	RETURN_VALUE(VALUE_FROM_OBJECT(result), rindex);
 }
 
+static bool list_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if ((nargs != 2) || (!VALUE_ISA_INT(GET_VALUE(1)))) RETURN_ERROR("An Int value is expected as argument of List allocate.");
+    
+    uint32_t n = (uint32_t)VALUE_AS_INT(GET_VALUE(1));
+    gravity_list_t *list = gravity_list_new(vm, n);
+    for (uint32_t i=0; i<n; ++i) marray_push(gravity_value_t, list->array, VALUE_FROM_NULL);
+    
+    RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
+}
+
 // MARK: - Map Class -
 
 static bool map_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -849,6 +859,15 @@ static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	
 	gravity_value_t *value = gravity_hash_lookup(map->hash, key);
 	RETURN_VALUE((value) ? *value : VALUE_FROM_NULL, rindex);
+}
+
+static bool map_haskey (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
+    gravity_value_t key = GET_VALUE(1);
+    
+    gravity_value_t *value = gravity_hash_lookup(map->hash, key);
+    RETURN_VALUE((value) ? VALUE_FROM_TRUE : VALUE_FROM_FALSE, rindex);
 }
 
 static bool map_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2069,6 +2088,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_list, "push", NEW_CLOSURE_VALUE(list_push));
 	gravity_class_bind(gravity_class_list, "pop", NEW_CLOSURE_VALUE(list_pop));
 	gravity_class_bind(gravity_class_list, "contains", NEW_CLOSURE_VALUE(list_contains));
+    // Meta
+    gravity_class_t *list_meta = gravity_class_get_meta(gravity_class_list);
+    gravity_class_bind(list_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(list_exec));
 	
 	// MAP CLASS
 	gravity_class_bind(gravity_class_map, "keys", NEW_CLOSURE_VALUE(map_keys));
@@ -2077,6 +2099,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(map_loop));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(map_loadat));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(map_storeat));
+    gravity_class_bind(gravity_class_map, "hasKey", NEW_CLOSURE_VALUE(map_haskey));
 	#if GRAVITY_MAP_DOTSUGAR
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOAD_NAME, NEW_CLOSURE_VALUE(map_loadat));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(map_storeat));
