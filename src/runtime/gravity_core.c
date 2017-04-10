@@ -1767,7 +1767,6 @@ static bool fiber_run (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	#pragma unused(nargs, rindex)
 	
 	gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
-	
 	if (fiber->caller != NULL) RETURN_ERROR("Fiber has already been called.");
 	
 	// remember who ran the fiber
@@ -1793,6 +1792,9 @@ static bool fiber_try (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool fiber_yield (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(args, nargs, rindex)
 	
+    // set rindex slot to NULL in order to falsify the if closure check performed by the VM
+    gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);
+    
 	gravity_fiber_t *fiber = gravity_vm_fiber(vm);
 	gravity_vm_setfiber(vm, fiber->caller);
 	
