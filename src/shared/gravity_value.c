@@ -849,6 +849,8 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 					case json_array: {
 						uint32_t count = r->u.array.length;
 						gravity_list_t *list = gravity_list_new(NULL, count);
+                        if (!list) continue;
+                        
 						for (uint32_t k=0; k<count; ++k) {
 							json_value *jsonv = r->u.array.values[k];
 							gravity_value_t v;
@@ -865,6 +867,7 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 							marray_push(gravity_value_t, list->array, v);
 						}
 						gravity_function_cpool_add(vm, f, VALUE_FROM_OBJECT(list));
+                        break;
 					}
 						
 					case json_none:
@@ -1672,6 +1675,8 @@ void gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len) {
 
 // MARK: -
 gravity_list_t *gravity_list_new (gravity_vm *vm, uint32_t n) {
+    if (n > MAX_ALLOCATION) return NULL;
+    
 	gravity_list_t *list = (gravity_list_t *)mem_alloc(sizeof(gravity_list_t));
 	
 	list->isa = gravity_class_list;

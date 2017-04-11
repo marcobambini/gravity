@@ -1143,6 +1143,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				DEBUG_VM("LISTNEW %d %d", r1, n);
 				
 				gravity_list_t *list = gravity_list_new(vm, n);
+                if (!list) RUNTIME_ERROR("Unable allocate a List");
 				SETVALUE(r1, VALUE_FROM_OBJECT(list));
 				DISPATCH();
 			}

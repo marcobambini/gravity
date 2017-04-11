@@ -827,6 +827,8 @@ static bool list_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
     
     uint32_t n = (uint32_t)VALUE_AS_INT(GET_VALUE(1));
     gravity_list_t *list = gravity_list_new(vm, n);
+    if (!list) RETURN_ERROR("Maximum List allocation size reached (%d).", MAX_ALLOCATION);
+    
     for (uint32_t i=0; i<n; ++i) marray_push(gravity_value_t, list->array, VALUE_FROM_NULL);
     
     RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
@@ -1583,21 +1585,23 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 	gravity_int_t times_to_repeat = VALUE_AS_INT(GET_VALUE(1));
-	if (times_to_repeat < 1) {
-		RETURN_ERROR("String.repeat() expects an integer >= 1");
+	if (times_to_repeat < 1 || times_to_repeat > MAX_ALLOCATION) {
+		RETURN_ERROR("String.repeat() expects a value >= 1 and < %d", MAX_ALLOCATION);
 	}
 
 	// figure out the size of the array we need to make to hold the new string
 	uint32_t new_size = (uint32_t)(main_str->len * times_to_repeat);
-	char new_str[new_size+1];
+	char *new_str = mem_alloc(new_size+1);
+	if (!new_str) RETURN_ERROR("Unable to allocate a String so big (%d)", new_size);
 	
-	// this code could be much faster with a memcpy
-	strcpy(new_str, main_str->s);
-	for (int i = 0; i < times_to_repeat-1; ++i) {
-		strcat(new_str, main_str->s);
+    uint32_t seek = 0;
+	for (uint32_t i = 0; i < times_to_repeat-1; ++i) {
+        memcpy(new_str+seek, main_str->s, main_str->len);
+        seek += main_str->len;
 	}
 
-	RETURN_VALUE(VALUE_FROM_CSTRING(vm, new_str), rindex);
+    gravity_string_t *s = gravity_string_new(vm, new_str, new_size, new_size);
+	RETURN_VALUE(VALUE_FROM_OBJECT(s), rindex);
 }
 
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
