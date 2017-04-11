@@ -574,7 +574,7 @@ static void gravity_function_cpool_dump (gravity_function_t *f) {
 }
 
 static void gravity_function_bytecode_serialize (gravity_function_t *f, json_t *json) {
-	if (!f->bytecode) {
+	if (!f->bytecode || !f->ninsts) {
 		json_add_null(json, GRAVITY_JSON_LABELBYTECODE);
 		return;
 	}

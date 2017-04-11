@@ -1745,13 +1745,14 @@ gravity_closure_t *gravity_vm_loadfile (gravity_vm *vm, const char *path) {
 }
 
 gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, size_t len) {
-	json_value *json = json_parse (buffer, len);
-	if (!json) goto abort_load;
-	if (json->type != json_object) goto abort_load;
-	
 	// state buffer for further processing super classes
 	void_r objects;
 	marray_init(objects);
+	
+    // start json parsing
+	json_value *json = json_parse (buffer, len);
+	if (!json) goto abort_load;
+	if (json->type != json_object) goto abort_load;
 	
 	// disable GC while deserializing objects
 	gravity_gc_setenabled(vm, false);

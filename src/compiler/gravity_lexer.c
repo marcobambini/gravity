@@ -603,7 +603,7 @@ gtoken_t gravity_lexer_token_type (gravity_lexer_t *lexer) {
 
 void gravity_lexer_skip_line (gravity_lexer_t *lexer) {
 	while (!IS_EOF) {
-		int c;
+		int c = 0;
 		next_utf8(lexer, &c);
 		if (is_newline(lexer, c)) {
 			INC_LINE;
