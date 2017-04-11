@@ -1,0 +1,9 @@
+#unittest {
+	name: "Forbidden execution.";
+	error: RUNTIME;
+};
+
+func main() {
+    var obj = Object(12);
+    return obj;
+}

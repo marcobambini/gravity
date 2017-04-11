@@ -1,0 +1,16 @@
+#unittest {
+	name: "Base class execution.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+    var a = Int("32") == 32;
+    var b = String(34) == "34";
+    var c = Bool(4) == true;
+    var d = Null(33) == null;
+    var e = Float("2.23") == 2.23;
+    var f = Range(10,20) == (10...20);
+    
+    return a && b && c && d && e && f;
+}

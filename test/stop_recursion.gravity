@@ -1,0 +1,37 @@
+#unittest {
+	name: "Avoid recursive conversion.";
+	error: RUNTIME;
+};
+
+class Crash
+{
+    var x,y,w,h;
+    
+    func init (n1,n2,n3,n4)
+    {
+        x = n1;
+        y = n2;
+        w = n3;
+        h = n4;
+    }
+    
+    func Int()
+    {
+        var i;
+        
+        while (i < self)
+        {
+            i += 1;
+        }
+        
+        return i+i;
+    }
+}
+
+
+func main()
+{
+    var a = 10;
+    var b = Crash(1,2,3,4);
+    return a + b;
+}

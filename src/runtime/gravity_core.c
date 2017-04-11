@@ -634,6 +634,11 @@ static bool object_unbind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	RETURN_NOVALUE();
 }
 
+static bool object_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_ERROR("Forbidden Object execution.");
+}
+
 // MARK: - List Class -
 
 static bool list_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1002,6 +1007,16 @@ static bool range_contains (gravity_vm *vm, gravity_value_t *args, uint16_t narg
 	RETURN_VALUE(VALUE_FROM_BOOL((value.n >= range->from) && (value.n <= range->to)), rindex);
 }
 
+static bool range_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if ((nargs != 3) || !VALUE_ISA_INT(GET_VALUE(1)) || !VALUE_ISA_INT(GET_VALUE(2))) RETURN_ERROR("Two Int values are expected as argument of Range creation.");
+    
+    uint32_t n1 = (uint32_t)VALUE_AS_INT(GET_VALUE(1));
+    uint32_t n2 = (uint32_t)VALUE_AS_INT(GET_VALUE(2));
+    
+    gravity_range_t *range = gravity_range_new(vm, n1, n2, true);
+    RETURN_VALUE(VALUE_FROM_OBJECT(range), rindex);
+}
+
 // MARK: - Class Class -
 
 static bool class_name (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1011,6 +1026,15 @@ static bool class_name (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 }
 
 static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (VALUE_ISA_CLASS(GET_VALUE(0))) {
+        gravity_class_t *c = (gravity_class_t *)GET_VALUE(0).p;
+        if (gravity_iscore_class(c)) {
+            STATICVALUE_FROM_STRING(exec_key, GRAVITY_INTERNAL_EXEC_NAME, strlen(GRAVITY_INTERNAL_EXEC_NAME));
+            gravity_closure_t *closure = (gravity_closure_t *)gravity_class_lookup_closure(c, exec_key);
+            if (closure) RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
+        }
+    }
+    
 	// if 1st argument is not a class that means that this execution is part of a inner classes chained init
 	// so retrieve class from callable object (that I am sure it is the right class)
 	// this is more an hack than an elegation solution, I really hope to find out a better way
@@ -1198,6 +1222,14 @@ static bool function_float_ceil (gravity_vm *vm, gravity_value_t *args, uint16_t
 	#endif
 }
 
+static bool float_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 2) RETURN_ERROR("A single argument is expected in Float casting.");
+    
+    gravity_value_t v = convert_value2float(vm, GET_VALUE(1));
+    if (VALUE_ISA_NOTVALID(v)) RETURN_ERROR("Unable to convert object to Float.");
+    RETURN_VALUE(v, rindex);
+}
+
 // MARK: - Int Class -
 
 // binary operators
@@ -1325,6 +1357,13 @@ static bool int_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
 
+static bool int_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 2) RETURN_ERROR("A single argument is expected in Int casting.");
+    
+    gravity_value_t v = convert_value2int(vm, GET_VALUE(1));
+    if (VALUE_ISA_NOTVALID(v)) RETURN_ERROR("Unable to convert object to Int.");
+    RETURN_VALUE(v, rindex);
+}
 
 // MARK: - Bool Class -
 
@@ -1401,6 +1440,14 @@ static bool operator_bool_neg (gravity_vm *vm, gravity_value_t *args, uint16_t n
 static bool operator_bool_not (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
 	RETURN_VALUE(VALUE_FROM_INT(!GET_VALUE(0).n), rindex);
+}
+
+static bool bool_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 2) RETURN_ERROR("A single argument is expected in Bool casting.");
+    
+    gravity_value_t v = convert_value2bool(vm, GET_VALUE(1));
+    if (VALUE_ISA_NOTVALID(v)) RETURN_ERROR("Unable to convert object to Bool.");
+    RETURN_VALUE(v, rindex);
 }
 
 // MARK: - String Class -
@@ -1595,7 +1642,7 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	if (!new_str) RETURN_ERROR("Unable to allocate a String so big (%d)", new_size);
 	
     uint32_t seek = 0;
-	for (uint32_t i = 0; i < times_to_repeat-1; ++i) {
+	for (uint32_t i = 0; i < times_to_repeat; ++i) {
         memcpy(new_str+seek, main_str->s, main_str->len);
         seek += main_str->len;
 	}
@@ -1779,6 +1826,14 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
 
+static bool string_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 2) RETURN_ERROR("A single argument is expected in String casting.");
+    
+    gravity_value_t v = convert_value2string(vm, GET_VALUE(1));
+    if (VALUE_ISA_NOTVALID(v)) RETURN_ERROR("Unable to convert object to String.");
+    RETURN_VALUE(v, rindex);
+}
+
 // MARK: - Fiber Class -
 
 static bool fiber_create (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1921,6 +1976,11 @@ static bool operator_null_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t n
 	
 	args[0] = VALUE_FROM_INT(0);
 	return operator_int_cmp(vm, args, nargs, rindex);
+}
+
+static bool null_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_VALUE(VALUE_FROM_NULL, rindex);
 }
 
 // MARK: - System -
@@ -2076,6 +2136,12 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_NOT_NAME, NEW_CLOSURE_VALUE(object_not));
 	gravity_class_bind(gravity_class_object, "bind", NEW_CLOSURE_VALUE(object_bind));
 	gravity_class_bind(gravity_class_object, "unbind", NEW_CLOSURE_VALUE(object_unbind));
+    gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(object_exec));
+    
+    // NULL CLASS
+    // Meta
+    gravity_class_t *null_meta = gravity_class_get_meta(gravity_class_null);
+    gravity_class_bind(null_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(null_exec));
 	
 	// CLASS CLASS
 	gravity_class_bind(gravity_class_class, "name", NEW_CLOSURE_VALUE(class_name));
@@ -2119,6 +2185,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_range, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(range_iterator_next));
 	gravity_class_bind(gravity_class_range, "contains", NEW_CLOSURE_VALUE(range_contains));
 	gravity_class_bind(gravity_class_range, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(range_loop));
+    // Meta
+    gravity_class_t *range_meta = gravity_class_get_meta(gravity_class_range);
+    gravity_class_bind(range_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(range_exec));
 	
 	// INT CLASS
 	gravity_class_bind(gravity_class_int, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_int_add));
@@ -2140,6 +2209,7 @@ static void gravity_core_init (void) {
 	// Meta
 	gravity_class_t *int_meta = gravity_class_get_meta(gravity_class_int);
 	gravity_class_bind(int_meta, "random", NEW_CLOSURE_VALUE(int_random));
+    gravity_class_bind(int_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(int_exec));
 	
 	// FLOAT CLASS
 	gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_float_add));
@@ -2155,6 +2225,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_float, "round", NEW_CLOSURE_VALUE(function_float_round));
 	gravity_class_bind(gravity_class_float, "floor", NEW_CLOSURE_VALUE(function_float_floor));
 	gravity_class_bind(gravity_class_float, "ceil", NEW_CLOSURE_VALUE(function_float_ceil));
+    // Meta
+    gravity_class_t *float_meta = gravity_class_get_meta(gravity_class_float);
+    gravity_class_bind(float_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(float_exec));
 	
 	// BOOL CLASS
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_bool_add));
@@ -2170,6 +2243,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_CMP_NAME, NEW_CLOSURE_VALUE(operator_bool_cmp));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_bool_neg));
 	gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_NOT_NAME, NEW_CLOSURE_VALUE(operator_bool_not));
+    // Meta
+    gravity_class_t *bool_meta = gravity_class_get_meta(gravity_class_bool);
+    gravity_class_bind(bool_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(bool_exec));
 	
 	// STRING CLASS
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_string_add));
@@ -2187,6 +2263,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));
 	gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
 	gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
+    // Meta
+    gravity_class_t *string_meta = gravity_class_get_meta(gravity_class_string);
+    gravity_class_bind(string_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(string_exec));
 
 	// FIBER CLASS
 	gravity_class_t *fiber_meta = gravity_class_get_meta(gravity_class_fiber);

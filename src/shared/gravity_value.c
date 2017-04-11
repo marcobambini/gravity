@@ -1411,6 +1411,10 @@ bool gravity_value_equals (gravity_value_t v1, gravity_value_t v2) {
 		if (s1->len != s2->len) return false;
 		// same hash and same len so let's compare bytes
 		return (memcmp(s1->s, s2->s, s1->len) == 0);
+    } else if (v1.isa == gravity_class_range) {
+        gravity_range_t *r1 = VALUE_AS_RANGE(v1);
+        gravity_range_t *r2 = VALUE_AS_RANGE(v2);
+        return ((r1->from == r2->from) && (r1->to == r2->to));
 	}
 	
 	// if here means that they are two heap allocated objects
