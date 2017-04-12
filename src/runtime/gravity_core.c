@@ -425,7 +425,9 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 		if (!meta->is_inited) {
 			meta->is_inited = true;
 			gravity_closure_t *closure = gravity_class_lookup_constructor(meta, 0);
-			if (closure) gravity_vm_runclosure(vm, closure, VALUE_FROM_OBJECT(meta), NULL, 0);
+            if (closure) {
+                if (!gravity_vm_runclosure(vm, closure, VALUE_FROM_OBJECT(meta), NULL, 0)) return false;
+            }
 		}
 	}
 	
@@ -507,7 +509,9 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 		if (!meta->is_inited) {
 			meta->is_inited = true;
 			gravity_closure_t *closure = gravity_class_lookup_constructor(meta, 0);
-			if (closure) gravity_vm_runclosure(vm, closure, VALUE_FROM_OBJECT(meta), NULL, 0);
+            if (closure) {
+                if (!gravity_vm_runclosure(vm, closure, VALUE_FROM_OBJECT(meta), NULL, 0)) return false;
+            }
 		}
 	}
 	
@@ -773,7 +777,7 @@ static bool list_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	
 	nanotime_t t1 = nanotime();
 	while (i < n) {
-		gravity_vm_runclosure(vm, closure, value, &marray_get(list->array, i), 1);
+        if (!gravity_vm_runclosure(vm, closure, value, &marray_get(list->array, i), 1)) return false;
 		++i;
 	}
 	nanotime_t t2 = nanotime();
@@ -798,7 +802,10 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	// traverse list and append each item
 	while (i < n) {
 		gravity_value_t value = convert_value2string(vm, marray_get(list->array, i));
-		if (VALUE_ISA_ERROR(value)) RETURN_VALUE(value, rindex);
+        if (VALUE_ISA_ERROR(value)) {
+            mem_free(buffer);
+            RETURN_VALUE(value, rindex);
+        }
 		
 		const char *s2 = VALUE_AS_STRING(value)->s;
 		uint32_t req = VALUE_AS_STRING(value)->len;
@@ -916,7 +923,7 @@ static bool map_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 	
 	nanotime_t t1 = nanotime();
 	while (i < n) {
-		gravity_vm_runclosure(vm, closure, value, &marray_get(list->array, i), 1);
+        if (!gravity_vm_runclosure(vm, closure, value, &marray_get(list->array, i), 1)) return false;
 		++i;
 	}
 	nanotime_t t2 = nanotime();
@@ -946,14 +953,14 @@ static bool range_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 		register gravity_int_t n = range->to;
 		register gravity_int_t i = range->from;
 		while (i <= n) {
-			gravity_vm_runclosure(vm, closure, value, &VALUE_FROM_INT(i), 1);
+            if (!gravity_vm_runclosure(vm, closure, value, &VALUE_FROM_INT(i), 1)) return false;
 			++i;
 		}
 	} else {
 		register gravity_int_t n = range->from;			// 5...1
 		register gravity_int_t i = range->to;
 		while (n >= i) {
-			gravity_vm_runclosure(vm, closure, value, &VALUE_FROM_INT(n), 1);
+            if (!gravity_vm_runclosure(vm, closure, value, &VALUE_FROM_INT(n), 1)) return false;
 			--n;
 		}
 	}
@@ -1093,7 +1100,7 @@ static bool closure_apply (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	gravity_value_t self_value = GET_VALUE(1);
 	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(2));
 	
-	gravity_vm_runclosure(vm, closure, self_value, list->array.p, (uint16_t)marray_size(list->array));
+    if (!gravity_vm_runclosure(vm, closure, self_value, list->array.p, (uint16_t)marray_size(list->array))) return false;
 	gravity_value_t result = gravity_vm_result(vm);
 	
 	RETURN_VALUE(result, rindex);
@@ -1319,7 +1326,7 @@ static bool int_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 	
 	nanotime_t t1 = nanotime();
 	while (i < n) {
-		gravity_vm_runclosure(vm, closure, value, &VALUE_FROM_INT(i), 1);
+        if (!gravity_vm_runclosure(vm, closure, value, &VALUE_FROM_INT(i), 1)) return false;
 		++i;
 	}
 	nanotime_t t2 = nanotime();
@@ -1753,7 +1760,6 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 		
 		// Reverse the string, and reverse the indices
 		first_index = original_len - first_index -1;
-		second_index = original_len - second_index -1;
 
 		// reverse the String
 		int i = original_len - 1;

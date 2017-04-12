@@ -137,7 +137,8 @@
 
 #define STORE_FRAME()				frame->ip = ip
 
-#define LOAD_FRAME()				frame = &fiber->frames[fiber->nframes - 1];															\
+#define LOAD_FRAME()				if (vm->aborted) return false;                                                                      \
+                                    frame = &fiber->frames[fiber->nframes - 1];															\
 									stackstart = frame->stackstart;																		\
 									ip = frame->ip;																						\
 									func = frame->closure->f;																			\
@@ -145,6 +146,7 @@
 
 #define USE_ARGS(_c)				(_c->f->tag == EXEC_TYPE_NATIVE && _c->f->useargs)
 #define PUSH_FRAME(_c,_s,_r,_n)		gravity_callframe_t *cframe = gravity_new_callframe(vm, fiber);										\
+                                    if (!cframe) return false;                                                                          \
 									cframe->closure = _c;																				\
 									cframe->stackstart = _s;																			\
 									cframe->ip = _c->f->bytecode;																		\
@@ -213,7 +215,8 @@
 													if (!_c || !_c->f) RUNTIME_ERROR("Unable to perform operator %s on object", opcode_name(op));	\
 													uint32_t _w = FN_COUNTREG(func, frame->nargs);													\
 													uint32_t _rneed = FN_COUNTREG(_c->f, _N);														\
-													gravity_check_stack(vm, fiber, _rneed, &stackstart)
+													if (!gravity_check_stack(vm, fiber, _rneed, &stackstart)) return false;                         \
+                                                    if (vm->aborted) return false
 
 #define PREPARE_FUNC_CALL1(_c,_v1,_i,_w)			PREPARE_FUNC_CALLN(_c,_i,_w,1);															\
 													SETVALUE(_w, _v1)
@@ -237,6 +240,7 @@
 													} break;																				\
 													case EXEC_TYPE_INTERNAL: {																\
 														if (!_c->f->internal(vm, &stackstart[rwin], nargs, r1)) {							\
+                                                            if (vm->aborted) return false;                                                  \
 															if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {											\
 																closure = VALUE_AS_CLOSURE(STACK_GET(r1));									\
 																SETVALUE(r1, VALUE_FROM_NULL);												\

@@ -479,6 +479,7 @@ bool utf8_reverse (char *p) {
 // MARK: - Math -
 
 // From: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
+// WARNING: this function returns 0 if n is greater than 2^31
 uint32_t power_of2_ceil (uint32_t n) {
 	n--;
 	n |= n >> 1;

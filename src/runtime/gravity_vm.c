@@ -167,7 +167,13 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
 	// check if there are enought slots in the call frame and optionally create new cframes
 	if (fiber->framesalloc - fiber->nframes < 1) {
 		uint32_t new_size = fiber->framesalloc * 2;
-		fiber->frames = (gravity_callframe_t *) mem_realloc(fiber->frames, sizeof(gravity_callframe_t) * new_size);
+        void *ptr = mem_realloc(fiber->frames, sizeof(gravity_callframe_t) * new_size);
+        if (!ptr) {
+            // frames reallocation failed means that there is a very high probability to be into an infinite loop
+            report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Infinite loop detected. Current execution must be aborted.");
+            return NULL;
+        }
+        fiber->frames = (gravity_callframe_t *)ptr;
 		fiber->framesalloc = new_size;
 		STAT_FRAMES_REALLOCATED(vm);
 	}
@@ -179,7 +185,7 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
 	return &fiber->frames[fiber->nframes - 1];
 }
 
-static inline void gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t rneeds, gravity_value_t **stackstart) {
+static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t rneeds, gravity_value_t **stackstart) {
 	#pragma unused(vm)
 	
 	// update stacktop pointer before a call
@@ -188,17 +194,25 @@ static inline void gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
 	// check stack size
 	uint32_t stack_size = (uint32_t)(fiber->stacktop - fiber->stack);
 	uint32_t stack_needed = MAXNUM(stack_size + rneeds, DEFAULT_MINSTACK_SIZE);
-	if (fiber->stackalloc >= stack_needed) return;
+	if (fiber->stackalloc >= stack_needed) return true;
 	
-	// perform stack reallocation
+	// perform stack reallocation (power_of2_ceil returns 0 if argument is bigger than 2^31)
 	uint32_t new_size = power_of2_ceil(fiber->stackalloc + stack_needed);
 	gravity_value_t *old_stack = fiber->stack;
-	fiber->stack = (gravity_value_t *) mem_realloc(fiber->stack, sizeof(gravity_value_t) * new_size);
+    void *ptr = (new_size) ? mem_realloc(fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
+    if (!ptr) {
+        // restore stacktop to previous state
+        fiber->stacktop -= rneeds;
+        
+        // stack reallocation failed means that there is a very high probability to be into an infinite loop
+        RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+    }
+    fiber->stack = (gravity_value_t *)ptr;
 	fiber->stackalloc = new_size;
 	STAT_STACK_REALLOCATED(vm);
 	
 	// check if reallocation moved the stack
-	if (fiber->stack == old_stack) return;
+	if (fiber->stack == old_stack) return true;
 	
 	// re-compute ptr offset
 	ptrdiff_t offset = (ptrdiff_t)(fiber->stack - old_stack);
@@ -220,6 +234,8 @@ static inline void gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
 	
 	// stack is changed so update currently used stackstart
 	*stackstart += offset;
+    
+    return true;
 }
 
 static gravity_upvalue_t *gravity_capture_upvalue (gravity_vm *vm, gravity_fiber_t *fiber, gravity_value_t *value) {
@@ -346,6 +362,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						// backup register r1 because it can be overwrite to return a closure
 						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
+                            if (vm->aborted) return false;
 							
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
@@ -474,6 +491,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						// backup register r1 because it can be overwrite to return a closure
 						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
+                            if (vm->aborted) return false;
+                            
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
 								closure = VALUE_AS_CLOSURE(STACK_GET(r1));
@@ -951,7 +970,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						// prepare func call
 						uint32_t rwin = FN_COUNTREG(func, frame->nargs);
 						uint32_t _rneed = FN_COUNTREG(closure->f, 1);
-						gravity_check_stack(vm, fiber, _rneed, &stackstart);
+                        if (!gravity_check_stack(vm, fiber, _rneed, &stackstart)) return false;
 						SETVALUE(rwin, v1);
 						
 						// call func and check result
@@ -1007,7 +1026,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				
 				// check stack size
 				uint32_t _rneed = FN_COUNTREG(closure->f, r3);
-				gravity_check_stack(vm, fiber, _rneed, &stackstart);
+                if (!gravity_check_stack(vm, fiber, _rneed, &stackstart)) return false;
 				
 				// if less arguments are passed then fill the holes with UNDEFINED values
 				while (r3 < closure->f->nparams) {
@@ -1029,6 +1048,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						// backup register r1 because it can be overwrite to return a closure
 						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], r3, r1)) {
+                            if (vm->aborted) return false;
+                            
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
 								closure = VALUE_AS_CLOSURE(STACK_GET(r1));
@@ -1442,7 +1463,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 		rwin = FN_COUNTREG(frame->closure->f, frame->nargs);
 		
 		// check stack size
-		gravity_check_stack(vm, vm->fiber, FN_COUNTREG(f,nparams+1), &stackstart);
+        if (!gravity_check_stack(vm, vm->fiber, FN_COUNTREG(f,nparams+1), &stackstart)) return false;
 		
 		// setup params (first param is self)
 		SETVALUE(rwin, selfvalue);
@@ -1539,6 +1560,7 @@ gravity_closure_t *gravity_vm_getclosure (gravity_vm *vm) {
 }
 
 void gravity_vm_setslot (gravity_vm *vm, gravity_value_t value, uint32_t index) {
+    if (vm->aborted) return;
 	if (index == GRAVITY_FIBER_REGISTER) {
 		vm->fiber->result = value;
 		return;
@@ -1816,12 +1838,9 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
 	
 abort_load:
 	report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "%s", "Unable to parse JSON executable file.");
-	marray_destroy(objects);
-	if (json) json_value_free(json);
-	gravity_gc_setenabled(vm, true);
-	return NULL;
 	
 abort_generic:
+    marray_destroy(objects);
 	if (json) json_value_free(json);
 	gravity_gc_setenabled(vm, true);
 	return NULL;
