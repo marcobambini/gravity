@@ -1,8 +1,0 @@
-#unittest {
-	name: "Test Int.random() no arguments";
-	error: RUNTIME;
-};
-
-func main() {
-	return Int.random()
-}

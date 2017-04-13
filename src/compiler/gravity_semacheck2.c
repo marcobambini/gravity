@@ -727,6 +727,10 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 		// set enclosing environment
 		p->env = top;
 		
+        // visit expression first in order to prevent var a = a
+        // variable with a initial value (or with a getter/setter)
+        if (p->expr) visit(p->expr);
+		
 		if (env_is_function) {
 			// local variable defined inside a function
 			if (!symboltable_insert(symtable, p->identifier, (void *)p)) REPORT_ERROR(p, "Identifier %s redeclared.", p->identifier);
@@ -750,9 +754,6 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 			p->index = n1+n2;
 			DEBUG_SEMANTIC("Class: %s property:%s index:%d (static %d)", c->identifier, p->identifier, p->index, (node->storage == TOK_KEY_STATIC));
 		}
-		
-		// variable with a initial value (or with a getter/setter)
-		if (p->expr) visit(p->expr);
 	}
 }
 

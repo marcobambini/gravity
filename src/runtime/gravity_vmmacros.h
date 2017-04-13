@@ -215,7 +215,7 @@
 													if (!_c || !_c->f) RUNTIME_ERROR("Unable to perform operator %s on object", opcode_name(op));	\
 													uint32_t _w = FN_COUNTREG(func, frame->nargs);													\
 													uint32_t _rneed = FN_COUNTREG(_c->f, _N);														\
-													if (!gravity_check_stack(vm, fiber, _rneed, &stackstart)) return false;                         \
+													if (!gravity_check_stack(vm, fiber, MAXNUM(_rneed,_w), &stackstart)) return false;                         \
                                                     if (vm->aborted) return false
 
 #define PREPARE_FUNC_CALL1(_c,_v1,_i,_w)			PREPARE_FUNC_CALLN(_c,_i,_w,1);															\

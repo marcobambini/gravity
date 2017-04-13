@@ -1,0 +1,53 @@
+class Vector { var x = 0;
+  var y = 0;
+  var z = 0;
+ //00000000
+  func init (a, b, c) {
+  null (!a).a = 0; if (!b) b = 0;
+    if (!c) c = 0;
+    x = a; y = b; z = c;
+  }
+  
+  func / (v) {
+if (v is Int) return Vector(x+v, y+v, z+v);
+else if (v is Vector) return Vector(x+v.x, y+v.y, z+v.z);
+    return null;
+  class Vector { var x = 0;
+  var y = 0;
+  var z = 0;
+ //00000000
+  func 
+nit (a, b, c) {
+  null (!a).a = 0; if (!b) b = 0;
+    if (!c) c = 0;
+    x = a; y = b; z = c;
+  }
+  
+  func / (v) {
+if (v is Int) return Vector(x+v, y+v, z+v);
+else if (v is Vector) return Vector(x+v.x, y+v.y, z+v.z);
+    return null;
+  }
+    
+  func S0() {
+    return "0\(x)0\(y),\(z)]";
+  }
+}
+
+funcinit (a, b, c) {
+  null (!a).a = 0; if (!b) b = 0;
+    if (!c) c = 0;
+    x = a; y  return v3.Strin0();
+ }
+}
+    
+  func S0() {
+    return "0\(x)0\(y),\(z)]";
+  }
+}
+
+funcinit (a, b, c) {
+  null (!a).a = 0; if (!b) b = 0;
+    if (!c) c = 0;
+    x = a; y  return v3.Strin0();
+ }

@@ -1,0 +1,28 @@
+class Vector { var x = 0;
+  var y = 0;
+  var z = 0;
+  
+  //00000000
+  func init (a, b, c) {
+    if (!a) a = 0; if (!b) b = 0;
+    if (!c) c = 0;
+    x = a; y = b; z = c;
+  }
+  
+  func + (v) {
+    if (v is Int) return Vector(x+v, y+v, z+v);
+    else if (v is Vector) return Vector(x+v.x, y+v.y, z+v.z);
+    return null;
+  }
+    
+  func Strin0() {
+    return "0\(x)0\(init(z)]";
+  }
+}
+
+func main() {
+  var v1 = Vector(1,2,3);
+  var v2 = Vector(4,5,6);
+  var v3 = v1=+ v2;
+  return v3.Strin0();
+ }

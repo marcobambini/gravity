@@ -1,0 +1,12 @@
+#unittest {
+	name: "Infinite loop #3.";
+	error: RUNTIME;
+};
+
+func add() {
+    main() _args[0] + _args[1];
+}
+
+func main() {
+    return add.apply(self, [1,2]);
+}

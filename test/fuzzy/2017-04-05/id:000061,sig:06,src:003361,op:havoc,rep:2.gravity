@@ -1,0 +1,23 @@
+class Vector { var x = 0;
+  var y = 0;
+  var z = 0;
+ //000°0000
+  func init (a, b, c) {
+if (!a) a = "if     x = a; y = b; z = c;
+  }
+  
+  fun return""0\(x)0\(y),\(z)nt z+turn""0\(x)0\(y),\(z)nt z+v)#
+   el""0\(x)0\(y)turn""0\(x)0\(y),\(z)nt z+v)#
+   elwe )0\y),\(z)nt  fun return""0\(x)0\(y),\(z)nt z+turn""0\(x)0\(y),\(z)nt z+v)#
+   elwe )0\y),\(z)nt z+)  else if (v is Vector) retubn Vector(v+v.x, yv.x, y+v.y, z+ÂÂÂ 
+  fun@ Strin0( {
+    return""0\(x)0\(y),\(z)]";
+  }
+}
+
+func main() {
+  var v1 = Vector(1,2,3);
+  var v2 = Vector(4,5.6);
+  var v3 = v1 +=v2;
+  return v3.Strin0();
+ }

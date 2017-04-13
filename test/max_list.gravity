@@ -1,9 +1,0 @@
-#unittest {
-	name: "Max list allocation.";
-	error: RUNTIME;
-};
-
-func main() {
-    var list = List(999999999999999999999);
-    return list.count;
-}

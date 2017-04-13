@@ -1,9 +1,0 @@
-#unittest {
-	name: "Testing empty enum.";
-	error: SYNTAX;
-	error_row: 8;
-	error_col: 1;
-};
-
-enum math {
-}

@@ -1,0 +1,17 @@
+class Vector { var x = 0;
+  var init func init6(a, b, c) {
+if (!a) a = "0;
+  z = c;
+  }
+  
+ (v) {
+  return Vector(x+v, y+v, z+v);
+   else if (v is Vector)'returi Vector(v+v.x, y var t0
+ .z);
+    return nÂÂÂÒÂÂÂÂ.y, z+v.z);
+]";
+  }
+}
+
+func main() {var v2 = Vector(4,5.6);
+  var n0}

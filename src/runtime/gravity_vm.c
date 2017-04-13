@@ -973,7 +973,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						// prepare func call
 						uint32_t rwin = FN_COUNTREG(func, frame->nargs);
 						uint32_t _rneed = FN_COUNTREG(closure->f, 1);
-                        if (!gravity_check_stack(vm, fiber, _rneed, &stackstart)) return false;
+                        if (!gravity_check_stack(vm, fiber, MAXNUM(_rneed, rwin), &stackstart)) return false;
 						SETVALUE(rwin, v1);
 						
 						// call func and check result
@@ -1029,7 +1029,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				
 				// check stack size
 				uint32_t _rneed = FN_COUNTREG(closure->f, r3);
-                if (!gravity_check_stack(vm, fiber, _rneed, &stackstart)) return false;
+                if (!gravity_check_stack(vm, fiber, MAXNUM(_rneed, rwin), &stackstart)) return false;
 				
 				// if less arguments are passed then fill the holes with UNDEFINED values
 				while (r3 < closure->f->nparams) {
@@ -1467,7 +1467,8 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 		rwin = FN_COUNTREG(frame->closure->f, frame->nargs);
 		
 		// check stack size
-        if (!gravity_check_stack(vm, vm->fiber, FN_COUNTREG(f,nparams+1), &stackstart)) return false;
+        uint32_t _rneed = FN_COUNTREG(f,nparams+1);
+        if (!gravity_check_stack(vm, vm->fiber, MAXNUM(_rneed, rwin), &stackstart)) return false;
 		
 		// setup params (first param is self)
 		SETVALUE(rwin, selfvalue);

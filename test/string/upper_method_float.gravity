@@ -1,9 +1,0 @@
-#unittest {
-	name: "upper() method bad argument";
-	error: RUNTIME;
-};
-
-func main () {
-	var s = "Hello"
-	s.upper(2.3)
-}
