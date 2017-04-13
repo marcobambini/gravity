@@ -470,6 +470,14 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 		// execute optimized default getter
 		if (FUNCTION_ISA_SPECIAL(closure->f)) {
 			if (FUNCTION_ISA_DEFAULT_GETTER(closure->f)) {
+                
+                uint32_t nivar = c->nivars;
+                uint32_t nindex = closure->f->index;
+                
+                // sanity check
+                if (nindex > nivar)
+                    RETURN_ERROR("Out of bounds ivar index.");
+                
 				if (instance) RETURN_VALUE(instance->ivars[closure->f->index], rindex);
 				RETURN_VALUE(c->ivars[closure->f->index], rindex);
 			}
@@ -556,8 +564,20 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 		if (FUNCTION_ISA_SPECIAL(closure->f)) {
 			// execute optimized default setter
 			if (FUNCTION_ISA_DEFAULT_SETTER(closure->f)) {
-				if (instance) instance->ivars[closure->f->index] = value;
-				else c->ivars[closure->f->index] = value;
+                uint32_t nivar = c->nivars;
+                uint32_t nindex = closure->f->index;
+                
+                // sanity check
+                if (nindex > nivar)
+                    RETURN_ERROR("Out of bounds ivar index.");
+                
+                if (instance) {
+                    instance->ivars[nindex] = value;
+                }
+                else {
+                    c->ivars[nindex] = value;
+                }
+                
 				RETURN_NOVALUE();
 			}
 			
