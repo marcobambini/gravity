@@ -1,0 +1,8 @@
+#unittest {
+	name: "Test Int.random() args not ints";
+	error: RUNTIME;
+};
+
+func main() {
+	return Int.random("test", 1)
+}

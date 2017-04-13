@@ -1,0 +1,18 @@
+#unittest {
+	name: "Test undefined parameters.";
+	error: NONE;
+	result: 540;
+};
+
+func f(a,b) {
+	if (!a) a = 100;
+	if (!b) b = 200;
+	return a + b;
+}
+
+func main() {
+	var a = f();		// 300
+	var b = f(10);		// 210
+	var c = f(10,20);	// 30
+	return a+b+c;		// 540
+}

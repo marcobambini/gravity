@@ -1,0 +1,16 @@
+#unittest {
+	name: "Test property overriden warning.";
+	error: WARNING;
+	error_row: 14;
+	error_col: 2;
+};
+
+class class1 {
+	var a;
+	func f1() {return a;}
+}
+
+class class2:class1 {
+	var a;
+	func f1() {return a;}
+}

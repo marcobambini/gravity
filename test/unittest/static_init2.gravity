@@ -1,0 +1,19 @@
+#unittest {
+	name: "Test static access init.";
+	error: NONE;
+	result: 300;
+};
+
+// no init
+class c1 {
+	static var p2;
+	static func f2() {
+		p2 = 300;
+		return p2;
+	}
+}
+
+func main() {
+	c1.f2();
+	return c1.p2;
+}

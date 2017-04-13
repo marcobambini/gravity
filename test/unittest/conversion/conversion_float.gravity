@@ -1,0 +1,31 @@
+#unittest {
+	name: "Conversion to Float;";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var v,r;
+	
+	v = "1.1str";
+	r = v.Float();			if (r != 1.1)	return "-1 (" + r + ")";
+	r = "1.1str".Float();	if (r != 1.1)	return "-2 (" + r + ")";
+	
+	v = null;
+	r = v.Float();			if (r != 0)		return "-3 (" + r + ")";
+	r = null.Float();		if (r != 0)		return "-4 (" + r + ")";
+	
+	v = true;
+	r = v.Float();			if (r != 1)		return "-5 (" + r + ")";
+	r = true.Float();		if (r != 1)		return "-6 (" + r + ")";
+	
+	v = 6;
+	r = v.Float();			if (r != 6)		return "-7 (" + r + ")";
+	r = 6.Float();			if (r != 6)		return "-8 (" + r + ")";
+	
+	v = 1.1;
+	r = v.Float();			if (r != 1.1)	return "-9 (" + r + ")";
+	r = 1.1.Float();		if (r != 1.1)	return "-10 (" + r + ")";
+	
+	return true;
+}

@@ -1,0 +1,54 @@
+#unittest {
+	name: "Test classes with both static and non static members.";
+	error: NONE;
+	result: 9999;
+};
+
+// nothing
+class c0 {
+	func sum() {
+		var a = 1, b=2, c=3;
+		return a + b + c;
+	}
+}
+
+// constructor only
+class c1 {
+	var a;
+	var b;
+	var c;
+	func init() {a = 10; b = 20; c = 30;}
+	func sum() {return a + b + c;}
+}
+
+// init special only
+class c2 {
+	var a = 100;
+	var b = 200;
+	var c = 300;
+	func sum() {return a + b + c;}
+}
+
+// both init special and constructor
+class c3 {
+	var a = 1000;
+	var b;
+	var c;
+	func init() {b = 2000; c = 3000;}
+	func sum() {return a + b + c;}
+}
+
+// mixed static and non static
+class c4 {
+	static func sum1(){return 1111;}
+	func sum2(){return 2222;}
+}
+
+func main() {
+	var obj0 = c0();
+	var obj1 = c1();
+	var obj2 = c2();
+	var obj3 = c3();
+	var obj4 = c4();
+	return obj0.sum() + obj1.sum() + obj2.sum() + obj3.sum() + obj4.sum2() + c4.sum1();
+}

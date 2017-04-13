@@ -1,0 +1,27 @@
+#unittest {
+	name: "Class with no init.";
+	result: 200;
+};
+
+// no init
+class c1 {
+	var p1;
+	func f1() {
+		self.p1 = 150;
+		return self.p1;
+	}
+}
+
+class c2 {
+	var p1;
+	func f1() {
+		p1 = 50;
+		return p1;
+	}
+}
+
+
+func main() {
+	var x1 = c1().f1() + c2().f1();
+	return x1;
+}

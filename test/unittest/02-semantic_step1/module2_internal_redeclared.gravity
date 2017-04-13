@@ -1,0 +1,11 @@
+#unittest {
+	name: "Module internal redeclared.";
+	error: SEMANTIC;
+	error_row: 10;
+	error_col: 2;
+};
+
+module module1 {
+	var v1;
+	func v1() {return 1;}
+}

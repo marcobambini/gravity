@@ -1,0 +1,27 @@
+#unittest {
+	name: "Test outer ivar read.";
+	error: NONE;
+	result: 540;
+};
+
+class foo {
+	var a = 10;
+	
+	class bar {
+		var b = 20;
+		func f1() {
+			a = 500 + b;
+			return a + b;
+		}
+	}
+	
+	func fbar() {
+		var b = bar();
+		return b.f1();
+	}
+}
+
+func main() {
+	var f = foo();
+	return f.fbar();
+}

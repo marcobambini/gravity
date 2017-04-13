@@ -1,0 +1,19 @@
+#unittest {
+	name: "Upvalue closure.";
+	error: NONE;
+	result: 230;
+};
+
+func f1(a) {
+	return func(b) {
+		return func (c) {
+			return c + b * a;
+		}
+	}
+}
+
+func main() {
+	var f = f1(10);
+	var f2 = f(20)(30);
+	return f2;
+}

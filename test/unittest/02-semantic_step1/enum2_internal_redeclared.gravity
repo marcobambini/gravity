@@ -1,0 +1,11 @@
+#unittest {
+	name: "Enum item redeclared.";
+	error: SYNTAX;
+	error_row: 10;
+	error_col: 2;
+};
+
+enum list1{
+	one = 1,
+	one = 2
+}

@@ -1,0 +1,10 @@
+#unittest {
+	name: "Concatenated strings;";
+	error: NONE;
+	result: "concatenated strings (1)";
+};
+
+func main() {
+	var strings = "strings";
+	return "concatenated" + " " + strings + " (" + 1 + ")";
+}

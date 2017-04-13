@@ -1,0 +1,28 @@
+#unittest {
+	name: "upper() methods for string -- multiple args";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+
+	// UPPER
+	var a = s.upper(1, 2, 3) == "HELLo World"
+	if (a == false) { System.print("a) upper failed"); return false }
+
+	// Try swappings the order
+	var b = s.upper(3, 2, 1) == s.upper(1, 2, 3)
+	if (b == false) { System.print("b) upper failed"); return false }
+
+
+	s = "HELLO WORLD"
+	// LOWER
+	a = s.lower(0, 2, 4) == "hElLo WORLD"
+	if (a == false) { System.print("a) lower failed"); return false }
+
+	b = s.lower(4, 2, 0) == s.lower(0, 2, 4)
+	if (b == false) { System.print("b) lower failed"); return false }
+
+	return true
+}

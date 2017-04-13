@@ -1,0 +1,12 @@
+#unittest {
+	name: "storeat an index for string";
+	error: NONE;
+	result: "Hzllqwertyd";
+};
+
+func main () {
+	var s = "Hello World";
+	s[1] = "z";
+	s[-7] = "qwerty"
+	return s;
+}

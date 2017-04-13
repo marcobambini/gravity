@@ -1,0 +1,12 @@
+#unittest {
+	name: "Module redeclared.";
+	error: SEMANTIC;
+	error_row: 11;
+	error_col: 1;
+};
+
+module module1 {
+}
+
+module module1 {
+}

@@ -1,0 +1,4 @@
+#unittest {
+	name: "Empty file.";
+	error: RUNTIME;
+};

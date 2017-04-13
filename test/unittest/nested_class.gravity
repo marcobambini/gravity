@@ -1,0 +1,28 @@
+#unittest {
+	name: "Nested classes like used in Creo.";
+	error: NONE;
+	result: 25;
+};
+
+class Database {
+	var query;
+	
+	class RecordSet {
+		public var sql;
+		
+		public func run() {
+			if (!sql) return 0;
+			return sql.length;
+		}
+	}
+	
+	func init() {
+		query = RecordSet();
+	}
+}
+
+func main() {
+	var db = Database();
+	db.query.sql = "Hello World from Gravity!";
+	return db.query.run();
+}

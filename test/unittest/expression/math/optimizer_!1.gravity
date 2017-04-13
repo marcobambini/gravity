@@ -1,0 +1,10 @@
+#unittest {
+	name: "Unary expression with NOT operator on a INT.";
+	error: NONE;
+	result: false;
+};
+
+func main () {
+	var a = !1;
+	return a;
+}

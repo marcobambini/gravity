@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test protected registers in compound statement.";
+	error: NONE;
+	result: "[1,2,3,4]";
+};
+
+func main() {
+	if (true) {
+		System.nanotime();
+		var nums = [1, 2, 3, 4];
+		System.nanotime();
+		return nums.String();
+	}
+}

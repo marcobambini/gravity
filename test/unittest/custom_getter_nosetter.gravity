@@ -1,0 +1,17 @@
+#unittest {
+	name: "Test custom getter and no setter.";
+	error: RUNTIME;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		get {return _a/2;}
+	};
+}
+
+func main() {
+	var f = foo();
+	f.a = 14;		// RUNTIME ERROR: Unable to set readonly property a into class foo
+	return f.a;		// 1400/2 = 700
+}

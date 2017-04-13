@@ -1,0 +1,12 @@
+#unittest {
+	name: "Arithmetic expression (*,/,%) with multiple subnodes, testing operator execution order.";
+	error: NONE;
+	result: 9;
+};
+
+func main() {
+	var a = 6;
+	var b = 2;
+	var c = 3;
+	return a / b * c;
+}

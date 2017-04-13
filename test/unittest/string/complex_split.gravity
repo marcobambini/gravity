@@ -1,0 +1,21 @@
+#unittest {
+	name: "Complex split() Test";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "1, ,2, ,3, ,4, ,5, ,6, ,7, ,8, ,9, ,10"
+  var list = s.split(", ,")
+
+	var ret = true;
+
+	var expected = 0
+	list.loop( func(value) {
+		expected += 1
+		ret = ret and value == expected.String()
+	})
+
+	// Check expected just to make sure the loop actually ran
+	return ret and expected == 10
+}

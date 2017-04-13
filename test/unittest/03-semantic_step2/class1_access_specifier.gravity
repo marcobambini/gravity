@@ -1,0 +1,10 @@
+#unittest {
+	name: "Testing class access specifier in global.";
+	error: SEMANTIC;
+	error_row: 8;
+	error_col: 8;
+};
+
+public class math {
+	
+}

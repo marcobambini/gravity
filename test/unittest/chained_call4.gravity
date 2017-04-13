@@ -1,0 +1,17 @@
+#unittest {
+	name: "Chained call 4.";
+	result: 150;
+};
+
+class c1 {
+	var p1;
+	func f1() {
+		p1 = 150;
+		return p1;
+	}
+}
+
+func main() {
+	var x1 = c1().f1();
+	return x1;
+}

@@ -1,0 +1,36 @@
+#unittest {
+	name: "Test instance init.";
+	error: NONE;
+	result: 333;
+};
+
+// no init
+class c1 {
+	var p1;
+	func f1() {p1 = 3; return p1;}
+}
+
+// implicit init
+class c2 {
+	var p1 = 10;
+	var p2 = 20;
+	func f1() {return p1+p2;}
+}
+
+// explicit init
+class c3 {
+	var p1 = 33;
+	var p2 = 44;
+	func f1() {return p1+p2;}
+	func init(n1,n2) {
+		p1 = n1;
+		p2 = n2;
+	}
+}
+
+func main() {
+	var x1 = c1();
+	var x2 = c2();
+	var x3 = c3(100,200);
+	return x1.f1() + x2.f1() + x3.f1();
+}

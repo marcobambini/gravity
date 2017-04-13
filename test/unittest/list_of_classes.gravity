@@ -1,0 +1,22 @@
+#unittest {
+	name: "Test update target_register in postfix array access.";
+	error: NONE;
+	result: 20;
+};
+
+class c1 {
+	var a = 10;
+}
+
+class c2 {
+	var a = 20;
+}
+
+class c3 {
+	var a = 30;
+}
+
+func main() {
+	var r = [c1(), c2(), c3()];
+	return r[1].a;
+}

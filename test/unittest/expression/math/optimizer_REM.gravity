@@ -1,0 +1,10 @@
+#unittest {
+	name: "Expression with REM operator.";
+	error: NONE;
+	result: 2;
+};
+
+func main() {
+	var a = 5 % 3;
+	return a;
+}

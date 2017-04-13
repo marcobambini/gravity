@@ -1,0 +1,17 @@
+#unittest {
+	name: "Semantic, If statement condition, Assignment not allowed here.";
+	error: SEMANTIC;
+	error_row: 11;
+	error_col: 6;
+};
+
+func main () {
+	var i,v = 0;
+
+	if (i = 1) {	// Assignment not allowed as a condition
+		v = 1;
+		v = 2;
+	} else v = 3;
+
+return v;
+}

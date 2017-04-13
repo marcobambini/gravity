@@ -1,0 +1,16 @@
+#unittest {
+	name: "Test fibonacci class (self).";
+	error: NONE;
+	result: 55;
+};
+
+class foo {
+	static func fibonacci (n) {
+		if (n<2) return n;
+		return fibonacci(n-2) + fibonacci(n-1);
+	}
+}
+
+func main() {
+	return foo.fibonacci(10);
+}

@@ -1,0 +1,31 @@
+#unittest {
+	name: "Conversion to Bool;";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var v,r;
+	
+	v = "str";
+	r = v.Bool();		if (r != true)		return "-1 (" + r + ")";
+	r = "str".Bool();	if (r != true)		return "-2 (" + r + ")";
+	
+	v = null;
+	r = v.Bool();		if (r != false)		return "-3 (" + r + ")";
+	r = null.Bool();	if (r != false)		return "-4 (" + r + ")";
+	
+	v = true;
+	r = v.Bool();		if (r != true)		return "-5 (" + r + ")";
+	r = true.Bool();	if (r != true)		return "-6 (" + r + ")";
+	
+	v = 6;
+	r = v.Bool();		if (r != true)		return "-7 (" + r + ")";
+	r = 6.Bool();		if (r != true)		return "-8 (" + r + ")";
+	
+	v = 1.1;
+	r = v.Bool();		if (r != true)		return "-9 (" + r + ")";
+	r = 1.1.Bool();		if (r != true)		return "-10 (" + r + ")";
+	
+	return true;
+}

@@ -1,0 +1,12 @@
+#unittest {
+	name: "Testing function access specifier in function.";
+	error: SEMANTIC;
+	error_row: 9;
+	error_col: 9;
+};
+
+func bar() {
+	public func foo() {
+		return 1;
+	}
+}

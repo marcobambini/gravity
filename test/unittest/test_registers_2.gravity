@@ -1,0 +1,12 @@
+#unittest {
+	name: "Consecutive registers in list expression between calls.";
+	error: NONE;
+	result: "[1,2,3,4]";
+};
+
+func main() {
+	System.nanotime();
+	var nums = [1, 2, 3, 4];
+	System.nanotime(nums);
+	return nums.String();
+}

@@ -1,0 +1,8 @@
+#unittest {
+	name: "Test var assignment to self.";
+	error: SEMANTIC;
+};
+
+func main() {
+    var a = a;
+}

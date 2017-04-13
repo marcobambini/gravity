@@ -1,0 +1,18 @@
+#unittest {
+	name: "Semantic, While loop condition, Assignment not allowed here.";
+	error: SEMANTIC;
+	error_row: 12;
+	error_col: 9;
+};
+
+func main () {
+	var i,sum = 0;
+
+	// assignment instead of a condition
+	while (i = 50) {
+		sum += i;
+		i += 1;
+	}
+
+	return sum;
+}

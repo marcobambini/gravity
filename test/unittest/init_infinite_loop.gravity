@@ -1,0 +1,14 @@
+#unittest {
+	name: "Init infinite loop detection.";
+	error: SEMANTIC;
+};
+
+class c1 {
+	func init() {
+		var a = c1();	// INFINITE LOOP
+	}
+}
+
+func main() {
+	return c1();
+}

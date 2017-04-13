@@ -1,0 +1,10 @@
+#unittest {
+	name: "Simple string";
+	error: NONE;
+	result: "aaa";
+};
+
+func main () {
+	var a = "aaa";
+	return a;
+}

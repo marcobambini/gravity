@@ -1,0 +1,27 @@
+#unittest {
+	name: "Bind/unbind test.";
+	error: NONE;
+	result: 61010;
+};
+
+class foo {
+	func f1() {return 10;}
+}
+
+func main() {
+	var obj = foo();
+	var n1 = obj.f1();				// 10
+	
+	func test() {return 1000;}
+	obj.bind("f2", test);
+	var n2 = obj.f2();				// 1000
+	
+	obj.bind("f3", {return 10000;});
+	var n3 = obj.f3();				// 10000
+	
+	obj.unbind("f2");
+	obj.bind("f2", {return 50000;});
+	var n4 = obj.f2();				// 50000
+	
+	return n1+n2+n3+n4;
+}

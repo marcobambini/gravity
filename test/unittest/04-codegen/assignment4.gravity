@@ -1,0 +1,13 @@
+#unittest {
+	name: "Test global literal assignment.";
+	error: NONE;
+	result: 10;
+};
+
+var a;
+
+func main() {
+	var a = 20;
+	a = 10;
+	return a;
+}

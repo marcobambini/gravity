@@ -1,0 +1,15 @@
+#unittest {
+	name: "Built-in round functions.";
+	error: NONE;
+	result: 10.0;
+};
+
+func main() {
+	var d = 3.1415;
+	
+	var d1 = d.floor();	// 3
+	var d2 = d.ceil();	// 4
+	var d3 = d.round();	// 3
+	
+	return d1+d2+d3;
+}

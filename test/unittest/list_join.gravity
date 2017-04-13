@@ -1,0 +1,10 @@
+#unittest {
+	name: "List join.";
+	error: NONE;
+	result: "1,2,3,4,5";
+};
+
+func main() {
+	var list = [1,2,3,4,5];
+	return list.join(",");
+}

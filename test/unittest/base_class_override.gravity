@@ -1,0 +1,26 @@
+#unittest {
+	name: "Base class override.";
+	result: 1010;
+};
+
+class Rect {
+	var x,y,w,h;
+	
+	func init (n1,n2,n3,n4) {
+		x = n1;
+		y = n2;
+		w = n3;
+		h = n4;
+	}
+	
+	func Int() {
+		return x+y+w+h;
+	}
+}
+
+
+func main() {
+	var a = 10;
+	var b = Rect(100,200,300,400);
+	return a + b;
+}

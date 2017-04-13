@@ -1,0 +1,21 @@
+#unittest {
+	name: "Operator NOT on obj.";
+	result: 133;
+};
+
+class foo {
+	
+}
+
+func main() {
+	var a = null;
+	var b = foo();
+	var count = 0;
+	
+	if (a) count += 10;
+	if (!a) count += 33;
+	if (b) count += 100;
+	if (!b) count += 333;
+	
+	return count;
+}

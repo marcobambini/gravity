@@ -1,0 +1,16 @@
+#unittest {
+	name: "Enum assign.";
+	error: SEMANTIC;
+	error_col: 5;
+	error_row: 15;
+};
+
+enum foo {
+	e1 = 1,
+	e2 = 2,
+	e3
+}
+
+func main() {
+	foo.e2 = 50;
+}

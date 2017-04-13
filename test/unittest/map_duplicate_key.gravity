@@ -1,0 +1,9 @@
+#unittest {
+	name: "Test map duplicated key error.";
+	error: SEMANTIC;
+};
+
+func main() {
+	var a = ["marco1":10, "marco2":20, "marco3":30, "marco2":40];
+	return a["marco2"];
+}

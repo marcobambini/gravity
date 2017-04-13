@@ -1,0 +1,10 @@
+#unittest {
+	name: "Literal Expression with boolean value.";
+	error: NONE;
+	result: false;
+};
+
+func main () {
+	var a = !true;
+	return a;
+}

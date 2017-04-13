@@ -1,0 +1,29 @@
+#unittest {
+	name: "lower() methods for string -- complex";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much VARIATION AS POSSIBLE"
+
+	// Numbers Only
+	// The V in VARIATION
+	var a_int = s.lower(62) == "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much vARIATION AS POSSIBLE"
+	if (a_int == false) { System.print("a) int failed\n"); return false }
+
+	var b_int = s.lower(-21) == s.lower(62)
+	if (a_int == false) { System.print("b) int failed\n"); return false }
+
+	var c_int = s.lower(2) == "tHiS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much VARIATION AS POSSIBLE"
+	if (a_int == false) { System.print("c) int failed\n"); return false }
+
+	var d_int = s.lower(-81) == s.lower(2)
+	if (a_int == false) { System.print("d) int failed\n"); return false }
+
+	// Try a character that is already lowercase
+	var e_int = s.lower(0) == "tHIS IS JUST A REALLY LONG TEST STRING TO TRY AND GET AS much VARIATION AS POSSIBLE"
+	if (a_int == false) { System.print("e) int failed\n"); return false }
+	
+	return true
+}

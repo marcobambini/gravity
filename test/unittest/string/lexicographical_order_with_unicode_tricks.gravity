@@ -1,0 +1,64 @@
+#unittest {
+	name: "Lexicographical order, with unicode tricks, like objective-c compare with NSLiteralSearch option;";
+	error: NONE;
+	result: true;
+};
+// result like the objective-c compare with NSLiteralSearch option (the localizedCompare: give FALSE)
+
+func main () {
+	// comparing equivalent Unicode strings
+	
+	/*
+	http://stackoverflow.com/questions/2877418/is-there-a-difference-between-nsstring-compare-and-isequaltostring
+	isEqualToString: is really more analogous to compare: options:NSLiteralSearch, as can be seen in the above quote.
+	NSLiteralSearch is more finicky about Unicode character representation:
+	
+	“Literal” when applied to string comparison means that various Unicode decomposition rules are not applied and Unicode
+	characters are individually compared. So, for instance, “Ö” represented as the composed character sequence “O” and
+	umlaut would not compare equal to “Ö” represented as one Unicode character.
+	
+	example in objective-c:
+	
+	NSString *eAcute = @"\u00e9";      // single character 'é'
+	NSString *ePlusAcute = @"e\u0301"; // 'e' + combining '´'
+	
+	NSComparisonResult localized,literal;
+	BOOL isEqualToString;
+	
+	localized = [eAcute localizedCompare:ePlusAcute];
+	literal = [eAcute compare:ePlusAcute options:NSLiteralSearch];
+	isEqualToString = [eAcute isEqualToString:ePlusAcute];
+	
+	// localized		=> NSOrderedSame
+	// literal			=> NSOrderedDescending
+	// isEqualToString	=> NO
+	
+	NSString *oDiaeresis = @"Ö";		// single symbol 'Ö'
+	NSString *oPlusDiaeresis = @"Ö";	// 'O' + combining ' ̈' (U+0308)
+	
+	localized = [oDiaeresis localizedCompare:oPlusDiaeresis];
+	literal = [oDiaeresis compare:oPlusDiaeresis options:NSLiteralSearch];
+	isEqualToString = [oDiaeresis isEqualToString:oPlusDiaeresis];
+	
+	// localized		=> NSOrderedSame
+	// literal			=> NSOrderedDescending
+	// isEqualToString	=> NO
+	*/
+	
+	var eAcute = "é";			// single character 'é' "\u00e9"
+	var ePlusAcute = "é";		// 'e' + combining '´' "e\u0301"
+	
+	var oDiaeresis = "Ö";		// single symbol 'Ö'
+	var oPlusDiaeresis = "Ö";	// 'O' + combining ' ̈' (U+0308)
+	
+	var r1 = (eAcute > ePlusAcute);
+	var r2 = (oDiaeresis > oPlusDiaeresis);
+	
+	/*
+	var r1 = !(eAcute < ePlusAcute) && !(eAcute > ePlusAcute) && (eAcute != ePlusAcute) && (eAcute == ePlusAcute);
+	var r2 = !(oDiaeresis < oPlusDiaeresis) && !(oDiaeresis > oPlusDiaeresis) &&
+	(oDiaeresis != oPlusDiaeresis) && (oDiaeresis == oPlusDiaeresis);
+	*/
+	
+	return r1 && r2;
+}

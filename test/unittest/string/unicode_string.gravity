@@ -1,0 +1,10 @@
+#unittest {
+	name: "Unicode string";
+	error: NONE;
+	result: "è£«¥∂å∂sß~‘";
+};
+
+func main () {
+	var a = "è£«¥∂å∂sß~‘";
+	return a;
+}

@@ -1,0 +1,9 @@
+#unittest {
+	name: "List allocation.";
+	result: 40;
+};
+
+func main() {
+    var list = List(40);
+    return list.count;
+}

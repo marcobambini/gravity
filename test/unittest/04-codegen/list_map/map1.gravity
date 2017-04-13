@@ -1,0 +1,10 @@
+#unittest {
+	name: "Test map load.";
+	error: NONE;
+	result: 41;
+};
+
+func main() {
+	var map = ["Marco":41, "Chiara":30, "Monica":32];
+	return map["Marco"];
+}

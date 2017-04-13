@@ -1,0 +1,19 @@
+#unittest {
+	name: "Subclass with overridden method.";
+	error: NONE;
+	result: 12;
+};
+
+class foo {
+	func f1() {return 1;}
+}
+
+class bar:foo {
+	func f1() {return 10;}
+	func f2() {return 2;}
+}
+
+func main() {
+	var obj1 = bar();
+	return obj1.f1() + obj1.f2();
+}

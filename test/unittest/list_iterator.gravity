@@ -1,0 +1,13 @@
+#unittest {
+	name: "Test list iterator.";
+	error: NONE;
+	result: 21;
+};
+
+func main() {
+	var sum = 0;
+	for (var i in [1,2,3,4,5,6]) {
+		sum += i;
+	}
+	return sum;
+}

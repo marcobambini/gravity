@@ -1,0 +1,46 @@
+#unittest {
+	name: "Properties as classes.";
+	result: 986;
+};
+
+class Point {
+	public var x;
+	public var y;
+}
+
+class Size {
+	public var width;
+	public var height;
+}
+
+class Rect {
+	public var origin;
+	public var size;
+}
+
+class Oval {
+	public var frame;
+	public func sum() {
+		return frame.origin.x + frame.origin.y + frame.size.width + frame.size.height;
+	}
+}
+
+func main() {
+	var p = Point();
+	p.x = 10;
+	p.y = 20;
+	
+	var s = Size();
+	s.width = 100;
+	s.height = 200;
+	
+	var r = Rect();
+	r.origin = p;
+	r.size = s;
+	
+	var o = Oval();
+	o.frame = r;
+	
+	o.frame.origin.x = 666;
+	return o.sum();
+}

@@ -1,0 +1,16 @@
+#unittest {
+	name: "Loadat an index for string";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello World"
+	var ret = s[6] == s[-5] and s[6] == "W"
+
+	ret = ret and s[-1...0] == "dlroW olleH"
+	ret = ret and s[0...4] == "Hello"
+	ret = ret and s[-5...-1] == "World"
+
+	return ret
+}

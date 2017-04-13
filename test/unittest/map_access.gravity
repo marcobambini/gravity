@@ -1,0 +1,10 @@
+#unittest {
+	name: "Test map access.";
+	error: NONE;
+	result: 669;
+};
+
+func main() {
+	var map = ["Andrea":22, "Marco":23, "count":666];
+	return map.count + map["count"];
+}

@@ -1,0 +1,19 @@
+#unittest {
+	name: "Test custom getter and setter.";
+	error: NONE;
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 100;}
+		get {return _a/2;}
+	};
+}
+
+func main() {
+	var f = foo();
+	f.a = 14;		// 14*100 = 1400
+	return f.a;		// 1400/2 = 700
+}

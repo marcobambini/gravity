@@ -1,0 +1,40 @@
+#unittest {
+	name: "Int.random() test multiple calls of the same random() call";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// This test is intended to run the same random() call multiple times and
+	// ensure that every single time, the random number that is generated is
+	// within the bounds specified
+
+	var min = 1
+	var max = 3
+
+  var r = Int.random(min, max)
+  var b = r >= min and r <= max
+
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+  r = Int.random(min, max)
+  b = r >= min and r <= max and b
+
+  return b;
+}

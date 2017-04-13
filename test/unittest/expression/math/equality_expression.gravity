@@ -1,0 +1,13 @@
+#unittest {
+	name: "Equality expression (==,!=) with multiple subnodes, testing operator execution order.";
+	error: NONE;
+	result: true
+};
+
+func main() {
+	var a = 2;
+	var b = 2;
+	var c = 0;
+	return a == b != c;		// should be like	(a==b)!=c	-> (1)!=0	-> 1,
+							// not like			a==(b!=c)	-> 2==(1)	-> 0
+}

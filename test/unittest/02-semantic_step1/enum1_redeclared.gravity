@@ -1,0 +1,14 @@
+#unittest {
+	name: "Enum redeclared.";
+	error: SEMANTIC;
+	error_row: 12;
+	error_col: 1;
+};
+
+enum list1{
+	one = 1
+}
+
+enum list1{
+	two = 2
+}

@@ -1,0 +1,12 @@
+#unittest {
+	name: "Testing identifier not found in for loop.";
+	error: SEMANTIC;
+	error_row: 10;
+	error_col: 7;
+};
+
+func foo() {
+	var a;
+	for (i in a) {
+	}
+}

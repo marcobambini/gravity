@@ -1,0 +1,12 @@
+#unittest {
+	name: "Test undefined.";
+	result: 10;
+};
+
+func f1(a,b,c) {
+	return a + b + c;
+}
+
+func main() {
+	return f1(,,10);
+}

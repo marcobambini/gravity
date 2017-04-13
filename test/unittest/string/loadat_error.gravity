@@ -1,0 +1,10 @@
+#unittest {
+	name: "Loadat an index for string - error";
+	error: RUNTIME;
+};
+
+func main () {
+	var s = "Hello World"
+	// out of bounds
+	return s[0...11]
+}

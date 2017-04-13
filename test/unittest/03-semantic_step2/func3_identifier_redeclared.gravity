@@ -1,0 +1,11 @@
+#unittest {
+	name: "Testing function closure declaration redeclared.";
+	error: SEMANTIC;
+	error_row: 10;
+	error_col: 2;
+};
+
+func foo() {
+	var bar;
+	func bar() {return 1;}
+}

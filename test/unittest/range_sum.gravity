@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test range loop.";
+	error: NONE;
+	result: 110;
+};
+
+func main() {
+	var r = 0...10;
+	var s = 0;
+	for (var i in r) {
+		s += 10;
+	}
+	return s;
+}

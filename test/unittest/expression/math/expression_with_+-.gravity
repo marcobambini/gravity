@@ -1,0 +1,10 @@
+#unittest {
+	name: "expression with +- and -+ sequences.";
+	error: NONE;
+	result: -9;
+};
+
+func main () {
+    var a = (2+-3)*4-+5;
+	return a;
+}

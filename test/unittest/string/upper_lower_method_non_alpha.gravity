@@ -1,0 +1,26 @@
+#unittest {
+	name: "upper() and lower methods for string -- non alpha tests";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "Hello, World!"
+
+	// Full string
+	var a = s.upper() == "HELLO, WORLD!"
+	if (a == false) { System.print("a) failed"); return false }
+
+	var b = s.lower() == "hello, world!"
+	if (b == false) { System.print("b) failed"); return false }
+
+	// Single integer or string -- upper
+	var c = s.upper(5) == s
+	if (c == false) { System.print("c) failed"); return false }
+
+	// Single integer or string -- lower
+	var d = s.lower(5) == s
+	if (d == false) { System.print("d) failed"); return false }
+
+	return true
+}

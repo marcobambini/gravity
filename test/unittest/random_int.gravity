@@ -1,0 +1,23 @@
+#unittest {
+	name: "Test Int.random()";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+  var c1 = Int.random(1, 1) == 1
+
+  var r = Int.random(1, 2)
+  var c2 = r >= 1 and r <= 2
+
+  r = Int.random(-2, -1)
+  var c3 = r >= -2 and r <= -1
+
+  r = Int.random(5, 0)
+  var c4 = r >= 0 and r <= 5
+
+  r = Int.random(-1, 1)
+  var c5 = r >= -1 and r <= 1
+
+  return c1 and c2 and c3 and c4 and c5
+}

@@ -1,0 +1,10 @@
+#unittest {
+	name: "Literal class access.";
+	result: 2;
+};
+
+func main() {
+	var a = "1".Int();
+	var b = 1;
+	return a + b;
+}

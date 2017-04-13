@@ -1,0 +1,41 @@
+#unittest {
+	name: "Lexicographical order;";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	
+	var a = "aa";
+	var b = "b";
+	
+	var c1 = "c1";
+	var c2 = "c2";
+	
+	var D = "D";
+	var d = "d";
+	
+	var unicode1 = "😀";
+	var unicode2 = "😱";
+	
+	// lt, gt
+	var r1 = (a < b) && !(a > b);
+	var r2 = (c1 < c2) && !(c1 > c2);
+	var r3 = (D < d) && !(D > d);
+	var r4 = (unicode1 < unicode2) && !(unicode1 > unicode2);
+	var r5 = !(a < a) && !(a > a);
+	// eq, neq
+	var r6 = (a == a) && !(a == b) && (a != b) && !(a != a);
+	var r7 = (c1 == c1) && !(c1 == c2) && (c1 != c2) && !(c1 != c1);
+	var r8 = (D == D) && !(D == d) && (D != d) && !(D != D);
+	var r9 = (unicode1 == unicode1) && !(unicode1 == unicode2) && (unicode1 != unicode2) && !(unicode1 != unicode1);
+	// leq, geq
+	var r10 = (a <= b) && !(a >= b) && (a <= a) && (b >= b);
+	var r11 = (c1 <= c2) && !(c1 >= c2) && (c1 <= c1) && (c2 >= c2);
+	var r12 = (D < d) && !(D > d) && (D <= D) && (d >= d);
+	var r13 = (unicode1 < unicode2) && !(unicode1 > unicode2) && (unicode1 <= unicode1) && (unicode2 >= unicode2);
+	
+	return r1 && r2 && r3 && r4 && r5 &&
+		r6 && r7 && r8 && r9 &&
+		r10 && r11 && r12 && r13;
+}

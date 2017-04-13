@@ -1,0 +1,9 @@
+#unittest {
+	name: "Repeat limit.";
+	error: RUNTIME;
+};
+
+func main() {
+	var a = "AAAAAAAAAAAAAAAAAAAAAAAA";
+	return a.repeat(100000000000000000);
+}

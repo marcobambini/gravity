@@ -1,0 +1,9 @@
+#unittest {
+	name: "List to string conversion test.";
+	result: "[1,2,3,34,marco,pippo]";
+};
+
+func main() {
+	var r = [1,2,3,34,"marco","pippo"];
+	return r.String();
+}

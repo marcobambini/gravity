@@ -1,0 +1,10 @@
+#unittest {
+	name: "Test missing parameters.";
+	error: SYNTAX;
+	error_row:8;
+	error_col:9;
+};
+
+func f1 {
+	return 1;
+}

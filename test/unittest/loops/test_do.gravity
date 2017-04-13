@@ -1,0 +1,15 @@
+#unittest {
+	name: "Repeat while loop.";
+	error: NONE;
+	result: 50000;
+};
+
+func main() {
+	var i = 0;
+	
+	repeat {
+		i += 1;
+	} while (i < 50000);
+	
+	return i;
+}

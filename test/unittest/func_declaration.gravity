@@ -1,0 +1,20 @@
+#unittest {
+	name: "Test function declaration.";
+	note: "Crash in f1 with 'return a+b;'"
+	result: 30;
+};
+
+func f1() {
+	var a, b;
+	var c = func() {return 10;};
+	
+	a = 10;
+	b = 20;
+	return c();
+}
+
+func main() {
+	var a = 10;
+	const b = 20;
+	return a + b;
+}

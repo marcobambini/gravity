@@ -1,0 +1,14 @@
+#unittest {
+	name: "gnode_array_remove_byindex inside postfix expression.";
+	result: "2";
+};
+
+enum foo {
+	e1 = 1,
+	e2 = 2,
+	e3
+}
+
+func main() {
+	return foo.e2.String();
+}

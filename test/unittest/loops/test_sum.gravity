@@ -1,0 +1,17 @@
+#unittest {
+	name: "Test 50000 sum operations in a while loop.";
+	error: NONE;
+	result: 1250025000;
+};
+
+func main() {
+	var sum = 0;
+	var i = 0;
+	
+	while (i <= 50000) {
+		sum += i;
+		i += 1;
+	}
+	
+	return sum;
+}
