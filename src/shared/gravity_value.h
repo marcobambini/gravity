@@ -112,6 +112,7 @@ extern "C" {
 #define MAX_FIELDSxFLUSH					64			// used in list/map serialization
 #define MAX_IVARS							768			// 2^10 - 2^8
 #define MAX_ALLOCATION                      4194304     // 1024 * 1024 * 4 (about 4 millions entry)
+#define MAX_CCALLS                          100         // default maximum number of nested C calls
 
 #define DEFAULT_CONTEXT_SIZE				256			// default VM context entries (can grow)
 #define DEFAULT_MINSTRING_SIZE				64			// minimum string allocation size

@@ -36,6 +36,8 @@ struct gravity_vm {
 	uint32_t			pc;									// program counter
 	double				time;								// useful timer for the main function
 	bool				aborted;							// set when VM has generated a runtime error
+    uint32_t            maxncalls;                          // maximum number of nested c calls
+    uint32_t            nccalls;                            // current number of nested c calls
 	
 	// anonymous names
 	uint32_t			nanon;								// counter for anonymous classes (used in object_bind)
@@ -195,11 +197,12 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
 	uint32_t stack_size = (uint32_t)(fiber->stacktop - fiber->stack);
 	uint32_t stack_needed = MAXNUM(stack_size + rneeds, DEFAULT_MINSTACK_SIZE);
 	if (fiber->stackalloc >= stack_needed) return true;
+	gravity_value_t *old_stack = fiber->stack;
 	
 	// perform stack reallocation (power_of2_ceil returns 0 if argument is bigger than 2^31)
 	uint32_t new_size = power_of2_ceil(fiber->stackalloc + stack_needed);
-	gravity_value_t *old_stack = fiber->stack;
-    void *ptr = (new_size) ? mem_realloc(fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
+    bool size_condition = (new_size && (uint64_t)new_size >= (uint64_t)(fiber->stackalloc + stack_needed) && ((sizeof(gravity_value_t) * new_size) < SIZE_MAX));
+    void *ptr = (size_condition) ? mem_realloc(fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
     if (!ptr) {
         // restore stacktop to previous state
         fiber->stacktop -= rneeds;
@@ -1295,6 +1298,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	
 	// allocate default fiber
 	vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
+    vm->maxncalls = MAX_CCALLS;
 	
 	vm->pc = 0;
 	vm->delegate = delegate;
@@ -1501,7 +1505,10 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 	bool result = false;
 	switch (f->tag) {
 		case EXEC_TYPE_NATIVE:
+            ++vm->nccalls;
+            if (vm->nccalls > vm->maxncalls) RUNTIME_ERROR("Maximum number of nested C calls reached (%d).", vm->maxncalls);
 			result = gravity_vm_exec(vm);
+            --vm->nccalls;
 			break;
 			
 		case EXEC_TYPE_INTERNAL:
@@ -1630,6 +1637,7 @@ gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
 		if (strcmp(key, "gcminthreshold") == 0) return VALUE_FROM_INT(vm->gcminthreshold);
 		if (strcmp(key, "gcthreshold") == 0) return VALUE_FROM_INT(vm->gcthreshold);
 		if (strcmp(key, "gcratio") == 0) return VALUE_FROM_FLOAT(vm->gcratio);
+        if (strcmp(key, "maxncalls") == 0) return VALUE_FROM_INT(vm->maxncalls);
 	}
 	return VALUE_FROM_NULL;
 }
@@ -1640,6 +1648,7 @@ bool gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value) {
 		if ((strcmp(key, "gcminthreshold") == 0) && VALUE_ISA_INT(value)) {vm->gcminthreshold = VALUE_AS_INT(value); return true;}
 		if ((strcmp(key, "gcthreshold") == 0) && VALUE_ISA_INT(value)) {vm->gcthreshold = VALUE_AS_INT(value); return true;}
 		if ((strcmp(key, "gcratio") == 0) && VALUE_ISA_FLOAT(value)) {vm->gcratio = VALUE_AS_FLOAT(value); return true;}
+        if ((strcmp(key, "maxncalls") == 0) && VALUE_ISA_INT(value)) {vm->maxncalls = (uint32_t)VALUE_AS_INT(value); return true;}
 	}
 	return false;
 }

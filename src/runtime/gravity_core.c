@@ -198,8 +198,13 @@ static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_
 	uint32_t count = (uint32_t) marray_size(list->array);
 	for (uint32_t i=0; i<count; ++i) {
 		gravity_value_t value = marray_get(list->array, i);
-		gravity_value_t value2 = convert_value2string(vm, value);
-		gravity_string_t *string = VALUE_ISA_VALID(value2) ? VALUE_AS_STRING(value2) : NULL;
+        gravity_string_t *string;
+        if (VALUE_ISA_LIST(value) && (VALUE_AS_LIST(value) == list)) {
+            string = NULL;
+        } else {
+			gravity_value_t value2 = convert_value2string(vm, value);
+            string = VALUE_ISA_VALID(value2) ? VALUE_AS_STRING(value2) : NULL;
+        }
 		
 		char *s1 = (string) ? string->s : "N/A";
 		uint32_t len1 = (string) ? string->len : 3;
