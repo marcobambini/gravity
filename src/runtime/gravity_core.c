@@ -442,8 +442,13 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 	
 	// key is an int its an optimization for faster loading of ivar
 	if (VALUE_ISA_INT(key)) {
-		if (instance) RETURN_VALUE(instance->ivars[key.n], rindex);	// instance case
-		RETURN_VALUE(c->ivars[key.n], rindex);						// class case
+        // sanity check
+        uint32_t nivar = c->nivars;
+        uint32_t nindex = (uint32_t)key.n;
+        if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
+        
+		if (instance) RETURN_VALUE(instance->ivars[nindex], rindex);	// instance case
+		RETURN_VALUE(c->ivars[nindex], rindex);                         // class case
 	}
 	
 	// key must be a string in this version
@@ -470,13 +475,10 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 		// execute optimized default getter
 		if (FUNCTION_ISA_SPECIAL(closure->f)) {
 			if (FUNCTION_ISA_DEFAULT_GETTER(closure->f)) {
-                
+                // sanity check
                 uint32_t nivar = c->nivars;
                 uint32_t nindex = closure->f->index;
-                
-                // sanity check
-                if (nindex > nivar)
-                    RETURN_ERROR("Out of bounds ivar index.");
+                if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
                 
 				if (instance) RETURN_VALUE(instance->ivars[closure->f->index], rindex);
 				RETURN_VALUE(c->ivars[closure->f->index], rindex);
@@ -534,8 +536,13 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	
 	// key is an int its an optimization for faster loading of ivar
 	if (VALUE_ISA_INT(key)) {
-		if (instance) instance->ivars[key.n] = value;
-		else c->ivars[key.n] = value;
+        // sanity check
+        uint32_t nivar = c->nivars;
+        uint32_t nindex = (uint32_t)key.n;
+        if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
+        
+		if (instance) instance->ivars[nindex] = value;
+		else c->ivars[nindex] = value;
 		RETURN_NOVALUE();
 	}
 	
@@ -564,19 +571,13 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 		if (FUNCTION_ISA_SPECIAL(closure->f)) {
 			// execute optimized default setter
 			if (FUNCTION_ISA_DEFAULT_SETTER(closure->f)) {
+                // sanity check
                 uint32_t nivar = c->nivars;
                 uint32_t nindex = closure->f->index;
+                if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
                 
-                // sanity check
-                if (nindex > nivar)
-                    RETURN_ERROR("Out of bounds ivar index.");
-                
-                if (instance) {
-                    instance->ivars[nindex] = value;
-                }
-                else {
-                    c->ivars[nindex] = value;
-                }
+                if (instance) instance->ivars[nindex] = value;
+                else c->ivars[nindex] = value;
                 
 				RETURN_NOVALUE();
 			}
@@ -2438,7 +2439,7 @@ uint32_t gravity_core_identifiers (const char ***id) {
 		GRAVITY_CLASS_INT_NAME, GRAVITY_CLASS_FLOAT_NAME, GRAVITY_CLASS_FUNCTION_NAME, GRAVITY_CLASS_FIBER_NAME, GRAVITY_CLASS_STRING_NAME,
 		GRAVITY_CLASS_INSTANCE_NAME, GRAVITY_CLASS_LIST_NAME, GRAVITY_CLASS_MAP_NAME, GRAVITY_CLASS_RANGE_NAME, GRAVITY_CLASS_SYSTEM_NAME,
 		GRAVITY_CLASS_CLOSURE_NAME, GRAVITY_CLASS_UPVALUE_NAME};
-	*id = list;
+	if (id) *id = list;
 	return (sizeof(list) / sizeof(const char *));
 }
 
