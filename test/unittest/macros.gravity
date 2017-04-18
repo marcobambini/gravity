@@ -1,0 +1,18 @@
+#unittest {
+    name: "Built-in special macros.";
+    result: true;
+};
+
+func foo() {
+    return __FUNCTION__;
+}
+
+func bar() {
+    return __LINE__ + __COLUMN__;
+}
+
+func main() {
+    var v1 = foo();
+    var v2 = bar();
+    return ((v1 == "foo") and (v2 == 11+23));
+}

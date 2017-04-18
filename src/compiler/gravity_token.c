@@ -125,6 +125,47 @@ void token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end) {
 	*idx_end = (uint32_t)TOK_KEY_CURRARGS;
 };
 
+gtoken_t token_special_builtin(gtoken_s *token) {
+    const char *buffer = token->value;
+    int32_t len = token->bytes;
+    
+    switch (len) {
+        case 8:
+            if (string_casencmp(buffer, "__LINE__", len) == 0) {
+                token->builtin = BUILTIN_LINE;
+                return TOK_NUMBER;
+            }
+            if (string_casencmp(buffer, "__FILE__", len) == 0) {
+                token->builtin = BUILTIN_FILE;
+                return TOK_STRING;
+            }
+            break;
+        
+        case 9:
+            if (string_casencmp(buffer, "__CLASS__", len) == 0) {
+                token->builtin = BUILTIN_CLASS;
+                return TOK_STRING;
+            }
+            break;
+            
+        case 10:
+            if (string_casencmp(buffer, "__COLUMN__", len) == 0) {
+                token->builtin = BUILTIN_COLUMN;
+                return TOK_NUMBER;
+            }
+            break;
+            
+        case 12:
+            if (string_casencmp(buffer, "__FUNCTION__", len) == 0) {
+                token->builtin = BUILTIN_FUNC;
+                return TOK_STRING;
+            }
+            break;
+    }
+    
+    return TOK_IDENTIFIER;
+}
+
 gtoken_t token_keyword (const char *buffer, int32_t len) {
 	switch (len) {
 		case 2:
@@ -228,7 +269,8 @@ bool token_isstatement (gtoken_t token) {
 	
 	return (token_islabel_statement(token) || token_isexpression_statement(token) || token_isflow_statement(token) ||
 			token_isloop_statement(token) || token_isjump_statement(token) || token_iscompound_statement(token) ||
-			token_isdeclaration_statement(token) || token_isempty_statement(token) || token_isimport_statement(token));
+			token_isdeclaration_statement(token) || token_isempty_statement(token) || token_isimport_statement(token) ||
+            token_ismacro(token));
 }
 
 bool token_isassignment (gtoken_t token) {

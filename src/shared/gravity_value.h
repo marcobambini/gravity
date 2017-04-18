@@ -115,7 +115,7 @@ extern "C" {
 #define MAX_CCALLS                          100         // default maximum number of nested C calls
 
 #define DEFAULT_CONTEXT_SIZE				256			// default VM context entries (can grow)
-#define DEFAULT_MINSTRING_SIZE				64			// minimum string allocation size
+#define DEFAULT_MINSTRING_SIZE				32			// minimum string allocation size
 #define DEFAULT_MINSTACK_SIZE				256			// sizeof(gravity_value_t) * 256	 = 16 * 256 => 4 KB
 #define DEFAULT_MINCFRAME_SIZE				32			// sizeof(gravity_callframe_t) * 48  = 32 * 48 => 1.5 KB
 #define DEFAULT_CG_THRESHOLD				5*1024*1024 // 5MB

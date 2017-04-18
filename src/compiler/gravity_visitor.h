@@ -18,6 +18,10 @@ typedef struct gvisitor {
 	void		*data;			// to store a ptr state
 	void		*delegate;		// delegate callback
 	
+    // COMMON
+    void (* visit_pre)(struct gvisitor *self, gnode_t *node);
+    void (* visit_post)(struct gvisitor *self, gnode_t *node);
+    
 	// count must be equal to enum gnode_n defined in gravity_ast.h less 3
 	
 	// STATEMENTS: 7

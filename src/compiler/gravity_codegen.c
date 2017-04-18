@@ -77,11 +77,11 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 	
 	// setup error struct
 	error_desc_t error_desc = {
-		.code = 0,
 		.lineno = node->token.lineno,
 		.colno = node->token.colno,
 		.fileid = node->token.fileid,
-		.offset = node->token.position
+		.offset = node->token.position,
+        .meta = meta_from_node(node)
 	};
 	
 	// finally call error callback
@@ -1480,7 +1480,7 @@ static void visit_literal_expr (gvisitor_t *self, gnode_literal_expr_t *node) {
 		case LITERAL_STRING_INTERPOLATED: {
 			// codegen for string interpolation is like a list.join()
 			
-			gnode_list_expr_t *list = (gnode_list_expr_t *)gnode_list_expr_create(node->base.token, node->value.r, NULL, false);
+			gnode_list_expr_t *list = (gnode_list_expr_t *)gnode_list_expr_create(node->base.token, node->value.r, NULL, false, node->base.decl);
 			visit((gnode_t *)list);
 			
 			// list
@@ -1794,6 +1794,10 @@ gravity_function_t *gravity_codegen(gnode_t *node, gravity_delegate_t *delegate,
 		.data = &data,					// used to store a pointer to codegen struct
 		.delegate = (void *)delegate,	// compiler delegate to report errors
 		
+        // COMMON
+        .visit_pre = NULL,
+        .visit_post = NULL,
+        
 		// STATEMENTS: 7
 		.visit_list_stmt = visit_list_stmt,
 		.visit_compound_stmt = visit_compound_stmt,

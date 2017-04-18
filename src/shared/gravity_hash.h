@@ -39,6 +39,7 @@ GRAVITY_API bool				gravity_hash_isempty (gravity_hash_t *hashtable);
 GRAVITY_API bool				gravity_hash_remove  (gravity_hash_t *hashtable, gravity_value_t key);
 GRAVITY_API bool				gravity_hash_insert (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value);
 GRAVITY_API gravity_value_t		*gravity_hash_lookup (gravity_hash_t *hashtable, gravity_value_t key);
+GRAVITY_API gravity_value_t		*gravity_hash_lookup_cstring (gravity_hash_t *hashtable, const char *key);
 
 GRAVITY_API uint32_t			gravity_hash_memsize (gravity_hash_t *hashtable);
 GRAVITY_API uint32_t			gravity_hash_count (gravity_hash_t *hashtable);

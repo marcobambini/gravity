@@ -71,11 +71,11 @@ static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *no
 	
 	// setup error struct
 	error_desc_t error_desc = {
-		.code = 0,
 		.lineno = node->token.lineno,
 		.colno = node->token.colno,
 		.fileid = node->token.fileid,
-		.offset = node->token.position
+		.offset = node->token.position,
+        .meta = meta_from_node(node)
 	};
 	
 	// finally call error callback
@@ -1078,6 +1078,10 @@ bool gravity_semacheck2 (gnode_t *node, gravity_delegate_t *delegate) {
 		.data = (void *)&data,				// used to store a pointer to the semantic check struct
 		.delegate = (void *)delegate,		// compiler delegate to report errors
 		
+        // COMMON
+        .visit_pre = NULL,
+        .visit_post = NULL,
+        
 		// STATEMENTS: 7
 		.visit_list_stmt = visit_list_stmt,
 		.visit_compound_stmt = visit_compound_stmt,

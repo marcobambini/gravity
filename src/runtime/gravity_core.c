@@ -458,19 +458,19 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 	
 	// lookup key in class c
 	gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(c, key);
-	if (!obj) goto execute_notfound;
-	
-	gravity_closure_t *closure;
-	if (OBJECT_ISA_CLOSURE(obj)) {
-		closure = (gravity_closure_t *)obj;
-		if (!closure || !closure->f) {
+    if (!obj) {
 			// not explicitly declared so check for dynamic property in bridge case
 			gravity_delegate_t *delegate = gravity_vm_delegate(vm);
 			if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_getundef)) {
 				if (delegate->bridge_getundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), rindex)) return true;
 			}
-			goto execute_notfound;
 		}
+	if (!obj) goto execute_notfound;
+	
+	gravity_closure_t *closure;
+	if (OBJECT_ISA_CLOSURE(obj)) {
+		closure = (gravity_closure_t *)obj;
+		if (!closure || !closure->f) goto execute_notfound;
 		
 		// execute optimized default getter
 		if (FUNCTION_ISA_SPECIAL(closure->f)) {
@@ -553,19 +553,19 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	
 	// lookup key in class c
 	gravity_object_t *obj = gravity_class_lookup(c, key);
-	if (!obj) goto execute_notfound;
-	
-	gravity_closure_t *closure;
-	if (OBJECT_ISA_CLOSURE(obj)) {
-		closure = (gravity_closure_t *)obj;
-		if (!closure || !closure->f) {
+    if (!obj) {
 			// not explicitly declared so check for dynamic property in bridge case
 			gravity_delegate_t *delegate = gravity_vm_delegate(vm);
 			if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_setundef)) {
 				if (delegate->bridge_setundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), value)) RETURN_NOVALUE();
 			}
-			goto execute_notfound;
 		}
+	if (!obj) goto execute_notfound;
+	
+	gravity_closure_t *closure;
+	if (OBJECT_ISA_CLOSURE(obj)) {
+		closure = (gravity_closure_t *)obj;
+		if (!closure || !closure->f) goto execute_notfound;
 		
 		// check for special functions case
 		if (FUNCTION_ISA_SPECIAL(closure->f)) {

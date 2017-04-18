@@ -24,6 +24,9 @@ void gvisit(gvisitor_t *self, gnode_t *node) {
 	// because they are functions inside a COMPOUND_STATEMENT and can be NULL
 	if (!node) return;
 	
+    // pre-visit
+    if (self->visit_pre) self->visit_pre(self, node);
+    
 	switch (node->tag) {
 		
 		// statements (7)
@@ -56,4 +59,7 @@ void gvisit(gvisitor_t *self, gnode_t *node) {
 		// default assert
 		default: default_action(node);
 	}
+    
+    // post-visit
+    if (self->visit_post) self->visit_post(self, node);
 }

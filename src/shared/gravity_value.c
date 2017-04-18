@@ -1868,7 +1868,7 @@ inline gravity_string_t *gravity_string_new (gravity_vm *vm, char *s, uint32_t l
 	obj->isa = gravity_class_string;
 	obj->s = (char *)s;
 	obj->len = len;
-	obj->alloc = alloc;
+    obj->alloc = (alloc) ? alloc : len;
 	if (s && len) obj->hash = gravity_hash_compute_buffer((const char *)s, len);
 	
 	if (vm) gravity_vm_transfer(vm, (gravity_object_t*) obj);

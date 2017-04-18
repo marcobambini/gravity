@@ -23,14 +23,14 @@ typedef enum {
 } error_type_t;
 
 typedef struct {
-	uint32_t		code;
 	uint32_t		lineno;
 	uint32_t		colno;
 	uint32_t		fileid;
 	uint32_t		offset;
+    void            *meta;
 } error_desc_t;
 
-#define ERROR_DESC_NONE		(error_desc_t){0,0,0,0,0}
+#define ERROR_DESC_NONE		(error_desc_t){0,0,0,0,NULL}
 
 typedef void				(*gravity_log_callback)	(const char *message, void *xdata);
 typedef void				(*gravity_error_callback) (error_type_t error_type, const char *description, error_desc_t error_desc, void *xdata);

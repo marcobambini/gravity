@@ -54,7 +54,7 @@ typedef enum {
 
 // TOKEN macros
 #define TOKEN_RESET				lexer->token = NO_TOKEN; lexer->token.position = lexer->position; lexer->token.value = lexer->buffer + lexer->offset;	\
-								lexer->token.lineno = lexer->lineno; lexer->token.colno = lexer->colno
+								lexer->token.lineno = lexer->lineno; lexer->token.colno = lexer->colno; lexer->token.builtin = 0
 #define TOKEN_FINALIZE(t)		lexer->token.type = t; lexer->token.fileid = lexer->fileid
 #define INC_TOKBYTES			++lexer->token.bytes
 #define INC_TOKUTF8LEN			++lexer->token.length
@@ -242,11 +242,12 @@ static gtoken_t lexer_scan_identifier(gravity_lexer_t *lexer) {
 		INC_OFFSET_POSITION;
 		INC_TOKLEN;
 	}
-	
 	TOKEN_FINALIZE(TOK_IDENTIFIER);
 	
-	// first check if it is a reserved word, otherwise reports it as an identifier
-	gtoken_t type = token_keyword(lexer->token.value, lexer->token.bytes);
+    // check if identifier is a special built-in case
+    gtoken_t type = token_special_builtin(&lexer->token);
+    // then check if it is a reserved word (otherwise reports it as an identifier)
+    if (type == TOK_IDENTIFIER) type = token_keyword(lexer->token.value, lexer->token.bytes);
 	SET_TOKTYPE(type);
 	
 	#if GRAVITY_LEXEM_DEBUG
@@ -290,10 +291,6 @@ static gtoken_t lexer_scan_number(gravity_lexer_t *lexer) {
 	// 0xFFFF	// hex
 	// 0B0101	// binary
 	// 0O7777	// octal
-	
-	if (ntype == NUMBER_HEX) {
-		
-	}
 	
 loop:
 	c = PEEK_CURRENT;

@@ -93,6 +93,10 @@ typedef enum {
 	LITERAL_STRING, LITERAL_FLOAT, LITERAL_INT, LITERAL_BOOL, LITERAL_STRING_INTERPOLATED
 } gliteral_t;
 
+typedef enum {
+    BUILTIN_NONE, BUILTIN_LINE, BUILTIN_COLUMN, BUILTIN_FILE, BUILTIN_FUNC, BUILTIN_CLASS
+} gbuiltin_t;
+
 struct gtoken_s {
 	gtoken_t			type;		// enum based token type
 	uint32_t			lineno;		// token line number (1-based)
@@ -101,18 +105,20 @@ struct gtoken_s {
 	uint32_t			bytes;		// token length in bytes
 	uint32_t			length;		// token length (UTF-8)
 	uint32_t			fileid;		// token file id
+    gbuiltin_t          builtin;    // builtin special identifier flag
 	const char			*value;		// token value (not null terminated)
 };
 typedef struct gtoken_s	gtoken_s;
 
-#define NO_TOKEN				(gtoken_s){0,0,0,0,0,0,0,NULL}
-#define UNDEF_TOKEN				(gtoken_s){TOK_KEY_UNDEFINED,0,0,0,0,0,0,NULL}
+#define NO_TOKEN				(gtoken_s){0,0,0,0,0,0,0,0,NULL}
+#define UNDEF_TOKEN				(gtoken_s){TOK_KEY_UNDEFINED,0,0,0,0,0,0,0,NULL}
 #define TOKEN_BYTES(_tok)		_tok.bytes
 #define TOKEN_VALUE(_tok)		_tok.value
 
 const char		*token_string (gtoken_s token, uint32_t *len);
 const char		*token_name (gtoken_t token);
 gtoken_t		token_keyword (const char *buffer, int32_t len);
+gtoken_t        token_special_builtin(gtoken_s *token);
 void			token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end);
 const char		*token_literal_name (gliteral_t value);
 
