@@ -31,6 +31,7 @@ typedef bool		(*gravity_hash_isequal_fn) (gravity_value_t v1, gravity_value_t v2
 typedef void  		(*gravity_hash_iterate_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data);
 typedef void  		(*gravity_hash_iterate2_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data1, void *data2);
 typedef void		(*gravity_hash_transform_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t *value, void *data);
+typedef bool        (*gravity_hash_compare_fn) (gravity_value_t value1, gravity_value_t value2, void *data);
 
 // PUBLIC functions
 GRAVITY_API gravity_hash_t		*gravity_hash_create (uint32_t size, gravity_hash_compute_fn compute, gravity_hash_isequal_fn isequal, gravity_hash_iterate_fn free, void *data);
@@ -54,6 +55,8 @@ GRAVITY_API void				gravity_hash_dump (gravity_hash_t *hashtable);
 GRAVITY_API void				gravity_hash_append (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2);
 GRAVITY_API void				gravity_hash_resetfree (gravity_hash_t *hashtable);
 
+GRAVITY_API bool                gravity_hash_compare (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2, gravity_hash_compare_fn compare, void *data);
+    
 #ifdef __cplusplus
 }
 #endif

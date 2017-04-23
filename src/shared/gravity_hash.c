@@ -404,3 +404,61 @@ void gravity_hash_append (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2
 void gravity_hash_resetfree (gravity_hash_t *hashtable) {
 	hashtable->free_fn = NULL;
 }
+
+bool gravity_hash_compare (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2, gravity_hash_compare_fn compare, void *data) {
+    if (hashtable1->count != hashtable2->count) return false;
+    if (!compare) return false;
+    
+    // 1. allocate arrays of keys and values
+    gravity_value_r keys1; gravity_value_r values1;
+    gravity_value_r keys2; gravity_value_r values2;
+    marray_init(keys1); marray_init(values1);
+    marray_init(keys2); marray_init(values2);
+    marray_resize(gravity_value_t, keys1, hashtable1->count + MARRAY_DEFAULT_SIZE);
+    marray_resize(gravity_value_t, keys2, hashtable1->count + MARRAY_DEFAULT_SIZE);
+    marray_resize(gravity_value_t, values1, hashtable1->count + MARRAY_DEFAULT_SIZE);
+    marray_resize(gravity_value_t, values2, hashtable1->count + MARRAY_DEFAULT_SIZE);
+    
+    // 2. build arrays of keys and values for hashtable1
+    for (uint32_t i=0; i<hashtable1->size; ++i) {
+        hash_node_t *node = hashtable1->nodes[i];
+        if (!node) continue;
+        while (node) {
+            marray_push(gravity_value_t, keys1, node->key);
+            marray_push(gravity_value_t, values1, node->value);
+            node = node->next;
+        }
+    }
+    
+    // 3. build arrays of keys and values for hashtable2
+    for (uint32_t i=0; i<hashtable2->size; ++i) {
+        hash_node_t *node = hashtable2->nodes[i];
+        if (!node) continue;
+        while (node) {
+            marray_push(gravity_value_t, keys2, node->key);
+            marray_push(gravity_value_t, values2, node->value);
+            node = node->next;
+        }
+    }
+    
+    // sanity check
+    bool result = false;
+    uint32_t count = (uint32_t)marray_size(keys1);
+    if (count != (uint32_t)marray_size(keys2)) goto cleanup;
+    
+    // 4. compare keys and values
+    for (uint32_t i=0; i<count; ++i) {
+        if (!compare(marray_get(keys1, i), marray_get(keys2, i), data)) goto cleanup;
+        if (!compare(marray_get(values1, i), marray_get(values2, i), data)) goto cleanup;
+    }
+    
+    result = true;
+    
+cleanup:
+    marray_destroy(keys1);
+    marray_destroy(keys2);
+    marray_destroy(values1);
+    marray_destroy(values2);
+    
+    return result;
+}
