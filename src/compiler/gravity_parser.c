@@ -739,13 +739,23 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 					// string interpolation case
 					i+=2; // skip \ and (
 					uint32_t j=i;
+                    uint32_t nesting_level = 0;
 					bool subfound = false;
 					while (i<len) {
-						if (s[i] == ')') subfound = true;
+                        if (s[i] == ')') {
+                            if (nesting_level == 0) subfound = true;
+                            else --nesting_level;
+                        }
+                        else if (s[i] == '(') {
+                            ++nesting_level;
+                        }
 						++i;
 						if (subfound) break;
 					}
-					if (!subfound) {REPORT_ERROR(token, "Malformed interpolation string not closed by )"); goto return_string;}
+					if (!subfound || nesting_level != 0) {
+                        REPORT_ERROR(token, "Malformed interpolation string not closed by )");
+                        goto return_string;
+                    }
 					
 					uint32_t sublen = i - j;
 					

@@ -1,0 +1,13 @@
+#unittest {
+    name: "Function call within string interpolation.";
+    result: "foo returns 82";
+};
+
+func foo() {
+    return 82;
+}
+
+func main() {
+    var s = "foo returns \(foo())";
+    return s;
+}
