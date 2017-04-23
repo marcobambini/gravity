@@ -182,6 +182,7 @@ typedef enum {
 #define GRAVITY_OPERATOR_OR_NAME		"||"
 #define GRAVITY_OPERATOR_CMP_NAME		"=="
 #define GRAVITY_OPERATOR_EQQ_NAME		"==="
+#define GRAVITY_OPERATOR_NEQQ_NAME      "!=="
 #define GRAVITY_OPERATOR_ISA_NAME		"is"
 #define GRAVITY_OPERATOR_MATCH_NAME		"=~"
 #define GRAVITY_OPERATOR_NEG_NAME		"neg"

@@ -400,6 +400,28 @@ static bool object_isa (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	RETURN_VALUE(VALUE_FROM_BOOL(c1 == c2), rindex);
 }
 
+static bool object_eqq (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    
+    gravity_value_t v1 = GET_VALUE(0);
+    gravity_value_t v2 = GET_VALUE(1);
+    
+    // compare class first
+    if (gravity_value_getclass(v1) != gravity_value_getclass(v2))
+        RETURN_VALUE(VALUE_FROM_FALSE, rindex);
+    
+    // then compare value
+    RETURN_VALUE(VALUE_FROM_BOOL(gravity_value_equals(v1, v2)), rindex);
+}
+
+static bool object_neqq (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    object_eqq(vm, args, nargs, rindex);
+    gravity_value_t value = GET_VALUE(rindex);
+    if (VALUE_ISA_BOOL(value)) {
+         RETURN_VALUE(VALUE_FROM_BOOL(!VALUE_AS_BOOL(value)), rindex);
+    }
+    return true;
+}
 
 static bool object_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
@@ -2158,6 +2180,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_object, GRAVITY_CLASS_CLASS_NAME, NEW_CLOSURE_VALUE(object_class));
 	gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_ISA_NAME, NEW_CLOSURE_VALUE(object_isa));
 	gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_CMP_NAME, NEW_CLOSURE_VALUE(object_cmp));
+    gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_EQQ_NAME, NEW_CLOSURE_VALUE(object_eqq));
+    gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_NEQQ_NAME, NEW_CLOSURE_VALUE(object_neqq));
 	gravity_class_bind(gravity_class_object, GRAVITY_CLASS_INT_NAME, NEW_CLOSURE_VALUE(convert_object_int));
 	gravity_class_bind(gravity_class_object, GRAVITY_CLASS_FLOAT_NAME, NEW_CLOSURE_VALUE(convert_object_float));
 	gravity_class_bind(gravity_class_object, GRAVITY_CLASS_BOOL_NAME, NEW_CLOSURE_VALUE(convert_object_bool));

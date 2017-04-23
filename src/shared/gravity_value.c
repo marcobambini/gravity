@@ -1389,6 +1389,10 @@ void gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i) {
 }
 	
 // MARK: -
+static bool hash_value_compare_cb (gravity_value_t v1, gravity_value_t v2, void *data) {
+    #pragma unused (data)
+    return gravity_value_equals(v1, v2);
+}
 
 bool gravity_value_equals (gravity_value_t v1, gravity_value_t v2) {
 	
@@ -1415,6 +1419,21 @@ bool gravity_value_equals (gravity_value_t v1, gravity_value_t v2) {
         gravity_range_t *r1 = VALUE_AS_RANGE(v1);
         gravity_range_t *r2 = VALUE_AS_RANGE(v2);
         return ((r1->from == r2->from) && (r1->to == r2->to));
+    } else if (v1.isa == gravity_class_list) {
+        gravity_list_t *list1 = VALUE_AS_LIST(v1);
+        gravity_list_t *list2 = VALUE_AS_LIST(v2);
+        if (marray_size(list1->array) != marray_size(list2->array)) return false;
+        size_t count = marray_size(list1->array);
+        for (size_t i=0; i<count; ++i) {
+            gravity_value_t value1 = marray_get(list1->array, i);
+            gravity_value_t value2 = marray_get(list2->array, i);
+            if (!gravity_value_equals(value1, value2)) return false;
+        }
+        return true;
+    } else if (v1.isa == gravity_class_map) {
+        gravity_map_t *map1 = VALUE_AS_MAP(v1);
+        gravity_map_t *map2 = VALUE_AS_MAP(v2);
+        return gravity_hash_compare(map1->hash, map2->hash, hash_value_compare_cb, NULL);
 	}
 	
 	// if here means that they are two heap allocated objects

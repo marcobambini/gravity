@@ -176,7 +176,6 @@ typedef struct {
 extern gravity_class_t *gravity_class_object;
 extern gravity_class_t *gravity_class_bool;
 extern gravity_class_t *gravity_class_null;
-extern gravity_class_t *gravity_class_undefined;
 extern gravity_class_t *gravity_class_int;
 extern gravity_class_t *gravity_class_float;
 extern gravity_class_t *gravity_class_function;
