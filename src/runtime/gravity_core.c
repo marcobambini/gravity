@@ -1528,7 +1528,9 @@ static bool operator_string_sub (gravity_vm *vm, gravity_value_t *args, uint16_t
 	// now check if entire substring must be considered
 	uint32_t flen = (uint32_t)strlen(found);
 	if (flen == s2->len) RETURN_VALUE(VALUE_FROM_STRING(vm, s1->s, (uint32_t)(found - s1->s)), rindex);
-	
+	// sanity check for malformed strings
+    if (flen < s2->len) RETURN_ERROR("Malformed string.");
+    
 	// substring found but cannot be entirely considered
 	uint32_t alloc = MAXNUM(s1->len + s2->len +1, DEFAULT_MINSTRING_SIZE);
 	char *s = mem_alloc(alloc);
