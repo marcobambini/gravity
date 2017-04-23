@@ -124,6 +124,7 @@ static gnode_t *get_enclosing (gravity_parser_t *parser, gnode_n tag) {
     --n;
     while (n >= 0) {
         gnode_t *decl = gnode_array_get(parser->declarations, n);
+        if (!decl) return NULL;
         if (decl->tag == tag) return decl;
         --n;
     }
@@ -2558,7 +2559,7 @@ void gravity_parser_free (gravity_parser_t *parser) {
 		mem_free(parser->lexer);
 	}
 	
-	marray_destroy(*parser->declarations);
+	if (parser->declarations) marray_destroy(*parser->declarations);
 	// parser->statements is returned from gravity_parser_run
 	// and must be deallocated using gnode_free
 	

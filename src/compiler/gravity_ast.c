@@ -38,6 +38,8 @@ gnode_r *gnode_array_create (void) {
 }
 
 void gnode_array_sethead(gnode_r *list, gnode_t *node) {
+    if (!list || !node) return;
+    
 	// get old size
 	size_t list_size = gnode_array_size(list);
 	
@@ -498,7 +500,7 @@ void *meta_from_node (gnode_t *node) {
 static void free_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 	CHECK_REFCOUNT(node);
 	gnode_array_each(node->stmts, {visit(val);});
-	gnode_array_free(node->stmts);
+	if (node->stmts) gnode_array_free(node->stmts);
 	
 	if (node->symtable) symboltable_free(node->symtable);
 	mem_free((gnode_t*)node);
@@ -507,7 +509,7 @@ static void free_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 static void free_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 	CHECK_REFCOUNT(node);
 	gnode_array_each(node->stmts, {visit(val);});
-	gnode_array_free(node->stmts);
+	if (node->stmts) gnode_array_free(node->stmts);
 	
 	if (node->symtable) symboltable_free(node->symtable);
 	mem_free((gnode_t*)node);
@@ -668,7 +670,7 @@ static void free_file_expr (gvisitor_t *self, gnode_file_expr_t *node) {
 		mem_free((void *)val);
 	});
 	
-	gnode_array_free(node->identifiers);
+	if (node->identifiers) gnode_array_free(node->identifiers);
 	mem_free((void *)node);
 }
 
