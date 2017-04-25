@@ -20,11 +20,11 @@
 typedef marray_t(gravity_lexer_t*)		lexer_r;
 
 struct gravity_parser_t {
-	lexer_r								*lexer;
-	gnode_r                             *declarations;
-	gnode_r								*statements;
-	gravity_delegate_t					*delegate;
-    gravity_hash_t                      *meta;
+	lexer_r								*lexer;             // stack of lexers (stack used in #include statements)
+	gnode_r                             *declarations;      // used to keep track of nodes hierarchy
+    gnode_r								*statements;        // used to build AST
+	gravity_delegate_t					*delegate;          // compiler delegate
+    gravity_hash_t                      *meta;              // current node meta (if any)
 	
 	double								time;
 	uint32_t							nerrors;
@@ -2572,7 +2572,11 @@ void gravity_parser_free (gravity_parser_t *parser) {
 		mem_free(parser->lexer);
 	}
 	
+    // parser->declarations is used to keep track of nodes hierarchy and it contains pointers to
+    // parser->statements nodes so there is no need to free it using node_array_free because nodes
+    // are freed when AST (parser->statements) is freed
 	if (parser->declarations) marray_destroy(*parser->declarations);
+    
 	// parser->statements is returned from gravity_parser_run
 	// and must be deallocated using gnode_free
 	
