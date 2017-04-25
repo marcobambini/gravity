@@ -1998,6 +1998,7 @@ static gnode_t *parse_meta_macro (gravity_parser_t *parser) {
     DECLARE_LEXER;
     
     gravity_hash_t *htable = parser_getmeta(parser, false);
+    bool is_local = !htable;
     if (!htable) htable = gravity_hash_create(0, gravity_value_hash, gravity_value_equals, gravity_hash_keyvaluefree, NULL);
     
     parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
@@ -2040,12 +2041,14 @@ static gnode_t *parse_meta_macro (gravity_parser_t *parser) {
     parse_semicolon(parser);
   
     // set parser meta
+    is_local = false;
     parser_setmeta(parser, htable, false);
     
     return NULL;
     
 handle_error:
-    gravity_hash_free(htable);
+    if (is_local) gravity_hash_free(htable);
+    else parser_setmeta(parser, NULL, true);
     return NULL;
 }
 

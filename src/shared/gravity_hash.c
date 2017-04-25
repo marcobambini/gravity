@@ -180,6 +180,7 @@ void gravity_hash_free (gravity_hash_t *hashtable) {
 	
 	for (uint32_t n = 0; n < hashtable->size; ++n) {
 		hash_node_t *node = hashtable->nodes[n];
+        hashtable->nodes[n] = NULL;
 		while (node) {
 			if (free_fn) free_fn(hashtable, node->key, node->value, hashtable->data);
 			hash_node_t *old_node = node;
@@ -189,6 +190,7 @@ void gravity_hash_free (gravity_hash_t *hashtable) {
 	}
 	mem_free(hashtable->nodes);
 	mem_free(hashtable);
+    hashtable = NULL;
 }
 
 uint32_t gravity_hash_memsize (gravity_hash_t *hashtable) {
