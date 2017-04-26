@@ -83,6 +83,7 @@ static grammar_rule rules[TOK_END];
 
 // MARK: - Internal macros -
 #define MAX_RECURSION_DEPTH                     1000
+#define MAX_NUMBER_LENGTH                       512
 #define SEMICOLON_IS_OPTIONAL					1
 
 #define REPORT_ERROR(_tok,...)					report_error(parser, GRAVITY_ERROR_SYNTAX, _tok, __VA_ARGS__)
@@ -615,7 +616,6 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
 	// so I just need to properly decode it
 	
 	const char	*value = token.value;
-    const uint32_t STATIC_LEN = 512;
 	gliteral_t	type;
 	int64_t		n = 0;
 	double		d = 0;
@@ -633,8 +633,8 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
 		if (value[i] == '.') {isfloat = true; break;}
 	}
 	
-	STATIC_TOKEN_CSTRING(str, STATIC_LEN, len, buffer, token);
-    if (len >= STATIC_LEN) {
+	STATIC_TOKEN_CSTRING(str, MAX_NUMBER_LENGTH, len, buffer, token);
+    if (len >= MAX_NUMBER_LENGTH) {
         REPORT_ERROR(token, "Malformed numeric expression.");
         return NULL;
     }
