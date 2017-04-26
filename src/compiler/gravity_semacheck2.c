@@ -10,6 +10,7 @@
 #include "gravity_semacheck2.h"
 #include "gravity_compiler.h"
 #include "gravity_visitor.h"
+#include "gravity_core.h"
 
 struct semacheck_t {
 	gnode_r			*declarations;		// declarations stack
@@ -779,6 +780,14 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 	// check superclass
 	if (node->superclass) {
 		gnode_identifier_expr_t *id = (gnode_identifier_expr_t *)node->superclass;
+        
+        // sanity check
+        if (gravity_core_class_from_name(id->value)) {
+            REPORT_ERROR(id, "Unable to subclass built-in core class %s.", id->value);
+            return;
+        }
+        
+        // lookup super node
 		gnode_t *target = lookup_symtable_id(self, id, true);
 		if (!target) REPORT_ERROR(id, "Unable to find superclass %s for class %s.", id->value, node->identifier);
 		node->superclass = target;

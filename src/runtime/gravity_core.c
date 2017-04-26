@@ -2494,6 +2494,28 @@ void gravity_core_register (gravity_vm *vm) {
 	gravity_vm_setvalue(vm, GRAVITY_CLASS_SYSTEM_NAME, VALUE_FROM_OBJECT(gravity_class_system));
 }
 
+gravity_class_t *gravity_core_class_from_name (const char *name) {
+    if (name) {
+        if (string_cmp(name, GRAVITY_CLASS_OBJECT_NAME) == 0) return gravity_class_object;
+        if (string_cmp(name, GRAVITY_CLASS_CLASS_NAME) == 0) return gravity_class_class;
+        if (string_cmp(name, GRAVITY_CLASS_BOOL_NAME) == 0) return gravity_class_bool;
+        if (string_cmp(name, GRAVITY_CLASS_NULL_NAME) == 0) return gravity_class_null;
+        if (string_cmp(name, GRAVITY_CLASS_INT_NAME) == 0) return gravity_class_int;
+        if (string_cmp(name, GRAVITY_CLASS_FLOAT_NAME) == 0) return gravity_class_float;
+        if (string_cmp(name, GRAVITY_CLASS_FUNCTION_NAME) == 0) return gravity_class_function;
+        if (string_cmp(name, GRAVITY_CLASS_CLOSURE_NAME) == 0) return gravity_class_closure;
+        if (string_cmp(name, GRAVITY_CLASS_FIBER_NAME) == 0) return gravity_class_fiber;
+        if (string_cmp(name, GRAVITY_CLASS_STRING_NAME) == 0) return gravity_class_string;
+        if (string_cmp(name, GRAVITY_CLASS_INSTANCE_NAME) == 0) return gravity_class_instance;
+        if (string_cmp(name, GRAVITY_CLASS_LIST_NAME) == 0) return gravity_class_list;
+        if (string_cmp(name, GRAVITY_CLASS_MAP_NAME) == 0) return gravity_class_map;
+        if (string_cmp(name, GRAVITY_CLASS_RANGE_NAME) == 0) return gravity_class_range;
+        if (string_cmp(name, GRAVITY_CLASS_UPVALUE_NAME) == 0) return gravity_class_upvalue;
+        if (string_cmp(name, GRAVITY_CLASS_SYSTEM_NAME) == 0) return gravity_class_system;
+    }
+    return NULL;
+}
+
 bool gravity_iscore_class (gravity_class_t *c) {
 	// first check if it is a class
 	if ((c == gravity_class_object) || (c == gravity_class_class) || (c == gravity_class_bool) ||
