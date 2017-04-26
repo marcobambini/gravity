@@ -765,16 +765,18 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 					
 					// parse interpolated expression
 					gnode_t *subnode = parse_expression(parser);
-					if (!subnode) goto return_string;
 					
 					// add expression to r
-					if (!r) r = gnode_array_create();
-					if (length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION()));
-					gnode_array_push(r, subnode);
+                    if (subnode) {
+						if (!r) r = gnode_array_create();
+						if (length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION()));
+						gnode_array_push(r, subnode);
+                    }
 					
 					// free temp lexer
 					marray_pop(*parser->lexer);
 					gravity_lexer_free(sublexer);
+                    if (!subnode) goto return_string;
 					
 					buffer = mem_alloc(len+1);
 					length = 0;
