@@ -615,6 +615,7 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
 	// so I just need to properly decode it
 	
 	const char	*value = token.value;
+    const uint32_t STATIC_LEN = 512;
 	gliteral_t	type;
 	int64_t		n = 0;
 	double		d = 0;
@@ -632,7 +633,12 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
 		if (value[i] == '.') {isfloat = true; break;}
 	}
 	
-	STATIC_TOKEN_CSTRING(str, 512, len, buffer, token);
+	STATIC_TOKEN_CSTRING(str, STATIC_LEN, len, buffer, token);
+    if (len >= STATIC_LEN) {
+        REPORT_ERROR(token, "Malformed numeric expression.");
+        return NULL;
+    }
+    
 	if (isfloat) {
 		d = strtod(str, NULL);
 		type = LITERAL_FLOAT;
