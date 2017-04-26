@@ -1513,7 +1513,7 @@ static gnode_t *parse_module_declaration (gravity_parser_t *parser, gtoken_t acc
 	gnode_r *declarations = gnode_array_create();
     
     // create module node
-    gnode_t *node = gnode_module_decl_create(token, identifier, access_specifier, storage_specifier, declarations, meta, LAST_DECLARATION());
+    gnode_t *node = NULL;//gnode_module_decl_create(token, identifier, access_specifier, storage_specifier, declarations, meta, LAST_DECLARATION());
     
 	while (token_isdeclaration_statement(gravity_lexer_peek(lexer))) {
 		gnode_t *decl = parse_declaration_statement(parser);
@@ -1525,6 +1525,7 @@ static gnode_t *parse_module_declaration (gravity_parser_t *parser, gtoken_t acc
 	
 	parse_semicolon(parser);
 	
+    REPORT_ERROR(token, "Module declarations not yet supported.");
     return node;
 }
 
