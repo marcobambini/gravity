@@ -416,7 +416,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				DEBUG_VM("LOADK %d %d", r1, index);
 				
 				// constant pool case
-				if (index < CPOOL_INDEX_MAX) {
+				if (index < marray_size(func->cpool)) {
 					gravity_value_t v = gravity_function_cpool_get(func, index);
 					SETVALUE(r1, v);
 					DISPATCH();
