@@ -50,6 +50,7 @@ const char	*string_dup (const char *s1);
 const char	*string_ndup (const char *s1, size_t n);
 void		string_reverse (char *p);
 uint32_t	string_size (const char *p);
+char        *string_strnstr(const char *s, const char *find, size_t slen);
 
 // UTF-8
 uint32_t	utf8_charbytes (const char *s, uint32_t i);

@@ -347,6 +347,26 @@ uint32_t string_size (const char *p) {
 	return (uint32_t)strlen(p);
 }
 
+// From: https://opensource.apple.com/source/Libc/Libc-339/string/FreeBSD/strnstr.c
+char *string_strnstr(const char *s, const char *find, size_t slen) {
+    char c, sc;
+    size_t len;
+    
+    if ((c = *find++) != '\0') {
+        len = strlen(find);
+        do {
+            do {
+                if ((sc = *s++) == '\0' || slen-- < 1)
+                    return (NULL);
+            } while (sc != c);
+            if (len > slen)
+                return (NULL);
+        } while (strncmp(s, find, len) != 0);
+        s--;
+    }
+    return ((char *)s);
+}
+
 // MARK: - UTF-8 Functions -
 
 /*

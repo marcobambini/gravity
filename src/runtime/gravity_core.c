@@ -1543,7 +1543,7 @@ static bool operator_string_sub (gravity_vm *vm, gravity_value_t *args, uint16_t
 	gravity_string_t *s2 = VALUE_AS_STRING(v2);
 	
 	// subtract s2 from s1
-	char *found = strnstr(s1->s, s2->s, (size_t)s1->len);
+	char *found = string_strnstr(s1->s, s2->s, (size_t)s1->len);
 	if (!found) RETURN_VALUE(VALUE_FROM_STRING(vm, s1->s, s1->len), rindex);
 	
 	// substring found
@@ -1632,7 +1632,7 @@ static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	gravity_string_t *str_to_index = VALUE_AS_STRING(GET_VALUE(1));
 
 	// search for the string
-	char *ptr = strnstr(main_str->s, str_to_index->s, (size_t)main_str->len);
+	char *ptr = string_strnstr(main_str->s, str_to_index->s, (size_t)main_str->len);
 
 	// if it doesn't exist, return null
 	if (ptr == NULL) {
@@ -1870,7 +1870,7 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	char *original = string->s;
     uint32_t slen = string->len;
 	while (1) {
-		char *p = strnstr(original, sep, (size_t)slen);
+		char *p = string_strnstr(original, sep, (size_t)slen);
 		if (p == NULL) {
             if (marray_size(list->array) == 0) slen = 0;
 			marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, string->len - slen));
