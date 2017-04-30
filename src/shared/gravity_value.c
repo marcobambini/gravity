@@ -337,7 +337,7 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 			}
 			
 			// error here
-			assert(0);
+            goto abort_load;
 		}
 		
 		if (value->type == json_object) {
@@ -353,7 +353,7 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 	return c;
 	
 abort_load:
-	if (c) gravity_class_free(vm, c);
+	// do not free c here because it is already garbage collected
 	return NULL;
 }
 
@@ -633,8 +633,8 @@ uint32_t *gravity_bytecode_deserialize (const char *buffer, size_t len, uint32_t
 	return bytecode;
 	
 abort_conversion:
-	if (bytecode) mem_free(bytecode);
 	*n = 0;
+	if (bytecode) mem_free(bytecode);
 	return NULL;
 }
 
@@ -726,6 +726,19 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 	
 	DEBUG_DESERIALIZE("DESERIALIZE FUNCTION: %p\n", f);
 	
+    bool identifier_parsed = false;
+    bool getter_parsed = false;
+    bool setter_parsed = false;
+    bool index_parsed = false;
+    bool bytecode_parsed = false;
+    bool cpool_parsed = false;
+    bool nparams_parsed = false;
+    bool nlocals_parsed = false;
+    bool ntemp_parsed = false;
+    bool nupvalues_parsed = false;
+    bool nargs_parsed = false;
+    bool tag_parsed = false;
+    
 	uint32_t n = json->u.object.length;
 	for (uint32_t i=1; i<n; ++i) { // from 1 to skip type
 		const char *label = json->u.object.values[i].name;
@@ -734,91 +747,120 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 		
 		// identifier
 		if (string_casencmp(label, GRAVITY_JSON_LABELIDENTIFIER, label_size) == 0) {
-			assert(value->type == json_string);
+			if (value->type != json_string) goto abort_load;
+            if (identifier_parsed) goto abort_load;
 			if (strncmp(value->u.string.ptr, "$anon", 5) != 0) {
 				f->identifier = string_dup(value->u.string.ptr);
 				DEBUG_DESERIALIZE("IDENTIFIER: %s\n", value->u.string.ptr);
 			}
+            identifier_parsed = true;
 			continue;
 		}
 		
 		// tag
 		if (string_casencmp(label, GRAVITY_JSON_LABELTAG, label_size) == 0) {
-			assert(value->type == json_integer);
+			if (value->type != json_integer) goto abort_load;
+            if (tag_parsed) goto abort_load;
 			f->tag = (uint16_t)value->u.integer;
+            tag_parsed = true;
 			continue;
 		}
 		
 		// index (only in special functions)
 		if (string_casencmp(label, GRAVITY_JSON_LABELINDEX, label_size) == 0) {
-			assert(value->type == json_integer);
-			assert(f->tag == EXEC_TYPE_SPECIAL);
+            if (value->type != json_integer) goto abort_load;
+			if (f->tag != EXEC_TYPE_SPECIAL) goto abort_load;
+            if (index_parsed) goto abort_load;
 			f->index = (uint16_t)value->u.integer;
+            index_parsed = true;
 			continue;
 		}
 		
 		// getter (only in special functions)
 		if (string_casencmp(label, GRAVITY_JSON_GETTER, strlen(GRAVITY_JSON_GETTER)) == 0) {
-			assert(f->tag == EXEC_TYPE_SPECIAL);
+            if (f->tag != EXEC_TYPE_SPECIAL) goto abort_load;
+            if (getter_parsed) goto abort_load;
 			gravity_function_t *getter = gravity_function_deserialize(vm, value);
+            if (!getter) goto abort_load;
 			f->special[0] = gravity_closure_new(vm, getter);
+            getter_parsed = true;
 			continue;
 		}
 		
 		// setter (only in special functions)
 		if (string_casencmp(label, GRAVITY_JSON_SETTER, strlen(GRAVITY_JSON_SETTER)) == 0) {
-			assert(f->tag == EXEC_TYPE_SPECIAL);
+            if (f->tag != EXEC_TYPE_SPECIAL) goto abort_load;
+            if (setter_parsed) goto abort_load;
 			gravity_function_t *setter = gravity_function_deserialize(vm, value);
+            if (!setter) goto abort_load;
 			f->special[1] = gravity_closure_new(vm, setter);
+            setter_parsed = true;
 			continue;
 		}
 		
 		// nparams
 		if (string_casencmp(label, GRAVITY_JSON_LABELNPARAM, label_size) == 0) {
-			assert(value->type == json_integer);
+            if (value->type != json_integer) goto abort_load;
+            if (nparams_parsed) goto abort_load;
 			f->nparams = (uint16_t)value->u.integer;
+            nparams_parsed = true;
 			continue;
 		}
 		
 		// nlocals
 		if (string_casencmp(label, GRAVITY_JSON_LABELNLOCAL, label_size) == 0) {
-			assert(value->type == json_integer);
+            if (value->type != json_integer) goto abort_load;
+            if (nlocals_parsed) goto abort_load;
 			f->nlocals = (uint16_t)value->u.integer;
+            nlocals_parsed = true;
 			continue;
 		}
 		
 		// ntemps
 		if (string_casencmp(label, GRAVITY_JSON_LABELNTEMP, label_size) == 0) {
-			assert(value->type == json_integer);
+			if (value->type != json_integer) goto abort_load;
+            if (ntemp_parsed) goto abort_load;
 			f->ntemps = (uint16_t)value->u.integer;
+            ntemp_parsed = true;
 			continue;
 		}
 		
 		// nupvalues
 		if (string_casencmp(label, GRAVITY_JSON_LABELNUPV, label_size) == 0) {
-			assert(value->type == json_integer);
+			if (value->type != json_integer) goto abort_load;
+            if (nupvalues_parsed) goto abort_load;
 			f->nupvalues = (uint16_t)value->u.integer;
+            nupvalues_parsed = true;
 			continue;
 		}
 		
 		// args
 		if (string_casencmp(label, GRAVITY_JSON_LABELARGS, label_size) == 0) {
-			assert(value->type == json_boolean);
+			if (value->type != json_boolean) goto abort_load;
+            if (nargs_parsed) goto abort_load;
 			f->useargs = (bool)value->u.boolean;
+            nargs_parsed = true;
 			continue;
 		}
 		
 		// bytecode
 		if (string_casencmp(label, GRAVITY_JSON_LABELBYTECODE, label_size) == 0) {
 			if (value->type == json_null) continue;
-			assert(value->type == json_string);
+			if (value->type != json_string) goto abort_load;
+            if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
+            if (bytecode_parsed) goto abort_load;
 			f->bytecode = gravity_bytecode_deserialize(value->u.string.ptr, value->u.string.length, &f->ninsts);
+            bytecode_parsed = true;
 			continue;
 		}
 		
 		// cpool
 		if (string_casencmp(label, GRAVITY_JSON_LABELPOOL, label_size) == 0) {
-			assert(value->type == json_array);
+			if (value->type != json_array) goto abort_load;
+            if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
+            if (cpool_parsed) goto abort_load;
+            cpool_parsed = true;
+            
 			uint32_t m = value->u.array.length;
 			for (uint32_t j=0; j<m; ++j) {
 				json_value *r = value->u.array.values[j];
@@ -861,7 +903,7 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 								case json_double: v = VALUE_FROM_FLOAT((gravity_float_t)jsonv->u.dbl); break;
 								case json_boolean: v = VALUE_FROM_BOOL(jsonv->u.boolean); break;
 								case json_string: v = VALUE_FROM_STRING(vm, jsonv->u.string.ptr, jsonv->u.string.length); break;
-								default:assert(0);
+								default: goto abort_load;
 							}
 							
 							marray_push(gravity_value_t, list->array, v);
@@ -882,7 +924,7 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 	return f;
 	
 abort_load:
-	if (f) gravity_function_free(vm, f);
+	// do not free f here because it is already garbage collected
 	return NULL;
 }
 
@@ -1806,13 +1848,16 @@ static gravity_map_t *gravity_map_deserialize (gravity_vm *vm, json_value *json)
 			case json_double: value = VALUE_FROM_FLOAT((gravity_float_t)jsonv->u.dbl); break;
 			case json_boolean: value = VALUE_FROM_BOOL(jsonv->u.boolean); break;
 			case json_string: value = VALUE_FROM_STRING(vm, jsonv->u.string.ptr, jsonv->u.string.length); break;
-			default:assert(0);
+            default: goto abort_load;
 		}
 		
 		gravity_map_insert(NULL, map, key, value);
 	}
-	
 	return map;
+    
+abort_load:
+    // do not free map here because it is already garbage collected
+    return NULL;
 }
 
 uint32_t gravity_map_size (gravity_vm *vm, gravity_map_t *map) {
