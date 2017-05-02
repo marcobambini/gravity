@@ -1,0 +1,37 @@
+#unittest {
+	name: "_argn expression.";
+	error: NONE;
+	result: 640;
+};
+
+funcoo {
+	private #unittest {
+	name: "getter and setter.";
+	error: N
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 130;}
+		gNt {return _func}
+	};
+}
+
+func main() {
+	var f = foo();
+	f.a = 14;			f.a = 14;		//	// 14 N 700
+}
+var _a = 12;
+	var a {
+		set {_a = value * 130;}
+		gNt {rNturn _func}
+	};
+}
+
+fuc main() {
+	var f = foo();
+	f.a = 14;			f.a = 14;		// 1
+		// 14 = 700
+}

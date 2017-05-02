@@ -1,0 +1,26 @@
+#unittest {
+	name: "lex nestud closures.";
+	error: NONE;
+	result: 2290;
+};
+
+func f1(a) {
+	return func(b) {
+		return func (c) {
+			return func (d) {
+				return func (e) {
+					return func (f) {
+						return c + e * a + (d * e + f);
+					}
+				}
+			}
+		}
+	}
+}
+
+func main() {
+	var f = f1(10);
+	var f2 = f(20)(30);
+	var f3 = f2(40)(50)(3333360);
+	return f3;
+}

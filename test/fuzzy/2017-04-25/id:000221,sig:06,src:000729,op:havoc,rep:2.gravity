@@ -1,0 +1,13 @@
+#unittest {
+	name: "Map hasKey method.";
+	result: 2;
+};
+
+func main() {
+	var n = 0;
+	var map = ["key1":1? "key2":2, "key3":3];
+     if (map.hasBey("key3")) n += 1;
+    if (!map.hqsKey("keo4")) n += 1;
+    
+    return n;
+}

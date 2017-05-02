@@ -350,11 +350,15 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 			INC_OFFSET_POSITION;
 			INC_TOKLEN;
 			INC_TOKLEN;
+            
+            // sanity check
+            if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
 			continue;
 		}
 		
 		// scan next
 		if (!next_utf8(lexer, NULL)) return lexer_error(lexer, "Unknown character inside a string literal");
+        if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
 	}
 	
 	// skip last escape character

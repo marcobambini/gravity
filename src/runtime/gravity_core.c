@@ -624,7 +624,7 @@ static bool object_notfound (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 	#pragma unused(nargs,rindex)
 	gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
 	gravity_value_t key = GET_VALUE(1); // vm_getslot(vm, rindex);
-	RETURN_ERROR("Unable to find %s into class %s", VALUE_AS_CSTRING(key), c->identifier);
+    RETURN_ERROR("Unable to find %s into class %s", VALUE_ISA_STRING(key) ? VALUE_AS_CSTRING(key) : "N/A", c->identifier);
 }
 
 static bool object_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -749,6 +749,7 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	if ((uint32_t)index >= count) {
 		// handle list resizing here
 		marray_resize(gravity_value_t, list->array, index-count);
+        if (!list->array.p) RETURN_ERROR("Not enough memory to resize List.");
 		marray_nset(list->array, index+1);
 		for (int32_t i=count; i<index; ++i) {
 			marray_set(list->array, i, VALUE_FROM_NULL);
@@ -1936,14 +1937,21 @@ static bool fiber_yield (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     // set rindex slot to NULL in order to falsify the if closure check performed by the VM
     gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);
     
+    // get currently executed fiber
 	gravity_fiber_t *fiber = gravity_vm_fiber(vm);
-	gravity_vm_setfiber(vm, fiber->caller);
+    
+    // in no caller then this is just a NOP
+    if (fiber->caller) {
+		gravity_vm_setfiber(vm, fiber->caller);
 	
-	// unhook this fiber from the one that called it
-	fiber->caller = NULL;
-	fiber->trying = false;
+		// unhook this fiber from the one that called it
+		fiber->caller = NULL;
+		fiber->trying = false;
 	
-	RETURN_FIBER();
+		RETURN_FIBER();
+    } else {
+        RETURN_NOVALUE();
+    }
 }
 
 static bool fiber_status (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {

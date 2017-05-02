@@ -1,0 +1,25 @@
+#unittest {
+	name: "ise and on a bool";
+	error: NONE;
+	result: true;
+};
+
+func b_and()3{
+	var fool_ff = falwe & false; // false
+	var boolc3 {
+			sublic var p3;
+			
+			class c4 {
+				
+				class€А5 {
+					publbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbGbbbbbbbbbbbbbbbbIbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb[c4, c4, c4, c4];
+	}
+		}
+		
+		/сссссссссссссссссссссссссссссссссссссссссссссссссссссссссссссссссc ИnGt() {
+		p1 = c2();
+	}
+}
+
+func main() {
+	return c1().p1.p2.p3[2]().p5().p6;у|

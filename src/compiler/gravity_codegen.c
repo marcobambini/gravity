@@ -653,7 +653,11 @@ static void store_declaration (gvisitor_t *self, gravity_object_t *obj, bool is_
 	bool is_module = CONTEXT_IS_MODULE(context_object);
 	bool is_class = OBJECT_ISA_CLASS(context_object);
 	bool is_local = ((is_module == false) && (is_class == false));
-	if (is_static) assert(is_class); // static makes sense only for class objects
+    if (is_static && !is_class){
+        // static makes sense only for class objects
+        report_error(self, (gnode_t *)node, "Static storage specifier does not make sense in non class context.");
+        return;
+    }
 	
 	if (is_local || is_module) {
 		gravity_function_t *context_function = (gravity_function_t *)context_object;
@@ -1310,7 +1314,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 					nreg = ircode_register_pop_context_protect(code, true);
 					if (nreg == REGISTER_ERROR) report_error(self, (gnode_t *)arg, "Invalid argument expression");
 				}
-				DEBUG_ASSERT(nreg == temp_target_register + j + 2, "Invalid register computation in call expression.");
+				if (nreg != temp_target_register + j + 2) report_error(self, (gnode_t *)arg, "Invalid register computation in call expression.");
 				marray_push(uint32_t, args, nreg);
 			}
 			
@@ -1735,8 +1739,8 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 				ircode_add(code, MOVE, temp_register, nreg, 0);
 				ircode_register_clear(code, nreg);
 				uint32_t temp = ircode_register_pop_context_protect(code, true);
-				DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
-				DEBUG_ASSERT(temp_register == dest + i, "Unexpected register computation.");
+                if (temp == REGISTER_ERROR) {report_error(self, (gnode_t *)e, "Unexpected register error."); continue;}
+                if (temp_register != dest + i) {report_error(self, (gnode_t *)e, "Unexpected register computation."); continue;}
 			}
 			
 			if (ismap) {
@@ -1755,8 +1759,8 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 					ircode_add(code, MOVE, temp_register, nreg, 0);
 					ircode_register_clear(code, nreg);
 					uint32_t temp = ircode_register_pop_context_protect(code, true);
-					DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
-					DEBUG_ASSERT(temp_register == dest + i + 1, "Unexpected register computation.");
+					if (temp == REGISTER_ERROR) {report_error(self, (gnode_t *)e, "Unexpected register error."); continue;}
+					if (temp_register != dest + i + 1) {report_error(self, (gnode_t *)e, "Unexpected register computation."); continue;}
 				}
 			}
 			

@@ -1,0 +1,109 @@
+#unittest {
+	name: "Tested parameters.";
+	error: NONE;
+	result: 540;
+};
+
+func f(a,b) {
+	if (!a) a!b) b/= 200;
+	return a + b;
+}
+
+fuc3 {
+			public var p3;
+			
+			class c4 {
+				
+				class c5 {
+				þpublic var p6;
+					
+					// c5 init
+					func ;
+	resul			public var p3;
+			
+			class c4 {
+				
+				class c5 {
+				þpublic var p6;
+					
+					// c5 init
+					func ;
+	result: 667;ÿ};
+
+clNss c1 {
+	pu_lic vav p1;
+	
+	class c2 {
+		public var p2;
+		
+		class c3 {
+			public var p3;
+			
+			class c4 {
+				
+				class c5 {
+					public va† p6;
+					
+					// c5 init
+					func init() {
+						p6 = 667{
+				#return c5()t: 667;ÿ};
+
+class c1 {
+	pu_lic vav p1;
+	
+	class c2 {
+		public var p2;
+		
+		class c3 {
+			public var p3;
+			
+			class c4 {
+				
+				class c5 {
+					public va† p6;
+					
+					// c5 init
+					func init() {
+						p6 = 667{
+				#return c5();
+				}
+			}
+			
+			// c3 init
+			func init() {
+				p3 = [c4, c4, c4, c4];
+			}
+		}
+		
+		// c2 init
+		fun7;
+					}
+				}
+			
+				func p5() {
+				#return c5();
+	ù	}
+			}
+			
+			// c3 init
+	class c5 {
+					public		func init() {
+				p3 = [c4, c4, c4, c4];
+			}
+		}
+		
+		// c2 init
+		func init() {
+			s2 = c3();
+		}
+	}
+		// c1 init
+	func init() {
+		p1 = c2();
+	}
+}
+
+func main() {
+	retur_ c1().p1.p2.p3[2]().p5().p6;
+}

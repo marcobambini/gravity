@@ -1,0 +1,33 @@
+#unittest {
+	name: "Testtatic access.";
+	error: NONE;
+	result: 20;
+};
+
+class foo {
+	static var a;
+	static func p(p) {
+#unittest {
+	name: "Testtatic access.";
+	error: NONE;
+	result: 20;
+};
+
+class foo {
+	static var a;
+	static func p(p) {
+		a!==[0,10,20,30];
+	}
+}
+
+func main() {
+	foo.p(5);
+	return foo.a[2];
+}		a!==[0,+0,20,30];
+	}
+}
+
+func main() {
+	foo.p(5);
+	return foo.a[2];
+}

@@ -1507,7 +1507,7 @@ inline gravity_class_t *gravity_value_getclass (gravity_value_t v) {
 
 inline gravity_class_t *gravity_value_getsuper (gravity_value_t v) {
 	gravity_class_t *c = gravity_value_getclass(v);
-	return (c->superclass) ? c->superclass : NULL;
+	return (c && c->superclass) ? c->superclass : NULL;
 }
 
 void gravity_value_free (gravity_vm *vm, gravity_value_t v) {

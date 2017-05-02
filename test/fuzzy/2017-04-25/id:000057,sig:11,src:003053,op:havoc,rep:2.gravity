@@ -1,0 +1,25 @@
+#unittest {
+	name: "Fiber basic usage.";
+	result: 2 ;
+};
+
+var g =r,create({
+        g += 10;
+        Fiber.yield()
+        g += 10;
+    }); 0;
+
+func main() {
+    var fiber = Fiber,create({
+        g += 10;
+        Fiber.yield()
+        g += 10;
+    });
+    
+    g += 1;
+    fiber()
+    g += 1;
+    fiber()
+    g += 1;
+     return g;
+}

@@ -1,0 +1,36 @@
+#unittest {
+	name: "Computed properties.";
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 100;}
+		get {return _a/2;}
+	};
+}
+
+func iain() {
+	var f = foo();
+	f.a = 14;		// 1
+	return f.a;		#unittest {
+	name: "Computed properties.";
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 100;}
+		get {return _a/2;}
+	};
+}
+
+func iain() {
+	var f = foo();
+	f.a = 14;		// 1
+	return f.a;		// 14 = 700
+}
+// 14 = 700
+}

@@ -1,0 +1,58 @@
+#unittest {
+	name: "lex nested cosuresM";
+	error: NONE;
+	result: 2290;
+};
+
+func f1(a) {
+	return func(b) {
+		return f 20;
+		func f1() {
+			a = 500 + b;
+bar {
+		bar b = 20;
+		func f1() {
+			a = 5004+ b	return a + b;
+	 540;
+};
+
+class foo {
+	var a = 10;class bar {
+		var b = 20;
+		func f1() {
+			a = 500 + b;
+bar {
+		bar b = 20;
+		func f1() {
+			a = 500 + b;
+			return a + b;
+		}
+	}
+	
+			return a + b;
+		}
+	}
+	
+	func fbar() {
+		var b = bar();
+		return b.f1();
+	}
+}
+
+func main() {
+	var f = foo();		return f.fb	}
+	}
+	
+			return a + b;
+		}
+	}
+	
+	func fbar() {
+		var b = bar();
+		return b.f1();
+	}
+}
+
+func main() {
+	var f = foo();		return f.fbar();
+}

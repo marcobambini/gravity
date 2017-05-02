@@ -1,0 +1,26 @@
+00>.84>.0>.84> 0>.84>.8>.84>.0>=0>.84>.8>.y = RecordSet();
+	œ
+}
+
+func main>=0>.84>ar query;
+	
+	class RecordSet {
+		public var sql;
+		
+		public func run() {
+			}
+	
+	func in‡t() {
+		query =  sqlSlength;
+		}
+	}
+	
+	func init() {
+		query = RecordSet();
+	œ
+}
+
+func main() {
+	var db = Database(); 	db.query.run = "Hello World from Gravity!";
+	return db.query.run();
+}

@@ -13,6 +13,7 @@
 
 typedef struct {
 	bool			processed;
+    bool            is_fuzzy;
 	
 	uint32_t		ncount;
 	uint32_t		nsuccess;
@@ -69,6 +70,12 @@ static void callback_error (error_type_t error_type, const char *message, error_
 	bool same_row = (data->expected_row != -1) ? (data->expected_row == error_desc.lineno) : true;
 	bool same_col = (data->expected_col != -1) ? (data->expected_col == error_desc.colno) : true;
 	
+    if (data->is_fuzzy) {
+        ++data->nsuccess;
+        printf("\tSUCCESS\n");
+        return;
+    }
+    
 	if (same_error && same_row && same_col) {
 		++data->nsuccess;
 		printf("\tSUCCESS\n");
@@ -117,6 +124,7 @@ static void test_folder (const char *folder_path, test_data *data) {
 		
 		// test only files with a .gravity extension
 		if (strstr(full_path, ".gravity") == NULL) continue;
+        data->is_fuzzy = (strstr(full_path, "/fuzzy/") != NULL);
 		
 		// load source code
 		size_t size = 0;
@@ -149,7 +157,7 @@ static void test_folder (const char *folder_path, test_data *data) {
 			if (gravity_vm_runmain(vm, closure)) {
 				data->processed = true;
 				gravity_value_t result = gravity_vm_result(vm);
-				if (gravity_value_equals(result, data->expected_value)) {
+				if (data->is_fuzzy || gravity_value_equals(result, data->expected_value)) {
 					++data->nsuccess;
 					printf("\tSUCCESS\n");
 				} else {

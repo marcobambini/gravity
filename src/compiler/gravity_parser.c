@@ -30,7 +30,8 @@ struct gravity_parser_t {
 	uint32_t							nerrors;
 	uint32_t							unique_id;
 	uint32_t							last_error_lineno;
-    uint32_t                            depth;
+    uint32_t                            depth;              // to keep track of maximum statements depth
+    uint32_t                            expr_depth;         // to keep track of maximum expression depth
 	
 	// state ivars used by Pratt parser
 	gtoken_t							current_token;
@@ -83,6 +84,7 @@ static grammar_rule rules[TOK_END];
 
 // MARK: - Internal macros -
 #define MAX_RECURSION_DEPTH                     1000
+#define MAX_EXPRESSION_DEPTH                    512
 #define MAX_NUMBER_LENGTH                       512
 #define SEMICOLON_IS_OPTIONAL					1
 
@@ -215,6 +217,18 @@ static bool parse_optional (gravity_parser_t *parser, gtoken_t token) {
 	return false;
 }
 
+static bool parse_skip_until (gravity_parser_t *parser, gtoken_t token) {
+    DECLARE_LEXER;
+    
+    while (1) {
+        gtoken_t tok = gravity_lexer_next(lexer);
+        if (tok == token) return true;
+        if (tok == TOK_EOF) return false;
+    }
+    
+    return false;
+}
+
 static bool parse_required (gravity_parser_t *parser, gtoken_t token) {
 	if (parse_optional(parser, token)) return true;
 	
@@ -321,8 +335,14 @@ static gnode_t *decl_check_access_specifier (gnode_t *node) {
     if (node->tag == NODE_VARIABLE_DECL) {
         // default access specifier for variables is TOK_KEY_PUBLIC
         gnode_variable_decl_t *vdec_node = (gnode_variable_decl_t *)node;
-        bool is_private = ((gnode_array_size(vdec_node->decls) > 0) && (((gnode_var_t *)gnode_array_get(vdec_node->decls, 0))->identifier[0] == '_'));
-        if (vdec_node->access == 0) vdec_node->access = (is_private) ? TOK_KEY_PRIVATE : TOK_KEY_PUBLIC;
+        if (vdec_node->access == 0) {
+            bool is_private = false;
+            if (gnode_array_size(vdec_node->decls) > 0) {
+                gnode_var_t *var = (gnode_var_t *)gnode_array_get(vdec_node->decls, 0);
+                is_private = (var->identifier && var->identifier[0] == '_');
+            }
+            vdec_node->access = (is_private) ? TOK_KEY_PRIVATE : TOK_KEY_PUBLIC;
+        }
     } else if (node->tag == NODE_FUNCTION_DECL) {
         // default access specifier for functions is PUBLIC
         gnode_function_decl_t *fdec_node = (gnode_function_decl_t *)node;
@@ -981,7 +1001,16 @@ static gnode_t *parse_precedence(gravity_parser_t *parser, prec_level precedence
 	
 	// execute prefix callback (if any)
 	parse_func prefix = rules[type].prefix;
+    
+    // to protect stack from excessive recursion
+    if (prefix && (++parser->expr_depth > MAX_EXPRESSION_DEPTH)) {
+        // consume next token to avoid infinite loops
+        gravity_lexer_next(lexer);
+        REPORT_ERROR(gravity_lexer_token(lexer), "Maximum expression depth reached.");
+        return NULL;
+    }
 	gnode_t *node = (prefix) ? prefix(parser) : NULL;
+    if (prefix) --parser->expr_depth;
 	
 	if (!prefix || !node) {
 		// we need to consume next token because error was triggered in peek
@@ -1939,7 +1968,10 @@ static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
 	if (value_node) gnode_free((gnode_t*)value_node);
 	
 	// always return NULL
+    return NULL;
+    
 handle_error:
+    parse_skip_until(parser, TOK_OP_CLOSED_CURLYBRACE);
 	return NULL;
 }
 

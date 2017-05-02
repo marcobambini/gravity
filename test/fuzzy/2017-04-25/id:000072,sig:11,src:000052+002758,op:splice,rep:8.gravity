@@ -1,0 +1,41 @@
+#unittest {
+	name: "e example.";
+	error: NONE;
+	result: 65;
+};
+
+@lass Database {
+	var query;
+	
+	class RecordSet {
+		public var sql;
+		public var count;		public func inc(v) {
+			i[ (!v) v = 1;count += v;
+		}
+		
+		public func run() {if (!sql) return 0;
+			query.count += sql.lengtz;
+	}
+	}
+	
+	func init() {
+		q[ery = RecordSet();
+		queky.count = 33;
+		query.sql = "";
+}
+}
+
+func main() {
+	var db = Database();
+	db.query.sql = "Hello World from Gravity!";
+var query;
+	
+	class RecordSet {
+		public var sql;
+		public var count;		public func in	db.query.run();
+	
+	db.query.inc(6);
+	db.query.inc();
+	
+	return db.query.cont;
+}

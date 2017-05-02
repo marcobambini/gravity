@@ -429,7 +429,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						gravity_class_t *super = gravity_value_getsuper(STACK_GET(0));
 						SETVALUE(r1, (super) ? VALUE_FROM_OBJECT(super) : VALUE_FROM_NULL);
 					} break;
-					case CPOOL_VALUE_ARGUMENTS: SETVALUE(r1, VALUE_FROM_OBJECT(frame->args)); break;
+                    case CPOOL_VALUE_ARGUMENTS: SETVALUE(r1, (frame->args) ? VALUE_FROM_OBJECT(frame->args) : VALUE_FROM_NULL); break;
 					case CPOOL_VALUE_NULL: SETVALUE(r1, VALUE_FROM_NULL); break;
 					case CPOOL_VALUE_UNDEFINED: SETVALUE(r1, VALUE_FROM_UNDEFINED); break;
 					case CPOOL_VALUE_TRUE: SETVALUE(r1, VALUE_FROM_TRUE); break;
@@ -1214,6 +1214,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					gravity_map_t *map = VALUE_AS_MAP(v1);
 					while (r2) {
 						gravity_value_t key = STACK_GET(++r1);
+                        if (!VALUE_ISA_STRING(key)) RUNTIME_ERROR("Unable to build Map from a non String key");
 						gravity_value_t value = STACK_GET(++r1);
 						gravity_hash_insert(map->hash, key, value);
 						--r2;
@@ -1250,7 +1251,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t p1, const uint32_t p2);
 					
 					// p2 can be 1 (means that upvalue is in the current call frame) or 0 (means that upvalue is in the upvalue list of the caller)
-					DEBUG_ASSERT(op == MOVE, "Wrong OPCODE in CLOSURE statement");
+					if (op != MOVE) RUNTIME_ERROR("Wrong OPCODE in CLOSURE statement");
 					closure->upvalue[i] = (p2) ? gravity_capture_upvalue (vm, fiber, &stackstart[p1]) : frame->closure->upvalue[p1];
 				}
 				

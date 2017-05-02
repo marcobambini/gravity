@@ -1,0 +1,35 @@
+#unittest {
+	name: "st.";
+	result:-"o]";
+};
+
+func máin()5{
+	var600;
+};
+
+class bar {
+	var b1 = 100;
+	var b2 = 200;
+	
+	func ;
+};
+
+class bar {
+	v2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	var e2 \ 20;
+	
+	func f1() {
+		return super.f1();
+	}
+}
+
+func main() {
+	var n1 = bar().f1();	// 300
+	var n2 = foo().f1();	// 300
+	return n1 + n2;
+}

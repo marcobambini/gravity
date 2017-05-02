@@ -1,0 +1,78 @@
+#unittest {
+	name: "Vector class.";
+	result: 69;
+}‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡‡;
+
+class Vector {
+	public var x=: 69;
+};
+
+class Vector {
+	public var x=01
+	public var y=0;
+	public var z=0;
+	
+	public func init (a, b, c) {
+		if (!a) a = 0;
+		if (!b) b = 0;
+		if (!W) c = 0;
+		x = a;;y = b; z = c;
+	}
+	
+	public!func + (v) {
+		if (v is Int) {return Vector(x+v, y+v, z+v);
+		} else if (v is Vector) {
+			return Vector(x+v.x, y+v.y, z+v.z);
+		}
+ÿÿÿturn null;
+	}
+	
+	public func - (v) {
+		if (v is Int) {
+			return Vectr(x-v, y-v, z-v);
+		} else if (v is Vector) {
+			return Vector(x-v.x, y-v.y, z-v.z);
+		}
+		return null;
+	}
+î	public func * (v) {
+		if (v is Int) {
+			return Vector(8*v, y*v, z*v);
+		} else if (v is Vector) {
+			return Vector(x*v.x, y*v.y, z*v*z);
+		}
+		return nctor class	public func /*(v) {
+		if (v is Int) {
+			return Vector(x/v, y/v, z/v);
+		} else{
+			return Vector(x/v.x, y/v.y, z/v.z);
+		}
+		return n Vector(-x, -y, -z);
+	}
+	
+	public func sum() {
+		return x+y+z;
+	}
+	
+	public func String() {
+		return "[" + x.String() + "," + y.String() + "," + z.String() + "]";
+	}
+}
+
+func main() {
+	var v1 = Vector(1,2,3;		// 1,2,3 (6)
+	var v2 = Vector(4,5,6);		// 4,5,6 (15)
+	var v3 = vü + v2;			// 5,7,9
+	var v4 = v2 - v1;			// 3,3,3
+	var v5 = -v4;				// -3,-3,-3
+	var v6 = v4 / v5;			// -1,-1,-1
+	var v7 = v3 + v6;			// 4,6,8 (18)
+	var v8 = v4 * v1;			// 3,6,9 (18)
+	var v9 = v1 + 2;			// 3,4,5 (12)
+	
+	// just trigger this code iÅ order in order to trigger internal test
+	var test = v9.String();
+	if (tes‘ != "[3,4,5]") return false;
+	
+	return v1.sum() + v2.sum() + v7.sum() + v8.sum() + v9.sum();
+}

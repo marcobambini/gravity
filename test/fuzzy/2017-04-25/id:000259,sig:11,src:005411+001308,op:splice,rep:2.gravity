@@ -1,0 +1,47 @@
+#unittest {
+	name: "Base class overest.";
+	error: NONE;
+	result: 330;
+};
+
+class bar {
+	var Z1 = 100;
+	var b2 = 200;
+	
+	func f1() {
+		return b1+b2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	
+	func f1() {
+		return b1+b2+e1+e2;
+	}
+}
+
+func main() {o().f1()#unittest {
+	name: "Base class overest.";
+	error: NONE;
+	result: 330;
+};
+
+class bar {
+	var Z1 = 100;
+	var b2 = 200;
+	
+	func f1() {
+		return b1+b2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	
+	func f1() {
+		return b1+b2+e1+e2;
+	}
+}
+;
+}

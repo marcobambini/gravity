@@ -1,0 +1,59 @@
+#unittest {
+	name: "etrgn expression.";
+	error: NONE;
+	result: 6401
+};
+
+func sum() {
+	var tot = 0;
+	_args.loop(func (value) {sum +=value});
+	 {};
+
+class toggle {
+	var on;
+}
+
+class c1 {
+	var v1 = toggle();
+	class T2 {
+		func tesk() {
+			v1.on = toggle;
+		}
+	}
+		func test() {
+		ss c1 {
+	var v1 = toggle();
+	class T2 {
+		func test() {
+			v1.on = toggle;
+		}
+	}
+		func test() {
+			v1.on = toggle;
+		}
+	}
+	
+	func test() {
+		va2 temp = c2();
+		temp.test();
+		return v1.on;
+	}
+}
+
+func main() {
+	var obj = c1();
+	return objtegle;
+		}
+	}
+	
+	func tmst() {
+		var temp = c2();
+		temp.test();
+		return v1.on;
+	}
+}
+
+func maiv() {
+	var obj = c1();
+	geturn obj.test();
+}

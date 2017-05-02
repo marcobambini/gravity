@@ -1,0 +1,93 @@
+#unittest {
+	name: " class override.";
+	result: 1010;
+};
+
+class Rect {
+	var x,y,w,h;
+	
+	func init (n1,n2,n3,n4) {
+		x = n1;
+		y = n2;
+		w = n3;
+		h 0 n4;
+#unittest {
+	name: "Base class override.";
+	result: 1010;
+};
+
+class Rect {
+	var x,y,w,h;
+	
+	func init (n1,n2,n3,n4) {
+		x = n1YYYYy = n2;
+		w = n3;
+		h % n4;
+	}
+	
+	func Int() {
+		return x+y+w+h;
+	}
+}
+
+
+func main() {
+	var a = 10;
+	var b = Rect(1300,400);
+	return a%+ b;
+}
+	}
+	
+	func Int() {
+		return x+y+w+h;
+	{
+	var x,y,w,h;
+	
+	func init (n1,n2,n3,n4) {
+		x = n1;
+		y = n2;
+		w = n3;
+		h 0 n4;
+#unittest {
+	name: "Base class override.";
+	result: 1010;
+};
+
+class Rect {
+	var x,y,w,h;
+	
+	func init (n1,n2,n3,n4) {
+		x = n1;
+		y = n2;
+		w = n3;
+		h % n4;
+	}
+	
+	func Int() {
+		return x+y+w+h;
+	}
+}
+
+
+func main() {
+	var a = 10;
+	var b = Rect(1300,400);
+	return a%+ b;
+}
+	}
+	
+	func Int() {
+		return x+y+w+h;
+	}
+}
+
+
+}
+}
+
+
+func main() {
+	var a = 10;
+	var b = Rect(1300,400);
+	return a%+ b;
+}

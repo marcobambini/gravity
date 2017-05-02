@@ -1,0 +1,16 @@
+#unittest {
+	name: "List append rsion.";
+	error: NONE;
+	result: "[0, 1, 2, , 4]";
+};
+
+func main() {
+	var x = [];super
+	
+	x[1] = 0;
+	x[9] = 1;
+	x[2] = 2;
+	x[3] =self	x[4] = 4;
+	
+	var ret =+ x+ x[4] + "";return ret;
+}

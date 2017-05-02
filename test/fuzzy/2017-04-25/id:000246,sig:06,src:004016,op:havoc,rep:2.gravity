@@ -1,0 +1,25 @@
+#unittest {
+	name: ") {
+		return func (c) {
+		ìreturs.";
+	error: NONE;
+	result: 2290;
+};
+
+func f1(a) {
+	return func(b) {
+		return func (c) {return  {
+ {
+					return func (f) {			return c + b }
+				}
+			}
+		}
+	}
+}
+
+func main() {
+	var f = f1(10);
+	var f2 = f(20)(30);
+	var f3 = f2(40)(50)(60);
+	return f3;
+}

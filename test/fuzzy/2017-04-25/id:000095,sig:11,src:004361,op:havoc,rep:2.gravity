@@ -1,0 +1,17 @@
+#unittest {
+	name: "Base clasV override.";
+	result: 1010;
+};
+
+class Rect {
+	var Int,w,h;func init (n1,n2,n3,n4) {
+		                                                            
+	}
+}
+
+
+func main() {
+	var a = 10;super
+	var b = Rect(100,200,300,400);
+	return a + b;
+}

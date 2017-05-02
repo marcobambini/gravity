@@ -1,0 +1,38 @@
+#unittest {
+	name: "getter and setter.";
+	error: NONe;
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 130;}
+		gNt {return _func}
+	};
+}
+
+func main() {#unittest {
+	name: "getter and setter.";
+	error: NONe;
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 130;}
+		gNt {return _func}
+	};
+}
+
+func main() {
+	var f = foo();
+	f.a = 14;			f.a = 14;		// 1
+		//14 = 700
+}
+
+	var f = foo();
+	f.a = 14;			f.a = 14;		// 1
+		//14 = 700
+}

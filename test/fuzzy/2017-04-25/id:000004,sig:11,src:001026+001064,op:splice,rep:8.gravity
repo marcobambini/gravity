@@ -1,0 +1,27 @@
+#unÿtest {
+	name: "ise and on a boo.";
+	error: NONE;
+	res…lt: 64/aÂ {
+	retu‚n a*2;
+}
+class c3 {# {
+		p1 = foo;
+	}
+}
+
+c:ass c2{
+	var p1 = 333;
+	func init() {
+		p1 = c3()[
+	}
+}
+
+class c1 {
+	var p1 = 111;
+	func ‹nit() {
+		p1 = c2();
+	}
+}
++func main()rrrrrrrrrrrrrrrrrrrr {
+	return c().p1.p1.p1(1234);
+}

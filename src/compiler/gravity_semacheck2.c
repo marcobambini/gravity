@@ -101,7 +101,6 @@ static symboltable_t *symtable_from_node (gnode_t *node) {
 	if (ISA(node, NODE_FUNCTION_DECL)) return ((gnode_function_decl_t *)node)->symtable;
 	
 	// should never reach this point
-	assert(0);
 	return NULL;
 }
 
@@ -154,6 +153,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 				}
 			 */
 			REPORT_ERROR(node, "Unable to access local func var %s from within a class.", identifier);
+            return NULL;
 		}
 		
 		// if target is class and symbol is not found then lookup also its superclass hierarchy
@@ -161,6 +161,11 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 			// lookup identifier in super (if not found target class)
 			gnode_class_decl_t *c = (gnode_class_decl_t *)target;
 			gnode_class_decl_t *super = (gnode_class_decl_t *)c->superclass;
+            if (super && !NODE_ISA(super, NODE_CLASS_DECL)) {
+                REPORT_ERROR(node, "Cannot set superclass of %s to non class object.", c->identifier);
+                return NULL;
+            }
+            
 			while (super) {
 				symbol = lookup_node((gnode_t *)super, identifier);
 				if (symbol) {
@@ -168,6 +173,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 						gnode_var_t *p = (gnode_var_t *)symbol;
 						if (p->access == TOK_KEY_PRIVATE) {
 							REPORT_ERROR(node, "Forbidden access to private ivar %s from a subclass.", p->identifier);
+                            return NULL;
 						}
 					}
 					break;
@@ -211,8 +217,12 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 				// base_node has index = len - 1 so from (len - 2) up to n-1 levels
 				uint16_t idx = (uint16_t)(len - 2);
 				while (n > 1) {
-					f = (gnode_function_decl_t *) gnode_array_get(decls, idx);
-					gnode_function_add_upvalue(f, var, --n);
+					gnode_t *enc_node = gnode_array_get(decls, idx);
+                    if (!(ISA(enc_node, NODE_FUNCTION_DECL))) {
+                        REPORT_ERROR(node, "An error occurred while setting upvalue for enclosing functions.");
+                        return NULL;
+                    }
+					gnode_function_add_upvalue((gnode_function_decl_t *)enc_node, var, --n);
 					--idx;
 				}
 				
@@ -271,6 +281,7 @@ static bool is_expression (gnode_t *node) {
 }
 
 static bool is_expression_assignment (gnode_t *node) {
+    if (!node) return false;
 	gnode_n tag = NODE_TAG(node);
 	if (tag == NODE_BINARY_EXPR) {
 		gnode_binary_expr_t *expr = (gnode_binary_expr_t *)node;
@@ -436,10 +447,12 @@ static bool check_assignment_expression (gvisitor_t *self, gnode_binary_expr_t *
 		if (ISA(expr->id, NODE_LITERAL_EXPR)) {
 			result = false;
 		} else {
+            if (!expr->list) return false;
 			// basically the LATEST node of a postfix expression cannot be a CALL in an assignment
 			// so we are avoiding expressions like: a(123) = ...; or a.b.c(1,2) = ...;
 			size_t count = gnode_array_size(expr->list);
 			gnode_postfix_subexpr_t *subnode = (gnode_postfix_subexpr_t *)gnode_array_get(expr->list, count-1);
+            if (!subnode) return false;
 			result = (NODE_TAG(subnode) != NODE_CALL_EXPR);
 		}
 	}
@@ -459,7 +472,7 @@ static bool check_range_expression (gvisitor_t *self, gnode_binary_expr_t *node)
 		gnode_t *range = r[i];
 		if (ISA_LITERAL(range)) {
 			gnode_literal_expr_t *expr = (gnode_literal_expr_t *)range;
-			if (expr->type != LITERAL_INT) {REPORT_ERROR(node, "Range must be integer.");} return false;
+			if (expr->type != LITERAL_INT) {REPORT_ERROR(node, "Range must be integer."); return false;}
 		}
 	}
 	return true;
@@ -469,8 +482,11 @@ static bool check_class_ivar (gvisitor_t *self, gnode_class_decl_t *classnode, g
 	size_t count = gnode_array_size(node->decls);
 	
 	gnode_class_decl_t *supernode = (gnode_class_decl_t *)classnode->superclass;
+    if (!NODE_ISA(supernode, NODE_CLASS_DECL)) return false;
+    
 	for (size_t i=0; i<count; ++i) {
 		gnode_var_t *p = (gnode_var_t *)gnode_array_get(node->decls, i);
+        if (!p) continue;
 		DEBUG_SEMANTIC("check_ivar %s", p->identifier);
 		
 		// do not check internal outer var
@@ -479,7 +495,8 @@ static bool check_class_ivar (gvisitor_t *self, gnode_class_decl_t *classnode, g
 		while (supernode) {
 			symboltable_t *symtable = supernode->symtable;
 			if (symboltable_lookup(symtable, p->identifier) != NULL) {
-				REPORT_WARNING((gnode_t *)node, "Property '%s' defined in class '%s' already defined in its superclass %s.", p->identifier, classnode->identifier, supernode->identifier);
+				REPORT_WARNING((gnode_t *)node, "Property '%s' defined in class '%s' already defined in its superclass %s.",
+                               p->identifier, classnode->identifier, supernode->identifier);
 			}
 			supernode = (gnode_class_decl_t *)supernode->superclass;
 		}
@@ -522,6 +539,7 @@ static void visit_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) 
 	gnode_t			*top = TOP_DECLARATION();
 	symboltable_t	*symtable = symtable_from_node(top);
 	
+    if (!symtable) return;
 	symboltable_enter_scope(symtable);
 	gnode_array_each(node->stmts, {visit(val);});
 	
@@ -572,13 +590,28 @@ static void visit_loop_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 	
 	// check pre-conditions
 	const char	*LOOP_NAME;
-	gnode_t		*cond;
+	gnode_t		*cond = NULL;
 	if (type == TOK_KEY_WHILE) {LOOP_NAME = "WHILE"; cond = node->cond;}
 	else if (type == TOK_KEY_REPEAT) {LOOP_NAME = "REPEAT"; cond = node->expr;}
 	else if (type == TOK_KEY_FOR) {LOOP_NAME = "FOR"; cond = node->cond;}
-	else {cond = NULL; assert(0);}
-	if (is_expression_assignment(cond))
+    
+    // sanity check
+    if (type == TOK_KEY_WHILE) {
+        if (!node->cond) {REPORT_ERROR(node, "Missing %s condition.", LOOP_NAME); return;}
+        if (!node->stmt) {REPORT_ERROR(node, "Missing %s statement.", LOOP_NAME); return;}
+    } else if (type == TOK_KEY_REPEAT) {
+        if (!node->stmt) {REPORT_ERROR(node, "Missing %s statement.", LOOP_NAME); return;}
+        if (!node->expr) {REPORT_ERROR(node, "Missing %s expression.", LOOP_NAME); return;}
+    } else if (type == TOK_KEY_FOR) {
+        if (!node->cond) {REPORT_ERROR(node, "Missing %s condition.", LOOP_NAME); return;}
+        if (!node->expr) {REPORT_ERROR(node, "Missing %s expression.", LOOP_NAME); return;}
+        if (!node->stmt) {REPORT_ERROR(node, "Missing %s statement.", LOOP_NAME); return;}
+    }
+    
+    if (is_expression_assignment(cond)) {
 		REPORT_ERROR(cond, "Assignments in Gravity does not return a value so cannot be used inside a %s condition.", LOOP_NAME);
+        return;
+    }
 	
 	// FOR condition MUST be a VARIABLE declaration or an IDENTIFIER
 	if (type == TOK_KEY_FOR) {
@@ -682,7 +715,10 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 		gnode_array_each(node->params, {
 			gnode_var_t *p = (gnode_var_t *)val;
 			p->env = (gnode_t*)node;
-			if (!symboltable_insert(symtable, p->identifier, (void *)p)) REPORT_ERROR(p, "Parameter %s redeclared.", p->identifier);
+            if (!symboltable_insert(symtable, p->identifier, (void *)p)) {
+                REPORT_ERROR(p, "Parameter %s redeclared.", p->identifier);
+                continue;
+            }
 			SET_LOCAL_INDEX(p, symtable);
 			DEBUG_SEMANTIC("Local:%s index:%d", p->identifier, p->index);
 		});
@@ -695,10 +731,13 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	// exit function scope
 	uint16_t nparams = (node->params) ? (uint16_t)marray_size(*node->params) : 0;
 	uint32_t nlocals = symboltable_exit_scope(symtable, NULL);
-	if (nlocals > MAX_LOCALS) REPORT_ERROR(node, "Maximum number of local variables reached in function %s (max:%d found:%d).",
+    if (nlocals > MAX_LOCALS) {
+        REPORT_ERROR(node, "Maximum number of local variables reached in function %s (max:%d found:%d).",
 										   node->identifier, MAX_LOCALS, nlocals);
-	node->nlocals = (uint16_t)nlocals - nparams;
-	node->nparams = nparams;
+    } else {
+		node->nlocals = (uint16_t)nlocals - nparams;
+		node->nparams = nparams;
+    }
 	
 	// check upvalue limit
 	uint32_t nupvalues = (node->uplist) ? (uint32_t)marray_size(*node->uplist) : 0;
@@ -734,7 +773,10 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 		
 		if (env_is_function) {
 			// local variable defined inside a function
-			if (!symboltable_insert(symtable, p->identifier, (void *)p)) REPORT_ERROR(p, "Identifier %s redeclared.", p->identifier);
+            if (!symboltable_insert(symtable, p->identifier, (void *)p)) {
+                REPORT_ERROR(p, "Identifier %s redeclared.", p->identifier);
+                continue;
+            }
 			SET_LOCAL_INDEX(p, symtable);
 			DEBUG_SEMANTIC("Local:%s index:%d", p->identifier, p->index);
 		} else if (env == NODE_CLASS_DECL) {
@@ -747,6 +789,8 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 			
 			// super class is a static information so I can solve the fragile class problem at compilation time
 			gnode_class_decl_t *super = (gnode_class_decl_t *)c->superclass;
+            if (super && !NODE_ISA(super, NODE_CLASS_DECL)) return;
+            
 			while (super) {
 				n2 = (node->storage == TOK_KEY_STATIC) ? super->nsvar : super->nivar;
 				super = (gnode_class_decl_t *)super->superclass;
@@ -789,8 +833,22 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
         
         // lookup super node
 		gnode_t *target = lookup_symtable_id(self, id, true);
-		if (!target) REPORT_ERROR(id, "Unable to find superclass %s for class %s.", id->value, node->identifier);
 		node->superclass = target;
+        
+        if (!target) {
+            REPORT_ERROR(id, "Unable to find superclass %s for class %s.", id->value, node->identifier);
+        } else {
+            gnode_class_decl_t *target_class = NODE_ISA(target, NODE_CLASS_DECL) ? (gnode_class_decl_t *)target : NULL;
+            
+            if (!target_class) {
+                REPORT_ERROR(id, "Unable to set non class %s as superclass of %s.", id->value, node->identifier);
+            } else if ((gnode_class_decl_t *)node == (gnode_class_decl_t *)target_class->superclass) {
+                REPORT_ERROR(id, "Unable to set circular class hierarchies (%s <-> %s).", id->value, node->identifier);
+                gnode_free((gnode_t*)id);
+                return;
+            }
+        }
+        
 		gnode_free((gnode_t*)id);
 	}
 	
@@ -973,6 +1031,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			size_t n = gnode_array_size(subnode->args);
 			for (size_t j=0; j<n; ++j) {
 				gnode_t *val = (gnode_t *)gnode_array_get(subnode->args, j);
+                if (is_expression_assignment(val)) {REPORT_ERROR(val, "Assignment does not have side effects and so cannot be used as function argument."); return;}
 				visit(val);
 			}
 			continue;

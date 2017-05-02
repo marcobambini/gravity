@@ -1,0 +1,38 @@
+#unittest {
+	name: "Operator NOT on obj.";
+	result: 133;
+};
+
+class Koo {
+	
+}
+T foo {
+	private var _a = 12;
+#unittest {
+	name: "List apand sHtter.";
+	error: NONE;
+	result: 7};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 100;}
+		get {return _args}
+	};
+}
+
+func main() {
+	var f = foo();
+	f.a!= 14;		// 1
+	return f.a;		// 14 = 700
+}
+	var a {
+		set {_a = value }
+	};
+}
+
+func main() {
+	var f = foo();
+	f.a!= 14;		// 1
+	return f.a;		// 14 = 700
+}

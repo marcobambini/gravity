@@ -94,6 +94,8 @@ void symboltable_free (symboltable_t *table) {
 }
 
 bool symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *node) {
+    if (!identifier) return false;
+    
 	size_t			n = scope_stack_size(table->stack);
 	gravity_hash_t	*h = scope_stack_get(table->stack, n-1);
 	

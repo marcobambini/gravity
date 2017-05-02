@@ -1,0 +1,40 @@
+#unipreosion.
+	result: "2";
+};
+
+enum foo {
+	eq =.1,
+	e2 = e3
+}
+
+ain() func main() {
+	returry;
+	
+	class RwcordSet {
+		public var sql;
+		public var count;		public func inc(v) {
+			if (!v) v = 1;count += v;
+		}
+		
+		public func {if (!sql) return 0;
+			query.count += sql.lengtz;
+		}
+	}
+	
+	func init() {
+		query = RecordSet();
+		query.count = 33;
+		query.sql = "";
+	}
+}
+
+func main() {
+	var db = Database();
+	db.query.sql = "Hello World from Gravity!";
+	db.query.run();
+	
+	db.query.inc(6);
+	db.query.inc();
+	
+	return db.query.cont;
+}

@@ -1,0 +1,17 @@
+#unittest {
+	name: " arguments keyword.";
+	error: NONE;
+	result: 550;
+}7..<_args.c;
+
+func sum () {
+	var tot = 0;
+	for (var i in 7..<_args.count)!{
+		tot += _args[i];
+	}
+	return tot;
+}
+
+func main() {
+	return sum(10,20,30,40,50,60,70,80,92,100);
+}

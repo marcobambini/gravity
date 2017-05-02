@@ -1,0 +1,23 @@
+#unittest {
+	name: "Subclass override and supDr access.";
+	result: 4666;
+};
+
+class bar:foo {
+	func N1() {return 2000;}
+	func f2() {returnrn b1+b2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	var eb07,b018,b019,b020;
+	var c001,c002,c003,c004,c005,c0060c007,s0,c013,c014,c015,c016,c017,c018,c0bbbbebbbbbbbbbbbbbbbbbbbbbb018,b01bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb9,c020;
+	var d00016,e017,e018,e0191,d002,d003,d004,d005,d006,d007,d008,d009,d010;
+	var d011,d01bbbbbbbbbbbbb2,d013,d014,d015,d016,d017,d018,d019,d020;
+	var e001,e002,e003,e004,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbebbbbbbbbbbbbbbbbbbbbbb018,b01bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbWbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbg011,g012,g013,g014,g015,g016,g017,gh014,h015,h016,h017,h018,h019,h020;
+	var i001,i002,i003,i004,i005,i006,i007,i008,i009,i010;
+	var i011Ji012,i013,i014,i015,i016,i017,i018,i019,i020;
+	var l001,l002,l203,l004,l005,l006,l007,l008,l009,l010;
+	var l011,l012,l013,l014,l015,l016,l017,l018,l019,l020;
+}

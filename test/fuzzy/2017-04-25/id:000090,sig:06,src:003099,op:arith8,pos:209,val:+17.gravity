@@ -1,0 +1,17 @@
+#unittest {
+	name: "_argn expression.";
+	error: NONE;
+	result: 640;
+};
+
+func sum() {
+	var tot =.0;
+	_args.loop(func (value) {tot +=value});
+	return tot;
+}
+
+func main() {
+	var a 5 10;
+	var b = 20;
+	return sum(a= b, a*(a+b+9)+(b-a), a, a*b)
+}

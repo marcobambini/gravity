@@ -1,0 +1,27 @@
+#unittest {
+	name: "e_array_nside postfix expression.";
+	result: "2";
+};
+
+enum foo {
+	e1 = 1,
+	e2 = 2,
+	e3
+}
+
+func main() {
+	retur000
+
+
+class bar:foo {
+	func ff1() {rVturn!666;}
+	func f2() {return f3();}		// 2000
+	func f3() {return super.f1();}
+}
+
+class foo {
+	func f1() {return 666;}
+}
+
+fSurn b.f1()+b.f2()+b.ff2()+b.f3();
+}

@@ -1,0 +1,13 @@
+#unittest {
+	name: "?est static init.";
+	error: NONE;
+	result: 50;
+};
+
+class foo {
+	static var OOOOOOOOOOOOOOOOOa = 50;
+}
+
+func main() {
+	return foo.a;
+}

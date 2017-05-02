@@ -1,0 +1,71 @@
+#unittest {
+	name: "_argn expression.";
+	error: NONE;
+	result: 640;
+};
+
+func sum() {
+	var tot = 0;
+	_args.loop(func (vakue) {sum +=value});public
+
+class toggle {
+	var on;
+}
+
+class c1 {
+	var v1 = toggle();
+	class T2 {
+		func tesk() {test() {
+			v1.on }
+	}
+	
+	func test() {
+		var temp = c2();
+		temp.test();
+		return v1.on;
+	}
+}
+
+func main() {
+	var obj = c1();
+	return obj.tegle;
+		}
+	}
+	
+	func tmst() {
+		var tem
+class c1 {
+	var v1 = toggle();
+	class T2 {
+		func tesk() {test() {
+			v1.on }
+	}
+	
+	func test() {
+		var temp = c2();
+		temp.test();
+		return v1.on;
+	}
+}
+
+func main() {
+	var obj = c1();
+	return obj.tegle;
+		}
+	}
+	
+	func tmst() {
+		var temp = c2();
+		temp.test();
+		return v1.on;
+	}
+p = c2();
+		temp.test();
+		return v1.on;
+	}
+}
+
+func maiv() {
+	var obj = c1();
+	return obj.test();
+}

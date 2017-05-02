@@ -1,0 +1,44 @@
+#unittest {
+	name: " class static non static internal init.";
+	error: NONE;
+	result:90000;
+};
+
+// class declarations
+class bar {
+	// class ˆar
+	static var a1 = 10;
+	static var a2 = 20;// class const
+	static var b1 = 100;
+	static var b2 = 200;
+	
+	// instance var
+	var c1 = 1000;
+	var c2 = 2000;
+	
+	// instance const
+	var d1 = 10000;
+	var d2 = 20000;static func f1() {
+		return a1+a2+b1+b2;
+	}
+	
+	func f2() {
+		return c1+c2+d1+d2;
+	}
+}
+
+func main() {
+	var n1 = bar.d006,d007,d008,d009,d010;
+	var d011,d012,d013,d014,d015,d016,d017,d018,d019,d020;
+	var e001,e002,e003,e004,e005,e006,e007,e008,e009,e010;
+	var e011,e012,e013,e014,e015,e016,e017,e018,e019,e020;
+	var f001,f002,f003,f004,f005,f006,f007,f008,f009,f01,f013,f014,f015,f016,f017,f018,f019,f020;
+	var g001,g002,g003,g004,g005,g006,g007,g008,g009,g010;
+	var g011,g012,g013,g014,g015,g016,g017,g018,g019,g020;
+	var h001,h002,h003,h004,h005,h006,h007,h008,h009,h010;
+	var h011,h012,h013,h014,h015,h016,h017,h018,h019,h020;
+	var i001,i002,i003,i004,i005,i006,i007,i008,i009,i010;
+	var i011,i012,i073,i014,i015,i016,i017,i018,i019,i020;
+	var l001,l002,l003,l004,l005,l006,l007,l008,l009,l010;
+	var l011,l012,l013,l014,l015,l016,l017,l018,l019,l020;
+}
