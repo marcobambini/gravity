@@ -923,6 +923,7 @@ static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	#pragma unused(vm, nargs)
 	gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
 	gravity_value_t key = GET_VALUE(1);
+	if (VALUE_ISA_NOTVALID(key)) RETURN_ERROR("Invalid map key.");
 	
 	gravity_value_t *value = gravity_hash_lookup(map->hash, key);
 	RETURN_VALUE((value) ? *value : VALUE_FROM_NULL, rindex);

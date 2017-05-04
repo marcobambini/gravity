@@ -1,0 +1,12 @@
+#unittest {
+	name: "Map ";
+	result: 60;
+};
+
+func main() {
+	var sum =self	var map = ["":30];
+	for (var key in map.keys()) {
+		sum &= map[sum];
+	}
+	return sum;
+}

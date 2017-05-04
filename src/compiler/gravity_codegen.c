@@ -1240,7 +1240,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	
 	// register that contains callable object
 	uint32_t target_register = ircode_register_pop_context_protect(code, true);
-	if (target_register == REGISTER_ERROR) report_error(self, (gnode_t *)node->id, "Invalid postfix expression.");
+    if (target_register == REGISTER_ERROR) {
+        report_error(self, (gnode_t *)node->id, "Invalid postfix expression.");
+        return;
+    }
 	
 	// register where to store final result
 	uint32_t dest_register = target_register;
@@ -1288,14 +1291,20 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			uint32_t temp_target_register = ircode_register_push_temp(code);
 			ircode_add(code, MOVE, temp_target_register, target_register, 0);
 			uint32_t treg = ircode_register_pop_context_protect(code, true);
-			DEBUG_ASSERT(treg != REGISTER_ERROR, "Unexpected register error.");
+            if (treg == REGISTER_ERROR) {
+                report_error(self, (gnode_t *)subnode, "Unexpected register error.");
+                return;
+            }
 			
 			// always add SELF parameter (must be temp+1)
 			uint32_t self_register = marray_pop(self_list);
 			uint32_t temp_self_register = ircode_register_push_temp(code);
 			ircode_add(code, MOVE, temp_self_register, self_register, 0);
 			treg = ircode_register_pop_context_protect(code, true);
-			DEBUG_ASSERT(treg != REGISTER_ERROR, "Unexpected register error.");
+            if (treg == REGISTER_ERROR) {
+                report_error(self, (gnode_t *)subnode, "Unexpected register error.");
+                return;
+            }
 			
 			// process each parameter (each must be temp+2 ... temp+n)
 			marray_decl_init(uint32_r, args);
@@ -1307,7 +1316,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 				visit(arg);
 				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
 				uint32_t nreg = ircode_register_pop_context_protect(code, true);
-				if (nreg == REGISTER_ERROR) report_error(self, (gnode_t *)arg, "Invalid argument expression at index %d.", j+1);
+                if (nreg == REGISTER_ERROR) {
+                    report_error(self, (gnode_t *)arg, "Invalid argument expression at index %d.", j+1);
+                    return;
+                }
 				
 				// make sure args are in consecutive register locations (from temp_target_register + 1 to temp_target_register + n)
 				if (nreg != temp_target_register + j + 2) {
@@ -1316,9 +1328,15 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 					ircode_add(code, MOVE, temp, nreg, 0);
 					ircode_register_clear(code, nreg);
 					nreg = ircode_register_pop_context_protect(code, true);
-					if (nreg == REGISTER_ERROR) report_error(self, (gnode_t *)arg, "Invalid argument expression");
+                    if (nreg == REGISTER_ERROR) {
+                        report_error(self, (gnode_t *)arg, "Invalid argument expression");
+                        return;
+                    }
 				}
-				if (nreg != temp_target_register + j + 2) report_error(self, (gnode_t *)arg, "Invalid register computation in call expression.");
+                if (nreg != temp_target_register + j + 2) {
+                    report_error(self, (gnode_t *)arg, "Invalid register computation in call expression.");
+                    return;
+				}
 				marray_push(uint32_t, args, nreg);
 			}
 			
@@ -1343,7 +1361,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 					// code added in order to protect the extra register pushed in case
 					// of code like: f(20)(30)
 					uint32_t last_register = ircode_register_last(code);
-					if (last_register == REGISTER_ERROR) report_error(self, (gnode_t *)subnode, "Invalid call expression.");
+                    if (last_register == REGISTER_ERROR) {
+                        report_error(self, (gnode_t *)subnode, "Invalid call expression.");
+                        return;
+                    }
 					if (dest_is_temp && last_register == dest_register) dest_is_temp = false;
 				}
 				if (dest_is_temp) ircode_register_push(code, dest_register);
@@ -1360,17 +1381,26 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			uint32_t index_register = ircode_register_push_temp(code);
 			ircode_add(code, LOADK, index_register, index, 0);
 			uint32_t temp = ircode_register_pop(code);
-			if (temp == REGISTER_ERROR) report_error(self, (gnode_t *)expr, "Invalid access expression.");
+            if (temp == REGISTER_ERROR) {
+                report_error(self, (gnode_t *)expr, "Invalid access expression.");
+                return;
+            }
 			
 			// generate LOAD/STORE instruction
 			dest_register = (is_real_assigment) ? ircode_register_pop(code) : ircode_register_push_temp(code);
-			if (dest_register == REGISTER_ERROR) report_error(self, (gnode_t *)expr, "Invalid access expression.");
+            if (dest_register == REGISTER_ERROR) {
+                report_error(self, (gnode_t *)expr, "Invalid access expression.");
+                return;
+            }
 			
 			if (is_super) ircode_add(code, LOADS, dest_register, target_register, index_register);
 			else ircode_add(code, (is_real_assigment) ? STORE : LOAD, dest_register, target_register, index_register);
 			if ((!is_real_assigment) && (i+1<count)) {
 				uint32_t rtemp = ircode_register_pop_context_protect(code, true);
-				DEBUG_ASSERT(rtemp != REGISTER_ERROR, "Unexpected register error.");
+                if (rtemp == REGISTER_ERROR) {
+                    report_error(self, (gnode_t *)expr, "Unexpected register error.");
+                    return;
+                }
 			}
 			
 			// update self list (if latest instruction)
@@ -1386,15 +1416,24 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			visit(subnode->expr);
 			ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0);
 			uint32_t index = ircode_register_pop(code);
-			if (index == REGISTER_ERROR) report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
+            if (index == REGISTER_ERROR) {
+                report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
+                return;
+            }
 			
 			// generate LOADAT/STOREAT instruction
 			dest_register = (is_real_assigment) ? ircode_register_pop(code) : ircode_register_push_temp(code);
-			if (dest_register == REGISTER_ERROR) report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
+            if (dest_register == REGISTER_ERROR) {
+                report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
+                return;
+            }
 			ircode_add(code, (is_assignment) ? STOREAT : LOADAT, dest_register, target_register, index);
 			if ((!is_real_assigment) && (i+1<count)) {
 				uint32_t rtemp = ircode_register_pop_context_protect(code, true);
-				DEBUG_ASSERT(rtemp != REGISTER_ERROR, "Unexpected register error.");
+                if (rtemp == REGISTER_ERROR) {
+                    report_error(self, (gnode_t *)subnode->expr, "Unexpected register error.");
+                    return;
+                }
 			}
 		}
 		
