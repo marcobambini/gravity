@@ -251,7 +251,7 @@ static void fix_superclasses (gvisitor_t *self) {
 }
 
 // this function can be called ONLY from visit_postfix_expr where a context has been pushed
-static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t target_register) {
+static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t target_register, gnode_r *list) {
 	DEBUG_CODEGEN("compute_self_register");
 	DECLARE_CODE();
 	
@@ -261,8 +261,12 @@ static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t
 	// check for super keyword
 	if (IS_SUPER(node)) return 0;
 	
+    // examine next node in list
+    gnode_postfix_subexpr_t *next = (gnode_array_size(list) > 0) ? (gnode_postfix_subexpr_t *)gnode_array_get(list, 0) : NULL;
+    bool next_is_call = (next && next->base.tag == NODE_CALL_EXPR);
+	
 	// if node refers to an outer class then load outer class from hidden _outer ivar and return its register
-	if ((NODE_ISA(node, NODE_IDENTIFIER_EXPR) && ((gnode_identifier_expr_t *)node)->location.type == LOCATION_CLASS_IVAR_OUTER)) {
+	if ((NODE_ISA(node, NODE_IDENTIFIER_EXPR) && ((gnode_identifier_expr_t *)node)->location.type == LOCATION_CLASS_IVAR_OUTER) && next_is_call) {
 		gnode_identifier_expr_t *expr = (gnode_identifier_expr_t *)node;
 		uint32_t dest = ircode_register_push_temp(code);
 		uint32_t target = 0;
@@ -1243,7 +1247,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	
 	// mandatory self register (initialized to 0 in case of implicit self or explicit super)
 	uint32_r self_list; marray_init(self_list);
-	uint32_t first_self_register = compute_self_register(self, node->id, target_register);
+	uint32_t first_self_register = compute_self_register(self, node->id, target_register, node->list);
 	marray_push(uint32_t, self_list, first_self_register);
 	
 	// process each subnode and set is_assignment flag
