@@ -263,10 +263,10 @@ static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t
 	
     // examine next node in list
     gnode_postfix_subexpr_t *next = (gnode_array_size(list) > 0) ? (gnode_postfix_subexpr_t *)gnode_array_get(list, 0) : NULL;
-    bool next_is_call = (next && next->base.tag == NODE_CALL_EXPR);
+    bool next_is_access = (next && next->base.tag == NODE_ACCESS_EXPR);
 	
 	// if node refers to an outer class then load outer class from hidden _outer ivar and return its register
-	if ((NODE_ISA(node, NODE_IDENTIFIER_EXPR) && ((gnode_identifier_expr_t *)node)->location.type == LOCATION_CLASS_IVAR_OUTER) && next_is_call) {
+	if ((NODE_ISA(node, NODE_IDENTIFIER_EXPR) && ((gnode_identifier_expr_t *)node)->location.type == LOCATION_CLASS_IVAR_OUTER) && !next_is_access) {
 		gnode_identifier_expr_t *expr = (gnode_identifier_expr_t *)node;
 		uint32_t dest = ircode_register_push_temp(code);
 		uint32_t target = 0;
