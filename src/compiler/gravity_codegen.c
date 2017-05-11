@@ -1368,7 +1368,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 					if (dest_is_temp && last_register == dest_register) dest_is_temp = false;
 				}
 				if (dest_is_temp) ircode_register_push(code, dest_register);
-				ircode_register_protect_outside_context(code, dest_register);
+                if (!ircode_register_protect_outside_context(code, dest_register)) {
+                    report_error(self, (gnode_t *)subnode, "Invalid register access.");
+                    return;
+                }
 			}
 			
 			// free temp args array

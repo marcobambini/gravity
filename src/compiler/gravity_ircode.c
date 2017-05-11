@@ -434,11 +434,12 @@ uint32_t ircode_register_pop_context_protect (ircode_t *code, bool protect) {
 	return value;
 }
 
-void ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg) {
-	if (nreg < code->nlocals) return;
-	assert(code->state[nreg]);
+bool ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg) {
+	if (nreg < code->nlocals) return true;
+    if (!code->state[nreg]) return false;
 	bool *context = marray_last(code->context);
 	context[nreg] = false;
+    return true;
 }
 
 void ircode_register_protect_in_context (ircode_t *code, uint32_t nreg) {
@@ -486,6 +487,12 @@ void ircode_register_clear (ircode_t *code, uint32_t nreg) {
 	if (nreg == REGISTER_ERROR) return;
 	// cleanup busy mask only if it is a temp register
 	if (nreg >= code->nlocals) code->state[nreg] = false;
+}
+
+void ircode_register_set (ircode_t *code, uint32_t nreg) {
+    if (nreg == REGISTER_ERROR) return;
+    // set busy mask only if it is a temp register
+    if (nreg >= code->nlocals) code->state[nreg] = true;
 }
 
 uint32_t ircode_register_last (ircode_t *code) {
