@@ -22,6 +22,9 @@ else
 	ifeq ($(UNAME_S),Darwin)
 		# MacOS
 		LDFLAGS = -lm 
+	else ifeq ($(UNAME_S),OpenBSD)
+		# OpenBSD
+		LDFLAGS = -lm
 	else
 		# Linux
 		LDFLAGS = -lm -lrt
