@@ -24,6 +24,10 @@ else
 		# MacOS
 		LIBTARGET = libgravity.dylib
 		LDFLAGS = -lm 
+	else ifeq ($(UNAME_S),OpenBSD)
+		# OpenBSD
+		# LIBTARGET = libgravity.so (not used)
+		LDFLAGS = -lm
 	else
 		# Linux
 		LIBTARGET = libgravity.so
