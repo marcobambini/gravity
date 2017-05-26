@@ -457,6 +457,11 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
             }
 		}
 	}
+    
+    // sanity check for super operator
+    if (is_super && !VALUE_ISA_CLASS(target)) {
+        RETURN_ERROR("Unable to lookup super for non class object");
+    }
 	
 	// retrieve class and process key
 	gravity_class_t *c = (is_super) ? VALUE_AS_CLASS(target) : gravity_value_getclass(target);
