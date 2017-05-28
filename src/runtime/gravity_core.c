@@ -122,6 +122,13 @@ GRAVITY_API gravity_class_t *gravity_class_system;
 #define FUNCTION_ISA_SETTER(_f)					(_f->special[EXEC_TYPE_SPECIAL_SETTER] != NULL)
 #define FUNCTION_ISA_BRIDGED(_f)				(_f->index == GRAVITY_BRIDGE_INDEX)
 
+// MARK: - Utils -
+static void map_keys_array (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
+    #pragma unused (hashtable, value)
+    gravity_list_t *list = (gravity_list_t *)data;
+    marray_push(gravity_value_t, list->array, key);
+}
+
 // MARK: - Conversions -
 
 static gravity_value_t convert_string2number (gravity_string_t *string, bool float_preferred) {
@@ -183,8 +190,76 @@ static bool convert_object_string (gravity_vm *vm, gravity_value_t *args, uint16
 }
 
 static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
-	#pragma unused(vm, map)
-	return VALUE_FROM_STRING(vm, "MAP", 3); //VALUE_FROM_NULL;
+    // allocate initial memory to a 512 buffer
+    uint32_t len = 512;
+    char *buffer = mem_alloc(len+1);
+    buffer[0] = '[';
+    uint32_t pos = 1;
+    
+    // get keys list
+    uint32_t count = gravity_hash_count(map->hash);
+    gravity_list_t *list = gravity_list_new(vm, count);
+    gravity_hash_iterate(map->hash, map_keys_array, (void *)list);
+    
+    count = (uint32_t) marray_size(list->array);
+    for (uint32_t i=0; i<count; ++i) {
+        gravity_value_t key = marray_get(list->array, i);
+        gravity_value_t *v = gravity_hash_lookup(map->hash, key);
+        gravity_value_t value = (v) ? *v : VALUE_FROM_NULL;
+        
+        gravity_string_t *svalue;
+        gravity_string_t *skey;
+        
+        if (!VALUE_ISA_STRING(key)) key = convert_value2string(vm, key);
+        skey = (VALUE_ISA_STRING(key)) ? VALUE_AS_STRING(key) : NULL;
+        
+        if (VALUE_ISA_MAP(value) && (VALUE_AS_MAP(value) == map)) {
+            svalue = NULL;
+        } else {
+            gravity_value_t value2 = convert_value2string(vm, value);
+            svalue = VALUE_ISA_VALID(value2) ? VALUE_AS_STRING(value2) : NULL;
+        }
+        
+        // KEY
+        char *s1 = (skey) ? skey->s : "N/A";
+        uint32_t len1 = (skey) ? skey->len : 3;
+        
+        // VALUE
+        char *s2 = (svalue) ? svalue->s : "N/A";
+        uint32_t len2 = (svalue) ? svalue->len : 3;
+        
+        // check if buffer needs to be reallocated
+        if (len1 + len2 + pos + 4 > len) {
+            len = (len1 + len2 + pos + 4) + len;
+            buffer = mem_realloc(buffer, len);
+        }
+        
+        // copy key string to new buffer
+        memcpy(buffer+pos, s1, len1);
+        pos += len1;
+        
+        // copy ':' key/value separator
+        memcpy(buffer+pos, ":", 1);
+        pos += 1;
+        
+        // copy value string to new buffer
+        memcpy(buffer+pos, s2, len2);
+        pos += len2;
+        
+        // add entries separator
+        if (i+1 < count) {
+            memcpy(buffer+pos, ",", 1);
+            pos += 1;
+        }
+    }
+    
+    // Write latest ] character
+    memcpy(buffer+pos, "]", 1);
+    buffer[++pos] = 0;
+    
+    gravity_value_t result = VALUE_FROM_STRING(vm, buffer, pos);
+    mem_free(buffer);
+    return result;
 }
 
 static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list) {
@@ -906,12 +981,6 @@ static bool map_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	#pragma unused(vm, nargs)
 	gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
 	RETURN_VALUE(VALUE_FROM_INT(gravity_hash_count(map->hash)), rindex);
-}
-
-static void map_keys_array (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
-	#pragma unused (hashtable, value)
-	gravity_list_t *list = (gravity_list_t *)data;
-	marray_push(gravity_value_t, list->array, key);
 }
 
 static bool map_keys (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
