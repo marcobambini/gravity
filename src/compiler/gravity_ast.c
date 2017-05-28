@@ -572,7 +572,8 @@ static void free_function_decl (gvisitor_t *self, gnode_function_decl_t *node) {
 		gtype_array_each(node->uplist, {mem_free(val);}, gupvalue_t*);
 		gnode_array_free(node->uplist);
 	}
-    if (node->base.meta) gravity_hash_free(node->base.meta);
+    // free meta ONLY if node is not a getter/setter (for getter/setter meta is set to var)
+    if (node->base.meta && node->storage != TOK_KEY_VAR) gravity_hash_free(node->base.meta);
 	mem_free((gnode_t*)node);
 }
 

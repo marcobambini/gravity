@@ -1190,7 +1190,7 @@ static void init_grammer_rules (void) {
 
 // MARK: - Declarations -
 
-static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
+static gnode_t *parse_getter_setter (gravity_parser_t *parser, gravity_hash_t *meta) {
 	DEBUG_PARSER("parse_getter_setter");
 	DECLARE_LEXER;
 	
@@ -1230,7 +1230,9 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
 		mem_free(identifier);
 		
         // create getter/setter func declaration
-        gnode_t *f = gnode_function_decl_create(token, NULL, 0, 0, params, NULL, NULL, LAST_DECLARATION());
+        gnode_t *f = gnode_function_decl_create(token, NULL, 0, 0, params, NULL, meta, LAST_DECLARATION());
+        // set storage to var so I can identify f as a special getter/setter function
+        ((gnode_function_decl_t *)f)->storage = TOK_KEY_VAR;
         
 		// parse compound statement
 		PUSH_DECLARATION(f);
@@ -1308,7 +1310,7 @@ loop:
 		expr = parse_expression(parser);
 	} else if (peek == TOK_OP_OPEN_CURLYBRACE) {
 		gravity_lexer_next(lexer); // consume TOK_OP_OPEN_CURLYBRACE
-		expr = parse_getter_setter(parser);
+		expr = parse_getter_setter(parser, meta);
 		parse_required(parser, TOK_OP_CLOSED_CURLYBRACE);
 	}
 	

@@ -26,4 +26,6 @@ uint32_t		symboltable_local_index (symboltable_t *table);
 void			symboltable_free (symboltable_t *table);
 void			symboltable_dump (symboltable_t *table);
 
+void            *symboltable_hash_atindex (symboltable_t *table, size_t n);
+
 #endif

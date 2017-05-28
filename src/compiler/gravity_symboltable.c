@@ -166,3 +166,9 @@ void symboltable_dump (symboltable_t *table) {
 		gravity_hash_dump(h);
 	}
 }
+
+void *symboltable_hash_atindex (symboltable_t *table, size_t n) {
+    size_t count = scope_stack_size(table->stack);
+    if (count <= n) return NULL;
+    return (void *) scope_stack_get(table->stack, n);
+}
