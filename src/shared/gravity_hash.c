@@ -309,7 +309,7 @@ gravity_value_t *gravity_hash_lookup (gravity_hash_t *hashtable, gravity_value_t
 	return NULL;
 }
 
-GRAVITY_API gravity_value_t *gravity_hash_lookup_cstring (gravity_hash_t *hashtable, const char *ckey) {
+gravity_value_t *gravity_hash_lookup_cstring (gravity_hash_t *hashtable, const char *ckey) {
     STATICVALUE_FROM_STRING(key, ckey, strlen(ckey));
     return gravity_hash_lookup(hashtable, key);
 }

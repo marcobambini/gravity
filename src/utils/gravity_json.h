@@ -69,6 +69,7 @@ void		json_pop (json_t *json, uint32_t n);
       #define json_int_t int64_t
    #else
       #define json_int_t __int64
+      #define snprintf   _snprintf
    #endif
 #endif
 

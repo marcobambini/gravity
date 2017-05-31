@@ -69,24 +69,24 @@ static bool core_inited = false;		// initialize global classes just once
 static uint32_t refcount = 0;			// protect deallocation of global classes
 
 // boxed
-GRAVITY_API gravity_class_t *gravity_class_int;
-GRAVITY_API gravity_class_t *gravity_class_float;
-GRAVITY_API gravity_class_t *gravity_class_bool;
-GRAVITY_API gravity_class_t	*gravity_class_null;
+gravity_class_t *gravity_class_int;
+gravity_class_t *gravity_class_float;
+gravity_class_t *gravity_class_bool;
+gravity_class_t	*gravity_class_null;
 // objects
-GRAVITY_API gravity_class_t *gravity_class_string;
-GRAVITY_API gravity_class_t *gravity_class_object;
-GRAVITY_API gravity_class_t *gravity_class_function;
-GRAVITY_API gravity_class_t *gravity_class_closure;
-GRAVITY_API gravity_class_t *gravity_class_fiber;
-GRAVITY_API gravity_class_t *gravity_class_class;
-GRAVITY_API gravity_class_t *gravity_class_instance;
-GRAVITY_API gravity_class_t *gravity_class_module;
-GRAVITY_API gravity_class_t *gravity_class_list;
-GRAVITY_API gravity_class_t *gravity_class_map;
-GRAVITY_API gravity_class_t *gravity_class_range;
-GRAVITY_API gravity_class_t *gravity_class_upvalue;
-GRAVITY_API gravity_class_t *gravity_class_system;
+gravity_class_t *gravity_class_string;
+gravity_class_t *gravity_class_object;
+gravity_class_t *gravity_class_function;
+gravity_class_t *gravity_class_closure;
+gravity_class_t *gravity_class_fiber;
+gravity_class_t *gravity_class_class;
+gravity_class_t *gravity_class_instance;
+gravity_class_t *gravity_class_module;
+gravity_class_t *gravity_class_list;
+gravity_class_t *gravity_class_map;
+gravity_class_t *gravity_class_range;
+gravity_class_t *gravity_class_upvalue;
+gravity_class_t *gravity_class_system;
 
 #define SETMETA_INITED(c)						gravity_class_get_meta(c)->is_inited = true
 #define GET_VALUE(_idx)							args[_idx]
@@ -438,8 +438,20 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_STRING_INDEX);
 	
 	// sanity check (and break recursion)
-    if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_string)) ||
-        gravity_vm_getclosure(vm) == closure) return VALUE_FROM_ERROR(NULL);
+    if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_string)) || gravity_vm_getclosure(vm) == closure) {
+        if (VALUE_ISA_INSTANCE(v)) {
+            gravity_instance_t *instance = VALUE_AS_INSTANCE(v);
+            if (instance->xdata) {
+                gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+                if (delegate->bridge_string) {
+                    uint32_t len = 0;
+                    const char *s = delegate->bridge_string(vm, instance->xdata, &len);
+                    if (s) return VALUE_FROM_STRING(vm, s, len);
+                }
+            }
+        }
+        return VALUE_FROM_ERROR(NULL);
+    }
 	
 	// execute closure and return its value
 	if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) return gravity_vm_result(vm);
@@ -1787,7 +1799,8 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
-	char ret[main_str->len + 1];
+	char *ret = mem_alloc(main_str->len + 1);
+	if (!ret) RETURN_ERROR("Unable to allocate a String so big (%d)", main_str->len);
 	strcpy(ret, main_str->s);
 
 	// if no arguments passed, change the whole string to uppercase
@@ -1804,22 +1817,29 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 				int32_t index = (int32_t)VALUE_AS_INT(value);
 
 				if (index < 0) index = main_str->len + index;
-				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+				if ((index < 0) || ((uint32_t)index >= main_str->len)) {
+					mem_free(ret);
+					RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len - 1);
+				}
 
 				ret[index] = toupper(ret[index]);
 			}
 			else {
+				mem_free(ret);
 				RETURN_ERROR("upper() expects either no arguments, or integer arguments.");
 			}
 		}
 	}
-	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
+
+	gravity_string_t *s = gravity_string_new(vm, ret, main_str->len, 0);
+	RETURN_VALUE(VALUE_FROM_OBJECT(s), rindex);
 }
 
 static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
-	char ret[main_str->len + 1];
+	char *ret = mem_alloc(main_str->len + 1);
+	if (!ret) RETURN_ERROR("Unable to allocate a String so big (%d)", main_str->len);
 	strcpy(ret, main_str->s);
 
 	// if no arguments passed, change the whole string to lowercase
@@ -1836,16 +1856,22 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 				int32_t index = (int32_t)VALUE_AS_INT(value);
 
 				if (index < 0) index = main_str->len + index;
-				if ((index < 0) || ((uint32_t)index >= main_str->len)) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len-1);
+				if ((index < 0) || ((uint32_t)index >= main_str->len))  {
+					mem_free(ret);
+					RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, main_str->len - 1);
+				}
 
 				ret[index] = tolower(ret[index]);
 			}
 			else {
+				mem_free(ret);
 				RETURN_ERROR("lower() expects either no arguments, or integer arguments.");
 			}
 		}
 	}
-	RETURN_VALUE(VALUE_FROM_CSTRING(vm, ret), rindex);
+
+	gravity_string_t *s = gravity_string_new(vm, ret, main_str->len, 0);
+	RETURN_VALUE(VALUE_FROM_OBJECT(s), rindex);
 }
 
 static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1879,7 +1905,8 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 
 	bool is_forward = first_index <= second_index;
 	if (!is_forward) {
-		char original[string->len];
+		char *original = mem_alloc(string->len);
+		if (!original) RETURN_ERROR("Unable to allocate a String so big (%d)", string->len);
 		// without copying it, we would be modifying the original string
 		strncpy((char *)original, string->s, string->len);
 		uint32_t original_len = (uint32_t) string->len;
@@ -1898,9 +1925,13 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 			--i;
 			++j;
 		}
-		RETURN_VALUE(VALUE_FROM_STRING(vm, original + first_index, substr_len), rindex);
+        
+        gravity_value_t s = VALUE_FROM_STRING(vm, original + first_index, substr_len);
+        mem_free(original);
+        
+		RETURN_VALUE(s, rindex);
 	}
-	RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + first_index, substr_len), rindex);
+    RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + first_index, substr_len), rindex);
 }
 
 static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {

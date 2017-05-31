@@ -145,7 +145,7 @@ const char *file_read(const char *path, size_t *len) {
 	if (buffer == NULL) goto abort_read;
 	buffer[fsize] = 0;
 	
-	fsize2 = read(fd, buffer, fsize);
+	fsize2 = read(fd, buffer, (size_t)fsize);
 	if (fsize2 == -1) goto abort_read;
 	
 	if (len) *len = fsize2;

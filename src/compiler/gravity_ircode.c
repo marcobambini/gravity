@@ -286,7 +286,11 @@ void ircode_dump  (void *_code) {
 			case 2: {
 				if (op == LOADI) {
 					if (inst->tag == DOUBLE_TAG) printf("%05d\t%s %d %.2f\n", line, opcode_name(op), p1, inst->d);
+					#if defined(_WIN32)
+					else printf("%05d\t%s %d %I64d\n", line, opcode_name(op), p1, inst->n);
+					#else
 					else printf("%05d\t%s %d %"PRId64"\n", line, opcode_name(op), p1, inst->n);
+					#endif
 				} else if (op == LOADK) {
 					if (p2 < CPOOL_INDEX_MAX) printf("%05d\t%s %d %d\n", line, opcode_name(op), p1, p2);
 					else printf("%05d\t%s %d %s\n", line, opcode_name(op), p1, opcode_constname(p2));
