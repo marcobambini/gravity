@@ -9,7 +9,7 @@ EXPORTS
 	gravity_vm_free
 ;	gravity_vm_reset
 	gravity_vm_runclosure
-	gravity_vm_run
+	gravity_vm_runmain
 	gravity_vm_setvalue
 	gravity_vm_lookup
 	gravity_vm_getvalue

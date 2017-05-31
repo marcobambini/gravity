@@ -15,4 +15,7 @@ typedef int mode_t;
 #define read _read
 #define write _write
 
+#define snprintf _snprintf
+#define __func__ __FUNCTION__
+
 // Fix for Visual Studio
