@@ -19,7 +19,7 @@ extern "C" {
 GRAVITY_API void gravity_core_register (gravity_vm *vm);
 GRAVITY_API bool gravity_iscore_class (gravity_class_t *c);
 GRAVITY_API void gravity_core_free (void);
-GRAVITY_API uint32_t gravity_core_identifiers (const char ***id);
+GRAVITY_API const char **gravity_core_identifiers (void);
 GRAVITY_API gravity_class_t *gravity_core_class_from_name (const char *name);
 
 // conversion functions

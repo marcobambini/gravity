@@ -2212,11 +2212,29 @@ static bool system_exit (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
 // MARK: - CORE -
 
-static gravity_closure_t *computed_property (gravity_vm *vm, gravity_function_t *getter_func, gravity_function_t *setter_func) {
+static gravity_closure_t *computed_property_create (gravity_vm *vm, gravity_function_t *getter_func, gravity_function_t *setter_func) {
 	gravity_closure_t *getter_closure = (getter_func) ? gravity_closure_new(vm, getter_func) : NULL;
 	gravity_closure_t *setter_closure = (setter_func) ? gravity_closure_new(vm, setter_func) : NULL;
 	gravity_function_t *f = gravity_function_new_special(vm, NULL, GRAVITY_COMPUTED_INDEX, getter_closure, setter_closure);
 	return gravity_closure_new(vm, f);
+}
+
+static void computed_property_free (gravity_closure_t *closure) {
+    gravity_closure_t *getter = (gravity_closure_t *)closure->f->special[0];
+    gravity_closure_t *setter = (closure->f->special[0] != closure->f->special[1]) ? (gravity_closure_t *)closure->f->special[1] : NULL;
+    if (getter) {
+        gravity_function_t *f = getter->f;
+        gravity_closure_free(NULL, getter);
+        gravity_function_free(NULL, f);
+    }
+    if (setter) {
+        gravity_function_t *f = setter->f;
+        gravity_closure_free(NULL, setter);
+        gravity_function_free(NULL, f);
+    }
+    
+    gravity_closure_free(NULL, closure);
+    if (closure->f) gravity_function_free(NULL, closure->f);
 }
 
 static void gravity_core_init (void) {
@@ -2327,7 +2345,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_closure, "apply", NEW_CLOSURE_VALUE(closure_apply));
 	
 	// LIST CLASS
-	gravity_class_bind(gravity_class_list, "count", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(list_count), NULL)));
+    gravity_closure_t *closure = computed_property_create(NULL, NEW_FUNCTION(list_count), NULL);
+	gravity_class_bind(gravity_class_list, "count", VALUE_FROM_OBJECT(closure));
 	gravity_class_bind(gravity_class_list, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(list_iterator));
 	gravity_class_bind(gravity_class_list, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(list_iterator_next));
 	gravity_class_bind(gravity_class_list, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(list_loadat));
@@ -2344,7 +2363,8 @@ static void gravity_core_init (void) {
 	// MAP CLASS
 	gravity_class_bind(gravity_class_map, "keys", NEW_CLOSURE_VALUE(map_keys));
 	gravity_class_bind(gravity_class_map, "remove", NEW_CLOSURE_VALUE(map_remove));
-	gravity_class_bind(gravity_class_map, "count", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(map_count), NULL)));
+    closure = computed_property_create(NULL, NEW_FUNCTION(map_count), NULL);
+	gravity_class_bind(gravity_class_map, "count", VALUE_FROM_OBJECT(closure));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(map_loop));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(map_loadat));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(map_storeat));
@@ -2355,7 +2375,8 @@ static void gravity_core_init (void) {
 	#endif
 	
 	// RANGE CLASS
-	gravity_class_bind(gravity_class_range, "count", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(range_count), NULL)));
+    closure = computed_property_create(NULL, NEW_FUNCTION(range_count), NULL);
+	gravity_class_bind(gravity_class_range, "count", VALUE_FROM_OBJECT(closure));
 	gravity_class_bind(gravity_class_range, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(range_iterator));
 	gravity_class_bind(gravity_class_range, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(range_iterator_next));
 	gravity_class_bind(gravity_class_range, "contains", NEW_CLOSURE_VALUE(range_contains));
@@ -2431,7 +2452,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_string_neg));
 	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(string_loadat));
 	gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(string_storeat));
-	gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(string_length), NULL)));
+    closure = computed_property_create(NULL, NEW_FUNCTION(string_length), NULL);
+	gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(closure));
 	gravity_class_bind(gravity_class_string, "index", NEW_CLOSURE_VALUE(string_index));
 	gravity_class_bind(gravity_class_string, "count", NEW_CLOSURE_VALUE(string_count));
 	gravity_class_bind(gravity_class_string, "repeat", NEW_CLOSURE_VALUE(string_repeat));
@@ -2478,7 +2500,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(system_meta, GRAVITY_SYSTEM_PUT_NAME, NEW_CLOSURE_VALUE(system_put));
 	gravity_class_bind(system_meta, "exit", NEW_CLOSURE_VALUE(system_exit));
 	
-	gravity_value_t value = VALUE_FROM_OBJECT(computed_property(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set)));
+    closure = computed_property_create(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set));
+	gravity_value_t value = VALUE_FROM_OBJECT(closure);
 	gravity_class_bind(system_meta, "gcenabled", value);
 	gravity_class_bind(system_meta, "gcminthreshold", value);
 	gravity_class_bind(system_meta, "gcthreshold", value);
@@ -2516,6 +2539,32 @@ void gravity_core_free (void) {
 	// it is just called when we need to internally check for memory leaks
 	
 	mem_check(false);
+    // computed properties are not registered inside VM gc so they need to be manually freed here
+    {
+        STATICVALUE_FROM_STRING(key, "count", strlen("count"));
+        gravity_closure_t *list_count = gravity_class_lookup_closure(gravity_class_list, key);
+        computed_property_free(list_count);
+        gravity_hash_remove(gravity_class_list->htable, key);
+        gravity_closure_t *map_count = gravity_class_lookup_closure(gravity_class_map, key);
+        computed_property_free(map_count);
+        gravity_hash_remove(gravity_class_map->htable, key);
+        gravity_closure_t *range_count = gravity_class_lookup_closure(gravity_class_range, key);
+        computed_property_free(range_count);
+        gravity_hash_remove(gravity_class_range->htable, key);
+    }
+    {
+        STATICVALUE_FROM_STRING(key, "length", strlen("length"));
+        gravity_closure_t *string_length = gravity_class_lookup_closure(gravity_class_string, key);
+        computed_property_free(string_length);
+        gravity_hash_remove(gravity_class_string->htable, key);
+    }
+    {
+        STATICVALUE_FROM_STRING(key, "gcenabled", strlen("gcenabled"));
+        gravity_closure_t *system_gcenabled = gravity_class_lookup_closure(gravity_class_get_meta(gravity_class_system), key);
+        computed_property_free(system_gcenabled);
+        gravity_hash_remove(gravity_class_get_meta(gravity_class_system)->htable, key);
+    }
+        
 	gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_int));
 	gravity_class_free_core(NULL, gravity_class_int);
 	gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_float));
@@ -2577,13 +2626,12 @@ void gravity_core_free (void) {
 	core_inited = false;
 }
 
-uint32_t gravity_core_identifiers (const char ***id) {
+const char **gravity_core_identifiers (void) {
 	static const char *list[] = {GRAVITY_CLASS_OBJECT_NAME, GRAVITY_CLASS_CLASS_NAME, GRAVITY_CLASS_BOOL_NAME, GRAVITY_CLASS_NULL_NAME,
 		GRAVITY_CLASS_INT_NAME, GRAVITY_CLASS_FLOAT_NAME, GRAVITY_CLASS_FUNCTION_NAME, GRAVITY_CLASS_FIBER_NAME, GRAVITY_CLASS_STRING_NAME,
 		GRAVITY_CLASS_INSTANCE_NAME, GRAVITY_CLASS_LIST_NAME, GRAVITY_CLASS_MAP_NAME, GRAVITY_CLASS_RANGE_NAME, GRAVITY_CLASS_SYSTEM_NAME,
-		GRAVITY_CLASS_CLOSURE_NAME, GRAVITY_CLASS_UPVALUE_NAME};
-	if (id) *id = list;
-	return (sizeof(list) / sizeof(const char *));
+		GRAVITY_CLASS_CLOSURE_NAME, GRAVITY_CLASS_UPVALUE_NAME, NULL};
+    return list;
 }
 
 void gravity_core_register (gravity_vm *vm) {

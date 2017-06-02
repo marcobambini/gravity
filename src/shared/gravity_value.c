@@ -362,7 +362,7 @@ static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, boo
 	
 	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)c));
 	
-	// check if bridged data needs to be freeed too
+	// check if bridged data needs to be freed too
 	if (c->xdata && vm) {
 		gravity_delegate_t *delegate = gravity_vm_delegate(vm);
 		if (delegate && delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)c);

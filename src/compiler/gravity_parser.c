@@ -2024,6 +2024,9 @@ loop:
 		REPORT_ERROR(token, "Unable to load file %s.", module_name);
 	}
 	
+    // cleanup memory
+    if (module_name) mem_free(module_name);
+    
 	// check for optional comma
 	if (gravity_lexer_peek(lexer) == TOK_OP_COMMA) {
 		gravity_lexer_next(lexer); // consume TOK_OP_COMMA
@@ -2484,16 +2487,17 @@ static gnode_t *parse_statement (gravity_parser_t *parser) {
 // MARK: - Internal functions -
 
 static void parser_register_core_classes (gravity_parser_t *parser) {
-	const char **list = NULL;
-	uint32_t n = gravity_core_identifiers(&list);
-	if (!n) return;
+	const char **list = gravity_core_identifiers();
 	
 	// for each core identifier create a dummy extern variable node
 	gnode_r	*decls = gnode_array_create();
-	for (uint32_t i=0; i<n; ++i) {
+    
+    uint32_t i = 0;
+    while (list[i]) {
 		const char *identifier = list[i];
 		gnode_t *node = gnode_variable_create(NO_TOKEN, string_dup(identifier), NULL, 0, NULL, LAST_DECLARATION());
 		gnode_array_push(decls, node);
+        ++i;
 	}
 	
 	// register a variable declaration node in global statements
@@ -2618,7 +2622,10 @@ void gravity_parser_free (gravity_parser_t *parser) {
     // parser->declarations is used to keep track of nodes hierarchy and it contains pointers to
     // parser->statements nodes so there is no need to free it using node_array_free because nodes
     // are freed when AST (parser->statements) is freed
-	if (parser->declarations) marray_destroy(*parser->declarations);
+    if (parser->declarations) {
+        marray_destroy(*parser->declarations);
+        mem_free(parser->declarations);
+    }
     
 	// parser->statements is returned from gravity_parser_run
 	// and must be deallocated using gnode_free

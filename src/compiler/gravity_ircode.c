@@ -63,6 +63,7 @@ void ircode_free (ircode_t *code) {
 	}
 	
 	marray_destroy(*code->list);
+    marray_destroy(code->context);
 	marray_destroy(code->registers);
 	marray_destroy(code->label_true);
 	marray_destroy(code->label_false);
