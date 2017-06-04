@@ -821,6 +821,12 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 	// set class enclosing (can be globals, a class or a function)
 	node->env = top;
 	
+    // sanity check on class name
+    if (string_cmp(node->identifier, CLASS_CONSTRUCTOR_NAME) == 0) {
+        REPORT_ERROR(node, "%s is a special name and cannot be used as class identifier.", CLASS_CONSTRUCTOR_NAME);
+        return;
+    }
+    
 	// check superclass
 	if (node->superclass) {
         // get super class identifier and reset the field (so in case of error it cannot be accessed)
