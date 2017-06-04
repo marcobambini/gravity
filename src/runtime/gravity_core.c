@@ -2233,8 +2233,8 @@ static void computed_property_free (gravity_closure_t *closure) {
         gravity_function_free(NULL, f);
     }
     
-    gravity_closure_free(NULL, closure);
     if (closure->f) gravity_function_free(NULL, closure->f);
+    gravity_closure_free(NULL, closure);
 }
 
 static void gravity_core_init (void) {
