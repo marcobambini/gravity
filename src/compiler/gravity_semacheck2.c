@@ -823,7 +823,9 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 	
 	// check superclass
 	if (node->superclass) {
+        // get super class identifier and reset the field (so in case of error it cannot be accessed)
 		gnode_identifier_expr_t *id = (gnode_identifier_expr_t *)node->superclass;
+        node->superclass = NULL;
         
         // sanity check
         if (gravity_core_class_from_name(id->value)) {
