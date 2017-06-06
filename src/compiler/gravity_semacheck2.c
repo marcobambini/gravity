@@ -807,7 +807,9 @@ static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
 	
 	// check if optional access and storage specifiers make sense in current context
 	gnode_t *top = TOP_DECLARATION();
-	check_access_storage_specifiers(self, (gnode_t *)node, NODE_TAG(top), node->access, node->storage);
+	if(top) {
+	    check_access_storage_specifiers(self, (gnode_t *)node, NODE_TAG(top), node->access, node->storage);
+	}
 }
 
 static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
