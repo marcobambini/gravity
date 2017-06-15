@@ -30,7 +30,8 @@ typedef struct codegen_t codegen_t;
 
 #define DECLARE_CONTEXT()				gravity_object_t *context_object = CONTEXT_GET();
 #define DECLARE_FUNCTION_CONTEXT()		DECLARE_CONTEXT();																	\
-										assert(OBJECT_ISA_FUNCTION(context_object));										\
+										if (!context_object || !(OBJECT_ISA_FUNCTION(context_object))) {                    \
+                                        report_error(self, (gnode_t *)node, "Invalid code context."); return;}              \
 										gravity_function_t *context_function = (gravity_function_t *)context_object;
 #define DECLARE_CLASS_CONTEXT()			DECLARE_CONTEXT();																	\
 										assert(OBJECT_ISA_CLASS(context_object));											\
@@ -77,10 +78,10 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 	
 	// setup error struct
 	error_desc_t error_desc = {
-		.lineno = node->token.lineno,
-		.colno = node->token.colno,
-		.fileid = node->token.fileid,
-		.offset = node->token.position,
+        .lineno = (node) ? node->token.lineno : 0,
+        .colno = (node) ? node->token.colno : 0,
+		.fileid = (node) ? node->token.fileid : 0,
+		.offset = (node) ? node->token.position : 0,
         .meta = meta_from_node(node)
 	};
 	
@@ -251,9 +252,8 @@ static void fix_superclasses (gvisitor_t *self) {
 }
 
 // this function can be called ONLY from visit_postfix_expr where a context has been pushed
-static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t target_register, gnode_r *list) {
+static uint32_t compute_self_register (gvisitor_t *self, ircode_t *code, gnode_t *node, uint32_t target_register, gnode_r *list) {
 	DEBUG_CODEGEN("compute_self_register");
-	DECLARE_CODE();
 	
 	// check for special implicit self slot
 	if (IS_IMPLICIT_SELF(node)) return 0;
@@ -277,7 +277,11 @@ static uint32_t compute_self_register (gvisitor_t *self, gnode_t *node, uint32_t
 		}
 		
 		uint32_t reg = ircode_register_pop_context_protect(code, true);
-		DEBUG_ASSERT(reg != REGISTER_ERROR, "Unexpected register error.");
+        if (reg == REGISTER_ERROR) {
+            report_error(self, node, "Unexpected register error.");
+            return UINT32_MAX;
+        }
+        
 		return reg;
 	}
 	
@@ -1250,7 +1254,8 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	
 	// mandatory self register (initialized to 0 in case of implicit self or explicit super)
 	uint32_r self_list; marray_init(self_list);
-	uint32_t first_self_register = compute_self_register(self, node->id, target_register, node->list);
+	uint32_t first_self_register = compute_self_register(self, code, node->id, target_register, node->list);
+    if (first_self_register == UINT32_MAX) return;
 	marray_push(uint32_t, self_list, first_self_register);
 	
 	// process each subnode and set is_assignment flag

@@ -498,6 +498,13 @@ static bool check_class_ivar (gvisitor_t *self, gnode_class_decl_t *classnode, g
 				REPORT_WARNING((gnode_t *)node, "Property '%s' defined in class '%s' already defined in its superclass %s.",
                                p->identifier, classnode->identifier, supernode->identifier);
 			}
+			
+            if (supernode->superclass && !NODE_ISA(supernode->superclass, NODE_CLASS_DECL)) {
+                REPORT_ERROR(supernode, "Unable to find superclass %s for class %s.", supernode->identifier, ((gnode_identifier_expr_t *)supernode->superclass)->value);
+                supernode->superclass = NULL;
+                return false;
+            }
+            
 			supernode = (gnode_class_decl_t *)supernode->superclass;
 		}
 	}

@@ -1,0 +1,65 @@
+#unittest {
+	name: "getter and setter.";
+	error: NONe;
+	result: 700;
+};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value  _func}
+	};
+}
+
+func main() {#unittest {
+	name: "getterand setter.";
+	error: N
+	result: 7};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a lue * 130;}
+		gNt {rmmmmmmmmmmmmmmmmmmmm-mmmmmmmmmmmmmmmmmmmmmmmm|mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm#unittest {
+	name: "g.";
+	error: NONe;
+	result: 7};
+
+classCfoo {
+	private var _a = 12;
+	var a {
+		set {_a = v  _func}
+	};
+}
+
+f*nc main() {#unittest {
+	name: "getterand setter.";
+	error: NOne;
+	result: 7};
+
+class foo {
+	private var _a = 12;
+	var a {
+		set {_a = value * 130;}
+		gNt {remmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmLmmmmmmmmmmmmmmmmmmmmmy+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmcmmmmmmmmmmmmmmmmmmmmmtu;;;;;;;;;;;;;;;;}
+	};;;;;;;;;;;;;;;;;;;;;
+}
+
+func main() {
+	var f } foo();
+	f.a = 14;			f.a = 14;		//	//0
+}
+
+	var f = foo();
+	f.a = 14;		// 400}
+mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmMtu;;;;8;;;;;;;;;;;;;;;;;;;;;;;;;;;;rn _func}
+	};
+}
+
+func main() {
+	var f } foo();
+	f.a = 14;			f.a = 14;		//	//0
+}
+
+	var f = foo();
+	f.a = 14;		// 400}

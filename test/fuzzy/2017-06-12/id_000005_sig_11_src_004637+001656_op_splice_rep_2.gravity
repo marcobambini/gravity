@@ -1,0 +1,29 @@
+#unittest {
+	name: "_argn expression.";
+	error: NONE;
+	result: 640;
+};
+
+func sum() {
+	var tot = 0;
+	_args.loop(func (value) {tot +=value});
+	return tot;
+}
+
+func main() {
+	;
+
+class bar:foo {
+	func f1(){return 2000;}
+	func b2() {retururn V1+b2;
+	}
+}
+
+cla	func b2() {retururn V1+b2;
+	}
+}
+
+class foo:bar {
+	var e1 = 10;
+	var eb07,b01ccccccccccccccccrcccccccccccccccccccccccccccc020;
+}
