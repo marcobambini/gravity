@@ -25,6 +25,8 @@ if(WIN32)
     LIST(APPEND LIBS "m" "Shlwapi")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     LIST(APPEND LIBS "m")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
+    LIST(APPEND LIBS "m")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     LIST(APPEND LIBS "m" "rt")
 endif()
@@ -35,5 +37,3 @@ TARGET_LINK_LIBRARIES(unittest ${LIBS})
 
 ADD_EXECUTABLE(gravity ${GRAVITY_SRC} $<TARGET_OBJECTS:libgravity>)
 TARGET_LINK_LIBRARIES(gravity ${LIBS})
-
-

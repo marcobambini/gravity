@@ -21,6 +21,9 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
 		# MacOS
+		LDFLAGS = -lm
+	else ifeq ($(UNAME_S),NetBSD)
+		# NetBSD
 		LDFLAGS = -lm 
 	else ifeq ($(UNAME_S),OpenBSD)
 		# OpenBSD
