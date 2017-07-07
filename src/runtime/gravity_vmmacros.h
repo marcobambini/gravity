@@ -262,6 +262,6 @@
 														break;																				\
 													}																						\
 													LOAD_FRAME();																			\
-													SYNC_STACKTOP(_c, _rneed)
+													SYNC_STACKTOP(_c, MAXNUM(_rneed, rwin))
 
 #endif

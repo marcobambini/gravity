@@ -395,7 +395,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 				}
 				LOAD_FRAME();
-				SYNC_STACKTOP(closure, _rneed);
+				SYNC_STACKTOP(closure, MAXNUM(_rneed, rwin));
 				
 				// continue execution
 				DISPATCH();
@@ -524,7 +524,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 				}
 				LOAD_FRAME();
-				SYNC_STACKTOP(closure, _rneed);
+				SYNC_STACKTOP(closure, MAXNUM(_rneed, rwin));
 				
 				// continue execution
 				DISPATCH();
@@ -1086,7 +1086,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						break;
 				}
 				LOAD_FRAME();
-				SYNC_STACKTOP(closure, _rneed);
+				SYNC_STACKTOP(closure, MAXNUM(_rneed, rwin));
 				
 				DISPATCH();
 			}
