@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.2.8"
-#define GRAVITY_VERSION_NUMBER				0x000208
+#define GRAVITY_VERSION						"0.2.8"     // git tag 0.2.8
+#define GRAVITY_VERSION_NUMBER				0x000208    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #define GRAVITY_ENABLE_DOUBLE				1			// if 1 enable gravity_float_t to be a double (instead of a float)
@@ -113,6 +113,7 @@ extern "C" {
 #define MAX_IVARS							768			// 2^10 - 2^8
 #define MAX_ALLOCATION                      4194304     // 1024 * 1024 * 4 (about 4 millions entry)
 #define MAX_CCALLS                          100         // default maximum number of nested C calls
+#define MAX_MEMORY_BLOCK                    157286400   // 150MB
 
 #define DEFAULT_CONTEXT_SIZE				256			// default VM context entries (can grow)
 #define DEFAULT_MINSTRING_SIZE				32			// minimum string allocation size

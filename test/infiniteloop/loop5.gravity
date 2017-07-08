@@ -1,0 +1,11 @@
+#unittest {
+	name: "Stack clean-up register for non native calls.";
+	result: 1;
+};
+
+func main() {
+    for (var i in 0...100000000) {
+        Int.random(1, 10);
+    }
+    return 1;
+}

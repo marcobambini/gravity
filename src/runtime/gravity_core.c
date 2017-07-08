@@ -932,10 +932,12 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	
 	// create a new empty buffer
 	uint32_t alloc = (uint32_t) (marray_size(list->array) * 64);
+    if (alloc > MAX_MEMORY_BLOCK) RETURN_ERROR("Maximum memory block size reached (max %d, requested %d).", MAX_MEMORY_BLOCK, alloc);
+    
 	uint32_t len = 0;
 	uint32_t seplen = (sep) ? VALUE_AS_STRING(GET_VALUE(1))->len : 0;
-	char *buffer = mem_alloc(alloc);
-	assert(buffer);
+	char *_buffer = mem_alloc(alloc);
+	if (!_buffer) RETURN_ERROR("Not enought memory to allocate a buffer for the join operation.");
 	
 	register gravity_int_t n = marray_size(list->array);
 	register gravity_int_t i = 0;
@@ -944,34 +946,47 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	while (i < n) {
 		gravity_value_t value = convert_value2string(vm, marray_get(list->array, i));
         if (VALUE_ISA_ERROR(value)) {
-            mem_free(buffer);
+            mem_free(_buffer);
             RETURN_VALUE(value, rindex);
         }
 		
+        // compute string to appen
 		const char *s2 = VALUE_AS_STRING(value)->s;
 		uint32_t req = VALUE_AS_STRING(value)->len;
-		uint32_t free = alloc - len;
+		uint32_t free_mem = alloc - len;
 		
 		// check if buffer needs to be reallocated
-		if (free < req + seplen) {
-			buffer = mem_realloc(buffer, (alloc * 2) + req + seplen);
-			alloc += alloc + req + seplen;
+		if (free_mem < req + seplen) {
+            uint64_t to_alloc = alloc + (req + seplen) * 2 + 4096;
+            
+            // sanity check
+            if (to_alloc > MAX_MEMORY_BLOCK) {
+                mem_free(_buffer);
+                RETURN_ERROR("Maximum memory block size reached (max %d, requested %lld).", MAX_MEMORY_BLOCK, to_alloc);
+            }
+            
+			_buffer = mem_realloc(_buffer, (uint32_t)to_alloc);
+            if (!_buffer) {
+                mem_free(_buffer);
+                RETURN_ERROR("Not enought memory to re-allocate a buffer for the join operation.");
+            }
+			alloc = (uint32_t)to_alloc;
 		}
 		
 		// copy s2 to into buffer
-		memcpy(buffer+len, s2, req);
+		memcpy(_buffer+len, s2, req);
 		len += req;
 		
 		// check for separator string
 		if (i+1 < n && seplen) {
-			memcpy(buffer+len, sep, seplen);
+			memcpy(_buffer+len, sep, seplen);
 			len += seplen;
 		}
 		
 		++i;
 	}
 	
-	gravity_string_t *result = gravity_string_new(vm, buffer, len, alloc);
+	gravity_string_t *result = gravity_string_new(vm, _buffer, len, alloc);
 	RETURN_VALUE(VALUE_FROM_OBJECT(result), rindex);
 }
 
