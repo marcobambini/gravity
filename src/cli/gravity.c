@@ -17,6 +17,7 @@ typedef enum  {
 	OP_COMPILE,			// just compile source code and exit
 	OP_RUN,				// just run an already compiled file
 	OP_COMPILE_RUN,		// compile source code and run it
+    OP_INLINE_RUN,      // compile and execure source passed inline
 	OP_REPL				// run a read eval print loop
 } op_type;
 
@@ -85,6 +86,7 @@ static void print_help (void) {
 	printf("-c input_file      compile input_file (default to gravity.json)\n");
 	printf("-o output_file     specify output file name\n");
 	printf("-x input_file      execute input_file (JSON format expected)\n");
+    printf("-i source_code     compile and execute source_code string\n");
 	printf("file_name          compile file_name and executes it\n");
 }
 
@@ -114,6 +116,10 @@ static op_type parse_args (int argc, const char* argv[]) {
 			input_file = argv[++i];
 			type = OP_RUN;
 		}
+        else if ((strcmp(argv[i], "-i") == 0) && (i+1 < argc)) {
+            input_file = argv[++i];
+            type = OP_INLINE_RUN;
+        }
 	}
 	
 	if (input_file == NULL) {
@@ -180,15 +186,32 @@ int main (int argc, const char* argv[]) {
 	gravity_vm *vm = gravity_vm_new(&delegate);
 	
 	// check if input file is source code that needs to be compiled
-	if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN)) {
-		size_t size = 0;
+	if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
 		
 		// load source code
-		const char *source_code = file_read(input_file, &size);
-		if (!source_code) {
-			printf("Error loading file %s\n", input_file);
-			goto cleanup;
-		}
+        size_t size = 0;
+        const char *source_code = NULL;
+        
+        if (type == OP_INLINE_RUN) {
+            source_code = input_file;
+            size = strlen(input_file);
+        } else {
+            source_code = file_read(input_file, &size);
+        }
+        
+        // sanity check
+        if (!source_code || !size) {
+            printf("Error loading %s %s\n", (type == OP_INLINE_RUN) ? "source" : "file", input_file);
+            goto cleanup;
+        }
+        
+        // create closure to execute inline code
+        if (type == OP_INLINE_RUN) {
+            char *buffer = mem_alloc(size+1024);
+            assert(buffer);
+            size = snprintf(buffer, size+1024, "func main() {%s};", input_file);
+            source_code = buffer;
+        }
 		
 		// create compiler
 		compiler = gravity_compiler_create(&delegate);
@@ -214,7 +237,7 @@ int main (int argc, const char* argv[]) {
 			printf("Error while loading compile file %s\n", input_file);
 			goto cleanup;
 		}
-	}
+    }
 	
 	// sanity check
 	assert(closure);
