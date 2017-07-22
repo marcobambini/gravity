@@ -23,6 +23,7 @@ typedef enum  {
 
 static const char *input_file = NULL;
 static const char *output_file = DEFAULT_OUTPUT;
+static bool quiet_flag = false;
 
 static void report_error (error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
 	#pragma unused(xdata)
@@ -86,7 +87,8 @@ static void print_help (void) {
 	printf("-c input_file      compile input_file (default to gravity.json)\n");
 	printf("-o output_file     specify output file name\n");
 	printf("-x input_file      execute input_file (JSON format expected)\n");
-    printf("-i source_code     compile and execute source_code string\n");
+	printf("-i source_code     compile and execute source_code string\n");
+	printf("-q                 don't print result and execution time\n");
 	printf("file_name          compile file_name and executes it\n");
 }
 
@@ -116,16 +118,19 @@ static op_type parse_args (int argc, const char* argv[]) {
 			input_file = argv[++i];
 			type = OP_RUN;
 		}
-        else if ((strcmp(argv[i], "-i") == 0) && (i+1 < argc)) {
-            input_file = argv[++i];
-            type = OP_INLINE_RUN;
-        }
+		else if ((strcmp(argv[i], "-i") == 0) && (i+1 < argc)) {
+			input_file = argv[++i];
+			type = OP_INLINE_RUN;
+		}
+		else if (strcmp(argv[i], "-q") == 0) {
+			quiet_flag = true;
+		}
+		else {
+			input_file = argv[i];
+			type = OP_COMPILE_RUN;
+		}
 	}
 	
-	if (input_file == NULL) {
-		input_file = argv[1];
-		return OP_COMPILE_RUN;
-	}
 	return type;
 }
 
@@ -248,7 +253,9 @@ int main (int argc, const char* argv[]) {
 		
 		char buffer[512];
 		gravity_value_dump(result, buffer, sizeof(buffer));
-		printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
+		if (!quiet_flag) {
+			printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
+		}
 	}
 	
 cleanup:
