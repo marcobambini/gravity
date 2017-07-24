@@ -157,7 +157,7 @@ static void gravity_stack_dump (gravity_fiber_t *fiber) {
 	for (gravity_value_t *stack = fiber->stack; stack < fiber->stacktop; ++stack) {
 		printf("[%05d]\t", index++);
 		if (!stack->isa) {printf("\n"); continue;}
-		gravity_value_dump(*stack, NULL, 0);
+		gravity_value_dump(NULL, *stack, NULL, 0);
 	}
 	if (index) printf("\n\n");
 }

@@ -498,7 +498,7 @@ static bool object_eqq (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     
     // then compare value
-    RETURN_VALUE(VALUE_FROM_BOOL(gravity_value_equals(v1, v2)), rindex);
+    RETURN_VALUE(VALUE_FROM_BOOL(gravity_value_vm_equals(vm, v1, v2)), rindex);
 }
 
 static bool object_neqq (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -512,7 +512,7 @@ static bool object_neqq (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
 static bool object_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
-	if (gravity_value_equals(GET_VALUE(0), GET_VALUE(1))) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+	if (gravity_value_vm_equals(vm, GET_VALUE(0), GET_VALUE(1))) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
 	RETURN_VALUE(VALUE_FROM_INT(1), rindex);
 }
 
@@ -801,11 +801,31 @@ static bool list_contains (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	register gravity_int_t i = 0;
  
 	while (i < count) {
-		if (gravity_value_equals(marray_get(list->array, i), element)) {
+		if (gravity_value_vm_equals(vm, marray_get(list->array, i), element)) {
 			result = VALUE_FROM_TRUE;
 			break;
 		 }
-		i++;
+		++i;
+	 }
+ 
+	RETURN_VALUE(result, rindex);
+}
+
+static bool list_indexOf (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
+    gravity_value_t element = GET_VALUE(1);
+    gravity_value_t result = VALUE_FROM_INT(-1);
+    
+    register uint32_t count = (uint32_t)marray_size(list->array);
+    register gravity_int_t i = 0;
+    
+    while (i < count) {
+        if (gravity_value_vm_equals(vm, marray_get(list->array, i), element)) {
+            result = VALUE_FROM_INT(i);
+            break;
+        }
+        ++i;
 	 }
  
 	RETURN_VALUE(result, rindex);
@@ -870,6 +890,22 @@ static bool list_pop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 	RETURN_VALUE(value, rindex);
 }
 	
+static bool list_remove (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
+    if (!VALUE_ISA_INT(GET_VALUE(1))) RETURN_ERROR("Parameter must be of type Int.");
+    
+    gravity_int_t index = VALUE_AS_INT(GET_VALUE(1));
+    size_t count = marray_size(list->array);
+    if ((index < 0) || (index >= count)) RETURN_ERROR("Out of bounds index.");
+    
+    // remove an item means move others down
+    memmove(&list->array.p[index], &list->array.p[index+1], ((count-1)-index) * sizeof(gravity_value_t));
+    list->array.n -= 1;
+    
+    RETURN_VALUE(GET_VALUE(0), rindex);
+}
+
 static bool list_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
 	gravity_list_t	*list = VALUE_AS_LIST(GET_VALUE(0));
@@ -1761,12 +1797,12 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	int count = 0;
 
 	// iterate through whole string
-	for (int i = 0; i < main_str->len; i++) {
+	for (int i = 0; i < main_str->len; ++i) {
 		if (main_str->s[i] == str_to_count->s[j]) {
 			// if the characters match and we are on the last character of the search
 			// string, then we have found a match
 			if (j == str_to_count->len - 1) {
-				count++;
+				++count;
 				j = 0;
 				continue;
 			}
@@ -1778,7 +1814,7 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 		}
 		// move forward in the search string if we found a match but we aren't
 		// finished checking all the characters of the search string yet
-		j++;
+		++j;
 	}
 
 	RETURN_VALUE(VALUE_FROM_INT(count), rindex);
@@ -1820,7 +1856,7 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 	// if no arguments passed, change the whole string to uppercase
 	if (nargs == 1) {
-		for (int i = 0; i <= main_str->len; i++) {
+		for (int i = 0; i <= main_str->len; ++i) {
 		 ret[i] = toupper(ret[i]);
 		}
 	}
@@ -1859,7 +1895,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 	// if no arguments passed, change the whole string to lowercase
 	if (nargs == 1) {
-		for (int i = 0; i <= main_str->len; i++) {
+		for (int i = 0; i <= main_str->len; ++i) {
 		 ret[i] = tolower(ret[i]);
 		}
 	}
@@ -2371,6 +2407,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_list, "push", NEW_CLOSURE_VALUE(list_push));
 	gravity_class_bind(gravity_class_list, "pop", NEW_CLOSURE_VALUE(list_pop));
 	gravity_class_bind(gravity_class_list, "contains", NEW_CLOSURE_VALUE(list_contains));
+    gravity_class_bind(gravity_class_list, "remove", NEW_CLOSURE_VALUE(list_remove));
+    gravity_class_bind(gravity_class_list, "indexOf", NEW_CLOSURE_VALUE(list_indexOf));
     // Meta
     gravity_class_t *list_meta = gravity_class_get_meta(gravity_class_list);
     gravity_class_bind(list_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(list_exec));

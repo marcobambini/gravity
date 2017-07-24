@@ -444,12 +444,13 @@ GRAVITY_API uint32_t			gravity_instance_size (gravity_vm *vm, gravity_instance_t
 
 // MARK: - VALUE -
 GRAVITY_API bool				gravity_value_equals (gravity_value_t v1, gravity_value_t v2);
+GRAVITY_API bool                gravity_value_vm_equals (gravity_vm *vm, gravity_value_t v1, gravity_value_t v2);
 GRAVITY_API uint32_t			gravity_value_hash (gravity_value_t value);
 GRAVITY_API gravity_class_t		*gravity_value_getclass (gravity_value_t v);
 GRAVITY_API gravity_class_t		*gravity_value_getsuper (gravity_value_t v);
 GRAVITY_API void				gravity_value_free (gravity_vm *vm, gravity_value_t v);
 GRAVITY_API void				gravity_value_serialize (gravity_value_t v, json_t *json);
-GRAVITY_API void				gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len);
+GRAVITY_API void				gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16_t len);
 GRAVITY_API bool				gravity_value_isobject (gravity_value_t v);
 GRAVITY_API void				*gravity_value_xdata (gravity_value_t value);
 GRAVITY_API void				gravity_value_blacken (gravity_vm *vm, gravity_value_t v);

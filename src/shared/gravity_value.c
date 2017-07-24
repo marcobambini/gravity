@@ -1436,6 +1436,25 @@ static bool hash_value_compare_cb (gravity_value_t v1, gravity_value_t v2, void 
     return gravity_value_equals(v1, v2);
 }
 
+bool gravity_value_vm_equals (gravity_vm *vm, gravity_value_t v1, gravity_value_t v2) {
+    bool result = gravity_value_equals(v1, v2);
+    if (result || !vm) return result;
+    
+    // sanity check
+    if (!(VALUE_ISA_INSTANCE(v1) && VALUE_ISA_INSTANCE(v2))) return false;
+    
+    // if here means that they are two heap allocated objects
+    gravity_instance_t *obj1 = (gravity_instance_t *)VALUE_AS_OBJECT(v1);
+    gravity_instance_t *obj2 = (gravity_instance_t *)VALUE_AS_OBJECT(v2);
+    
+    gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+    if (delegate && obj1->xdata && obj2->xdata && delegate->bridge_equals) {
+        return delegate->bridge_equals(vm, obj1->xdata, obj2->xdata);
+    }
+    
+    return false;
+}
+
 bool gravity_value_equals (gravity_value_t v1, gravity_value_t v2) {
 	
 	// check same class
@@ -1653,7 +1672,7 @@ void *gravity_value_xdata (gravity_value_t value) {
 	return NULL;
 }
 
-void gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len) {
+void gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16_t len) {
 	const char *type = NULL;
 	const char *value = NULL;
 	char		sbuffer[1024];
@@ -1706,13 +1725,15 @@ void gravity_value_dump (gravity_value_t v, char *buffer, uint16_t len) {
 		value = buffer;
 	} else if (v.isa == gravity_class_list) {
 		type = "LIST";
-		value = "N/A";
-		snprintf(buffer, len, "(%s) %s", type, value);
+		gravity_value_t sval = convert_value2string(vm, v);
+        gravity_string_t *s = VALUE_AS_STRING(sval);
+        snprintf(buffer, len, "(%s) %.*s (%p)", type, s->len, s->s, s);
 		value = buffer;
 	} else if (v.isa == gravity_class_map) {
 		type = "MAP";
-		value = "N/A";
-		snprintf(buffer, len, "(%s) %s", type, value);
+        gravity_value_t sval = convert_value2string(vm, v);
+        gravity_string_t *s = VALUE_AS_STRING(sval);
+        snprintf(buffer, len, "(%s) %.*s (%p)", type, s->len, s->s, s);
 		value = buffer;
 	} else if (v.isa == gravity_class_range) {
 		type = "RANGE";

@@ -1403,11 +1403,17 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 			
 			if (is_super) ircode_add(code, LOADS, dest_register, target_register, index_register);
 			else ircode_add(code, (is_real_assigment) ? STORE : LOAD, dest_register, target_register, index_register);
-			if ((!is_real_assigment) && (i+1<count)) {
+			if (!is_real_assigment) {
+                if (i+1<count) {
 				uint32_t rtemp = ircode_register_pop_context_protect(code, true);
                 if (rtemp == REGISTER_ERROR) {
                     report_error(self, (gnode_t *)expr, "Unexpected register error.");
                     return;
+                }
+                } else {
+                    // last loop
+                    if (ircode_register_istemp(code, dest_register))
+                        ircode_register_protect_outside_context(code, dest_register);
                 }
 			}
 			

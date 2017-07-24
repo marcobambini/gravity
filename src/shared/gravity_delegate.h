@@ -46,6 +46,7 @@ typedef bool				(*gravity_bridge_getvalue) (gravity_vm *vm, void *xdata, gravity
 typedef bool				(*gravity_bridge_setundef) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, gravity_value_t value);
 typedef bool				(*gravity_bridge_getundef) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, uint32_t vindex);
 typedef bool				(*gravity_bridge_execute)  (gravity_vm *vm, void *xdata, gravity_value_t args[], int16_t nargs, uint32_t vindex);
+typedef bool                (*gravity_bridge_equals) (gravity_vm *vm, void *obj1, void *obj2);
 typedef const char*         (*gravity_bridge_string) (gravity_vm *vm, void *xdata, uint32_t *len);
 typedef uint32_t			(*gravity_bridge_size) (gravity_vm *vm, gravity_object_t *obj);
 typedef void				(*gravity_bridge_free) (gravity_vm *vm, gravity_object_t *obj);
@@ -71,6 +72,7 @@ typedef struct {
 	gravity_bridge_getundef		bridge_getundef;		// getter not found
 	gravity_bridge_execute		bridge_execute;			// execute a method/function
     gravity_bridge_string       bridge_string;          // instance string conversion
+    gravity_bridge_equals       bridge_equals;          // check if two objects are equals
 	gravity_bridge_size			bridge_size;			// size of obj
 	gravity_bridge_free			bridge_free;			// free obj
 } gravity_delegate_t;

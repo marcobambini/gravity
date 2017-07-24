@@ -153,7 +153,7 @@ static void table_dump (gravity_hash_t *hashtable, gravity_value_t key, gravity_
 	#pragma unused (hashtable, data)
 	const char *k = ((gravity_string_t *)key.p)->s;
 	printf("%-20s=>\t",k);
-	gravity_value_dump(value, NULL, 0);
+	gravity_value_dump(NULL, value, NULL, 0);
 }
 
 // MARK: -
