@@ -252,7 +252,7 @@ int main (int argc, const char* argv[]) {
 		double t = gravity_vm_time(vm);
 		
 		char buffer[512];
-		gravity_value_dump(result, buffer, sizeof(buffer));
+		gravity_value_dump(vm, result, buffer, sizeof(buffer));
 		if (!quiet_flag) {
 			printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
 		}
