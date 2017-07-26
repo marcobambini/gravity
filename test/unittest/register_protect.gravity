@@ -1,0 +1,30 @@
+#unittest {
+    name: "Register protection test.";
+    result: 3;
+};
+
+class Label {
+    var text;
+}
+
+class CollectionView {
+    var Label1;
+    
+    func DidSelectCell(p1, p2, p3) {
+        Label1.text = self.selectedItems().count;
+    }
+    
+    func selectedItems() {
+        return [1,2,3];
+    }
+    
+    func init() {
+        Label1 = Label();
+    }
+}
+
+func main() {
+    var CollectionView1 = CollectionView();
+    CollectionView1.DidSelectCell(0,0,0);
+    return CollectionView1.Label1.text;
+}

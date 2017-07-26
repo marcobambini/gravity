@@ -1,0 +1,11 @@
+#unittest {
+    name: "List remove.";
+    result: [20,30];
+};
+
+func main() {
+    var r = [10,20,30,40,50];
+    r.remove(0);
+    r.remove(3);
+    return r.remove(2);
+}
