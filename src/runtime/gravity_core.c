@@ -1003,7 +1003,6 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
             
 			_buffer = mem_realloc(_buffer, (uint32_t)to_alloc);
             if (!_buffer) {
-                mem_free(_buffer);
                 RETURN_ERROR("Not enought memory to re-allocate a buffer for the join operation.");
             }
 			alloc = (uint32_t)to_alloc;
