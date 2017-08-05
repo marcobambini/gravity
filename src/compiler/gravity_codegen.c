@@ -1012,7 +1012,7 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 			}
 			
 			// create ivar first
-			uint16_t ivar_index = (p->index >= 0) ? p->index : gravity_class_add_ivar(context_class, NULL);
+			uint16_t ivar_index = p->index;
 			
 			// add default getter and setter ONLY if property is public
 			if (node->access == TOK_KEY_PUBLIC) {
