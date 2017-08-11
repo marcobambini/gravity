@@ -5,6 +5,6 @@
 };
 
 func main() {
-	var map = ["Andrea":22, "Marco":23, "count":666];
-	return map.count + map["count"];
+	var map = ["Andrea":22, "Marco":23, "test":666];
+	return map.count + map["test"];
 }

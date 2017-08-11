@@ -66,15 +66,15 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.2.8"     // git tag 0.2.8
-#define GRAVITY_VERSION_NUMBER				0x000208    // git push --tags
+#define GRAVITY_VERSION						"0.3.0"     // git tag 0.3.0
+#define GRAVITY_VERSION_NUMBER				0x000300    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #define GRAVITY_ENABLE_DOUBLE				1			// if 1 enable gravity_float_t to be a double (instead of a float)
 #define GRAVITY_ENABLE_INT64				1			// if 1 enable gravity_int_t to be a 64bit int (intead of a 32bit int)
 #define GRAVITY_COMPUTED_GOTO				1			// if 1 enable faster computed goto (instead of switch) for compilers that support it
 #define GRAVITY_NULL_SILENT					1			// if 1 then messages sent to null does not produce any runtime error
-#define GRAVITY_MAP_DOTSUGAR				0			// if 1 then map objects can be accessed with both map[key] and map.key
+#define GRAVITY_MAP_DOTSUGAR				1			// if 1 then map objects can be accessed with both map[key] and map.key
 
 #ifdef _MSC_VER
 #undef GRAVITY_COMPUTED_GOTO

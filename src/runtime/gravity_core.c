@@ -1062,6 +1062,25 @@ static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	gravity_value_t key = GET_VALUE(1);
 	if (VALUE_ISA_NOTVALID(key)) RETURN_ERROR("Invalid map key.");
 	
+    #ifdef GRAVITY_MAP_DOTSUGAR
+    gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
+    if (obj) {
+        if (OBJECT_ISA_CLOSURE(obj)) {
+            gravity_closure_t *closure = (gravity_closure_t *)obj;
+            if (closure && closure->f) {
+                // execute optimized default getter
+                if (FUNCTION_ISA_SPECIAL(closure->f)) {
+                    if (FUNCTION_ISA_GETTER(closure->f)) {
+                        // returns a function to be executed using the return false trick
+                        RETURN_CLOSURE(VALUE_FROM_OBJECT((gravity_closure_t *)closure->f->special[EXEC_TYPE_SPECIAL_GETTER]), rindex);
+                    }
+                }
+            }
+        }
+        RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
+    }
+    #endif
+    
 	gravity_value_t *value = gravity_hash_lookup(map->hash, key);
 	RETURN_VALUE((value) ? *value : VALUE_FROM_NULL, rindex);
 }
@@ -1080,6 +1099,11 @@ static bool map_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
 	gravity_value_t key = GET_VALUE(1);
 	gravity_value_t value = GET_VALUE(2);
+	
+//    #ifdef GRAVITY_MAP_DOTSUGAR
+//    gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
+//    if (obj) RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
+//    #endif
 	
 	gravity_hash_insert(map->hash, key, value);
 	RETURN_NOVALUE();
