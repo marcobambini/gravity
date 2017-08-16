@@ -63,7 +63,11 @@ typedef struct {
 // shortcut for array of common structs
 typedef marray_t(gnode_t *)					gnode_r;
 typedef marray_t(gupvalue_t *)				gupvalue_r;
+
+#ifndef GRAVITY_SYMBOLTABLE_DEFINED
+#define GRAVITY_SYMBOLTABLE_DEFINED
 typedef struct symboltable_t				symboltable_t;
+#endif
 
 // LOCATION
 typedef struct {

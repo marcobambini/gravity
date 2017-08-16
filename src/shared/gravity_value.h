@@ -70,11 +70,25 @@ extern "C" {
 #define GRAVITY_VERSION_NUMBER				0x000300    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
+#ifndef GRAVITY_ENABLE_DOUBLE
 #define GRAVITY_ENABLE_DOUBLE				1			// if 1 enable gravity_float_t to be a double (instead of a float)
+#endif
+
+#ifndef GRAVITY_ENABLE_INT64
 #define GRAVITY_ENABLE_INT64				1			// if 1 enable gravity_int_t to be a 64bit int (intead of a 32bit int)
+#endif
+    
+#ifndef GRAVITY_COMPUTED_GOTO
 #define GRAVITY_COMPUTED_GOTO				1			// if 1 enable faster computed goto (instead of switch) for compilers that support it
+#endif
+    
+#ifndef GRAVITY_NULL_SILENT
 #define GRAVITY_NULL_SILENT					1			// if 1 then messages sent to null does not produce any runtime error
+#endif
+    
+#ifndef GRAVITY_MAP_DOTSUGAR
 #define GRAVITY_MAP_DOTSUGAR				1			// if 1 then map objects can be accessed with both map[key] and map.key
+#endif
 
 #ifdef _MSC_VER
 #undef GRAVITY_COMPUTED_GOTO
@@ -149,8 +163,12 @@ extern "C" {
 
 #if GRAVITY_ENABLE_DOUBLE
 typedef double								gravity_float_t;
+#define FLOAT_MAX                           DBL_MAX
+#define FLOAT_MIN                           DBL_MIN
 #else
 typedef float								gravity_float_t;
+#define FLOAT_MAX                           FLT_MAX
+#define FLOAT_MIN                           FLT_MIN
 #endif
 
 #if GRAVITY_ENABLE_INT64
@@ -192,7 +210,10 @@ extern gravity_class_t *gravity_class_range;
 extern gravity_class_t *gravity_class_upvalue;
 
 typedef marray_t(gravity_value_t)		gravity_value_r;		// array of values
+#ifndef GRAVITY_HASH_DEFINED
+#define GRAVITY_HASH_DEFINED
 typedef struct gravity_hash_t			gravity_hash_t;			// forward declaration
+#endif
 typedef struct gravity_vm				gravity_vm;				// vm is an opaque data type
 typedef bool (*gravity_c_internal)(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex);
 

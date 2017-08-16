@@ -19,7 +19,10 @@
 #define GRAVITYHASH_DEFAULT_SIZE	32						// default hash table size (used if 0 is passed in gravity_hash_create)
 #define GRAVITYHASH_THRESHOLD		0.75					// threshold used to decide when re-hash the table
 
+#ifndef GRAVITY_HASH_DEFINED
+#define GRAVITY_HASH_DEFINED
 typedef struct 		gravity_hash_t	gravity_hash_t;			// opaque hash table struct
+#endif
 
 #ifdef __cplusplus
 extern "C" {

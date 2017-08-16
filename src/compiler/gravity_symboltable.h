@@ -12,7 +12,10 @@
 #include "debug_macros.h"
 #include "gravity_ast.h"
 
+#ifndef GRAVITY_SYMBOLTABLE_DEFINED
+#define GRAVITY_SYMBOLTABLE_DEFINED
 typedef struct symboltable_t	symboltable_t;
+#endif
 
 symboltable_t	*symboltable_create (bool is_enum);
 gnode_t			*symboltable_lookup (symboltable_t *table, const char *identifier);
