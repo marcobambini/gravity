@@ -16,6 +16,7 @@
 #include "gravity_memory.h"
 #include "gravity_vmmacros.h"
 #include "gravity_json.h"
+#include "gravity_optionals.h"
 
 // MARK: Internals -
 static void gravity_gc_cleanup (gravity_vm *vm);
@@ -290,6 +291,20 @@ static void gravity_vm_loadclass (gravity_vm *vm, gravity_class_t *c) {
 	gravity_hash_transform(c->htable, gravity_gc_transform, (void *)vm);
 	gravity_class_t *meta = gravity_class_get_meta(c);
 	gravity_hash_transform(meta->htable, gravity_gc_transform, (void *)vm);
+}
+
+// MARK: Internals -
+
+static void gravity_optionals_register (gravity_vm *vm) {
+    GRAVITY_MATH_REGISTER(vm);
+}
+
+void gravity_optionals_free() {
+    GRAVITY_MATH_FREE();
+}
+
+bool gravity_isoptional_class (gravity_class_t *c) {
+    return GRAVITY_ISMATH_CLASS(c);
 }
 
 // MARK: -
@@ -1316,6 +1331,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	
 	// init base and core
 	gravity_core_register(vm);
+    gravity_optionals_register(vm);
 	gravity_cache_setup();
 	
 	RESET_STATS(vm);

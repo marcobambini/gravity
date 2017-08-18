@@ -7,6 +7,7 @@
 //
 
 #include "gravity_compiler.h"
+#include "gravity_optionals.h"
 #include "gravity_utils.h"
 #include "gravity_core.h"
 #include "gravity_vm.h"
@@ -262,6 +263,7 @@ cleanup:
 	if (compiler) gravity_compiler_free(compiler);
 	if (vm) gravity_vm_free(vm);
 	gravity_core_free();
+    gravity_optionals_free();
 	
 	#if GRAVITY_MEMORY_DEBUG
 	size_t current_memory = mem_leaks();

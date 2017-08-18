@@ -373,6 +373,7 @@ static void visit_flow_if_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
 
 static void visit_flow_switch_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
 	DEBUG_CODEGEN("visit_flow_switch_stmt");
+    return;
 	
 	visit(node->cond);
 	visit(node->stmt);

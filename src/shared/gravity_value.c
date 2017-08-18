@@ -358,7 +358,7 @@ abort_load:
 }
 
 static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, bool skip_base) {
-	if (skip_base && gravity_iscore_class(c)) return;
+	if (skip_base && (gravity_iscore_class(c) || gravity_isoptional_class(c))) return;
 	
 	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)c));
 	
@@ -845,11 +845,16 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 		
 		// bytecode
 		if (string_casencmp(label, GRAVITY_JSON_LABELBYTECODE, label_size) == 0) {
-			if (value->type == json_null) continue;
+            if (bytecode_parsed) goto abort_load;
+            if (value->type == json_null) {
+                // if function is empty then just one RET0 implicit bytecode instruction
+                f->ninsts = 0;
+                f->bytecode = (uint32_t *)mem_alloc(sizeof(uint32_t) * (f->ninsts + 1));
+            } else {
 			if (value->type != json_string) goto abort_load;
             if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
-            if (bytecode_parsed) goto abort_load;
 			f->bytecode = gravity_bytecode_deserialize(value->u.string.ptr, value->u.string.length, &f->ninsts);
+            }
             bytecode_parsed = true;
 			continue;
 		}

@@ -17,6 +17,7 @@
 #include "gravity_opcodes.h"
 #include "gravity_macros.h"
 #include "gravity_memory.h"
+#include "gravity_vmmacros.h"
 
 // Gravity base classes (the isa pointer in each object).
 // Null and Undefined points to same class (Null) and they
@@ -87,40 +88,6 @@ gravity_class_t *gravity_class_map;
 gravity_class_t *gravity_class_range;
 gravity_class_t *gravity_class_upvalue;
 gravity_class_t *gravity_class_system;
-
-#define SETMETA_INITED(c)						gravity_class_get_meta(c)->is_inited = true
-#define GET_VALUE(_idx)							args[_idx]
-#define RETURN_VALUE(_v,_i)						do {gravity_vm_setslot(vm, _v, _i); return true;} while(0)
-#define RETURN_CLOSURE(_v,_i)					do {gravity_vm_setslot(vm, _v, _i); return false;} while(0)
-#define RETURN_FIBER()							return false
-#define RETURN_NOVALUE()						return true
-#define RETURN_ERROR(...)						do {																		\
-													char buffer[4096];														\
-													snprintf(buffer, sizeof(buffer), __VA_ARGS__);							\
-													gravity_fiber_seterror(gravity_vm_fiber(vm), (const char *) buffer);	\
-													gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);						\
-													return false;															\
-												} while(0)
-
-#define DECLARE_1VARIABLE(_v,_idx)				register gravity_value_t _v = GET_VALUE(_idx)
-#define DECLARE_2VARIABLES(_v1,_v2,_idx1,_idx2) DECLARE_1VARIABLE(_v1,_idx1);DECLARE_1VARIABLE(_v2,_idx2)
-
-#define CHECK_VALID(_v, _msg)					if (VALUE_ISA_NOTVALID(_v)) RETURN_ERROR(_msg)
-#define INTERNAL_CONVERT_FLOAT(_v)				_v = convert_value2float(vm,_v); CHECK_VALID(_v, "Unable to convert object to Float")
-#define INTERNAL_CONVERT_BOOL(_v)				_v = convert_value2bool(vm,_v); CHECK_VALID(_v, "Unable to convert object to Bool")
-#define INTERNAL_CONVERT_INT(_v)				_v = convert_value2int(vm,_v); CHECK_VALID(_v, "Unable to convert object to Int")
-#define INTERNAL_CONVERT_STRING(_v)				_v = convert_value2string(vm,_v); CHECK_VALID(_v, "Unable to convert object to String")
-
-#define NEW_FUNCTION(_fptr)						(gravity_function_new_internal(NULL, NULL, _fptr, 0))
-#define NEW_CLOSURE_VALUE(_fptr)				((gravity_value_t){	.isa = gravity_class_closure,		\
-																	.p = (gravity_object_t *)gravity_closure_new(NULL, NEW_FUNCTION(_fptr))})
-
-#define FUNCTION_ISA_SPECIAL(_f)				(OBJECT_ISA_FUNCTION(_f) && (_f->tag == EXEC_TYPE_SPECIAL))
-#define FUNCTION_ISA_DEFAULT_GETTER(_f)			((_f->index < GRAVITY_COMPUTED_INDEX) && (_f->special[EXEC_TYPE_SPECIAL_GETTER] == NULL))
-#define FUNCTION_ISA_DEFAULT_SETTER(_f)			((_f->index < GRAVITY_COMPUTED_INDEX) && (_f->special[EXEC_TYPE_SPECIAL_SETTER] == NULL))
-#define FUNCTION_ISA_GETTER(_f)					(_f->special[EXEC_TYPE_SPECIAL_GETTER] != NULL)
-#define FUNCTION_ISA_SETTER(_f)					(_f->special[EXEC_TYPE_SPECIAL_SETTER] != NULL)
-#define FUNCTION_ISA_BRIDGED(_f)				(_f->index == GRAVITY_BRIDGE_INDEX)
 
 // MARK: - Utils -
 static void map_keys_array (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
@@ -2287,14 +2254,18 @@ static bool system_exit (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
 // MARK: - CORE -
 
-static gravity_closure_t *computed_property_create (gravity_vm *vm, gravity_function_t *getter_func, gravity_function_t *setter_func) {
+gravity_closure_t *computed_property_create (gravity_vm *vm, gravity_function_t *getter_func, gravity_function_t *setter_func) {
 	gravity_closure_t *getter_closure = (getter_func) ? gravity_closure_new(vm, getter_func) : NULL;
 	gravity_closure_t *setter_closure = (setter_func) ? gravity_closure_new(vm, setter_func) : NULL;
 	gravity_function_t *f = gravity_function_new_special(vm, NULL, GRAVITY_COMPUTED_INDEX, getter_closure, setter_closure);
 	return gravity_closure_new(vm, f);
 }
 
-static void computed_property_free (gravity_closure_t *closure) {
+void computed_property_free (gravity_class_t *c, const char *name, bool remove_flag) {
+    STATICVALUE_FROM_STRING(key, name, strlen(name));
+    gravity_closure_t *closure = gravity_class_lookup_closure(c, key);
+    assert(closure);
+    
     gravity_closure_t *getter = (gravity_closure_t *)closure->f->special[0];
     gravity_closure_t *setter = (closure->f->special[0] != closure->f->special[1]) ? (gravity_closure_t *)closure->f->special[1] : NULL;
     if (getter) {
@@ -2310,6 +2281,8 @@ static void computed_property_free (gravity_closure_t *closure) {
     
     if (closure->f) gravity_function_free(NULL, closure->f);
     gravity_closure_free(NULL, closure);
+    
+    if (remove_flag) gravity_hash_remove(c->htable, key);
 }
 
 static void gravity_core_init (void) {
@@ -2615,32 +2588,14 @@ void gravity_core_free (void) {
 	// this function should never be called
 	// it is just called when we need to internally check for memory leaks
 	
-	mem_check(false);
     // computed properties are not registered inside VM gc so they need to be manually freed here
-    {
-        STATICVALUE_FROM_STRING(key, "count", strlen("count"));
-        gravity_closure_t *list_count = gravity_class_lookup_closure(gravity_class_list, key);
-        computed_property_free(list_count);
-        gravity_hash_remove(gravity_class_list->htable, key);
-        gravity_closure_t *map_count = gravity_class_lookup_closure(gravity_class_map, key);
-        computed_property_free(map_count);
-        gravity_hash_remove(gravity_class_map->htable, key);
-        gravity_closure_t *range_count = gravity_class_lookup_closure(gravity_class_range, key);
-        computed_property_free(range_count);
-        gravity_hash_remove(gravity_class_range->htable, key);
-    }
-    {
-        STATICVALUE_FROM_STRING(key, "length", strlen("length"));
-        gravity_closure_t *string_length = gravity_class_lookup_closure(gravity_class_string, key);
-        computed_property_free(string_length);
-        gravity_hash_remove(gravity_class_string->htable, key);
-    }
-    {
-        STATICVALUE_FROM_STRING(key, "gcenabled", strlen("gcenabled"));
-        gravity_closure_t *system_gcenabled = gravity_class_lookup_closure(gravity_class_get_meta(gravity_class_system), key);
-        computed_property_free(system_gcenabled);
-        gravity_hash_remove(gravity_class_get_meta(gravity_class_system)->htable, key);
-    }
+	mem_check(false);
+    computed_property_free(gravity_class_list, "count", true);
+    computed_property_free(gravity_class_map, "count", true);
+    computed_property_free(gravity_class_range, "count", true);
+    computed_property_free(gravity_class_string, "length", true);
+    gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
+    computed_property_free(system_meta, "gcenabled", true);
         
 	gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_int));
 	gravity_class_free_core(NULL, gravity_class_int);
@@ -2670,7 +2625,6 @@ void gravity_core_free (void) {
 	gravity_class_free_core(NULL, gravity_class_upvalue);
 	
 	// before freeing the meta class we need to remove entries with duplicated functions
-	gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
 	{STATICVALUE_FROM_STRING(key, "gcminthreshold", strlen("gcminthreshold")); gravity_hash_remove(system_meta->htable, key);}
 	{STATICVALUE_FROM_STRING(key, "gcthreshold", strlen("gcthreshold")); gravity_hash_remove(system_meta->htable, key);}
 	{STATICVALUE_FROM_STRING(key, "gcratio", strlen("gcratio")); gravity_hash_remove(system_meta->htable, key);}

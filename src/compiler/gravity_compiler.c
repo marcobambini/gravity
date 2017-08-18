@@ -96,7 +96,10 @@ static void gravity_compiler_reset (gravity_compiler_t *compiler, bool free_core
 	}
 	
 	// feel free to free core if someone requires it
-	if (free_core) gravity_core_free();
+    if (free_core) {
+        gravity_core_free();
+        gravity_optionals_free();
+    }
 	
 	// reset internal pointers
 	compiler->vm = NULL;

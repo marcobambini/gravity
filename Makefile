@@ -2,15 +2,17 @@ COMPILER_DIR = src/compiler/
 RUNTIME_DIR = src/runtime/
 SHARED_DIR = src/shared/
 UTILS_DIR = src/utils/
+OPT_DIR = src/optionals/
 UNITTEST_SRC = src/cli/unittest.c
 GRAVITY_SRC = src/cli/gravity.c
 
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(RUNTIME_DIR)/*.c) \
       $(wildcard $(SHARED_DIR)/*.c) \
-      $(wildcard $(UTILS_DIR)/*.c)
+      $(wildcard $(UTILS_DIR)/*.c) \
+      $(wildcard $(OPT_DIR)/*.c)
 
-INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR)
+INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
 CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
 OBJ = $(SRC:.c=.o)
 

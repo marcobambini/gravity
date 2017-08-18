@@ -7,6 +7,7 @@
 //
 
 #include "gravity_symboltable.h"
+#include "gravity_optionals.h"
 #include "gravity_parser.h"
 #include "gravity_macros.h"
 #include "gravity_lexer.h"
@@ -2505,11 +2506,26 @@ static void parser_register_core_classes (gravity_parser_t *parser) {
 	gnode_array_push(parser->statements, (gnode_t *)node);
 }
 
+static void parser_register_optional_classes (gravity_parser_t *parser) {
+    // for each optional identifier create a dummy extern variable node
+    gnode_r	*decls = gnode_array_create();
+    
+    #ifdef GRAVITY_INCLUDE_MATH
+    gnode_t *decl = gnode_variable_create(NO_TOKEN, string_dup(GRAVITY_MATH_NAME()), NULL, 0, NULL, LAST_DECLARATION());
+    gnode_array_push(decls, decl);
+    #endif
+    
+    // register a variable declaration node in global statements
+    gnode_t *node = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, 0, TOK_KEY_EXTERN, decls, NULL, LAST_DECLARATION());;
+    gnode_array_push(parser->statements, (gnode_t *)node);
+}
+
 static uint32_t parser_run (gravity_parser_t *parser) {
 	DEBUG_PARSER("=== BEGIN PARSING ===");
 	
-	// register core classes as extern globals
+	// register core and optional classes as extern globals
 	parser_register_core_classes(parser);
+    parser_register_optional_classes(parser);
 	
 	nanotime_t t1 = nanotime();
 	do {
