@@ -34,6 +34,7 @@
 #define POW                         pow
 #define EXP                         exp
 #define SQRT                        sqrt
+#define CBRT                        cbrt
 #else
 #define SIN                         sinf
 #define COS                         cosf
@@ -49,6 +50,7 @@
 #define POW                         powf
 #define EXP                         expf
 #define SQRT                        sqrtf
+#define CBRT                        cbrtf
 #endif
 
 static gravity_class_t              *gravity_class_math = NULL;
@@ -186,6 +188,28 @@ static bool math_atan2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
     
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
+static bool math_cbrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t value = GET_VALUE(1);
+
+    if (VALUE_ISA_NULL(value)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)CBRT((gravity_float_t)value.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)CBRT((gravity_float_t)value.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -538,6 +562,7 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "asin", NEW_CLOSURE_VALUE(math_asin));
     gravity_class_bind(meta, "atan", NEW_CLOSURE_VALUE(math_atan));
     gravity_class_bind(meta, "atan2", NEW_CLOSURE_VALUE(math_atan2));
+    gravity_class_bind(meta, "cbrt", NEW_CLOSURE_VALUE(math_cbrt));
     gravity_class_bind(meta, "ceil", NEW_CLOSURE_VALUE(math_ceil));
     gravity_class_bind(meta, "cos", NEW_CLOSURE_VALUE(math_cos));
     gravity_class_bind(meta, "exp", NEW_CLOSURE_VALUE(math_exp));

@@ -1,0 +1,13 @@
+#unittest {
+	name: "Test Math.cbrt()";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var r1 = Math.cbrt(8) == 2
+	var r2 = Math.cbrt(125) == 5
+	var r3 = Math.cbrt(1000) == 10
+	var r4 = Math.cbrt(3.375) <= 1.500001 and Math.cbrt(3.375) >= 1.499999
+	return r1 and r2 and r3 and r4
+}
