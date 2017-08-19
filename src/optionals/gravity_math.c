@@ -306,6 +306,59 @@ static bool math_floor (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
+static int gcf(int x, int y) {
+    if (x == 0) {
+        return y;
+    }
+    while (y != 0) {
+        if (x > y) {
+            x = x - y;
+        }
+        else {
+            y = y - x;
+        }
+    }
+    return x;
+}
+
+static bool math_gcf (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused (vm, rindex)
+    if (nargs < 3) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+
+    for (int i = 1; i < nargs; ++i) {
+        if (!VALUE_ISA_INT(GET_VALUE(i))) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+    }
+
+    int gcf_value = (int)GET_VALUE(1).n;
+
+    for (int i = 1; i < nargs-1; ++i) {
+        gcf_value = gcf(gcf_value, (int)GET_VALUE(i+1).n);
+    }
+
+    RETURN_VALUE(VALUE_FROM_INT(gcf_value), rindex);
+}
+
+static int lcm(int x, int y) {
+    return x*y/gcf(x,y);
+}
+
+static bool math_lcm (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused (vm, rindex)
+    if (nargs < 3) RETURN_ERROR("2 or more arguments expected");
+
+    for (int i = 1; i < nargs; ++i) {
+        if (!VALUE_ISA_INT(GET_VALUE(i))) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+    }
+
+    int lcm_value = (int)GET_VALUE(1).n;
+
+    for (int i = 1; i < nargs-1; ++i) {
+        lcm_value = lcm(lcm_value, (int)GET_VALUE(i+1).n);
+    }
+
+    RETURN_VALUE(VALUE_FROM_INT(lcm_value), rindex);
+}
+
 // returns the natural logarithm (base E) of x
 static bool math_log (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -567,6 +620,8 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "cos", NEW_CLOSURE_VALUE(math_cos));
     gravity_class_bind(meta, "exp", NEW_CLOSURE_VALUE(math_exp));
     gravity_class_bind(meta, "floor", NEW_CLOSURE_VALUE(math_floor));
+    gravity_class_bind(meta, "gcf", NEW_CLOSURE_VALUE(math_gcf));
+    gravity_class_bind(meta, "lcm", NEW_CLOSURE_VALUE(math_lcm));
     gravity_class_bind(meta, "log", NEW_CLOSURE_VALUE(math_log));
     gravity_class_bind(meta, "max", NEW_CLOSURE_VALUE(math_max));
     gravity_class_bind(meta, "min", NEW_CLOSURE_VALUE(math_min));
