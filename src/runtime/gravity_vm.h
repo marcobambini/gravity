@@ -71,8 +71,9 @@ GRAVITY_API gravity_value_t		gravity_vm_get (gravity_vm *vm, const char *key);
 GRAVITY_API bool				gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value);
 GRAVITY_API char				*gravity_vm_anonymous (gravity_vm *vm);
 
-GRAVITY_API bool                gravity_isoptional_class (gravity_class_t *c);
-GRAVITY_API void                gravity_optionals_free (void);
+GRAVITY_API bool                gravity_isopt_class (gravity_class_t *c);
+GRAVITY_API void                gravity_opt_register (gravity_vm *vm);
+GRAVITY_API void                gravity_opt_free (void);
 
 #ifdef __cplusplus
 }

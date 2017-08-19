@@ -358,7 +358,7 @@ abort_load:
 }
 
 static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, bool skip_base) {
-	if (skip_base && (gravity_iscore_class(c) || gravity_isoptional_class(c))) return;
+	if (skip_base && (gravity_iscore_class(c) || gravity_isopt_class(c))) return;
 	
 	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)c));
 	

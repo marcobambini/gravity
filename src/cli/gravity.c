@@ -263,7 +263,6 @@ cleanup:
 	if (compiler) gravity_compiler_free(compiler);
 	if (vm) gravity_vm_free(vm);
 	gravity_core_free();
-    gravity_optionals_free();
 	
 	#if GRAVITY_MEMORY_DEBUG
 	size_t current_memory = mem_leaks();

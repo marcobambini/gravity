@@ -295,15 +295,15 @@ static void gravity_vm_loadclass (gravity_vm *vm, gravity_class_t *c) {
 
 // MARK: Internals -
 
-static void gravity_optionals_register (gravity_vm *vm) {
+void gravity_opt_register (gravity_vm *vm) {
     GRAVITY_MATH_REGISTER(vm);
 }
 
-void gravity_optionals_free() {
+void gravity_opt_free() {
     GRAVITY_MATH_FREE();
 }
 
-bool gravity_isoptional_class (gravity_class_t *c) {
+bool gravity_isopt_class (gravity_class_t *c) {
     return GRAVITY_ISMATH_CLASS(c);
 }
 
@@ -1331,7 +1331,6 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	
 	// init base and core
 	gravity_core_register(vm);
-    gravity_optionals_register(vm);
 	gravity_cache_setup();
 	
 	RESET_STATS(vm);

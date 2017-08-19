@@ -2580,6 +2580,9 @@ static void gravity_core_init (void) {
 }
 
 void gravity_core_free (void) {
+    // free optionals first
+    gravity_opt_free();
+    
 	if (!core_inited) return;
 	
 	// check if others VM are still running
@@ -2667,6 +2670,7 @@ const char **gravity_core_identifiers (void) {
 
 void gravity_core_register (gravity_vm *vm) {
 	gravity_core_init();
+    gravity_opt_register(vm);
 	++refcount;
 	if (!vm) return;
 	
