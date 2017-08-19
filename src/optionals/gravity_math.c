@@ -517,7 +517,7 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     }
     
     int r = rand();
-    RETURN_VALUE(VALUE_FROM_FLOAT(r / RAND_MAX), rindex);
+    RETURN_VALUE(VALUE_FROM_FLOAT((float)r / RAND_MAX), rindex);
 }
 
 // rounds x to the nearest integer
