@@ -1,0 +1,20 @@
+#unittest {
+	name: "Test Math.log(), Math.log10(), Math.logx()";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var r1 = Math.log(1) == 0
+	var r2 = Math.log(Math.E) == 1
+	var r3 = Math.log(Math.E*Math.E) == 2
+
+	var r4 = Math.log10(1) == 0
+	var r5 = Math.log10(10) == 1
+	var r6 = Math.log10(100) == 2
+
+	var r7 = Math.logx(2, 2) == 1
+	var r8 = Math.logx(2, 4) == 2
+	var r9 = Math.logx(5, 25) == 2
+	return r1 and r2 and r3 and r4 and r5 and r6 and r7 and r8 and r9
+}

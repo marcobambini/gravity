@@ -382,6 +382,63 @@ static bool math_log (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
+// returns the base 10 logarithm of x
+static bool math_log10 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t value = GET_VALUE(1);
+
+    if (VALUE_ISA_NULL(value)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)10);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f)/(gravity_float_t)LOG((gravity_float_t)10);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
+// returns the logarithm (base x) of y
+static bool math_logx (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t base = GET_VALUE(1);
+    gravity_value_t value = GET_VALUE(2);
+
+    if (VALUE_ISA_NULL(value)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)base.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_INT(value) && VALUE_ISA_FLOAT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)base.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f)/(gravity_float_t)LOG((gravity_float_t)base.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_FLOAT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f)/(gravity_float_t)LOG((gravity_float_t)base.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
 // returns the number with the highest value
 static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     gravity_float_t n = FLOAT_MIN;
@@ -623,6 +680,8 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "gcf", NEW_CLOSURE_VALUE(math_gcf));
     gravity_class_bind(meta, "lcm", NEW_CLOSURE_VALUE(math_lcm));
     gravity_class_bind(meta, "log", NEW_CLOSURE_VALUE(math_log));
+    gravity_class_bind(meta, "log10", NEW_CLOSURE_VALUE(math_log10));
+    gravity_class_bind(meta, "logx", NEW_CLOSURE_VALUE(math_logx));
     gravity_class_bind(meta, "max", NEW_CLOSURE_VALUE(math_max));
     gravity_class_bind(meta, "min", NEW_CLOSURE_VALUE(math_min));
     gravity_class_bind(meta, "pow", NEW_CLOSURE_VALUE(math_pow));
