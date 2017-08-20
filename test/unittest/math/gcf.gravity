@@ -1,0 +1,12 @@
+#unittest {
+	name: "Test Math.gcf()";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var r1 = Math.gcf(10, 1) == 1
+	var r2 = Math.gcf(10, 10) == 10
+	var r3 = Math.gcf(12, 15, 21) == 3
+	return r1 and r2 and r3
+}

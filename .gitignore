@@ -283,6 +283,7 @@ paket-files/
 *.hex
 gravity
 unittest
+!test/unittest
 
 # Debug files
 *.dSYM/

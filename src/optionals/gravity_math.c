@@ -34,6 +34,7 @@
 #define POW                         pow
 #define EXP                         exp
 #define SQRT                        sqrt
+#define CBRT                        cbrt
 #else
 #define SIN                         sinf
 #define COS                         cosf
@@ -49,6 +50,7 @@
 #define POW                         powf
 #define EXP                         expf
 #define SQRT                        sqrtf
+#define CBRT                        cbrtf
 #endif
 
 static gravity_class_t              *gravity_class_math = NULL;
@@ -190,6 +192,28 @@ static bool math_atan2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
+static bool math_cbrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t value = GET_VALUE(1);
+
+    if (VALUE_ISA_NULL(value)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)CBRT((gravity_float_t)value.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)CBRT((gravity_float_t)value.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
 // returns x, rounded upwards to the nearest integer
 static bool math_ceil (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -282,6 +306,59 @@ static bool math_floor (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
+static int gcf(int x, int y) {
+    if (x == 0) {
+        return y;
+    }
+    while (y != 0) {
+        if (x > y) {
+            x = x - y;
+        }
+        else {
+            y = y - x;
+        }
+    }
+    return x;
+}
+
+static bool math_gcf (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused (vm, rindex)
+    if (nargs < 3) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+
+    for (int i = 1; i < nargs; ++i) {
+        if (!VALUE_ISA_INT(GET_VALUE(i))) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+    }
+
+    int gcf_value = (int)GET_VALUE(1).n;
+
+    for (int i = 1; i < nargs-1; ++i) {
+        gcf_value = gcf(gcf_value, (int)GET_VALUE(i+1).n);
+    }
+
+    RETURN_VALUE(VALUE_FROM_INT(gcf_value), rindex);
+}
+
+static int lcm(int x, int y) {
+    return x*y/gcf(x,y);
+}
+
+static bool math_lcm (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused (vm, rindex)
+    if (nargs < 3) RETURN_ERROR("2 or more arguments expected");
+
+    for (int i = 1; i < nargs; ++i) {
+        if (!VALUE_ISA_INT(GET_VALUE(i))) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+    }
+
+    int lcm_value = (int)GET_VALUE(1).n;
+
+    for (int i = 1; i < nargs-1; ++i) {
+        lcm_value = lcm(lcm_value, (int)GET_VALUE(i+1).n);
+    }
+
+    RETURN_VALUE(VALUE_FROM_INT(lcm_value), rindex);
+}
+
 // returns the natural logarithm (base E) of x
 static bool math_log (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -301,6 +378,63 @@ static bool math_log (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
     
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
+// returns the base 10 logarithm of x
+static bool math_log10 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t value = GET_VALUE(1);
+
+    if (VALUE_ISA_NULL(value)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)10);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f)/(gravity_float_t)LOG((gravity_float_t)10);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
+// returns the logarithm (base x) of y
+static bool math_logx (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t base = GET_VALUE(1);
+    gravity_value_t value = GET_VALUE(2);
+
+    if (VALUE_ISA_NULL(value)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)base.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_INT(value) && VALUE_ISA_FLOAT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)base.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f)/(gravity_float_t)LOG((gravity_float_t)base.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_FLOAT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f)/(gravity_float_t)LOG((gravity_float_t)base.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -383,7 +517,7 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     }
     
     int r = rand();
-    RETURN_VALUE(VALUE_FROM_FLOAT(r / RAND_MAX), rindex);
+    RETURN_VALUE(VALUE_FROM_FLOAT((float)r / RAND_MAX), rindex);
 }
 
 // rounds x to the nearest integer
@@ -538,11 +672,16 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "asin", NEW_CLOSURE_VALUE(math_asin));
     gravity_class_bind(meta, "atan", NEW_CLOSURE_VALUE(math_atan));
     gravity_class_bind(meta, "atan2", NEW_CLOSURE_VALUE(math_atan2));
+    gravity_class_bind(meta, "cbrt", NEW_CLOSURE_VALUE(math_cbrt));
     gravity_class_bind(meta, "ceil", NEW_CLOSURE_VALUE(math_ceil));
     gravity_class_bind(meta, "cos", NEW_CLOSURE_VALUE(math_cos));
     gravity_class_bind(meta, "exp", NEW_CLOSURE_VALUE(math_exp));
     gravity_class_bind(meta, "floor", NEW_CLOSURE_VALUE(math_floor));
+    gravity_class_bind(meta, "gcf", NEW_CLOSURE_VALUE(math_gcf));
+    gravity_class_bind(meta, "lcm", NEW_CLOSURE_VALUE(math_lcm));
     gravity_class_bind(meta, "log", NEW_CLOSURE_VALUE(math_log));
+    gravity_class_bind(meta, "log10", NEW_CLOSURE_VALUE(math_log10));
+    gravity_class_bind(meta, "logx", NEW_CLOSURE_VALUE(math_logx));
     gravity_class_bind(meta, "max", NEW_CLOSURE_VALUE(math_max));
     gravity_class_bind(meta, "min", NEW_CLOSURE_VALUE(math_min));
     gravity_class_bind(meta, "pow", NEW_CLOSURE_VALUE(math_pow));

@@ -1,0 +1,26 @@
+#unittest {
+	name: "Test Int.radians, Int.degrees";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// 360 degrees in radians is 2*pi
+	var ir1 = 360.radians == 2*Math.PI
+	// 180 degrees in radians is pi
+	var ir2 = 180.radians == Math.PI
+	// 30 degrees in radians is pi/6
+	var ir3 = 30.radians == Math.PI/6
+	var ir = ir1 and ir2 and ir3
+
+	// Test Int.degrees
+	// pi/3 radians in degrees is 60
+	var id1 = (Math.PI/3).degrees <= 60.000001 and (Math.PI/3).degrees >= 59.999999
+	// pi/4 radians in degrees is 45
+	var id2 = (Math.PI/4).degrees <= 45.000001 and (Math.PI/4).degrees >= 44.999999
+	// pi/2 radians in degrees is 90
+	var id3 = (Math.PI/2).degrees <= 90.000001 and (Math.PI/2).degrees >= 89.999999
+	var id = id1 and id2 and id3
+
+	return id and ir
+}

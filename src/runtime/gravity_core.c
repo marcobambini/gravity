@@ -1415,6 +1415,18 @@ static bool float_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     RETURN_VALUE(v, rindex);
 }
 
+static bool float_degrees (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	// Convert the float from radians to degrees
+	RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).f*180/3.141592653589793), rindex);
+}
+
+static bool float_radians (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	// Convert the float from degrees to radians
+	RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).f*3.141592653589793/180), rindex);
+}
+
 // MARK: - Int Class -
 
 // binary operators
@@ -1548,6 +1560,18 @@ static bool int_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     gravity_value_t v = convert_value2int(vm, GET_VALUE(1));
     if (VALUE_ISA_NOTVALID(v)) RETURN_ERROR("Unable to convert object to Int.");
     RETURN_VALUE(v, rindex);
+}
+
+static bool int_degrees (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	// Convert the int from radians to degrees
+	RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).n*180/3.141592653589793), rindex);
+}
+
+static bool int_radians (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	// Convert the int from degrees to radians
+	RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).n*3.141592653589793/180), rindex);
 }
 
 // MARK: - Bool Class -
@@ -2452,6 +2476,10 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_int, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_int_neg));
 	gravity_class_bind(gravity_class_int, GRAVITY_OPERATOR_NOT_NAME, NEW_CLOSURE_VALUE(operator_int_not));
 	gravity_class_bind(gravity_class_int, GRAVITY_INTERNAL_LOOP_NAME, NEW_CLOSURE_VALUE(int_loop));
+    closure = computed_property_create(NULL, NEW_FUNCTION(int_radians), NULL);
+	gravity_class_bind(gravity_class_int, "radians", VALUE_FROM_OBJECT(closure));
+    closure = computed_property_create(NULL, NEW_FUNCTION(int_degrees), NULL);
+	gravity_class_bind(gravity_class_int, "degrees", VALUE_FROM_OBJECT(closure));
 	// Meta
 	gravity_class_t *int_meta = gravity_class_get_meta(gravity_class_int);
 	gravity_class_bind(int_meta, "random", NEW_CLOSURE_VALUE(int_random));
@@ -2471,6 +2499,10 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_float, "round", NEW_CLOSURE_VALUE(function_float_round));
 	gravity_class_bind(gravity_class_float, "floor", NEW_CLOSURE_VALUE(function_float_floor));
 	gravity_class_bind(gravity_class_float, "ceil", NEW_CLOSURE_VALUE(function_float_ceil));
+    closure = computed_property_create(NULL, NEW_FUNCTION(float_radians), NULL);
+	gravity_class_bind(gravity_class_float, "radians", VALUE_FROM_OBJECT(closure));
+    closure = computed_property_create(NULL, NEW_FUNCTION(float_degrees), NULL);
+	gravity_class_bind(gravity_class_float, "degrees", VALUE_FROM_OBJECT(closure));
     // Meta
     gravity_class_t *float_meta = gravity_class_get_meta(gravity_class_float);
     gravity_class_bind(float_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(float_exec));
@@ -2597,6 +2629,10 @@ void gravity_core_free (void) {
     computed_property_free(gravity_class_map, "count", true);
     computed_property_free(gravity_class_range, "count", true);
     computed_property_free(gravity_class_string, "length", true);
+    computed_property_free(gravity_class_int, "radians", true);
+    computed_property_free(gravity_class_int, "degrees", true);
+    computed_property_free(gravity_class_float, "radians", true);
+    computed_property_free(gravity_class_float, "degrees", true);
     gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
     computed_property_free(system_meta, "gcenabled", true);
         

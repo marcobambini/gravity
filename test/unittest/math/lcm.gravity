@@ -1,0 +1,12 @@
+#unittest {
+	name: "Test Math.lcm()";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var r1 = Math.lcm(10, 1) == 10
+	var r2 = Math.lcm(3, 4) == 12
+	var r3 = Math.lcm(6, 15, 2) == 30
+	return r1 and r2 and r3
+}
