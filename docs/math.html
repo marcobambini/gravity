@@ -100,16 +100,18 @@
 							<h4 class="section-h4">Trig Functions</h4>
 							<p>The Math class also contains several Trigonometric Functions. All
 									values that represent angles are in radians for these methods, and they
-									all expect radians for inputs.</p>
+									all expect radians for inputs. You can use the ".radians" and
+							".degrees" properties of the Int and Float class to do conversions.</p>
 							<pre><code class="swift">
 	Math.acos(-1);     // returns pi
 	Math.asin(0.5);    // returns 0.523599 ( = pi/6)
 	Math.atan(1);      // returns 0.785398 ( = pi/4 )
 	Math.atan2(-1,-1); // returns -2.356194 ( = -3pi/4 )
 
-	Math.cos(Math.PI);   // returns -1
-	Math.sin(Math.PI);   // returns 0
-	Math.tan(Math.PI/4); // returns 1
+	Math.cos(Math.PI);     // returns -1
+	Math.cos(180.radians); // returns -1 (same as above)
+	Math.sin(Math.PI);     // returns 0
+	Math.tan(Math.PI/4);   // returns 1
 							</code></pre>
 
 							<h4 class="section-h4">Ceiling, Floor, and Rounding</h4>
@@ -130,12 +132,16 @@
 	Math.pow(2,3); // returns 8
 
 	Math.sqrt(9); // 3
+	Math.cbrt(8); // 2
 							</code></pre>
 
 							<h4 class="section-h4">Logarithms</h4>
 							<pre><code class="swift">
 	// log base e
 	Math.log(Math.E) // returns 1
+	Math.log10(10)   // returns 1
+	Math.logx(2,2)   // returns 1
+	Math.logx(2,4)   // returns 2
 							</code></pre>
 
 							<h4 class="section-h4">Max and Min</h4>
@@ -147,6 +153,12 @@
 							<h4 class="section-h4">Random Number</h4>
 							<pre><code class="swift">
 	Math.random() // Returns a random number between 0 and 1
+							</code></pre>
+
+							<h4 class="section-h4">GCF and LCM</h4>
+							<pre><code class="swift">
+	Math.gcf(12,15,21); // 3
+	Math.lcm(6,15,2);   // 30
 							</code></pre>
 						</div>
 					<!-- END CONTENT -->
