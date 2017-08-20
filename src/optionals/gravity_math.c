@@ -214,6 +214,40 @@ static bool math_cbrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
+static bool math_xrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 3) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+
+    gravity_value_t base = GET_VALUE(1);
+    gravity_value_t value = GET_VALUE(2);
+
+    if (VALUE_ISA_NULL(value) || VALUE_ISA_NULL(base)) {
+        RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+
+    if (VALUE_ISA_INT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.n, 1.0/base.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_INT(value) && VALUE_ISA_FLOAT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.n, 1.0/base.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.f, 1.0/base.n);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.f, 1.0/base.f);
+        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    }
+
+    // should be NaN
+    RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+}
+
 // returns x, rounded upwards to the nearest integer
 static bool math_ceil (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -673,6 +707,7 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "atan", NEW_CLOSURE_VALUE(math_atan));
     gravity_class_bind(meta, "atan2", NEW_CLOSURE_VALUE(math_atan2));
     gravity_class_bind(meta, "cbrt", NEW_CLOSURE_VALUE(math_cbrt));
+    gravity_class_bind(meta, "xrt", NEW_CLOSURE_VALUE(math_xrt));
     gravity_class_bind(meta, "ceil", NEW_CLOSURE_VALUE(math_ceil));
     gravity_class_bind(meta, "cos", NEW_CLOSURE_VALUE(math_cos));
     gravity_class_bind(meta, "exp", NEW_CLOSURE_VALUE(math_exp));
