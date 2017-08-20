@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Gravity: System</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800">
+		<link rel="stylesheet" href="scripts/highlight/styles/github-gist.css">
+		<link rel="stylesheet" href="stylesheets/styles.css">
+	</head>
+	<body>
+
+		<!-- BEGIN NAVIGATION BAR -->
+		<nav class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="http://gravity-lang.org"><img src="images/logo.png" width="32px" height="36px"></a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li class="active"><a href="index.html">Gravity</a></li>
+						<li><a href="internals/index.html">Internals</a></li>
+						<li><a href="https://github.com/marcobambini/gravity">GitHub</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</nav>
+		<!-- END NAVIGATION BAR -->
+
+		<div class="container body-container">
+			<div class="main-content">
+				<div class="row">
+
+					<!-- BEGIN SIDEBAR -->
+					<div class="col-sm-3 border-right section-left">
+					<div saveheight="1" class="sidebar-nav">
+						<h4>INTRODUCTION</h4>
+						<ul>
+							<li><a href="index.html"><span>Introduction</span></a></li>
+							<li><a href="getting-started.html"><span>Getting Started</span></a></li>
+						</ul>
+						<h4>LANGUAGE GUIDE</h4>
+						<ul>
+							<li><a href="syntax.html"><span>Syntax</span></a></li>
+							<li><a href="operators.html"><span>Operators</span></a></li>
+							<li><a href="types.html"><span>Types</span></a></li>
+							<li><a href="lists.html"><span>Lists</span></a></li>
+							<li><a href="maps.html"><span>Maps</span></a></li>
+							<li><a href="enum.html"><span>Enum</span></a></li>
+							<li><a href="functions.html"><span>Functions</span></a></li>
+							<li><a href="closures.html"><span>Closures</span></a></li>
+							<li><a href="classes.html"><span>Classes</span></a></li>
+							<li><a href="control-flow.html"><span>Control Flow</span></a></li>
+							<li><a href="loops.html"><span>Loops</span></a></li>
+							<li><a href="fibers.html"><span>Fibers</span></a></li>
+						</ul>
+						<h4>ADVANCED</h4>
+						<ul>
+							<li><a href="api.html"><span>Embedding API</span></a></li>
+							<li><a href="system.html"><span>System class</span></a></li>
+							<li><a href="math.html" class="active"><span>Math class</span></a></li>
+							<li><a href="unit-test.html"><span>Unit test</span></a></li>
+							<li><a href="contributing.html"><span>Contributing</span></a></li>
+						</ul>
+					</div>
+				</div>
+				<!-- END SIDEBAR -->
+
+				<!-- BEGIN CONTENT -->
+						<div class="col-sm-9 border-left section-right">
+							<h1 class="section-header">Math</h1><hr>
+							<p class="section-content">The Math class is a class in Gravity that offers various methods for calculating more complex mathematics than the standard +,-,/, and *.</p>
+							<h4 class="section-h4">Mathematical Constants</h4>
+							<pre><code class="swift">
+	Math.PI;      // pi (~3.141593)
+	Math.E;       // e (~2.718282)
+	Math.LN2;     // natural log of 2 (ie. Math.log(2) = ~0.693147)
+	Math.LN10;    // natural log of 10 (ie. Math.log(10) = ~2.302585)
+	Math.LOG2E;   // log base 2 of e (~1.442695)
+	Math.LOG10E;  // log base 10 of e (~0.434294)
+	Math.SQRT2;   // sqrt of 2  (ie. Math.sqrt(2) = ~1.414214)
+	Math.SQRT1_2; // sqrt of 0.5  (ie. Math.sqrt(0.5) = ~0.707107)
+							</code></pre>
+
+							<h4 class="section-h4">Absolute Values</h4>
+							<strong>Math.abs()</strong> is a method that returns the absolute value of an integer of float.
+							<pre><code class="swift">
+	Math.abs(-10); // returns 10
+	Math.abs(10);  // also returns 10
+							</code></pre>
+
+							<h4 class="section-h4">Trig Functions</h4>
+							<p>The Math class also contains several Trigonometric Functions. All
+									values that represent angles are in radians for these methods, and they
+									all expect radians for inputs.</p>
+							<pre><code class="swift">
+	Math.acos(-1);     // returns pi
+	Math.asin(0.5);    // returns 0.523599 ( = pi/6)
+	Math.atan(1);      // returns 0.785398 ( = pi/4 )
+	Math.atan2(-1,-1); // returns -2.356194 ( = -3pi/4 )
+
+	Math.cos(Math.PI);   // returns -1
+	Math.sin(Math.PI);   // returns 0
+	Math.tan(Math.PI/4); // returns 1
+							</code></pre>
+
+							<h4 class="section-h4">Ceiling, Floor, and Rounding</h4>
+							<pre><code class="swift">
+	Math.ceil(4.1)  // returns 5
+	Math.floor(4.1) // returns 4
+	Math.round(4.1) // returns 4
+	Math.round(4.5) // returns 5
+							</code></pre>
+
+							<h4 class="section-h4">Exponents and Radicals</h4>
+							<pre><code class="swift">
+	// e to the power of x
+	Math.exp(1) // returns 2.718282 (e)
+	Math.exp(2) // returns 7.389056 (e^2)
+
+	// x to the power of y
+	Math.pow(2,3); // returns 8
+
+	Math.sqrt(9); // 3
+							</code></pre>
+
+							<h4 class="section-h4">Logarithms</h4>
+							<pre><code class="swift">
+	// log base e
+	Math.log(Math.E) // returns 1
+							</code></pre>
+
+							<h4 class="section-h4">Max and Min</h4>
+							<pre><code class="swift">
+	Math.max(-1,10,2); // Returns 10
+	Math.min(-1,10,2); // Returns -1
+							</code></pre>
+
+							<h4 class="section-h4">Random Number</h4>
+							<pre><code class="swift">
+	Math.random() // Returns a random number between 0 and 1
+							</code></pre>
+						</div>
+					<!-- END CONTENT -->
+
+					</div> <!-- /row -->
+				</div> <!-- /main-content -->
+			</div> <!-- /container -->
+
+			<!-- BEGIN FOOTER -->
+			<footer class="navbar-fixed-bottom">
+				<div class="container footer">
+					<p>
+					</p>
+				</div>
+			</footer>
+			<!-- END FOOTER -->
+
+			<!-- Bootstrap JS -->
+			<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+			<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+			<!-- Highlights JS -->
+			<script src="scripts/highlight/highlight.min.js"></script>
+			<script>hljs.initHighlightingOnLoad();</script>
+
+	</body>
+</html>
