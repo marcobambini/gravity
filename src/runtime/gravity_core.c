@@ -965,7 +965,7 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
             // sanity check
             if (to_alloc > MAX_MEMORY_BLOCK) {
                 mem_free(_buffer);
-                RETURN_ERROR("Maximum memory block size reached (max %d, requested %ld).", MAX_MEMORY_BLOCK, to_alloc);
+                RETURN_ERROR("Maximum memory block size reached (max %d, requested %llu).", MAX_MEMORY_BLOCK, to_alloc);
             }
             
 			_buffer = mem_realloc(_buffer, (uint32_t)to_alloc);
