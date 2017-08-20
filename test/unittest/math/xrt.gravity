@@ -1,0 +1,12 @@
+#unittest {
+	name: "Test Math.xrt()";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var r1 = Math.xrt(4, 16) == 2
+	var r2 = Math.xrt(3, 8) == 2
+	var r3 = Math.xrt(2, 9) == 3
+	return r1 and r2 and r3
+}
