@@ -1,0 +1,21 @@
+#unittest {
+	name: "loop() for string";
+	error: NONE;
+	result: "aeiouAEIOU";
+};
+
+func main () {
+	var s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	var ret = ""
+	s.loop(func (c) {
+		if (c == "a" or c == "A" or
+				c == "e" or c == "E" or
+				c == "i" or c == "I" or
+				c == "o" or c == "O" or
+				c == "u" or c == "U") {
+			ret += c;
+		}
+	})
+	return ret;
+}
