@@ -2058,6 +2058,62 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
 
+static bool string_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	if (nargs < 2) RETURN_ERROR("Incorrect number of arguments.");
+	if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
+
+	gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(1));	// closure to execute
+	gravity_value_t value = GET_VALUE(0);							// self parameter
+	gravity_string_t *string = VALUE_AS_STRING(value);
+	char *str = string->s;
+	register gravity_int_t n = string->len;  // Times to execute the loop
+	register gravity_int_t i = 0;
+
+	nanotime_t t1 = nanotime();
+	while (i < n) {
+		gravity_value_t v_str = VALUE_FROM_STRING(vm, str + i, 1);
+		if (!gravity_vm_runclosure(vm, closure, value, &v_str, 1)) return false;
+		++i;
+	}
+	nanotime_t t2 = nanotime();
+	RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
+}
+
+static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
+
+	// check for empty string first
+	if (string->len == 0) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
+
+	// check for start of iteration
+	if (VALUE_ISA_NULL(GET_VALUE(1))) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+
+	// extract value
+	gravity_value_t value = GET_VALUE(1);
+
+	// check error condition
+	if (!VALUE_ISA_INT(value)) RETURN_ERROR("Iterator expects a numeric value here.");
+
+	// compute new value
+	gravity_int_t n = value.n;
+	if (n+1 < string->len) {
+		++n;
+	} else {
+		RETURN_VALUE(VALUE_FROM_FALSE, rindex);
+	}
+
+	// return new iterator
+	RETURN_VALUE(VALUE_FROM_INT(n), rindex);
+}
+
+static bool string_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+	#pragma unused(vm, nargs)
+	gravity_string_t	*string = VALUE_AS_STRING(GET_VALUE(0));
+	register int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+	RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, 1), rindex);
+}
+
 static bool string_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     if (nargs != 2) RETURN_ERROR("A single argument is expected in String casting.");
     
@@ -2542,6 +2598,9 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));
 	gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
 	gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
+	gravity_class_bind(gravity_class_string, "loop", NEW_CLOSURE_VALUE(string_loop));
+	gravity_class_bind(gravity_class_string, "iterate", NEW_CLOSURE_VALUE(string_iterator));
+	gravity_class_bind(gravity_class_string, "next", NEW_CLOSURE_VALUE(string_iterator_next));
     // Meta
     gravity_class_t *string_meta = gravity_class_get_meta(gravity_class_string);
     gravity_class_bind(string_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(string_exec));

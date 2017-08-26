@@ -116,10 +116,10 @@
 	}
 	return count;
 			</code></pre>
-			<p>The for in loop can be used over any object that supports iteration, such as <a href="lists.html">Lists</a> or <a href="maps.html">Maps</a>.</p>
+			<p>The for in loop can be used over any object that supports iteration, such as <a href="lists.html">Lists</a>, Strings or <a href="maps.html">Maps</a>.</p>
          	
          	<h4 class="section-h4">Loop method</h4>
-         	<p>Performing a loop is very common operation in any programming language, so Gravity adds a very convenient way to run a loop by adding a special loop method to some classes (Int, Range, List and Map) that accepts a <a href="closures.html">closure</a> as parameter:</p>
+         	<p>Performing a loop is very common operation in any programming language, so Gravity adds a very convenient way to run a loop by adding a special loop method to some classes (Int, Range, List, String and Map) that accepts a <a href="closures.html">closure</a> as parameter:</p>
          	<pre><code class="swift">
 	func main() {
 		4.loop({System.print("Hello World");});
@@ -161,6 +161,24 @@
 		var target = [10,20,30,40,50,60,70,80,90];
 		target.loop(func (value){System.print("Hello World " + value);});
 	}
+			</code></pre>
+			<p>Loop within a String:</p>
+         	<pre><code class="swift">
+        func main() {
+                var s = "abcdefghijklmnopqrstuvwxyz";
+
+                var vowels = ""
+                s.loop(func (c) {
+                        if (c == "a" or
+                            c == "e" or
+                            c == "i" or
+                            c == "o" or
+                            c == "u") {
+                                vowels += c;
+                        }
+                })
+                System.print(vowels)  // aeiou
+        }
 			</code></pre>
 			<p>Loop within a <a href="maps.html">Map</a> where key is passed as closure argument (please note that key order is not preserved):</p>
          	<pre><code class="swift">
