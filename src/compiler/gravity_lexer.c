@@ -20,7 +20,7 @@ struct gravity_lexer_t {
 	uint32_t					lineno;			// line counter
 	uint32_t					colno;			// column counter
 	uint32_t					fileid;			// current file id
-	
+
 	gtoken_s					token;			// current token
 	bool						peeking;		// flag to check if a peek operation is in progress
 	bool						is_static;		// flag to check if buffer is static and must not be freed
@@ -75,30 +75,30 @@ static inline bool is_newline (gravity_lexer_t *lexer, int c) {
 	// CR: Carriage Return, U+000D (UTF-8 in hex: 0D)
 	// LF: Line Feed, U+000A (UTF-8 in hex: 0A)
 	// CR+LF: CR (U+000D) followed by LF (U+000A) (UTF-8 in hex: 0D0A)
-	
+
 	// LF
 	if (c == 0x0A) return true;
-	
+
 	// CR+LF or CR
 	if (c == 0x0D) {
 		if (PEEK_NEXT == 0x0A) {NEXT; return true;}
 		return true;
 	}
-	
+
 	// UTF-8 cases https://en.wikipedia.org/wiki/Newline#Unicode
-	
+
 	// NEL: Next Line, U+0085 (UTF-8 in hex: C285)
 	if ((c == 0xC2) && (PEEK_NEXT == 0x85)) {
 		NEXT;
 		return true;
 	}
-	
+
 	// LS: Line Separator, U+2028 (UTF-8 in hex: E280A8)
 	if ((c == 0xE2) && (PEEK_NEXT == 0x80) && (PEEK_NEXT2 == 0xA8)) {
 		NEXT; NEXT;
 		return true;
 	}
-		
+
 	// and probably more not handled here
 	return false;
 }
@@ -138,7 +138,7 @@ static inline bool is_builtin_operator (int c) {
 	// . ; : ? ,
 	// OPERATORS
 	// + - * / < > ! = | & ^ % ~
-	
+
 	return ((c == '+') || (c == '-') || (c == '*') || (c == '/') ||
 			(c == '<') || (c == '>') || (c == '!') || (c == '=') ||
 			(c == '|') || (c == '&') || (c == '^') || (c == '%') ||
@@ -173,37 +173,37 @@ static gtoken_t lexer_error(gravity_lexer_t *lexer, const char *message) {
 static inline bool next_utf8(gravity_lexer_t *lexer, int *result) {
 	int c = NEXT;
 	INC_TOKLEN;
-	
+
 	uint32_t len = utf8_charbytes((const char *)&c, 0);
 	if (len == 0) return false;
-	
+
 	switch(len) {
 		case 1: break;
 		case 2: INC_OFFSET; INC_TOKBYTES; break;
 		case 3: INC_OFFSET; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; break;
 		case 4: INC_OFFSET; INC_OFFSET; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; INC_TOKBYTES; INC_POSITION; INC_TOKUTF8LEN; break;
 	}
-	
+
 	if (result) *result = c;
 	return true;
 }
 
 static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
 	bool isLineComment = (PEEK_NEXT == '/');
-	
+
 	TOKEN_RESET;
 	INC_OFFSET_POSITION;
 	INC_OFFSET_POSITION;
-	
+
 	// because I already scanned /* or //
 	lexer->token.bytes = lexer->token.length = 2;
-	
+
 	// count variable used only to support nested comments
 	int count = 1;
 	while (!IS_EOF) {
 		int c = 0;
 		next_utf8(lexer, &c);
-		
+
 		if (isLineComment){
 			if (is_newline(lexer, c)) {INC_LINE; break;}
 		} else {
@@ -214,15 +214,15 @@ static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
 			if (is_newline(lexer, c)) {INC_LINE;}
 		}
 	}
-	
+
 	// comment is from buffer->[nseek] and it is nlen length
 	TOKEN_FINALIZE(TOK_COMMENT);
-	
+
 	// comments callback is called directly from the scan function and not from the main scan loop
 	if ((lexer->delegate) && (lexer->delegate->parser_callback)) {
 		lexer->delegate->parser_callback(&lexer->token, lexer->delegate->xdata);
 	}
-	
+
 	DEBUG_LEXEM("Found comment");
 	return TOK_COMMENT;
 }
@@ -232,29 +232,29 @@ static gtoken_t lexer_scan_semicolon(gravity_lexer_t *lexer) {
 	INC_TOKLEN;
 	INC_OFFSET_POSITION;
 	TOKEN_FINALIZE(TOK_OP_SEMICOLON);
-	
+
 	return TOK_OP_SEMICOLON;
 }
 
-static gtoken_t lexer_scan_identifier(gravity_lexer_t *lexer) {	
+static gtoken_t lexer_scan_identifier(gravity_lexer_t *lexer) {
 	TOKEN_RESET;
 	while (is_identifier(PEEK_CURRENT)) {
 		INC_OFFSET_POSITION;
 		INC_TOKLEN;
 	}
 	TOKEN_FINALIZE(TOK_IDENTIFIER);
-	
+
     // check if identifier is a special built-in case
     gtoken_t type = token_special_builtin(&lexer->token);
     // then check if it is a reserved word (otherwise reports it as an identifier)
     if (type == TOK_IDENTIFIER) type = token_keyword(lexer->token.value, lexer->token.bytes);
 	SET_TOKTYPE(type);
-	
+
 	#if GRAVITY_LEXEM_DEBUG
 	if (type == TOK_IDENTIFIER) DEBUG_LEXEM("Found identifier: %.*s", TOKEN_BYTES(lexer->token), TOKEN_VALUE(lexer->token));
 	else DEBUG_LEXEM("Found keyword: %s", token_name(type));
 	#endif
-	
+
 	return type;
 }
 
@@ -266,14 +266,14 @@ static gtoken_t lexer_scan_number(gravity_lexer_t *lexer) {
 	bool		expFound = false;
 	int			c, expChar = 'e', floatChar = '.';
 	int			plusSign = '+', minusSign = '-';
-	
+
 	gravity_number_type	ntype = NUMBER_INTEGER;
 	if (PEEK_CURRENT == '0') {
 		if (toupper(PEEK_NEXT) == 'X') {ntype = NUMBER_HEX; floatAllowed = false; expAllowed = false;}
 		else if (toupper(PEEK_NEXT) == 'B') {ntype = NUMBER_BIN; floatAllowed = false; expAllowed = false;}
 		else if (toupper(PEEK_NEXT) == 'O') {ntype = NUMBER_OCT; floatAllowed = false; expAllowed = false;}
 	}
-	
+
 	TOKEN_RESET;
 	if (ntype != NUMBER_INTEGER) {
 		// skip first 0* number marker
@@ -282,7 +282,7 @@ static gtoken_t lexer_scan_number(gravity_lexer_t *lexer) {
 		INC_OFFSET_POSITION;
 		INC_OFFSET_POSITION;
 	}
-	
+
 	// supported exp formats:
 	// 12345	// decimal
 	// 3.1415	// float
@@ -291,16 +291,16 @@ static gtoken_t lexer_scan_number(gravity_lexer_t *lexer) {
 	// 0xFFFF	// hex
 	// 0B0101	// binary
 	// 0O7777	// octal
-	
+
 loop:
 	c = PEEK_CURRENT;
-	
+
 	// explicitly list all accepted cases
 	if (IS_EOF) goto report_token;
 	if (is_digit(c, ntype)) goto accept_char;
 	if (is_whitespace(c)) goto report_token;
 	if (is_newline(lexer, c)) goto report_token;
-	
+
 	if (expAllowed) {
 		if ((c == expChar) && (!expFound)) {expFound = true; signAllowed = true; goto accept_char;}
 	}
@@ -313,10 +313,10 @@ loop:
 	}
 	if (is_builtin_operator(c)) goto report_token;
 	if (is_semicolon(c)) goto report_token;
-	
+
 	// any other case is an error
 	goto report_error;
-	
+
 accept_char:
 	INC_TOKLEN;
 	INC_OFFSET_POSITION;
@@ -325,48 +325,48 @@ accept_char:
 report_token:
 	// number is from buffer->[nseek] and it is bytes length
 	TOKEN_FINALIZE(TOK_NUMBER);
-	
+
 	DEBUG_LEXEM("Found number: %.*s", TOKEN_BYTES(lexer->token), TOKEN_VALUE(lexer->token));
 	return TOK_NUMBER;
-	
+
 report_error:
 	return lexer_error(lexer, "Malformed number expression.");
 }
 
 static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 	int c, c2;
-	
+
 	// no memory allocation here
 	c = NEXT;					// save escaped character
 	TOKEN_RESET;				// save offset
-	
+
 	while ((c2 = (unsigned char)PEEK_CURRENT) != c) {
 		if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
 		if (is_newline(lexer, c2)) INC_LINE;
-		
+
 		// handle escaped characters
 		if (c2 == '\\') {
 			INC_OFFSET_POSITION;
 			INC_OFFSET_POSITION;
 			INC_TOKLEN;
 			INC_TOKLEN;
-            
+
             // sanity check
             if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
 			continue;
 		}
-		
+
 		// scan next
 		if (!next_utf8(lexer, NULL)) return lexer_error(lexer, "Unknown character inside a string literal");
         if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
 	}
-	
+
 	// skip last escape character
 	INC_OFFSET_POSITION;
-	
+
 	// string is from buffer->[nseek] and it is nlen length
 	TOKEN_FINALIZE(TOK_STRING);
-	
+
 	DEBUG_LEXEM("Found string: %.*s", TOKEN_BYTES(lexer->token), TOKEN_VALUE(lexer->token));
 	return TOK_STRING;
 }
@@ -374,11 +374,11 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 static gtoken_t lexer_scan_operator(gravity_lexer_t *lexer) {
 	TOKEN_RESET;
 	INC_TOKLEN;
-	
+
 	int c = NEXT;
 	int c2 = PEEK_CURRENT;
 	int tok = 0;
-	
+
 	switch (c) {
 		case '=':
 			if (c2 == '=') {
@@ -495,13 +495,13 @@ static gtoken_t lexer_scan_operator(gravity_lexer_t *lexer) {
 			break;
 		default:
 			return lexer_error(lexer, "Unrecognized Operator");
-			
+
 	}
-	
+
 	TOKEN_FINALIZE(tok);
-	
+
 	DEBUG_LEXEM("Found operator: %s", token_name(tok));
-	return tok;	
+	return tok;
 }
 
 static gtoken_t lexer_scan_special(gravity_lexer_t *lexer) {
@@ -509,7 +509,7 @@ static gtoken_t lexer_scan_special(gravity_lexer_t *lexer) {
 	INC_TOKLEN;
 	INC_OFFSET_POSITION;
 	TOKEN_FINALIZE(TOK_SPECIAL);
-	
+
 	return TOK_SPECIAL;
 }
 
@@ -518,7 +518,7 @@ static gtoken_t lexer_scan_preprocessor(gravity_lexer_t *lexer) {
 	INC_TOKLEN;
 	INC_OFFSET_POSITION;
 	TOKEN_FINALIZE(TOK_MACRO);
-	
+
 	return TOK_MACRO;
 }
 
@@ -528,7 +528,7 @@ gravity_lexer_t *gravity_lexer_create (const char *source, size_t len, uint32_t 
 	gravity_lexer_t *lexer = mem_alloc(sizeof(gravity_lexer_t));
 	if (!lexer) return NULL;
 	bzero(lexer, sizeof(gravity_lexer_t));
-	
+
 	lexer->is_static = is_static;
 	lexer->lineno = 1;
 	lexer->buffer = source;
@@ -545,27 +545,27 @@ void gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_delegate_t *dele
 gtoken_t gravity_lexer_peek (gravity_lexer_t *lexer) {
 	lexer->peeking = true;
 	gravity_lexer_t saved = *lexer;
-	
+
 	gtoken_t result = gravity_lexer_next(lexer);
-	
+
 	*lexer = saved;
 	lexer->peeking = false;
-	
+
 	return result;
 }
 
 gtoken_t gravity_lexer_next (gravity_lexer_t *lexer) {
 	int			c;
 	gtoken_t	token;
-	
+
 loop:
 	if (IS_EOF) return TOK_EOF;
 	c = PEEK_CURRENT;
-	
+
 	if (is_whitespace(c)) {INC_OFFSET_POSITION; goto loop;}
 	if (is_newline(lexer, c)) {INC_OFFSET_POSITION; INC_LINE; goto loop;}
 	if (is_comment(c, PEEK_NEXT)) {lexer_scan_comment(lexer); goto loop;}
-	
+
 	if (is_semicolon(c)) {token = lexer_scan_semicolon(lexer); goto return_result;}
 	if (is_alpha(c)) {token = lexer_scan_identifier(lexer); goto return_result;}
 	if (is_digit(c, false)) {token = lexer_scan_number(lexer); goto return_result;}
@@ -573,9 +573,9 @@ loop:
 	if (is_builtin_operator(c)) {token = lexer_scan_operator(lexer); goto return_result;}
 	if (is_special(c)) {token = lexer_scan_special(lexer); goto return_result;}
 	if (is_preprocessor(c)) {token = lexer_scan_preprocessor(lexer); goto return_result;}
-	
+
 	return lexer_error(lexer, "Unrecognized token");
-	
+
 return_result:
 	LEXER_CALL_CALLBACK();
 	return token;

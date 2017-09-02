@@ -32,11 +32,11 @@ static int ident =0;
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
 	// increment internal error counter
 	++self->nerr;
-	
+
 	// get error callback (if any)
 	void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
 	gravity_error_callback error_fn = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->error_callback : NULL;
-	
+
 	// build error message
 	char		buffer[1024];
 	va_list		arg;
@@ -45,7 +45,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 		vsnprintf(buffer, sizeof(buffer), format, arg);
 		va_end (arg);
 	}
-	
+
 	// setup error struct
 	error_desc_t error_desc = {
 		.lineno = node->token.lineno,
@@ -54,7 +54,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 		.offset = node->token.position,
         .meta = meta_from_node(node)
 	};
-	
+
 	// finally call error callback
 	if (error_fn) error_fn(GRAVITY_ERROR_SEMANTIC, buffer, error_desc, data);
 	else printf("%s\n", buffer);
@@ -64,27 +64,27 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 
 static void visit_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 	DECLARE_SYMTABLE;
-	
+
 	node->symtable = symtable;	// GLOBALS
 	gnode_array_each(node->stmts, {visit(val);});
 }
 
 static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) {
 	DECLARE_SYMTABLE;
-	
+
 	DEBUG_SYMTABLE("function: %s", node->identifier);
-	
+
 	// function identifier
 	if (!symboltable_insert(symtable, node->identifier, (void *)node))
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
-	
+
 	// we are just interested in non-local declarations so don't further scan function node
 	// node->symtable is NULL here and it will be created in semacheck2
 }
 
 static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) {
 	DECLARE_SYMTABLE;
-	
+
 	gnode_array_each(node->decls, {
 		gnode_var_t *p = (gnode_var_t *)val;
 		DEBUG_SYMTABLE("variable: %s", p->identifier);
@@ -95,9 +95,9 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 
 static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
 	DECLARE_SYMTABLE;
-	
+
 	DEBUG_SYMTABLE("enum: %s", node->identifier);
-	
+
 	// check enum identifier uniqueness in current symbol table
 	if (!symboltable_insert(symtable, node->identifier, (void *)node))
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
@@ -105,13 +105,13 @@ static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
 
 static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 	DECLARE_SYMTABLE;
-	
+
 	DEBUG_SYMTABLE("class: %s", node->identifier);
-	
+
 	// class identifier
 	if (!symboltable_insert(symtable, node->identifier, (void *)node))
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
-	
+
 	CREATE_SYMTABLE;
 	gnode_array_each(node->decls, {
 		visit(val);
@@ -121,13 +121,13 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 
 static void visit_module_decl (gvisitor_t *self, gnode_module_decl_t *node) {
 	DECLARE_SYMTABLE;
-	
+
 	DEBUG_SYMTABLE("module: %s", node->identifier);
-	
+
 	// module identifier
 	if (!symboltable_insert(symtable, node->identifier, (void *)node))
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
-	
+
 	CREATE_SYMTABLE;
 	gnode_array_each(node->decls, {
 		visit(val);
@@ -139,16 +139,16 @@ static void visit_module_decl (gvisitor_t *self, gnode_module_decl_t *node) {
 
 bool gravity_semacheck1 (gnode_t *node, gravity_delegate_t *delegate) {
 	symboltable_t *context = symboltable_create(false);
-	
+
 	gvisitor_t visitor = {
 		.nerr = 0,							// used to store number of found errors
 		.data = (void *)context,			// used to store a pointer to the symbol table
 		.delegate = (void *)delegate,		// compiler delegate to report errors
-		
+
         // COMMON
         .visit_pre = NULL,
         .visit_post = NULL,
-        
+
 		// STATEMENTS: 7
 		.visit_list_stmt = visit_list_stmt,
 		.visit_compound_stmt = NULL,
@@ -157,14 +157,14 @@ bool gravity_semacheck1 (gnode_t *node, gravity_delegate_t *delegate) {
 		.visit_loop_stmt = NULL,
 		.visit_jump_stmt = NULL,
 		.visit_empty_stmt = NULL,
-		
+
 		// DECLARATIONS: 5
 		.visit_function_decl = visit_function_decl,
 		.visit_variable_decl = visit_variable_decl,
 		.visit_enum_decl = visit_enum_decl,
 		.visit_class_decl = visit_class_decl,
 		.visit_module_decl = visit_module_decl,
-		
+
 		// EXPRESSIONS: 8
 		.visit_binary_expr = NULL,
 		.visit_unary_expr = NULL,
@@ -175,10 +175,10 @@ bool gravity_semacheck1 (gnode_t *node, gravity_delegate_t *delegate) {
 		.visit_list_expr = NULL,
 		.visit_postfix_expr = NULL,
 	};
-	
+
 	DEBUG_SYMTABLE("=== SYMBOL TABLE ===");
 	gvisit(&visitor, node);
 	DEBUG_SYMTABLE("====================\n");
-	
+
 	return (visitor.nerr == 0);
 }

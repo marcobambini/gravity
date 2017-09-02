@@ -39,18 +39,18 @@ gnode_r *gnode_array_create (void) {
 
 void gnode_array_sethead(gnode_r *list, gnode_t *node) {
     if (!list || !node) return;
-    
+
 	// get old size
 	size_t list_size = gnode_array_size(list);
-	
+
 	// push node at the end to trigger memory allocation (if needed)
 	gnode_array_push(list, node);
-	
+
 	// shift elements in array
 	for (size_t i=list_size; i>0; --i) {
 		list->p[i] = list->p[i-1];
 	}
-	
+
 	// set new array head
 	list->p[0] = node;
 }
@@ -59,7 +59,7 @@ gnode_r *gnode_array_remove_byindex(gnode_r *old_list, size_t index) {
 	// get old size
 	size_t list_size = gnode_array_size(old_list);
 	if (index >= list_size) return NULL;
-	
+
 	gnode_r *new_list = gnode_array_create();
 	for (size_t i=0; i<list_size; ++i) {
 		if (i == index) continue;
@@ -76,14 +76,14 @@ gupvalue_t *gnode_function_add_upvalue(gnode_function_decl_t *f, gnode_var_t *sy
 		f->uplist = mem_alloc(sizeof(gupvalue_r));
 		gnode_array_init(f->uplist);
 	}
-	
+
 	// lookup symbol in uplist (if any)
 	gtype_array_each(f->uplist, {
 		// symbol already found in uplist so return its index
 		gnode_var_t *node = (gnode_var_t *)val->node;
 		if (strcmp(node->identifier, symbol->identifier) == 0) return val;
 	}, gupvalue_t *);
-	
+
 	// symbol not found in uplist so add it
 	gupvalue_t *upvalue = mem_alloc(sizeof(gupvalue_t));
 	upvalue->node = (gnode_t *)symbol;
@@ -91,7 +91,7 @@ gupvalue_t *gnode_function_add_upvalue(gnode_function_decl_t *f, gnode_var_t *sy
 	upvalue->selfindex = (uint32_t)gnode_array_size(f->uplist);
 	upvalue->is_direct = (n == 1);
 	marray_push(gupvalue_t*, *f->uplist, upvalue);
-	
+
 	// return symbol position in uplist
 	return upvalue;
 }
@@ -100,7 +100,7 @@ gupvalue_t *gnode_function_add_upvalue(gnode_function_decl_t *f, gnode_var_t *sy
 
 gnode_t *gnode_jump_stat_create (gtoken_s token, gnode_t *expr, gnode_t *decl) {
 	gnode_jump_stmt_t *node = (gnode_jump_stmt_t *)mem_alloc(sizeof(gnode_jump_stmt_t));
-	
+
 	SETBASE(node, NODE_JUMP_STAT, token, NULL);
     SETDECL(node, decl);
 	node->expr = expr;
@@ -109,7 +109,7 @@ gnode_t *gnode_jump_stat_create (gtoken_s token, gnode_t *expr, gnode_t *decl) {
 
 gnode_t *gnode_label_stat_create (gtoken_s token, gnode_t *expr, gnode_t *stmt, gnode_t *decl) {
 	gnode_label_stmt_t *node = (gnode_label_stmt_t *)mem_alloc(sizeof(gnode_label_stmt_t));
-	
+
 	SETBASE(node, NODE_LABEL_STAT, token, NULL);
     SETDECL(node, decl);
 	node->expr = expr;
@@ -119,7 +119,7 @@ gnode_t *gnode_label_stat_create (gtoken_s token, gnode_t *expr, gnode_t *stmt, 
 
 gnode_t *gnode_flow_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt1, gnode_t *stmt2, gnode_t *decl) {
 	gnode_flow_stmt_t *node = (gnode_flow_stmt_t *)mem_alloc(sizeof(gnode_flow_stmt_t));
-	
+
 	SETBASE(node, NODE_FLOW_STAT, token, NULL);
     SETDECL(node, decl);
 	node->cond = cond;
@@ -130,7 +130,7 @@ gnode_t *gnode_flow_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt1, 
 
 gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, gnode_t *expr, gnode_t *decl) {
 	gnode_loop_stmt_t *node = (gnode_loop_stmt_t *)mem_alloc(sizeof(gnode_loop_stmt_t));
-	
+
 	SETBASE(node, NODE_LOOP_STAT, token, NULL);
     SETDECL(node, decl);
 	node->cond = cond;
@@ -142,7 +142,7 @@ gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, g
 
 gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, gnode_t *decl) {
 	gnode_compound_stmt_t *node = (gnode_compound_stmt_t *)mem_alloc(sizeof(gnode_compound_stmt_t));
-	
+
 	SETBASE(node, type, token, NULL);
     SETDECL(node, decl);
 	node->stmts = stmts;
@@ -152,7 +152,7 @@ gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, 
 
 gnode_t *gnode_empty_stat_create (gtoken_s token, gnode_t *decl) {
 	gnode_empty_stmt_t *node = (gnode_empty_stmt_t *)mem_alloc(sizeof(gnode_empty_stmt_t));
-	
+
 	SETBASE(node, NODE_EMPTY_STAT, token, NULL);
     SETDECL(node, decl);
 	return (gnode_t *)node;
@@ -163,7 +163,7 @@ gnode_t *gnode_empty_stat_create (gtoken_s token, gnode_t *decl) {
 gnode_t *gnode_class_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_t *superclass, gnode_r *protocols, gnode_r *declarations, bool is_struct, void *meta, gnode_t *decl) {
 	gnode_class_decl_t *node = (gnode_class_decl_t *)mem_alloc(sizeof(gnode_class_decl_t));
 	node->is_struct = is_struct;
-	
+
 	SETBASE(node, NODE_CLASS_DECL, token, meta);
     SETDECL(node, decl);
 	node->bridge = false;
@@ -175,39 +175,39 @@ gnode_t *gnode_class_decl_create (gtoken_s token, const char *identifier, gtoken
 	node->decls = declarations;
 	node->nivar = 0;
 	node->nsvar = 0;
-	
+
 	return (gnode_t *)node;
 }
 
 gnode_t *gnode_module_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, void *meta, gnode_t *decl) {
 	gnode_module_decl_t *node = (gnode_module_decl_t *)mem_alloc(sizeof(gnode_module_decl_t));
-	
+
 	SETBASE(node, NODE_MODULE_DECL, token, meta);
     SETDECL(node, decl);
 	node->identifier = identifier;
 	node->access = access_specifier;
 	node->storage = storage_specifier;
 	node->decls = declarations;
-	
+
 	return (gnode_t *)node;
 }
 
 gnode_t *gnode_enum_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, symboltable_t *symtable, void *meta, gnode_t *decl) {
 	gnode_enum_decl_t *node = (gnode_enum_decl_t *)mem_alloc(sizeof(gnode_enum_decl_t));
-	
+
 	SETBASE(node, NODE_ENUM_DECL, token, meta);
     SETDECL(node, decl);
 	node->identifier = identifier;
 	node->access = access_specifier;
 	node->storage = storage_specifier;
 	node->symtable= symtable;
-	
+
 	return (gnode_t *)node;
 }
 
 gnode_t *gnode_function_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *params, gnode_compound_stmt_t *block, void *meta, gnode_t *decl) {
 	gnode_function_decl_t *node = (gnode_function_decl_t *)mem_alloc(sizeof(gnode_function_decl_t));
-	
+
 	SETBASE(node, NODE_FUNCTION_DECL, token, meta);
     SETDECL(node, decl);
 	node->identifier = identifier;
@@ -217,26 +217,26 @@ gnode_t *gnode_function_decl_create (gtoken_s token, const char *identifier, gto
 	node->block = block;
 	node->nlocals = 0;
 	node->uplist = NULL;
-    
+
 	return (gnode_t *)node;
 }
 
 gnode_t *gnode_variable_decl_create (gtoken_s token, gtoken_t type, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, void *meta, gnode_t *decl) {
 	gnode_variable_decl_t *node = (gnode_variable_decl_t *)mem_alloc(sizeof(gnode_variable_decl_t));
-	
+
 	SETBASE(node, NODE_VARIABLE_DECL, token, meta);
     SETDECL(node, decl);
 	node->type = type;
 	node->access = access_specifier;
 	node->storage = storage_specifier;
 	node->decls = declarations;
-    
+
 	return (gnode_t *)node;
 }
 
 gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const char *annotation_type, gtoken_t access_specifier, gnode_t *expr, gnode_t *decl) {
 	gnode_var_t *node = (gnode_var_t *)mem_alloc(sizeof(gnode_var_t));
-	
+
 	SETBASE(node, NODE_VARIABLE, token, NULL);
     SETDECL(node, decl);
 	node->identifier = identifier;
@@ -297,7 +297,7 @@ bool gnode_is_literal_number (gnode_t *node) {
 
 gnode_t *gnode_binary_expr_create (gtoken_t op, gnode_t *left, gnode_t *right, gnode_t *decl) {
 	if (!left || !right) return NULL;
-	
+
 	gnode_binary_expr_t	*node = (gnode_binary_expr_t *)mem_alloc(sizeof(gnode_binary_expr_t));
 	SETBASE(node, NODE_BINARY_EXPR, left->token, NULL);
     SETDECL(node, decl);
@@ -309,7 +309,7 @@ gnode_t *gnode_binary_expr_create (gtoken_t op, gnode_t *left, gnode_t *right, g
 
 gnode_t *gnode_unary_expr_create (gtoken_t op, gnode_t *expr, gnode_t *decl) {
 	if (!expr) return NULL;
-	
+
 	gnode_unary_expr_t *node = (gnode_unary_expr_t *)mem_alloc(sizeof(gnode_unary_expr_t));
 	SETBASE(node, NODE_UNARY_EXPR, expr->token, NULL);
     SETDECL(node, decl);
@@ -320,7 +320,7 @@ gnode_t *gnode_unary_expr_create (gtoken_t op, gnode_t *expr, gnode_t *decl) {
 
 gnode_t *gnode_file_expr_create (gtoken_s token, cstring_r *list, gnode_t *decl) {
 	if (!list) return NULL;
-	
+
 	gnode_file_expr_t *node = (gnode_file_expr_t *)mem_alloc(sizeof(gnode_file_expr_t));
 	SETBASE(node, NODE_FILE_EXPR, token, NULL);
     SETDECL(node, decl);
@@ -330,7 +330,7 @@ gnode_t *gnode_file_expr_create (gtoken_s token, cstring_r *list, gnode_t *decl)
 
 gnode_t *gnode_identifier_expr_create (gtoken_s token, const char *identifier, const char *identifier2, gnode_t *decl) {
 	if (!identifier) return NULL;
-	
+
 	gnode_identifier_expr_t *node = (gnode_identifier_expr_t *)mem_alloc(sizeof(gnode_identifier_expr_t));
 	SETBASE(node, NODE_IDENTIFIER_EXPR, token, NULL);
     SETDECL(node, decl);
@@ -352,12 +352,12 @@ void gnode_literal_dump (gnode_literal_expr_t *node, char *buffer, int buffersiz
 
 static gnode_t *gnode_literal_value_expr_create (gtoken_s token, gliteral_t type, const char *s, double d, int64_t n64, gnode_t *decl) {
 	gnode_literal_expr_t *node = (gnode_literal_expr_t *)mem_alloc(sizeof(gnode_literal_expr_t));
-	
+
 	SETBASE(node, NODE_LITERAL_EXPR, token, NULL);
     SETDECL(node, decl);
 	node->type = type;
 	node->len = 0;
-	
+
 	switch (type) {
 		case LITERAL_STRING: node->value.str = (char *)s; break;
 		case LITERAL_FLOAT: node->value.d = d; node->len = (d < FLT_MAX) ? 32 : 64; break;
@@ -366,7 +366,7 @@ static gnode_t *gnode_literal_value_expr_create (gtoken_s token, gliteral_t type
 		case LITERAL_STRING_INTERPOLATED: break;
 		default: assert(0); // should never reach this point
 	}
-	
+
 	return (gnode_t *)node;
 }
 
@@ -375,10 +375,10 @@ gnode_t *gnode_string_interpolation_create (gtoken_s token, gnode_r *r, gnode_t 
 	node->value.r = r;
 	return (gnode_t *)node;
 }
-	
+
 gnode_t *gnode_literal_string_expr_create (gtoken_s token, char *s, uint32_t len, bool allocated, gnode_t *decl) {
 	gnode_literal_expr_t *node = (gnode_literal_expr_t *)gnode_literal_value_expr_create(token, LITERAL_STRING, NULL, 0, 0, decl);
-	
+
 		node->len = len;
 	if (allocated) {
 		node->value.str = s;
@@ -386,7 +386,7 @@ gnode_t *gnode_literal_string_expr_create (gtoken_s token, char *s, uint32_t len
 		node->value.str = (char *)mem_alloc(len+1);
 		memcpy((void *)node->value.str, (const void *)s, len);
 	}
-	
+
 	return (gnode_t *)node;
 }
 
@@ -404,7 +404,7 @@ gnode_t *gnode_literal_bool_expr_create (gtoken_s token, int32_t n, gnode_t *dec
 
 gnode_t *gnode_keyword_expr_create (gtoken_s token, gnode_t *decl) {
 	gnode_keyword_expr_t *node = (gnode_keyword_expr_t *)mem_alloc(sizeof(gnode_keyword_expr_t));
-	
+
 	SETBASE(node, NODE_KEYWORD_EXPR, token, NULL);
     SETDECL(node, decl);
 	return (gnode_t *)node;
@@ -412,7 +412,7 @@ gnode_t *gnode_keyword_expr_create (gtoken_s token, gnode_t *decl) {
 
 gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *expr, gnode_r *list, gnode_t *decl) {
 	gnode_postfix_subexpr_t *node = (gnode_postfix_subexpr_t *)mem_alloc(sizeof(gnode_postfix_subexpr_t));
-	
+
     SETBASE(node, type, token, NULL);
     SETDECL(node, decl);
 	if (type == NODE_CALL_EXPR)
@@ -424,7 +424,7 @@ gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *ex
 
 gnode_t *gnode_postfix_expr_create (gtoken_s token, gnode_t *id, gnode_r *list, gnode_t *decl) {
 	gnode_postfix_expr_t *node = (gnode_postfix_expr_t *)mem_alloc(sizeof(gnode_postfix_expr_t));
-	
+
 	SETBASE(node, NODE_POSTFIX_EXPR, token, NULL);
     SETDECL(node, decl);
 	node->id = id;
@@ -434,7 +434,7 @@ gnode_t *gnode_postfix_expr_create (gtoken_s token, gnode_t *id, gnode_r *list, 
 
 gnode_t *gnode_list_expr_create (gtoken_s token, gnode_r *list1, gnode_r *list2, bool ismap, gnode_t *decl) {
 	gnode_list_expr_t *node = (gnode_list_expr_t *)mem_alloc(sizeof(gnode_list_expr_t));
-	
+
 	SETBASE(node, NODE_LIST_EXPR, token, NULL);
     SETDECL(node, decl);
 	node->ismap = ismap;
@@ -447,13 +447,13 @@ gnode_t *gnode_list_expr_create (gtoken_s token, gnode_r *list1, gnode_r *list2,
 
 gnode_t *gnode_duplicate (gnode_t *node, bool deep) {
 	if (!node) return NULL;
-	
+
 	if (deep == true) {
 		// deep is true so I need to examine node and perform a real duplication (only of the outer nodes)
 		// deep is true ONLY when node can also be part of an assignment and its assignment flag can be
 		// true is node is on the left and false when node is on the right
 		// true flag is used only by adjust_assignment_expression in parser.c
-		
+
 		// node can be: identifier, file or postfix
 		if (NODE_ISA(node, NODE_IDENTIFIER_EXPR)) {
 			gnode_identifier_expr_t *expr = (gnode_identifier_expr_t *)node;
@@ -501,7 +501,7 @@ static void free_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 	CHECK_REFCOUNT(node);
 	gnode_array_each(node->stmts, {visit(val);});
 	if (node->stmts) gnode_array_free(node->stmts);
-	
+
 	if (node->symtable) symboltable_free(node->symtable);
 	mem_free((gnode_t*)node);
 }
@@ -510,7 +510,7 @@ static void free_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 	CHECK_REFCOUNT(node);
 	gnode_array_each(node->stmts, {visit(val);});
 	if (node->stmts) gnode_array_free(node->stmts);
-	
+
 	if (node->symtable) symboltable_free(node->symtable);
 	mem_free((gnode_t*)node);
 }
@@ -566,7 +566,7 @@ static void free_function_decl (gvisitor_t *self, gnode_function_decl_t *node) {
 		gnode_array_each(node->params, {free_variable(self, (gnode_var_t *)val);});
 		gnode_array_free(node->params);
 	}
-	
+
 	if (node->block) visit((gnode_t *)node->block);
 	if (node->uplist) {
 		gtype_array_each(node->uplist, {mem_free(val);}, gupvalue_t*);
@@ -635,7 +635,7 @@ static void free_unary_expr (gvisitor_t *self, gnode_unary_expr_t *node) {
 
 static void free_postfix_subexpr (gvisitor_t *self, gnode_postfix_subexpr_t *subnode) {
 	CHECK_REFCOUNT(subnode);
-	
+
 	gnode_n tag = subnode->base.tag;
 	if (tag == NODE_CALL_EXPR) {
 		if (subnode->args) {
@@ -645,15 +645,15 @@ static void free_postfix_subexpr (gvisitor_t *self, gnode_postfix_subexpr_t *sub
 	} else {
 		visit(subnode->expr);
 	}
-	
+
 	mem_free((gnode_t*)subnode);
 }
 
 static void free_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	CHECK_REFCOUNT(node);
-	
+
 	visit(node->id);
-	
+
 	// node->list can be NULL due to enum static conversion
 	size_t count = gnode_array_size(node->list);
 	for (size_t i=0; i<count; ++i) {
@@ -670,7 +670,7 @@ static void free_file_expr (gvisitor_t *self, gnode_file_expr_t *node) {
 	cstring_array_each(node->identifiers, {
 		mem_free((void *)val);
 	});
-	
+
 	if (node->identifiers) gnode_array_free(node->identifiers);
 	mem_free((void *)node);
 }
@@ -720,11 +720,11 @@ void gnode_free (gnode_t *ast) {
 		.nerr = 0,
 		.data = NULL,
 		.delegate = NULL,
-		
+
         // COMMON
         .visit_pre = NULL,
         .visit_post = NULL,
-        
+
 		// STATEMENTS: 7
 		.visit_list_stmt = free_list_stmt,
 		.visit_compound_stmt = free_compound_stmt,
@@ -733,14 +733,14 @@ void gnode_free (gnode_t *ast) {
 		.visit_loop_stmt = free_loop_stmt,
 		.visit_jump_stmt = free_jump_stmt,
 		.visit_empty_stmt = free_empty_stmt,
-		
+
 		// DECLARATIONS: 5
 		.visit_function_decl = free_function_decl,
 		.visit_variable_decl = free_variable_decl,
 		.visit_enum_decl = free_enum_decl,
 		.visit_class_decl = free_class_decl,
 		.visit_module_decl = free_module_decl,
-		
+
 		// EXPRESSIONS: 7+1
 		.visit_binary_expr = free_binary_expr,
 		.visit_unary_expr = free_unary_expr,
@@ -751,6 +751,6 @@ void gnode_free (gnode_t *ast) {
 		.visit_list_expr = free_list_expr,
 		.visit_postfix_expr = free_postfix_expr
 	};
-	
+
     gvisit(&visitor, ast);
 }

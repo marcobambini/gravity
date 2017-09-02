@@ -35,7 +35,7 @@ struct symboltable_t {
 
 static void check_upvalue_inscope (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
 	#pragma unused(hashtable, key)
-	
+
 	uint32_t index = *(uint32_t *)data;
 	gnode_t *node = VALUE_AS_NODE(value);
 	if (NODE_ISA(node, NODE_VARIABLE)) {
@@ -45,7 +45,7 @@ static void check_upvalue_inscope (gravity_hash_t *hashtable, gravity_value_t ke
 		}
 	}
 }
-	
+
 // MARK: -
 
 static void symboltable_hash_free (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
@@ -67,38 +67,38 @@ symboltable_t *symboltable_create (bool is_enum) {
 	gravity_hash_t	*hash = gravity_hash_create(0, gravity_value_hash, gravity_value_equals,
 												(is_enum) ? symboltable_keyvalue_free : symboltable_hash_free, NULL);
 	if (!table) return NULL;
-	
+
 	// init symbol table
 	table->counter = 0;
 	table->stack = mem_alloc(sizeof(ghash_r));
 	scope_stack_init(table->stack);
 	scope_stack_push(table->stack, hash);
-	
+
 	return table;
 }
 
 void symboltable_free (symboltable_t *table) {
 	size_t i, n = scope_stack_size(table->stack);
-	
+
 	for (i=0; i<n; ++i) {
 		gravity_hash_t *h = scope_stack_get(table->stack, i);
 		gravity_hash_free(h);
 	}
-	
+
 	if (table->stack) {
 		scope_stack_free(table->stack);
 		mem_free(table->stack);
 	}
-	
+
 	mem_free(table);
 }
 
 bool symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *node) {
     if (!identifier) return false;
-    
+
 	size_t			n = scope_stack_size(table->stack);
 	gravity_hash_t	*h = scope_stack_get(table->stack, n-1);
-	
+
 	// insert node with key identifier into hash table (and check if already exists in current scope)
 	gravity_value_t key = VALUE_FROM_CSTRING(NULL, identifier);
 	if (gravity_hash_lookup(h, key) != NULL) {
@@ -106,21 +106,21 @@ bool symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *
 		return false;
 	}
 	gravity_hash_insert(h, key, VALUE_FROM_NODE(node));
-						
+
 	++table->counter;
 	return true;
 }
 
 gnode_t *symboltable_lookup (symboltable_t *table, const char *identifier) {
 	STATICVALUE_FROM_STRING(key, identifier, strlen(identifier));
-	
+
 	size_t n = scope_stack_size(table->stack);
 	for (int i=(int)n-1; i>=0; --i) {
 		gravity_hash_t *h = scope_stack_get(table->stack, i);
 		gravity_value_t *v = gravity_hash_lookup(h, key);
 		if (v) return VALUE_AS_NODE(*v);
 	}
-	
+
 	return NULL;
 }
 
@@ -134,7 +134,7 @@ uint32_t symboltable_count (symboltable_t *table, uint32_t index) {
 gnode_t *symboltable_global_lookup (symboltable_t *table, const char *identifier) {
 	gravity_hash_t *h = scope_stack_get(table->stack, 0);
 	STATICVALUE_FROM_STRING(key, identifier, strlen(identifier));
-	
+
 	gravity_value_t *v = gravity_hash_lookup(h, key);
 	return (v) ? VALUE_AS_NODE(*v) : NULL;
 }
@@ -160,7 +160,7 @@ uint32_t symboltable_exit_scope (symboltable_t *table, uint32_t *nlevel) {
 
 void symboltable_dump (symboltable_t *table) {
 	size_t n = scope_stack_size(table->stack);
-	
+
 	for (int i=(int)n-1; i>=0; --i) {
 		gravity_hash_t *h = (gravity_hash_t *)scope_stack_get(table->stack, i);
 		gravity_hash_dump(h);

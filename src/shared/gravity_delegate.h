@@ -54,7 +54,7 @@ typedef void				(*gravity_bridge_free) (gravity_vm *vm, gravity_object_t *obj);
 typedef struct {
 	// user data
 	void						*xdata;					// optional user data transparently passed between callbacks
-	
+
 	// callbacks
 	gravity_log_callback		log_callback;			// log reporting callback
 	gravity_error_callback		error_callback;			// error reporting callback
@@ -63,7 +63,7 @@ typedef struct {
 	gravity_precode_callback	precode_callback;		// called at parse time in order to give the opportunity to add custom source code
 	gravity_loadfile_callback	loadfile_callback;		// callback to give the opportunity to load a file from an import statement
 	gravity_filename_callback	filename_callback;		// called while reporting an error in order to be able to convert a fileid to a real filename
-	
+
 	// bridge
 	gravity_bridge_initinstance	bridge_initinstance;	// init class
 	gravity_bridge_setvalue		bridge_setvalue;		// setter

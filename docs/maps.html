@@ -37,7 +37,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -75,7 +75,7 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Map</h1><hr>
-			
+
 			<p class="section-content">
 			Maps are associative containers implemented as pairs each of which maps a key to a value.
 			You can create a map by placing a series of comma-separated entries inside square brackets. Each entry is a key and a value separated by a colon:
@@ -83,14 +83,14 @@
 			<pre><code class="swift">
 	// create a new map with 4 entries
 	var d = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
-	
+
 	// map has a count property
 	var n = d.count;	// n is 4
-	
+
 	// create an empty map
 	var map = [:];
 			</code></pre>
-			
+
 			<h4 class="section-h4">Looking up values</h4>
 			<p>You can access an element from a list by calling the subscript operator [] on it with the key of the element you want:
 			</p>
@@ -99,23 +99,23 @@
 	names["Mark"];		// 1
 	names["Andrew"];	// 2
 			</code></pre>
-			
+
 			<h4 class="section-h4">Iterating elements</h4>
-			<p>The subscript operator works well for finding values when you know the key you’re looking for, but sometimes you want to see everything that’s in the map. Since the Map class implements the iterator method (through the keys method), you can easily use it in a for loop:</p> 
+			<p>The subscript operator works well for finding values when you know the key you’re looking for, but sometimes you want to see everything that’s in the map. Since the Map class implements the iterator method (through the keys method), you can easily use it in a for loop:</p>
 			<pre><code class="swift">
 	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
 	for (var name in people.keys()) {
 		System.print("Current name is " + name);
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">Adding elements</h4>
 			<p>An item can be added to a map by simply setting a key/value:</p>
 			<pre><code class="swift">
 	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
 	people["Kiara"] = 5;	// people now contains the "Kiara" key with value 5
 			</code></pre>
-			
+
 			<h4 class="section-h4">Removing elements</h4>
 			<p>The remove method has been added to the map class as a conveniente way to remove keys:</p>
 			<pre><code class="swift">
@@ -124,7 +124,7 @@
 	people.remove("Ross");
 	return people.count; // 2 is returned in this case
 			</code></pre>
-			
+
          	</div>
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
@@ -138,14 +138,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

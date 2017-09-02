@@ -37,7 +37,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -75,38 +75,38 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Loop</h1><hr>
-			
+
 			<p class="section-content">
-			
+
 			<h4 class="section-h4">While loop</h4>
 			<p>A while loop performs a set of statements until a condition becomes false. These kinds of loops are best used when the number of iterations is not known before the first iteration begins.</p>
 			<pre><code class="swift">
 	func main() {
 		var i = 0;
-			
+
 		while (i < 50000) {
 			i += 1;
 		}
-			
+
 		return i;
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">Repeat-while loop</h4>
 			<p>The other variation of the while loop, known as the repeat-while loop, performs a single pass through the loop block first, before considering the loop’s condition. It then continues to repeat the loop until the condition is false.
 			</p>
 			<pre><code class="swift">
 	func main() {
 		var i = 0;
-				
+
 		repeat {
 			i += 1;
 		} while (i < 50000);
-				
+
 		return i;
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">For loop</h4>
 			<p>You can access an element from a list by calling the subscript operator [] on it with the index of the element you want. Like most languages, indices start at zero:</p>
 			<pre><code class="swift">
@@ -117,7 +117,7 @@
 	return count;
 			</code></pre>
 			<p>The for in loop can be used over any object that supports iteration, such as <a href="lists.html">Lists</a>, Strings or <a href="maps.html">Maps</a>.</p>
-         	
+
          	<h4 class="section-h4">Loop method</h4>
          	<p>Performing a loop is very common operation in any programming language, so Gravity adds a very convenient way to run a loop by adding a special loop method to some classes (Int, Range, List, String and Map) that accepts a <a href="closures.html">closure</a> as parameter:</p>
          	<pre><code class="swift">
@@ -205,14 +205,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

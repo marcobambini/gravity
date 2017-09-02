@@ -37,7 +37,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -75,7 +75,7 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Closure</h1><hr>
-			
+
 			<p class="section-content">
 			Closures are self-contained blocks of functionality that can be passed around and used in your code. Closures can capture and store references to any constants and variables from the context in which they are defined. Closures can be nested and can be anonymous (without a name):
 			</p>
@@ -91,25 +91,25 @@
 		return addTen(20);	// result is 30
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">Disassemble</h4>
 			<p>A closure can be disassembled in order to reveal its bytecode:</p>
 			<pre><code class="swift">
 	func sum (a,b) {
 		return a + b;
 	}
-	
+
 	func main() {
 		System.print(sum.disassemble());
 	}
-	
+
 	// Output:
 	// 000000 ADD 3 1 2
 	// 000001 RET 3
 			</code></pre>
-			
+
 			<p>TO DO: more examples and explanations</p>
-			
+
          	</div>
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
@@ -123,14 +123,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

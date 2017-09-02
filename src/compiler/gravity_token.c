@@ -24,7 +24,7 @@ const char *token_name (gtoken_t token) {
 		case TOK_IDENTIFIER: return "IDENTIFIER";
 		case TOK_SPECIAL: return "SPECIAL";
 		case TOK_MACRO: return "MACRO";
-		
+
 		// keywords
 		case TOK_KEY_FILE: return "file";
 		case TOK_KEY_FUNC: return "func";
@@ -62,7 +62,7 @@ const char *token_name (gtoken_t token) {
 		case TOK_KEY_ISA: return "is";
 		case TOK_KEY_CURRARGS: return "_args";
 		case TOK_KEY_CURRFUNC: return "_func";
-		
+
 		// operators
 		case TOK_OP_ADD: return "+";
 		case TOK_OP_SUB: return "-";
@@ -101,7 +101,7 @@ const char *token_name (gtoken_t token) {
 		case TOK_OP_BIT_AND_ASSIGN: return "&=";
 		case TOK_OP_BIT_OR_ASSIGN: return "|=";
 		case TOK_OP_BIT_XOR_ASSIGN: return "^=";
-		
+
 		case TOK_OP_OPEN_PARENTHESIS: return "(";
 		case TOK_OP_CLOSED_PARENTHESIS: return ")";
 		case TOK_OP_OPEN_SQUAREBRACKET: return "[";
@@ -112,10 +112,10 @@ const char *token_name (gtoken_t token) {
 		case TOK_OP_COLON: return ":";
 		case TOK_OP_COMMA: return ",";
 		case TOK_OP_DOT: return ".";
-		
+
 		case TOK_END: return "";
 	}
-	
+
 	// should never reach this point
 	return "UNRECOGNIZED TOKEN";
 }
@@ -128,7 +128,7 @@ void token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end) {
 gtoken_t token_special_builtin(gtoken_s *token) {
     const char *buffer = token->value;
     int32_t len = token->bytes;
-    
+
     switch (len) {
         case 8:
             if (string_casencmp(buffer, "__LINE__", len) == 0) {
@@ -140,21 +140,21 @@ gtoken_t token_special_builtin(gtoken_s *token) {
                 return TOK_STRING;
             }
             break;
-        
+
         case 9:
             if (string_casencmp(buffer, "__CLASS__", len) == 0) {
                 token->builtin = BUILTIN_CLASS;
                 return TOK_STRING;
             }
             break;
-            
+
         case 10:
             if (string_casencmp(buffer, "__COLUMN__", len) == 0) {
                 token->builtin = BUILTIN_COLUMN;
                 return TOK_NUMBER;
             }
             break;
-            
+
         case 12:
             if (string_casencmp(buffer, "__FUNCTION__", len) == 0) {
                 token->builtin = BUILTIN_FUNC;
@@ -162,7 +162,7 @@ gtoken_t token_special_builtin(gtoken_s *token) {
             }
             break;
     }
-    
+
     return TOK_IDENTIFIER;
 }
 
@@ -174,14 +174,14 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
 			if (string_casencmp(buffer, "or", len) == 0) return TOK_OP_OR;
 			if (string_casencmp(buffer, "is", len) == 0) return TOK_KEY_ISA;
 			break;
-			
+
 		case 3:
 			if (string_casencmp(buffer, "for", len) == 0) return TOK_KEY_FOR;
 			if (string_casencmp(buffer, "var", len) == 0) return TOK_KEY_VAR;
 			if (string_casencmp(buffer, "and", len) == 0) return TOK_OP_AND;
 			if (string_casencmp(buffer, "not", len) == 0) return TOK_OP_NOT;
 			break;
-			
+
 		case 4:
 			if (string_casencmp(buffer, "func", len) == 0) return TOK_KEY_FUNC;
 			if (string_casencmp(buffer, "else", len) == 0) return TOK_KEY_ELSE;
@@ -192,7 +192,7 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
 			if (string_casencmp(buffer, "file", len) == 0) return TOK_KEY_FILE;
 			if (string_casencmp(buffer, "lazy", len) == 0) return TOK_KEY_LAZY;
 			break;
-			
+
 		case 5:
 			if (string_casencmp(buffer, "super", len) == 0) return TOK_KEY_SUPER;
 			if (string_casencmp(buffer, "false", len) == 0) return TOK_KEY_FALSE;
@@ -204,7 +204,7 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
 			if (string_casencmp(buffer, "_func", len) == 0) return TOK_KEY_CURRFUNC;
 			if (string_casencmp(buffer, "_args", len) == 0) return TOK_KEY_CURRARGS;
 			break;
-			
+
 		case 6:
 			if (string_casencmp(buffer, "struct", len) == 0) return TOK_KEY_STRUCT;
 			if (string_casencmp(buffer, "repeat", len) == 0) return TOK_KEY_REPEAT;
@@ -216,22 +216,22 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
 			if (string_casencmp(buffer, "import", len) == 0) return TOK_KEY_IMPORT;
 			if (string_casencmp(buffer, "module", len) == 0) return TOK_KEY_MODULE;
 			break;
-			
+
 		case 7:
 			if (string_casencmp(buffer, "default", len) == 0) return TOK_KEY_DEFAULT;
 			if (string_casencmp(buffer, "private", len) == 0) return TOK_KEY_PRIVATE;
 			break;
-			
+
 		case 8:
 			if (string_casencmp(buffer, "continue", len) == 0) return TOK_KEY_CONTINUE;
 			if (string_casencmp(buffer, "internal", len) == 0) return TOK_KEY_INTERNAL;
 			break;
-			
+
 		case 9:
 			if (string_casencmp(buffer, "undefined", len) == 0) return TOK_KEY_UNDEFINED;
 			break;
 	}
-	
+
 	return TOK_IDENTIFIER;
 }
 
@@ -256,7 +256,7 @@ bool token_isvariable_declaration (gtoken_t token) {
 
 bool token_isstatement (gtoken_t token) {
 	if (token == TOK_EOF) return false;
-	
+
 	// label_statement (case, default)
 	// expression_statement ('+' | '-' | '!' | 'not' | new | raise | file | isPrimaryExpression)
 	// flow_statement (if, select)
@@ -266,7 +266,7 @@ bool token_isstatement (gtoken_t token) {
 	// declaration_statement (isDeclarationStatement)
 	// empty_statement (;)
 	// import_statement (import)
-	
+
 	return (token_islabel_statement(token) || token_isexpression_statement(token) || token_isflow_statement(token) ||
 			token_isloop_statement(token) || token_isjump_statement(token) || token_iscompound_statement(token) ||
 			token_isdeclaration_statement(token) || token_isempty_statement(token) || token_isimport_statement(token) ||
@@ -305,7 +305,7 @@ bool token_isprimary_expression (gtoken_t token) {
 	// function_expression
 	// list_expression
 	// map_expression
-	
+
 	return ((token == TOK_NUMBER) || (token == TOK_STRING) || (token == TOK_KEY_TRUE) ||
 			(token == TOK_KEY_FALSE) || (token == TOK_IDENTIFIER) || (token == TOK_KEY_NULL) ||
 			(token == TOK_KEY_SUPER) || (token == TOK_KEY_FUNC) || (token == TOK_KEY_UNDEFINED) ||
@@ -319,7 +319,7 @@ bool token_isexpression_statement (gtoken_t token) {
 	// postfix_expression: primary_expression | 'module' (was file)
 	// unary_operator: '+' | '-' | '!' | 'not'
 	// raise_expression: 'raise'
-	
+
 	return (token_isprimary_expression(token) || (token == TOK_OP_ADD) || (token == TOK_OP_SUB) ||
 			(token == TOK_OP_NOT) || (token == TOK_KEY_CURRARGS) || (token == TOK_KEY_CURRFUNC));
 }
@@ -352,7 +352,7 @@ bool token_isdeclaration_statement (gtoken_t token) {
 	// module_declaration (MODULE)
 	// event_declaration_statement (EVENT)
 	// empty_declaration (;)
-	
+
 	return ((token_isaccess_specifier(token) || token_isstorage_specifier(token) || token_isvariable_declaration(token) ||
 			(token == TOK_KEY_FUNC)	|| (token == TOK_KEY_CLASS) || (token == TOK_KEY_STRUCT) || (token == TOK_KEY_ENUM) ||
 			(token == TOK_KEY_MODULE) || (token == TOK_KEY_EVENT)  || (token == TOK_OP_SEMICOLON)));

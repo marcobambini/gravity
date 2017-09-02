@@ -35,44 +35,44 @@
 
 nanotime_t nanotime (void) {
 	nanotime_t value;
-	
+
 	#if defined(_WIN32)
 	static LARGE_INTEGER	win_frequency;
 	QueryPerformanceFrequency(&win_frequency);
 	LARGE_INTEGER			t;
-	
+
 	if (!QueryPerformanceCounter(&t)) return 0;
 	value = (t.QuadPart / win_frequency.QuadPart) * 1000000000;
 	value += (t.QuadPart % win_frequency.QuadPart) * 1000000000 / win_frequency.QuadPart;
-	
+
 	#elif defined(__MACH__)
 	mach_timebase_info_data_t	info;
 	kern_return_t				r;
 	nanotime_t					t;
-	
+
 	t = mach_absolute_time();
 	r = mach_timebase_info(&info);
 	if (r != 0) return 0;
 	value = (t / info.denom) * info.numer;
 	value += (t % info.denom) * info.numer / info.denom;
-	
+
 	#elif defined(__linux)
 	struct timespec ts;
 	int				r;
-	
+
 	r = clock_gettime(CLOCK_MONOTONIC, &ts);
 	if (r != 0) return 0;
 	value = ts.tv_sec * (nanotime_t)1000000000 + ts.tv_nsec;
-	
+
 	#else
 	struct timeval	tv;
 	int				r;
-	
+
 	r = gettimeofday(&tv, 0);
 	if (r != 0) return 0;
 	value = tv.tv_sec * (nanotime_t)1000000000 + tv.tv_usec * 1000;
 	#endif
-	
+
 	return value;
 }
 
@@ -96,7 +96,7 @@ static ssize_t getline (char **lineptr, size_t *n, FILE *stream) {
 	// see http://stackoverflow.com/questions/3302255/c-scanf-vs-gets-vs-fgets
 	// we should implement something like ggets here
 	// http://web.archive.org/web/20080525133110/http://cbfalconer.home.att.net/download/
-	
+
 	return -1;
 }
 #endif
@@ -104,13 +104,13 @@ static ssize_t getline (char **lineptr, size_t *n, FILE *stream) {
 char *readline (char *prompt, int *length) {
 	char	*line = NULL;
 	size_t	size = 0;
-	
+
 	printf("%s", prompt);
 	fflush(stdout);
-	
+
 	ssize_t nread = getline(&line, &size, stdin);
 	if (nread == -1 || feof(stdin)) return NULL;
-	
+
 	*length = (int)nread;
 	return line;
 }
@@ -134,24 +134,24 @@ const char *file_read(const char *path, size_t *len) {
 	off_t	fsize = 0;
 	size_t	fsize2 = 0;
 	char	*buffer = NULL;
-	
+
 	fsize = (size_t) file_size(path);
 	if (fsize < 0) goto abort_read;
-	
+
 	fd = open(path, O_RDONLY);
 	if (fd < 0) goto abort_read;
-	
+
 	buffer = (char *)mem_alloc((size_t)fsize + 1);
 	if (buffer == NULL) goto abort_read;
 	buffer[fsize] = 0;
-	
+
 	fsize2 = read(fd, buffer, (size_t)fsize);
 	if (fsize2 == -1) goto abort_read;
-	
+
 	if (len) *len = fsize2;
 	close(fd);
 	return (const char *)buffer;
-	
+
 abort_read:
 	if (buffer) mem_free((void *)buffer);
 	if (fd >= 0) close(fd);
@@ -162,23 +162,23 @@ bool file_exists (const char *path) {
 	#ifdef WIN32
 	BOOL isDirectory;
 	DWORD attributes = GetFileAttributesA(path);
-	
+
 	// special directory case to drive the network path check
 	if (attributes == INVALID_FILE_ATTRIBUTES)
 		isDirectory = (GetLastError() == ERROR_BAD_NETPATH);
 	else
 		isDirectory = (FILE_ATTRIBUTE_DIRECTORY & attributes);
-	
+
 	if (isDirectory) {
 		if (PathIsNetworkPathA(path)) return true;
 		if (PathIsUNCA(path)) return true;
 	}
-	
+
 	if (PathFileExistsA(path) == 1) return true;
 	#else
 	if (access(path, F_OK)==0) return true;
 	#endif
-	
+
 	return false;
 }
 
@@ -189,16 +189,16 @@ const char *file_buildpath (const char *filename, const char *dirpath) {
 	size_t len1 = strlen(filename);
 	size_t len2 = strlen(dirpath);
 	size_t len = len1+len2+2;
-	
+
 	char *full_path = (char *)mem_alloc(len);
 	if (!full_path) return NULL;
-	
+
 	if ((len2) && (dirpath[len2-1] != '/'))
 		snprintf(full_path, len, "%s/%s", dirpath, filename);
 	else
 		snprintf(full_path, len, "%s%s", dirpath, filename);
 //	#endif
-	
+
 	return (const char *)full_path;
 }
 
@@ -209,13 +209,13 @@ bool file_write (const char *path, const char *buffer, size_t len) {
 	#else
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 	#endif
-	
+
 	int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
 	if (fd < 0) return false;
-	
+
 	ssize_t nwrite = write(fd, buffer, len);
 	close(fd);
-	
+
 	return (nwrite == len);
 }
 
@@ -224,17 +224,17 @@ bool file_write (const char *path, const char *buffer, size_t len) {
 bool is_directory (const char *path) {
 	#ifdef WIN32
 	DWORD dwAttrs;
-	
+
 	dwAttrs = GetFileAttributesA(path);
 	if (dwAttrs == INVALID_FILE_ATTRIBUTES) return false;
 	if (dwAttrs & FILE_ATTRIBUTE_DIRECTORY) return true;
 	#else
 	struct stat buf;
-	
+
 	if (lstat(path, &buf) < 0) return false;
 	if (S_ISDIR(buf.st_mode)) return true;
 	#endif
-	
+
 	return false;
 }
 
@@ -248,10 +248,10 @@ DIRREF directory_init (const char *dirpath) {
 
 	// convert dirpath to dirpathW
 	MultiByteToWideChar(CP_UTF8, 0, dirpath, -1, dirpathW, MAX_PATH);
-	
+
 	// in this way I can be sure that the first file returned (and lost) is .
 	PathCombineW(path, dirpathW, _T("*"));
-	
+
 	// if the path points to a symbolic link, the WIN32_FIND_DATA buffer contains
 	// information about the symbolic link, not the target
 	return FindFirstFileW(path, &findData);
@@ -262,12 +262,12 @@ DIRREF directory_init (const char *dirpath) {
 
 const char *directory_read (DIRREF ref) {
 	if (ref == NULL) return NULL;
-	
+
 	while (1) {
 		#ifdef WIN32
 		WIN32_FIND_DATA findData;
 		char 			*file_name;
-		
+
 		if (FindNextFile(ref, &findData) == 0) {
 			FindClose(ref);
 			return NULL;
@@ -299,7 +299,7 @@ int string_nocasencmp(const char *s1, const char *s2, size_t n) {
 		s2++;
 		n--;
 	}
-	
+
 	if(n == 0) return 0;
 	return tolower((unsigned char)*s1) - tolower((unsigned char)*s2);
 }
@@ -311,7 +311,7 @@ int string_casencmp(const char *s1, const char *s2, size_t n) {
 		s2++;
 		n--;
 	}
-	
+
 	if(n == 0) return 0;
 	return ((unsigned char)*s1) - ((unsigned char)*s2);
 }
@@ -324,7 +324,7 @@ int string_cmp (const char *s1, const char *s2) {
 const char *string_dup (const char *s1) {
 	size_t	len = (size_t)strlen(s1);
 	char	*s = (char *)mem_alloc(len + 1);
-	
+
 	memcpy(s, s1, len);
 	return s;
 }
@@ -351,7 +351,7 @@ uint32_t string_size (const char *p) {
 char *string_strnstr(const char *s, const char *find, size_t slen) {
     char c, sc;
     size_t len;
-    
+
     if ((c = *find++) != '\0') {
         len = strlen(find);
         do {
@@ -382,18 +382,18 @@ char *string_strnstr(const char *s, const char *find, size_t slen) {
 	UTF8-4      = %xF0 %x90-BF 2( UTF8-tail ) / %xF1-F3 3( UTF8-tail ) /
 				  %xF4 %x80-8F 2( UTF8-tail )
 	UTF8-tail   = %x80-BF
- 
+
  */
 
 inline uint32_t utf8_charbytes (const char *s, uint32_t i) {
 	unsigned char c = s[i];
-	
+
 	// determine bytes needed for character, based on RFC 3629
 	if ((c > 0) && (c <= 127)) return 1;
 	if ((c >= 194) && (c <= 223)) return 2;
 	if ((c >= 224) && (c <= 239)) return 3;
 	if ((c >= 240) && (c <= 244)) return 4;
-	
+
 	// means error
 	return 0;
 }
@@ -410,13 +410,13 @@ uint32_t utf8_nbytes (uint32_t n) {
 // from: https://github.com/munificent/wren/blob/master/src/vm/wren_utils.c
 uint32_t utf8_encode(char *buffer, uint32_t value) {
 	char *bytes = buffer;
-	
+
 	if (value <= 0x7f) {
 		// single byte (i.e. fits in ASCII).
 		*bytes = value & 0x7f;
 		return 1;
 	}
-	
+
 	if (value <= 0x7ff) {
 		// two byte sequence: 110xxxxx 10xxxxxx.
 		*bytes = 0xc0 | ((value & 0x7c0) >> 6);
@@ -424,7 +424,7 @@ uint32_t utf8_encode(char *buffer, uint32_t value) {
 		*bytes = 0x80 | (value & 0x3f);
 		return 2;
 	}
-	
+
 	if (value <= 0xffff) {
 		// three byte sequence: 1110xxxx 10xxxxxx 10xxxxxx.
 		*bytes = 0xe0 | ((value & 0xf000) >> 12);
@@ -434,7 +434,7 @@ uint32_t utf8_encode(char *buffer, uint32_t value) {
 		*bytes = 0x80 | (value & 0x3f);
 		return 3;
 	}
-	
+
 	if (value <= 0x10ffff) {
 		// four byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx.
 		*bytes = 0xf0 | ((value & 0x1c0000) >> 18);
@@ -446,23 +446,23 @@ uint32_t utf8_encode(char *buffer, uint32_t value) {
 		*bytes = 0x80 | (value & 0x3f);
 		return 4;
 	}
-	
+
 	return 0;
 }
 
 uint32_t utf8_len (const char *s, uint32_t nbytes) {
 	if (nbytes == 0) nbytes = (uint32_t)strlen(s);
-	
+
 	uint32_t pos = 1;
 	uint32_t len = 0;
-	
+
 	while (pos <= nbytes) {
 		++len;
 		uint32_t n = utf8_charbytes(s, pos);
 		if (n == 0) return 0; // means error
 		pos += n;
 	}
-	
+
 	return len;
 }
 
@@ -470,7 +470,7 @@ uint32_t utf8_len (const char *s, uint32_t nbytes) {
 bool utf8_reverse (char *p) {
 	char *q = p;
 	string_reverse(p);
-	
+
 	// now fix bass-ackwards UTF chars.
 	while(q && *q) ++q; // find eos
 	while(p < --q)
@@ -508,7 +508,7 @@ uint32_t power_of2_ceil (uint32_t n) {
 	n |= n >> 8;
 	n |= n >> 16;
 	n++;
-	
+
 	return n;
 }
 
@@ -524,7 +524,7 @@ int64_t number_from_oct (const char *s, uint32_t len) {
 
 int64_t number_from_bin (const char *s, uint32_t len) {
 	int64_t value = 0;
-	
+
 	for (uint32_t i=0; i<len; ++i) {
 		int c = s[i];
 		value = (value << 1) + (c - '0');

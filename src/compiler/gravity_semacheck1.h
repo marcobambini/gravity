@@ -23,30 +23,30 @@
 		function foo() {
 			return bar();
 		}
-	
+
 		function bar() {
 			...
 		}
- 
+
 		or
- 
+
 		class foo:bar {
 			...
 		}
- 
+
 		class bar {
 			...
 		}
- 
+
 		and
- 
+
 		class foo {
 			var a;
- 
+
 			function bar() {
 				return a + b;
 			}
- 
+
 			var b;
 		}
  */

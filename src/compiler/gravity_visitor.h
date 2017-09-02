@@ -17,13 +17,13 @@ typedef struct gvisitor {
 	uint32_t	nerr;			// to store err counter state
 	void		*data;			// to store a ptr state
 	void		*delegate;		// delegate callback
-	
+
     // COMMON
     void (* visit_pre)(struct gvisitor *self, gnode_t *node);
     void (* visit_post)(struct gvisitor *self, gnode_t *node);
-    
+
 	// count must be equal to enum gnode_n defined in gravity_ast.h less 3
-	
+
 	// STATEMENTS: 7
 	void (* visit_list_stmt)(struct gvisitor *self, gnode_compound_stmt_t *node);
 	void (* visit_compound_stmt)(struct gvisitor *self, gnode_compound_stmt_t *node);
@@ -32,14 +32,14 @@ typedef struct gvisitor {
 	void (* visit_jump_stmt)(struct gvisitor *self, gnode_jump_stmt_t *node);
 	void (* visit_loop_stmt)(struct gvisitor *self, gnode_loop_stmt_t *node);
 	void (* visit_empty_stmt)(struct gvisitor *self, gnode_empty_stmt_t *node);
-	
+
 	// DECLARATIONS: 5+1 (NODE_VARIABLE handled by NODE_VARIABLE_DECL case)
 	void (* visit_function_decl)(struct gvisitor *self, gnode_function_decl_t *node);
 	void (* visit_variable_decl)(struct gvisitor *self, gnode_variable_decl_t *node);
 	void (* visit_enum_decl)(struct gvisitor *self, gnode_enum_decl_t *node);
 	void (* visit_class_decl)(struct gvisitor *self, gnode_class_decl_t *node);
 	void (* visit_module_decl)(struct gvisitor *self, gnode_module_decl_t *node);
-	
+
 	// EXPRESSIONS: 7+3 (CALL EXPRESSIONS handled by one callback)
 	void (* visit_binary_expr)(struct gvisitor *self, gnode_binary_expr_t *node);
 	void (* visit_unary_expr)(struct gvisitor *self, gnode_unary_expr_t *node);

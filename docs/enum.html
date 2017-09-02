@@ -37,7 +37,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -75,9 +75,9 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Enum</h1><hr>
-			
+
 			<p class="section-content">
-			Enums defines a common type for a group of related values, if you are familiar with C, you will know that C enumerations assign related names to a set of integer values, enum in Gravity are much more flexible and enables you to assign even non integer values: 
+			Enums defines a common type for a group of related values, if you are familiar with C, you will know that C enumerations assign related names to a set of integer values, enum in Gravity are much more flexible and enables you to assign even non integer values:
 			</p>
 			<pre><code class="swift">
 	enum state {
@@ -87,31 +87,31 @@
 		undetermined = 666,
 		error			// 667
 	};
-	
+
 	enum math {
 		pi = 3.141592,
 		e = 2.718281,
 		goldratio = 1.618033
 	};
-	
+
 	enum company {
 		ceo = "Gauss",
 		cto = "Eurel",
 		cfo = "Nostradamus"
 	}
-	
+
 	enum mixed {
 		one = "Hello World",
 		two = 3.1415,
 		three = 666,
 		four = true
 	}
-	
+
 	func main() {
 		var a = state.active;	// a = 1
 		var b = math.pi;	// b = 3.1415
 		var c = company.ceo;	// c = "Gauss"
-		var d = mixed.four;	// d = true 
+		var d = mixed.four;	// d = true
 	}
 			</code></pre>
 			<p>Enum is a static operator, which means that at compile time the real value of the enum item is automatically replaced by Gravity.</p>
@@ -128,14 +128,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

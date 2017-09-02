@@ -77,15 +77,15 @@ extern "C" {
 #ifndef GRAVITY_ENABLE_INT64
 #define GRAVITY_ENABLE_INT64				1			// if 1 enable gravity_int_t to be a 64bit int (intead of a 32bit int)
 #endif
-    
+
 #ifndef GRAVITY_COMPUTED_GOTO
 #define GRAVITY_COMPUTED_GOTO				1			// if 1 enable faster computed goto (instead of switch) for compilers that support it
 #endif
-    
+
 #ifndef GRAVITY_NULL_SILENT
 #define GRAVITY_NULL_SILENT					1			// if 1 then messages sent to null does not produce any runtime error
 #endif
-    
+
 #ifndef GRAVITY_MAP_DOTSUGAR
 #define GRAVITY_MAP_DOTSUGAR				1			// if 1 then map objects can be accessed with both map[key] and map.key
 #endif
@@ -254,10 +254,10 @@ typedef struct {
 			float			purity;				// experimental value
 			bool			useargs;			// flag set by the compiler to optimize the creation of the arguments array only if needed
 		};
-		
+
 		// tag == EXEC_TYPE_INTERNAL
 		gravity_c_internal	internal;			// function callback
-		
+
 		// tag == EXEC_TYPE_SPECIAL
 		struct {
 			uint16_t		index;				// property index to speed-up default getter and setter
@@ -269,7 +269,7 @@ typedef struct {
 typedef struct upvalue_s {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_value_t			*value;				// ptr to open value on the stack or to closed value on this struct
 	gravity_value_t			closed;				// copy of the value once has been closed
 	struct upvalue_s		*next;				// ptr to the next open upvalue
@@ -278,7 +278,7 @@ typedef struct upvalue_s {
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_function_t		*f;					// function prototype
 	gravity_upvalue_t		**upvalue;			// upvalue array
 } gravity_closure_t;
@@ -286,14 +286,14 @@ typedef struct {
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_value_r			array;				// dinamic array of values
 } gravity_list_t;
 
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_hash_t			*hash;				// hash table
 } gravity_map_t;
 
@@ -312,17 +312,17 @@ typedef struct {
 typedef struct fiber_s {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_value_t			*stack;				// stack buffer (grown as needed and it holds locals and temps)
 	gravity_value_t			*stacktop;			// current stack ptr
 	uint32_t				stackalloc;			// number of allocated values
-	
+
 	gravity_callframe_t		*frames;			// callframes buffer (grown as needed but never shrinks)
 	uint32_t				nframes;			// number of frames currently in use
 	uint32_t				framesalloc;		// number of allocated frames
-	
+
 	gravity_upvalue_t		*upvalues;			// linked list used to keep track of open upvalues
-	
+
 	char					*error;				// runtime error message
 	bool					trying;				// set when the try flag is set by the user
 	struct fiber_s			*caller;			// optional caller fiber
@@ -332,7 +332,7 @@ typedef struct fiber_s {
 typedef struct gravity_class_s {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_class_t			*objclass;			// meta class
 	const char				*identifier;		// class name
 	bool					has_outer;			// flag used to automatically set ivar 0 to outer class (if any)
@@ -350,7 +350,7 @@ typedef struct gravity_class_s {
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	const char				*identifier;		// module name
 	gravity_hash_t			*htable;			// hash table
 } gravity_module_t;
@@ -358,7 +358,7 @@ typedef struct {
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_class_t			*objclass;			// real instance class
 	void					*xdata;				// extra bridged data
 	gravity_value_t			ivars[];			// instance variables (MUST BE LAST in the struct!)
@@ -367,7 +367,7 @@ typedef struct {
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	char					*s;					// pointer to NULL terminated string
 	uint32_t				hash;				// string hash (type to be keeped in sync with gravity_hash_size_t)
 	uint32_t				len;				// actual string length
@@ -377,7 +377,7 @@ typedef struct {
 typedef struct {
 	gravity_class_t			*isa;				// to be an object
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
-	
+
 	gravity_int_t			from;				// range start
 	gravity_int_t			to;					// range end
 } gravity_range_t;
