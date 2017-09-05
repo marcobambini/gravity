@@ -77,7 +77,7 @@
          	<h1 class="section-header">List</h1><hr>
 			
 			<p class="section-content">
-			Lists (or arrays) are simple sequence of objects, their size is dynamic and their index starts always from 0. They provide fast random access to their elements. You can create a list by placing a sequence of comma-separated expressions inside square brackets:
+			Lists (or arrays) are simple sequence of objects, their size is dynamic and their index starts always at 0. They provide fast random access to their elements. You can create a list by placing a sequence of comma-separated expressions inside square brackets:
 			</p>
 			<pre><code class="swift">
 	var r = [1, 2, "Hello", 3.1415, true];
@@ -87,7 +87,7 @@
 			</code></pre>
 			
 			<h4 class="section-h4">Accessing elements</h4>
-			<p>You can access an element from a list by calling the subscript operator [] on it with the index of the element you want. Like most languages, indices start at zero:
+			<p>You can access an element from a list by calling the subscript operator [] on it with the index of the element you want. Like most languages, indices start at 0:
 			</p>
 			<pre><code class="swift">
 	var names = ["Mark", "Andrew", "Paul", "Ross", "Frank", "Max"];
@@ -95,7 +95,7 @@
 	names[2];	// "Paul"
 			</code></pre>
 			
-			<p>Negative indices counts backwards from the end:</p>
+			<p>Negative indices count backwards from the end:</p>
 			<pre><code class="swift">
 	var names = ["Mark", "Andrew", "Paul", "Ross", "Frank", "Max"];
 	names[-1];	// "Max"
@@ -128,7 +128,7 @@
 			</code></pre>
 
 			<h4 class="section-h4">List Contains</h4>
-			<p>The List class implements the contains methods as a convenient way to check for the existance of a value in a list:</p>
+			<p>The List class implements the contains methods as a convenient way to check for the existence of a value in a list:</p>
 			<pre><code class="swift">
 	var list = [1, 2, "Hello", 3.1415, true];
 	return list.contains(3.1415); // Returns: true
