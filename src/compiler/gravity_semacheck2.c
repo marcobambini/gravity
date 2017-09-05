@@ -1014,6 +1014,8 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 		return;
 	}
 	
+	if (!node->list) return;
+	
 	// check to avoid infinite loop in init
 	if (ISA(node->id, NODE_IDENTIFIER_EXPR)) {
 		if (is_init_infinite_loop(self, (gnode_identifier_expr_t *)node->id, node->list)) {

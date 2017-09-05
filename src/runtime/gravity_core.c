@@ -970,7 +970,6 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
             
 			_buffer = mem_realloc(_buffer, (uint32_t)to_alloc);
             if (!_buffer) {
-                mem_free(_buffer);
                 RETURN_ERROR("Not enought memory to re-allocate a buffer for the join operation.");
             }
 			alloc = (uint32_t)to_alloc;
@@ -1678,6 +1677,7 @@ static bool operator_string_add (gravity_vm *vm, gravity_value_t *args, uint16_t
 	if (len+1<sizeof(buffer)) s = buffer;
 	else s = mem_alloc(len+1);
 	
+	if (!s) return false;
 	memcpy(s, s1->s, s1->len);
 	memcpy(s+s1->len, s2->s, s2->len);
 	

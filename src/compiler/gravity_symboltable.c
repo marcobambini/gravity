@@ -78,6 +78,8 @@ symboltable_t *symboltable_create (bool is_enum) {
 }
 
 void symboltable_free (symboltable_t *table) {
+	if (!table) return;
+	if (!table->stack) return;
 	size_t i, n = scope_stack_size(table->stack);
 	
 	for (i=0; i<n; ++i) {

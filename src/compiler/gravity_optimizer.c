@@ -59,6 +59,7 @@ static void finalize_function (gravity_function_t *f) {
 	// and collect all LABEL instructions
 	for (uint32_t i=0; i<count; ++i) {
 		inst_t *inst = ircode_get(code, i);
+		if (!inst) continue;
 		if (IS_SKIP(inst)) continue;
 		if (IS_PRAGMA_MOVE_OPT(inst)) continue;
 		if (IS_LABEL(inst)) {
@@ -77,6 +78,7 @@ static void finalize_function (gravity_function_t *f) {
 	uint32_t j=0;
 	for (uint32_t i=0; i<count; ++i) {
 		inst_t *inst = ircode_get(code, i);
+		if (!inst) continue;
 		if (IS_SKIP(inst)) continue;
 		if (IS_LABEL(inst)) continue;
 		if (IS_PRAGMA_MOVE_OPT(inst)) continue;

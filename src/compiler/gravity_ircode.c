@@ -119,6 +119,8 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
 	#endif
 	
 	inst_t *inst = (inst_t *)mem_alloc(sizeof(inst_t));
+	if (!inst) return NULL;
+	
 	inst->op = op;
 	inst->tag = tag;
 	inst->p1 = p1;
