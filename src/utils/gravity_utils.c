@@ -532,4 +532,3 @@ int64_t number_from_bin (const char *s, uint32_t len) {
 	}
 	return value;
 }
-
