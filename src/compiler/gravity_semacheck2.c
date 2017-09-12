@@ -1199,4 +1199,3 @@ bool gravity_semacheck2 (gnode_t *node, gravity_delegate_t *delegate) {
 	gnode_array_free(data.declarations);
 	return (visitor.nerr == 0);
 }
-
