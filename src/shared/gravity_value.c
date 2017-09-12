@@ -1986,4 +1986,3 @@ uint32_t gravity_string_size (gravity_vm *vm, gravity_string_t *string) {
 void gravity_string_blacken (gravity_vm *vm, gravity_string_t *string) {
 	gravity_vm_memupdate(vm, gravity_string_size(vm, string));
 }
-
