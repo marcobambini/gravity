@@ -32,14 +32,14 @@ struct ircode_t {
 };
 
 ircode_t *ircode_create (uint16_t nlocals) {
-	ircode_t *code = (ircode_t *)mem_alloc(sizeof(ircode_t));
+	ircode_t *code = (ircode_t *)mem_alloc(NULL, sizeof(ircode_t));
 	code->label_counter = 0;
 	code->nlocals = nlocals;
 	code->ntemps = 0;
 	code->maxtemp = 0;
 	code->error = false;
 	
-	code->list = mem_alloc(sizeof(code_r));
+	code->list = mem_alloc(NULL, sizeof(code_r));
 	marray_init(*code->list);
 	marray_init(code->label_true);
 	marray_init(code->label_false);
@@ -118,7 +118,7 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
 	}
 	#endif
 	
-	inst_t *inst = (inst_t *)mem_alloc(sizeof(inst_t));
+	inst_t *inst = (inst_t *)mem_alloc(NULL, sizeof(inst_t));
 	inst->op = op;
 	inst->tag = tag;
 	inst->p1 = p1;
@@ -162,7 +162,7 @@ void ircode_patch_init (ircode_t *code, uint16_t index) {
 	ircode_register_pop(code);
 	
 	// create new instruction list
-	code_r		*list = mem_alloc(sizeof(code_r));
+	code_r		*list = mem_alloc(NULL, sizeof(code_r));
 	marray_init(*list);
 	
 	// add newly create instructions
@@ -410,7 +410,7 @@ static void dump_context(bool *context) {
 #endif
 
 void ircode_push_context (ircode_t *code) {
-	bool *context = mem_alloc(sizeof(bool) * MAX_REGISTERS);
+	bool *context = mem_alloc(NULL, sizeof(bool) * MAX_REGISTERS);
 	marray_push(bool *, code->context, context);
 }
 

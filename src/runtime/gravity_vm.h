@@ -15,6 +15,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+#define GRAVITY_VM_GCENABLED_KEY            "gcenabled"
+#define GRAVITY_VM_GCMINTHRESHOLD_KEY       "gcminthreshold"
+#define GRAVITY_VM_GCTHRESHOLD_KEY          "gcthreshold"
+#define GRAVITY_VM_GCRATIO_KEY              "gcratio"
+#define GRAVITY_VM_MAXCALLS_KEY             "maxcalls"
+#define GRAVITY_VM_MAXBLOCK_KEY             "maxblock"
 
 typedef bool (*vm_filter_cb) (gravity_object_t *obj);
 typedef void (*vm_transfer_cb) (gravity_vm *vm, gravity_object_t *obj);
@@ -44,7 +51,6 @@ GRAVITY_API bool				gravity_vm_isaborted (gravity_vm *vm);
 GRAVITY_API void				gravity_vm_setaborted (gravity_vm *vm);
 GRAVITY_API gravity_closure_t   *gravity_vm_getclosure (gravity_vm *vm);
     
-
 GRAVITY_API void				gravity_gray_value (gravity_vm* vm, gravity_value_t v);
 GRAVITY_API void				gravity_gray_object (gravity_vm* vm, gravity_object_t *obj);
 GRAVITY_API void				gravity_gc_start (gravity_vm* vm);
@@ -66,6 +72,7 @@ GRAVITY_API gravity_value_t		gravity_vm_getslot (gravity_vm *vm, uint32_t index)
 GRAVITY_API void				gravity_vm_setdata (gravity_vm *vm, void *data);
 GRAVITY_API void				*gravity_vm_getdata (gravity_vm *vm);
 GRAVITY_API void				gravity_vm_memupdate (gravity_vm *vm, gravity_int_t value);
+GRAVITY_API gravity_int_t       gravity_vm_maxmemblock (gravity_vm *vm);
 
 GRAVITY_API gravity_value_t		gravity_vm_get (gravity_vm *vm, const char *key);
 GRAVITY_API bool				gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value);

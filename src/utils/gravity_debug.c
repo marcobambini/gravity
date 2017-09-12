@@ -68,7 +68,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 	// allocate a buffer big enought to fit all disassembled bytecode
 	// I assume that each instruction (each row) will be 256 chars long
 	balloc = ninsts * rowlen;
-	buffer = mem_alloc(balloc);
+	buffer = mem_alloc(NULL, balloc);
 	if (!buffer) goto abort_disassemble;
 		
 	// conversion loop

@@ -82,10 +82,10 @@ struct json_t {
 };
 
 json_t *json_new (void) {
-	json_t *json = mem_alloc(sizeof(json_t));
+	json_t *json = mem_alloc(NULL, sizeof(json_t));
 	assert(json);
 	
-	json->buffer = mem_alloc(JSON_MINSIZE);
+	json->buffer = mem_alloc(NULL, JSON_MINSIZE);
 	assert(json->buffer);
 	
 	json->blen = JSON_MINSIZE;
@@ -103,7 +103,7 @@ static void json_write_raw (json_t *json, const char *buffer, size_t len, bool e
 	// check buffer reallocation
 	size_t reqlen = json->bused + len + prettylen + escapelen + JSON_MINSIZE;
 	if (reqlen >= json->blen) {
-		json->buffer = mem_realloc(json->buffer, json->blen + reqlen);
+		json->buffer = mem_realloc(NULL, json->buffer, json->blen + reqlen);
 		assert(json->buffer);
 		json->blen += reqlen;
 	}
@@ -135,7 +135,7 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
 		return;
 	}
 	
-	char	*new_buffer = mem_alloc (len*2);
+	char	*new_buffer = mem_alloc(NULL, len*2);
 	size_t	j = 0;
 	assert(new_buffer);
 	
@@ -368,7 +368,7 @@ typedef struct
 static void * default_alloc (size_t size, int zero, void * user_data)
 {
 	#pragma unused(zero, user_data)
-	return mem_alloc(size);
+	return mem_alloc(NULL, size);
 	//return zero ? calloc (1, size) : malloc (size);
 }
 

@@ -37,9 +37,9 @@ struct gravity_vm {
 	uint32_t			pc;									// program counter
 	double				time;								// useful timer for the main function
 	bool				aborted;							// set when VM has generated a runtime error
-    uint32_t            maxncalls;                          // maximum number of nested c calls
+    uint32_t            maxccalls;                          // maximum number of nested c calls
     uint32_t            nccalls;                            // current number of nested c calls
-	
+    
 	// anonymous names
 	uint32_t			nanon;								// counter for anonymous classes (used in object_bind)
 	char				temp[64];							// temprary buffer used for anonymous names generator
@@ -52,6 +52,7 @@ struct gravity_vm {
 	// garbage collector
 	bool				gcenabled;							// flag to enable/disable garbage collector
 	gravity_int_t		memallocated;						// total number of allocated memory
+    gravity_int_t       maxmemblock;                        // maximum block memory size allowed to allocate
 	gravity_object_t	*gchead;							// head of garbage collected objects
 	gravity_int_t		gcminthreshold;						// minimum GC threshold size to avoid spending too much time in GC
 	gravity_int_t		gcthreshold;						// memory required to trigger a GC
@@ -170,7 +171,7 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
 	// check if there are enought slots in the call frame and optionally create new cframes
 	if (fiber->framesalloc - fiber->nframes < 1) {
 		uint32_t new_size = fiber->framesalloc * 2;
-        void *ptr = mem_realloc(fiber->frames, sizeof(gravity_callframe_t) * new_size);
+        void *ptr = mem_realloc(NULL, fiber->frames, sizeof(gravity_callframe_t) * new_size);
         if (!ptr) {
             // frames reallocation failed means that there is a very high probability to be into an infinite loop
             report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Infinite loop detected. Current execution must be aborted.");
@@ -199,11 +200,11 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
 	uint32_t stack_needed = MAXNUM(stack_size + rneeds, DEFAULT_MINSTACK_SIZE);
 	if (fiber->stackalloc >= stack_needed) return true;
 	gravity_value_t *old_stack = fiber->stack;
-	
+    
 	// perform stack reallocation (power_of2_ceil returns 0 if argument is bigger than 2^31)
 	uint32_t new_size = power_of2_ceil(fiber->stackalloc + stack_needed);
     bool size_condition = (new_size && (uint64_t)new_size >= (uint64_t)(fiber->stackalloc + stack_needed) && ((sizeof(gravity_value_t) * new_size) < SIZE_MAX));
-    void *ptr = (size_condition) ? mem_realloc(fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
+    void *ptr = (size_condition) ? mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
     if (!ptr) {
         // restore stacktop to previous state
         fiber->stacktop -= rneeds;
@@ -381,7 +382,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						gravity_value_t r1copy = STACK_GET(r1);
 						if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
                             if (vm->aborted) return false;
-							
+                            
 							// check for special getter trick
 							if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
 								closure = VALUE_AS_CLOSURE(STACK_GET(r1));
@@ -599,10 +600,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				// get registers
 				DEFINE_STACK_VARIABLE(v2,r2);
 				DEFINE_STACK_VARIABLE(v3,r3);
-				
+                
 				// prepare function call for binary operation
 				PREPARE_FUNC_CALL2(closure, v2, v3, (op == ISA) ? GRAVITY_ISA_INDEX : GRAVITY_MATCH_INDEX, rwin);
-				
+                
 				// call function f
 				CALL_FUNC(ISA, closure, r1, 2, rwin);
 				
@@ -1304,8 +1305,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 	return true;
 }
 
-gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_size, gravity_int_t gcminthreshold, gravity_int_t gcthreshold, gravity_float_t gcratio*/) {
-	gravity_vm *vm = mem_alloc(sizeof(gravity_vm));
+gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
+	gravity_vm *vm = mem_alloc(NULL, sizeof(gravity_vm));
 	if (!vm) return NULL;
 	
 	// setup default callbacks
@@ -1314,18 +1315,19 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 	
 	// allocate default fiber
 	vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
-    vm->maxncalls = MAX_CCALLS;
-	
+    vm->maxccalls = MAX_CCALLS;
+    
 	vm->pc = 0;
 	vm->delegate = delegate;
-	vm->context = gravity_hash_create(/*(context_size) ? context_size : */DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
+	vm->context = gravity_hash_create(DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
 	
 	// garbage collector
 	vm->gcenabled = true;
-	vm->gcminthreshold = /*(gcminthreshold) ? gcminthreshold :*/ DEFAULT_CG_MINTHRESHOLD;
-	vm->gcthreshold = /*(gcthreshold) ? gcthreshold :*/ DEFAULT_CG_THRESHOLD;
-	vm->gcratio = /*(gcratio) ? gcratio :*/ DEFAULT_CG_RATIO;
+	vm->gcminthreshold = DEFAULT_CG_MINTHRESHOLD;
+	vm->gcthreshold = DEFAULT_CG_THRESHOLD;
+	vm->gcratio = DEFAULT_CG_RATIO;
 	vm->memallocated = 0;
+    vm->maxmemblock = MAX_MEMORY_BLOCK;
 	marray_init(vm->graylist);
 	marray_init(vm->gcsave);
 	
@@ -1338,7 +1340,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate/*, uint32_t context_siz
 }
 
 gravity_vm *gravity_vm_newmini (void) {
-	gravity_vm *vm = mem_alloc(sizeof(gravity_vm));
+	gravity_vm *vm = mem_alloc(NULL, sizeof(gravity_vm));
 	return vm;
 }
 
@@ -1399,7 +1401,7 @@ void gravity_vm_seterror (gravity_vm* vm, const char *format, ...) {
 	
 	if (fiber->error) mem_free(fiber->error);
 	size_t err_size = 2048;
-	fiber->error = mem_alloc(err_size);
+	fiber->error = mem_alloc(NULL, err_size);
 	
 	va_list arg;
 	va_start (arg, format);
@@ -1523,7 +1525,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 	switch (f->tag) {
 		case EXEC_TYPE_NATIVE:
             ++vm->nccalls;
-            if (vm->nccalls > vm->maxncalls) RUNTIME_ERROR("Maximum number of nested C calls reached (%d).", vm->maxncalls);
+            if (vm->nccalls > vm->maxccalls) RUNTIME_ERROR("Maximum number of nested C calls reached (%d).", vm->maxccalls);
 			result = gravity_vm_exec(vm);
             --vm->nccalls;
 			break;
@@ -1646,26 +1648,32 @@ void gravity_vm_memupdate (gravity_vm *vm, gravity_int_t value) {
 	vm->memallocated += value;
 }
 
+gravity_int_t gravity_vm_maxmemblock (gravity_vm *vm) {
+    return vm->maxmemblock;
+}
+
 // MARK: - Get/Set Internal Settings -
 
 gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
 	if (key) {
-		if (strcmp(key, "gcenabled") == 0) return VALUE_FROM_BOOL(vm->gcenabled);
-		if (strcmp(key, "gcminthreshold") == 0) return VALUE_FROM_INT(vm->gcminthreshold);
-		if (strcmp(key, "gcthreshold") == 0) return VALUE_FROM_INT(vm->gcthreshold);
-		if (strcmp(key, "gcratio") == 0) return VALUE_FROM_FLOAT(vm->gcratio);
-        if (strcmp(key, "maxncalls") == 0) return VALUE_FROM_INT(vm->maxncalls);
+		if (strcmp(key, GRAVITY_VM_GCENABLED_KEY) == 0) return VALUE_FROM_BOOL(vm->gcenabled);
+		if (strcmp(key, GRAVITY_VM_GCMINTHRESHOLD_KEY) == 0) return VALUE_FROM_INT(vm->gcminthreshold);
+		if (strcmp(key, GRAVITY_VM_GCTHRESHOLD_KEY) == 0) return VALUE_FROM_INT(vm->gcthreshold);
+		if (strcmp(key, GRAVITY_VM_GCRATIO_KEY) == 0) return VALUE_FROM_FLOAT(vm->gcratio);
+        if (strcmp(key, GRAVITY_VM_MAXCALLS_KEY) == 0) return VALUE_FROM_INT(vm->maxccalls);
+        if (strcmp(key, GRAVITY_VM_MAXBLOCK_KEY) == 0) return VALUE_FROM_INT(vm->maxmemblock);
 	}
 	return VALUE_FROM_NULL;
 }
 
 bool gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value) {
 	if (key) {
-		if ((strcmp(key, "gcenabled") == 0) && VALUE_ISA_BOOL(value)) {vm->gcenabled = VALUE_AS_BOOL(value); return true;}
-		if ((strcmp(key, "gcminthreshold") == 0) && VALUE_ISA_INT(value)) {vm->gcminthreshold = VALUE_AS_INT(value); return true;}
-		if ((strcmp(key, "gcthreshold") == 0) && VALUE_ISA_INT(value)) {vm->gcthreshold = VALUE_AS_INT(value); return true;}
-		if ((strcmp(key, "gcratio") == 0) && VALUE_ISA_FLOAT(value)) {vm->gcratio = VALUE_AS_FLOAT(value); return true;}
-        if ((strcmp(key, "maxncalls") == 0) && VALUE_ISA_INT(value)) {vm->maxncalls = (uint32_t)VALUE_AS_INT(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCENABLED_KEY) == 0) && VALUE_ISA_BOOL(value)) {vm->gcenabled = VALUE_AS_BOOL(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCMINTHRESHOLD_KEY) == 0) && VALUE_ISA_INT(value)) {vm->gcminthreshold = VALUE_AS_INT(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCTHRESHOLD_KEY) == 0) && VALUE_ISA_INT(value)) {vm->gcthreshold = VALUE_AS_INT(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCRATIO_KEY) == 0) && VALUE_ISA_FLOAT(value)) {vm->gcratio = VALUE_AS_FLOAT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXCALLS_KEY) == 0) && VALUE_ISA_INT(value)) {vm->maxccalls = (uint32_t)VALUE_AS_INT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXBLOCK_KEY) == 0) && VALUE_ISA_INT(value)) {vm->maxmemblock = (uint32_t)VALUE_AS_INT(value); return true;}
 	}
 	return false;
 }
@@ -1794,10 +1802,10 @@ gravity_closure_t *gravity_vm_loadfile (gravity_vm *vm, const char *path) {
 }
 
 gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, size_t len) {
-	// state buffer for further processing super classes
-	void_r objects;
-	marray_init(objects);
-	
+    // state buffer for further processing super classes
+    void_r objects;
+    marray_init(objects);
+    
     // start json parsing
 	json_value *json = json_parse (buffer, len);
 	if (!json) goto abort_load;

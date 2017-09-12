@@ -280,7 +280,11 @@
                                                         gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);                                    \
                                                         return false;                                                                       \
                                                     } while(0)
-
+#define RETURN_ERROR_SIMPLE()                       do {                                                                                    \
+                                                        gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);                                    \
+                                                        return false;                                                                       \
+                                                    } while(0)
+#define CHECK_MEM_ALLOC(_ptr)                       if (!_ptr) RETURN_ERROR_SIMPLE();
 #define DECLARE_1VARIABLE(_v,_idx)                  register gravity_value_t _v = GET_VALUE(_idx)
 #define DECLARE_2VARIABLES(_v1,_v2,_idx1,_idx2)     DECLARE_1VARIABLE(_v1,_idx1);DECLARE_1VARIABLE(_v2,_idx2)
 

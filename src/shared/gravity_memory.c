@@ -7,11 +7,27 @@
 //
 
 #include "gravity_memory.h"
-#if GRAVITY_MEMORY_DEBUG
+#include "gravity_vm.h"
 
-#include <stdlib.h>
-#include <strings.h>
+#if !GRAVITY_MEMORY_DEBUG
 
+void *gravity_calloc(gravity_vm *vm, size_t count, size_t size) {
+    if (vm && ((count * size) >= gravity_vm_maxmemblock(vm))) {
+        gravity_vm_seterror(vm, "Maximum memory allocation block size reached (req: %d, max: %lld).", (count * size), (int64_t)gravity_vm_maxmemblock(vm));
+        return NULL;
+    }
+    return calloc(count, size);;
+}
+
+void *gravity_realloc(gravity_vm *vm, void *ptr, size_t new_size) {
+    if (vm && (new_size >= gravity_vm_maxmemblock(vm))) {
+        gravity_vm_seterror(vm, "Maximum memory re-allocation block size reached (req: %d, max: %lld).", new_size, (int64_t)gravity_vm_maxmemblock(vm));
+        return NULL;
+    }
+    return realloc(ptr, new_size);
+}
+
+#else
 #if _WIN32
 #include <imagehlp.h>
 #else
@@ -93,7 +109,8 @@ void memdebug_init (void) {
 	memdebug.aslot = SLOT_MIN;
 }
 
-void *memdebug_malloc(size_t size) {
+void *memdebug_malloc(gravity_vm *vm, size_t size) {
+    #pragma unused(vm)
 	void *ptr = malloc(size);
 	if (!ptr) {
 		BUILD_ERROR("Unable to allocated a block of %zu bytes", size);
@@ -106,11 +123,13 @@ void *memdebug_malloc(size_t size) {
 	return ptr;
 }
 
-void *memdebug_malloc0(size_t size) {
-	return memdebug_calloc(1, size);
+void *memdebug_malloc0(gravity_vm *vm, size_t size) {
+    #pragma unused(vm)
+	return memdebug_calloc(vm, 1, size);
 }
 
-void *memdebug_calloc(size_t num, size_t size) {
+void *memdebug_calloc(gravity_vm *vm, size_t num, size_t size) {
+    #pragma unused(vm)
 	void *ptr = calloc(num, size);
 	if (!ptr) {
 		BUILD_ERROR("Unable to allocated a block of %zu bytes", size);
@@ -123,7 +142,8 @@ void *memdebug_calloc(size_t num, size_t size) {
 	return ptr;
 }
 
-void *memdebug_realloc(void *ptr, size_t new_size) {
+void *memdebug_realloc(gravity_vm *vm, void *ptr, size_t new_size) {
+    #pragma unused(vm)
 	// ensure ptr has been previously allocated by malloc, calloc or realloc and not yet freed with free
 	uint32_t index = _ptr_lookup(ptr);
 	if (index == SLOT_NOTFOUND) {
@@ -312,8 +332,8 @@ uint32_t _ptr_lookup (void *ptr) {
 
 char **_ptr_stacktrace (size_t *nframes) {
 	#if _WIN32
-	http://www.codeproject.com/Articles/11132/Walking-the-callstack
-	https://spin.atomicobject.com/2013/01/13/exceptions-stack-traces-c/
+	// http://www.codeproject.com/Articles/11132/Walking-the-callstack
+	// https://spin.atomicobject.com/2013/01/13/exceptions-stack-traces-c/
 	#else
 	void *callstack[STACK_DEPTH];
 	int n = backtrace(callstack, STACK_DEPTH);

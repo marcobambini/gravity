@@ -162,9 +162,9 @@ gravity_hash_t *gravity_hash_create (uint32_t size, gravity_hash_compute_fn comp
 	if ((!compute) || (!isequal)) return NULL;
 	if (size == 0) size = GRAVITYHASH_DEFAULT_SIZE;
 	
-	gravity_hash_t *hashtable = (gravity_hash_t *)mem_alloc(sizeof(gravity_hash_t));
+	gravity_hash_t *hashtable = (gravity_hash_t *)mem_alloc(NULL, sizeof(gravity_hash_t));
 	if (!hashtable) return NULL;
-	if (!(hashtable->nodes = mem_calloc(size, sizeof(hash_node_t*)))) {mem_free(hashtable); return NULL;}
+	if (!(hashtable->nodes = mem_calloc(NULL, size, sizeof(hash_node_t*)))) {mem_free(hashtable); return NULL;}
 	
 	hashtable->compute_fn = compute;
 	hashtable->isequal_fn = isequal;
@@ -211,7 +211,7 @@ static inline int gravity_hash_resize (gravity_hash_t *hashtable) {
 		.isequal_fn = hashtable->isequal_fn,
 		.compute_fn = hashtable->compute_fn
 	};
-	if (!(newtbl.nodes = mem_calloc(size, sizeof(hash_node_t*)))) return -1;
+	if (!(newtbl.nodes = mem_calloc(NULL, size, sizeof(hash_node_t*)))) return -1;
 	
 	hash_node_t *node, *next;
 	for (uint32_t n = 0; n < hashtable->size; ++n) {
@@ -285,7 +285,7 @@ bool gravity_hash_insert (gravity_hash_t *hashtable, gravity_value_t key, gravit
 	}
 	
 	// allocate new entry and set new data
-	if (!(node = mem_alloc(sizeof(hash_node_t)))) return -1;
+	if (!(node = mem_alloc(NULL, sizeof(hash_node_t)))) return -1;
 	node->key = key;
 	node->hash = hash;
 	node->value = value;
