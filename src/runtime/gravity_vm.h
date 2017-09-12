@@ -87,4 +87,3 @@ GRAVITY_API void                gravity_opt_free (void);
 #endif
 
 #endif
-
