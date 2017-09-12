@@ -68,7 +68,7 @@ static void internal_vm_cleanup (gravity_vm *vm) {
 // MARK: -
 
 gravity_compiler_t *gravity_compiler_create (gravity_delegate_t *delegate) {
-	gravity_compiler_t *compiler = mem_alloc(sizeof(gravity_compiler_t));
+	gravity_compiler_t *compiler = mem_alloc(NULL, sizeof(gravity_compiler_t));
 	if (!compiler) return NULL;
 
 	compiler->ast = NULL;

@@ -213,7 +213,7 @@ int main (int argc, const char* argv[]) {
 
         // create closure to execute inline code
         if (type == OP_INLINE_RUN) {
-            char *buffer = mem_alloc(size+1024);
+            char *buffer = mem_alloc(NULL, size+1024);
             assert(buffer);
             size = snprintf(buffer, size+1024, "func main() {%s};", input_file);
             source_code = buffer;

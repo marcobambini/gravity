@@ -63,14 +63,14 @@ static void symboltable_keyvalue_free (gravity_hash_t *hashtable, gravity_value_
 }
 
 symboltable_t *symboltable_create (bool is_enum) {
-	symboltable_t	*table = mem_alloc(sizeof(symboltable_t));
+	symboltable_t	*table = mem_alloc(NULL, sizeof(symboltable_t));
 	gravity_hash_t	*hash = gravity_hash_create(0, gravity_value_hash, gravity_value_equals,
 												(is_enum) ? symboltable_keyvalue_free : symboltable_hash_free, NULL);
 	if (!table) return NULL;
 
 	// init symbol table
 	table->counter = 0;
-	table->stack = mem_alloc(sizeof(ghash_r));
+	table->stack = mem_alloc(NULL, sizeof(ghash_r));
 	scope_stack_init(table->stack);
 	scope_stack_push(table->stack, hash);
 

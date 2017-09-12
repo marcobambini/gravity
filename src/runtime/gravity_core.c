@@ -159,7 +159,7 @@ static bool convert_object_string (gravity_vm *vm, gravity_value_t *args, uint16
 static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
     // allocate initial memory to a 512 buffer
     uint32_t len = 512;
-    char *buffer = mem_alloc(len+1);
+    char *buffer = mem_alloc(NULL, len+1);
     buffer[0] = '[';
     uint32_t pos = 1;
 
@@ -198,7 +198,7 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
         // check if buffer needs to be reallocated
         if (len1 + len2 + pos + 4 > len) {
             len = (len1 + len2 + pos + 4) + len;
-            buffer = mem_realloc(buffer, len);
+            buffer = mem_realloc(NULL, buffer, len);
         }
 
         // copy key string to new buffer
@@ -232,7 +232,7 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
 static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list) {
 	// allocate initial memory to a 512 buffer
 	uint32_t len = 512;
-	char *buffer = mem_alloc(len+1);
+	char *buffer = mem_alloc(NULL, len+1);
 	buffer[0] = '[';
 	uint32_t pos = 1;
 
@@ -244,7 +244,7 @@ static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_
         if (VALUE_ISA_LIST(value) && (VALUE_AS_LIST(value) == list)) {
             string = NULL;
         } else {
-			gravity_value_t value2 = convert_value2string(vm, value);
+            gravity_value_t value2 = convert_value2string(vm, value);
             string = VALUE_ISA_VALID(value2) ? VALUE_AS_STRING(value2) : NULL;
         }
 
@@ -254,7 +254,7 @@ static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_
 		// check if buffer needs to be reallocated
 		if (len1+pos+2 > len) {
 			len = (len1+pos+2) + len;
-			buffer = mem_realloc(buffer, len);
+			buffer = mem_realloc(NULL, buffer, len);
 		}
 
 		// copy string to new buffer
@@ -526,7 +526,7 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
         // sanity check
         uint32_t nivar = c->nivars;
         uint32_t nindex = (uint32_t)key.n;
-        if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
+        if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in load operation (1).");
 
 		if (instance) RETURN_VALUE(instance->ivars[nindex], rindex);	// instance case
 		RETURN_VALUE(c->ivars[nindex], rindex);                         // class case
@@ -540,12 +540,12 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 	// lookup key in class c
 	gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(c, key);
     if (!obj) {
-			// not explicitly declared so check for dynamic property in bridge case
-			gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-			if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_getundef)) {
-				if (delegate->bridge_getundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), rindex)) return true;
-			}
-		}
+        // not explicitly declared so check for dynamic property in bridge case
+        gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+        if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_getundef)) {
+            if (delegate->bridge_getundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), rindex)) return true;
+        }
+    }
 	if (!obj) goto execute_notfound;
 
 	gravity_closure_t *closure;
@@ -559,9 +559,9 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
                 // sanity check
                 uint32_t nivar = c->nivars;
                 uint32_t nindex = closure->f->index;
-                if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
+                if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in load operation (2).");
 
-				if (instance) RETURN_VALUE(instance->ivars[closure->f->index], rindex);
+                if (instance) RETURN_VALUE(instance->ivars[closure->f->index], rindex);
 				RETURN_VALUE(c->ivars[closure->f->index], rindex);
 			}
 
@@ -620,7 +620,7 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
         // sanity check
         uint32_t nivar = c->nivars;
         uint32_t nindex = (uint32_t)key.n;
-        if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
+        if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in store operation (1).");
 
 		if (instance) instance->ivars[nindex] = value;
 		else c->ivars[nindex] = value;
@@ -635,12 +635,12 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	// lookup key in class c
 	gravity_object_t *obj = gravity_class_lookup(c, key);
     if (!obj) {
-			// not explicitly declared so check for dynamic property in bridge case
-			gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-			if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_setundef)) {
-				if (delegate->bridge_setundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), value)) RETURN_NOVALUE();
-			}
-		}
+        // not explicitly declared so check for dynamic property in bridge case
+        gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+        if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_setundef)) {
+            if (delegate->bridge_setundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), value)) RETURN_NOVALUE();
+        }
+    }
 	if (!obj) goto execute_notfound;
 
 	gravity_closure_t *closure;
@@ -655,7 +655,7 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
                 // sanity check
                 uint32_t nivar = c->nivars;
                 uint32_t nindex = closure->f->index;
-                if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index.");
+                if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in store operation (2).");
 
                 if (instance) instance->ivars[nindex] = value;
                 else c->ivars[nindex] = value;
@@ -793,10 +793,10 @@ static bool list_indexOf (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
             break;
         }
         ++i;
-	 }
+    }
 
-	RETURN_VALUE(result, rindex);
- }
+    RETURN_VALUE(result, rindex);
+}
 
 static bool list_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
@@ -842,7 +842,7 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 static bool list_push (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(nargs)
-	gravity_list_t	*list = VALUE_AS_LIST(GET_VALUE(0));
+	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
 	gravity_value_t value = GET_VALUE(1);
 	marray_push(gravity_value_t, list->array, value);
 	RETURN_VALUE(VALUE_FROM_INT(marray_size(list->array)), rindex);
@@ -935,12 +935,10 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 
 	// create a new empty buffer
 	uint32_t alloc = (uint32_t) (marray_size(list->array) * 64);
-    if (alloc > MAX_MEMORY_BLOCK) RETURN_ERROR("Maximum memory block size reached (max %d, requested %d).", MAX_MEMORY_BLOCK, alloc);
-
 	uint32_t len = 0;
 	uint32_t seplen = (sep) ? VALUE_AS_STRING(GET_VALUE(1))->len : 0;
-	char *_buffer = mem_alloc(alloc);
-	if (!_buffer) RETURN_ERROR("Not enought memory to allocate a buffer for the join operation.");
+	char *_buffer = mem_alloc(vm, alloc);
+    CHECK_MEM_ALLOC(_buffer);
 
 	register gravity_int_t n = marray_size(list->array);
 	register gravity_int_t i = 0;
@@ -961,17 +959,10 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 		// check if buffer needs to be reallocated
 		if (free_mem < req + seplen) {
             uint64_t to_alloc = alloc + (req + seplen) * 2 + 4096;
-
-            // sanity check
-            if (to_alloc > MAX_MEMORY_BLOCK) {
-                mem_free(_buffer);
-                RETURN_ERROR("Maximum memory block size reached (max %d, requested %llu).", MAX_MEMORY_BLOCK, to_alloc);
-            }
-
-			_buffer = mem_realloc(_buffer, (uint32_t)to_alloc);
+			_buffer = mem_realloc(vm, _buffer, (uint32_t)to_alloc);
             if (!_buffer) {
                 mem_free(_buffer);
-                RETURN_ERROR("Not enought memory to re-allocate a buffer for the join operation.");
+                RETURN_ERROR_SIMPLE();
             }
 			alloc = (uint32_t)to_alloc;
 		}
@@ -1675,8 +1666,11 @@ static bool operator_string_add (gravity_vm *vm, gravity_value_t *args, uint16_t
 	char *s = NULL;
 
 	// check if I can save an allocation
-	if (len+1<sizeof(buffer)) s = buffer;
-	else s = mem_alloc(len+1);
+	if (len+1 < sizeof(buffer)) s = buffer;
+    else {
+        s = mem_alloc(vm, len+1);
+        CHECK_MEM_ALLOC(s);
+    }
 
 	memcpy(s, s1->s, s1->len);
 	memcpy(s+s1->len, s2->s, s2->len);
@@ -1709,7 +1703,8 @@ static bool operator_string_sub (gravity_vm *vm, gravity_value_t *args, uint16_t
 
 	// substring found but cannot be entirely considered
 	uint32_t alloc = MAXNUM(s1->len + s2->len +1, DEFAULT_MINSTRING_SIZE);
-	char *s = mem_alloc(alloc);
+	char *s = mem_alloc(vm, alloc);
+    CHECK_MEM_ALLOC(s);
 
 	uint32_t seek = (uint32_t)(found - s1->s);
 	uint32_t len = seek + (flen - s2->len);
@@ -1849,8 +1844,8 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 
 	// figure out the size of the array we need to make to hold the new string
 	uint32_t new_size = (uint32_t)(main_str->len * times_to_repeat);
-	char *new_str = mem_alloc(new_size+1);
-	if (!new_str) RETURN_ERROR("Unable to allocate a String so big (%d)", new_size);
+	char *new_str = mem_alloc(vm, new_size+1);
+    CHECK_MEM_ALLOC(new_str);
 
     uint32_t seek = 0;
 	for (uint32_t i = 0; i < times_to_repeat; ++i) {
@@ -1865,8 +1860,8 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
-	char *ret = mem_alloc(main_str->len + 1);
-	if (!ret) RETURN_ERROR("Unable to allocate a String so big (%d)", main_str->len);
+	char *ret = mem_alloc(vm, main_str->len + 1);
+	CHECK_MEM_ALLOC(ret);
 	strcpy(ret, main_str->s);
 
 	// if no arguments passed, change the whole string to uppercase
@@ -1904,8 +1899,8 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
-	char *ret = mem_alloc(main_str->len + 1);
-	if (!ret) RETURN_ERROR("Unable to allocate a String so big (%d)", main_str->len);
+	char *ret = mem_alloc(vm, main_str->len + 1);
+    CHECK_MEM_ALLOC(ret);
 	strcpy(ret, main_str->s);
 
 	// if no arguments passed, change the whole string to lowercase
@@ -1971,8 +1966,9 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 
 	bool is_forward = first_index <= second_index;
 	if (!is_forward) {
-		char *original = mem_alloc(string->len);
-		if (!original) RETURN_ERROR("Unable to allocate a String so big (%d)", string->len);
+		char *original = mem_alloc(vm, string->len);
+        CHECK_MEM_ALLOC(original);
+
 		// without copying it, we would be modifying the original string
 		strncpy((char *)original, string->s, string->len);
 		uint32_t original_len = (uint32_t) string->len;
@@ -2170,13 +2166,13 @@ static bool fiber_yield (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
     // in no caller then this is just a NOP
     if (fiber->caller) {
-		gravity_vm_setfiber(vm, fiber->caller);
+        gravity_vm_setfiber(vm, fiber->caller);
 
-		// unhook this fiber from the one that called it
-		fiber->caller = NULL;
-		fiber->trying = false;
+        // unhook this fiber from the one that called it
+        fiber->caller = NULL;
+        fiber->trying = false;
 
-		RETURN_FIBER();
+        RETURN_FIBER();
     } else {
         RETURN_NOVALUE();
     }
@@ -2643,10 +2639,12 @@ static void gravity_core_init (void) {
 
     closure = computed_property_create(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set));
 	gravity_value_t value = VALUE_FROM_OBJECT(closure);
-	gravity_class_bind(system_meta, "gcenabled", value);
-	gravity_class_bind(system_meta, "gcminthreshold", value);
-	gravity_class_bind(system_meta, "gcthreshold", value);
-	gravity_class_bind(system_meta, "gcratio", value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCENABLED_KEY, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCMINTHRESHOLD_KEY, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCTHRESHOLD_KEY, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCRATIO_KEY, value);
+    gravity_class_bind(system_meta, GRAVITY_VM_MAXCALLS_KEY, value);
+    gravity_class_bind(system_meta, GRAVITY_VM_MAXBLOCK_KEY, value);
 
 	// INIT META
 	SETMETA_INITED(gravity_class_int);
@@ -2693,7 +2691,7 @@ void gravity_core_free (void) {
     computed_property_free(gravity_class_float, "radians", true);
     computed_property_free(gravity_class_float, "degrees", true);
     gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
-    computed_property_free(system_meta, "gcenabled", true);
+    computed_property_free(system_meta, GRAVITY_VM_GCENABLED_KEY, true);
 
 	gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_int));
 	gravity_class_free_core(NULL, gravity_class_int);
@@ -2723,9 +2721,11 @@ void gravity_core_free (void) {
 	gravity_class_free_core(NULL, gravity_class_upvalue);
 
 	// before freeing the meta class we need to remove entries with duplicated functions
-	{STATICVALUE_FROM_STRING(key, "gcminthreshold", strlen("gcminthreshold")); gravity_hash_remove(system_meta->htable, key);}
-	{STATICVALUE_FROM_STRING(key, "gcthreshold", strlen("gcthreshold")); gravity_hash_remove(system_meta->htable, key);}
-	{STATICVALUE_FROM_STRING(key, "gcratio", strlen("gcratio")); gravity_hash_remove(system_meta->htable, key);}
+	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCMINTHRESHOLD_KEY, strlen(GRAVITY_VM_GCMINTHRESHOLD_KEY)); gravity_hash_remove(system_meta->htable, key);}
+	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCTHRESHOLD_KEY, strlen(GRAVITY_VM_GCTHRESHOLD_KEY)); gravity_hash_remove(system_meta->htable, key);}
+	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCRATIO_KEY, strlen(GRAVITY_VM_GCRATIO_KEY)); gravity_hash_remove(system_meta->htable, key);}
+    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXCALLS_KEY, strlen(GRAVITY_VM_MAXCALLS_KEY)); gravity_hash_remove(system_meta->htable, key);}
+    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXBLOCK_KEY, strlen(GRAVITY_VM_MAXBLOCK_KEY)); gravity_hash_remove(system_meta->htable, key);}
 	gravity_class_free_core(NULL, system_meta);
 	gravity_class_free_core(NULL, gravity_class_system);
 
@@ -2814,10 +2814,10 @@ gravity_class_t *gravity_core_class_from_name (const char *name) {
 bool gravity_iscore_class (gravity_class_t *c) {
 	// first check if it is a class
 	if ((c == gravity_class_object) || (c == gravity_class_class) || (c == gravity_class_bool) ||
-			(c == gravity_class_null) || (c == gravity_class_int) || (c == gravity_class_float) ||
-			(c == gravity_class_function) || (c == gravity_class_fiber) || (c == gravity_class_string) ||
-			(c == gravity_class_instance) || (c == gravity_class_list) || (c == gravity_class_map) ||
-			(c == gravity_class_range) || (c == gravity_class_system) || (c == gravity_class_closure) ||
+		(c == gravity_class_null) || (c == gravity_class_int) || (c == gravity_class_float) ||
+		(c == gravity_class_function) || (c == gravity_class_fiber) || (c == gravity_class_string) ||
+		(c == gravity_class_instance) || (c == gravity_class_list) || (c == gravity_class_map) ||
+		(c == gravity_class_range) || (c == gravity_class_system) || (c == gravity_class_closure) ||
 		(c == gravity_class_upvalue)) return true;
 
 	// if class check is false then check for meta

@@ -72,13 +72,13 @@ typedef struct {
 } grammar_rule;
 
 // This table defines all of the parsing rules for the prefix and infix expressions in the grammar.
-#define RULE(prec, fn1, fn2)			(grammar_rule){ fn1, fn2, prec, NULL, false}
-#define PREFIX(prec, fn)				(grammar_rule){ fn, NULL, prec, NULL, false}
-#define INFIX(prec, fn)					(grammar_rule){ NULL, fn, prec, NULL, false}
-#define INFIX_OPERATOR(prec, name)		(grammar_rule){ NULL, parse_infix, prec, name, false}
-#define INFIX_OPERATOR_RIGHT(prec,name) (grammar_rule){ NULL, parse_infix, prec, name, true}
-#define PREFIX_OPERATOR(name)			(grammar_rule){ parse_unary, NULL, PREC_LOWEST, name, false}
-#define OPERATOR(prec, name)			(grammar_rule){ parse_unary, parse_infix, prec, name, false}
+#define RULE(prec, fn1, fn2)					(grammar_rule){ fn1, fn2, prec, NULL, false}
+#define PREFIX(prec, fn)						(grammar_rule){ fn, NULL, prec, NULL, false}
+#define INFIX(prec, fn)							(grammar_rule){ NULL, fn, prec, NULL, false}
+#define INFIX_OPERATOR(prec, name)				(grammar_rule){ NULL, parse_infix, prec, name, false}
+#define INFIX_OPERATOR_RIGHT(prec,name)			(grammar_rule){ NULL, parse_infix, prec, name, true}
+#define PREFIX_OPERATOR(name)					(grammar_rule){ parse_unary, NULL, PREC_LOWEST, name, false}
+#define OPERATOR(prec, name)					(grammar_rule){ parse_unary, parse_infix, prec, name, false}
 
 // Global singleton grammar rule table
 static grammar_rule rules[TOK_END];
@@ -111,7 +111,7 @@ static grammar_rule rules[TOK_END];
 // MARK: - Prototypes -
 static const char *parse_identifier (gravity_parser_t *parser);
 static gnode_t *parse_statement (gravity_parser_t *parser);
-static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser);
+static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, bool is_implicit);
 static gnode_t *parse_compound_statement (gravity_parser_t *parser);
 static gnode_t *parse_expression (gravity_parser_t *parser);
 static gnode_t *parse_declaration_statement (gravity_parser_t *parser);
@@ -294,7 +294,7 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
 	if (!is_implicit) parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
 
 	// parse optional parameter declaration clause
-	gnode_r *params = (!is_implicit) ? parse_optional_parameter_declaration(parser) : NULL;
+	gnode_r *params = parse_optional_parameter_declaration(parser, is_implicit);
 
 	// check and consume TOK_OP_CLOSED_PARENTHESIS
 	if (!is_implicit) parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
@@ -318,7 +318,7 @@ static char *cstring_from_token (gravity_parser_t *parser, gtoken_s token) {
 	uint32_t len = 0;
 	const char *buffer = token_string(token, &len);
 
-	char *str = (char *)mem_alloc(len+1);
+	char *str = (char *)mem_alloc(NULL, len+1);
 	memcpy(str, buffer, len);
 	return str;
 }
@@ -592,7 +592,7 @@ static gnode_t *parse_identifier_expression (gravity_parser_t *parser) {
 	DEBUG_PARSER("parse_identifier_expression");
 	DECLARE_LEXER;
 
-	const char	*identifier = parse_identifier(parser);
+	const char *identifier = parse_identifier(parser);
 	if (!identifier) return NULL;
 	DEBUG_PARSER("IDENTIFIER: %s", identifier);
 
@@ -706,7 +706,7 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 	gnode_r *r = NULL;
 
 	// analyze s (of length len) for escaped characters or for interpolations
-	char *buffer = mem_alloc(len+1);
+	char *buffer = mem_alloc(NULL, len+1);
 	uint32_t length = 0;
 
 	for (uint32_t i=0; i<len;) {
@@ -795,9 +795,9 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 
 					// add expression to r
                     if (subnode) {
-						if (!r) r = gnode_array_create();
-						if (length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION()));
-						gnode_array_push(r, subnode);
+                        if (!r) r = gnode_array_create();
+                        if (length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION()));
+                        gnode_array_push(r, subnode);
                     }
 
 					// free temp lexer
@@ -805,7 +805,7 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 					gravity_lexer_free(sublexer);
                     if (!subnode) goto return_string;
 
-					buffer = mem_alloc(len+1);
+					buffer = mem_alloc(NULL, len+1);
 					length = 0;
 
 					continue;
@@ -1220,7 +1220,7 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser, gravity_hash_t *m
 			// check if parameters are explicit
 			if (gravity_lexer_peek(lexer) == TOK_OP_OPEN_PARENTHESIS) {
 				parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
-				params = parse_optional_parameter_declaration(parser);	// add implicit SELF
+				params = parse_optional_parameter_declaration(parser, false);	// add implicit SELF
 				parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
 			} else {
 				params = gnode_array_create();	// add implicit SELF and VALUE params
@@ -1691,7 +1691,7 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
 	}
 
 	// check and consume TOK_OP_OPEN_CURLYBRACE
-	parse_required(parser, TOK_OP_OPEN_CURLYBRACE);
+	if (storage_specifier != TOK_KEY_EXTERN) parse_required(parser, TOK_OP_OPEN_CURLYBRACE);
 	gnode_r *declarations = gnode_array_create();
 
 	// if class is declared inside another class then a hidden implicit privare "outer" instance var at index 0
@@ -1708,17 +1708,19 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
     // create class declaration node
     gnode_class_decl_t *node = (gnode_class_decl_t*) gnode_class_decl_create(token, identifier, access_specifier, storage_specifier, super, protocols, NULL, is_struct, meta, LAST_DECLARATION());
 
-	PUSH_DECLARATION(node);
-    peek = gravity_lexer_peek(lexer);
-	while (token_isdeclaration_statement(peek) || token_ismacro(peek)) {
-		gnode_t *decl = parse_declaration_statement(parser);
-        if (decl) gnode_array_push(declarations, decl_check_access_specifier(decl));
+    if (storage_specifier != TOK_KEY_EXTERN) {
+        PUSH_DECLARATION(node);
         peek = gravity_lexer_peek(lexer);
-	}
-	POP_DECLARATION();
+        while (token_isdeclaration_statement(peek) || token_ismacro(peek)) {
+            gnode_t *decl = parse_declaration_statement(parser);
+            if (decl) gnode_array_push(declarations, decl_check_access_specifier(decl));
+            peek = gravity_lexer_peek(lexer);
+        }
+        POP_DECLARATION();
+    }
 
 	// check and consume TOK_OP_CLOSED_CURLYBRACE
-	parse_required(parser, TOK_OP_CLOSED_CURLYBRACE);
+	if (storage_specifier != TOK_KEY_EXTERN) parse_required(parser, TOK_OP_CLOSED_CURLYBRACE);
 
 	// to check
 	parse_semicolon(parser);
@@ -1730,7 +1732,7 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
 	return (gnode_t *)node;
 }
 
-static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser) {
+static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, bool is_implicit) {
 	DEBUG_PARSER("parse_parameter_declaration");
 	DECLARE_LEXER;
 
@@ -1755,6 +1757,7 @@ static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser) 
 	// memory for the identifier will be deallocated
 	node = gnode_variable_create(token, string_dup(SELF_PARAMETER_NAME), type_annotation, 0, NULL, LAST_DECLARATION());
 	if (node) gnode_array_push(params, node);
+    if (is_implicit) return params;
 
 	// parameter declaration clause is ALWAYS optional
 	gtoken_t peek = gravity_lexer_peek(lexer);
@@ -2280,7 +2283,7 @@ static gnode_t *parse_compound_statement (gravity_parser_t *parser) {
         }
 		gnode_t *node = parse_statement(parser);
         --parser->depth;
-		if (node) gnode_array_push(stmts, node);
+        if (node) gnode_array_push(stmts, node);
 	}
 
 	// check and consume TOK_OP_CLOSED_CURLYBRACE
@@ -2531,7 +2534,7 @@ static uint32_t parser_run (gravity_parser_t *parser) {
 	do {
 		while (gravity_lexer_peek(CURRENT_LEXER)) {
 			gnode_t *node = parse_statement(parser);
-			if (node) gnode_array_push(parser->statements, node);
+            if (node) gnode_array_push(parser->statements, node);
 		}
 
 		// since it is a stack of lexers then check if it is a real EOF
@@ -2578,13 +2581,13 @@ static void parser_appendcode (const char *source, gravity_parser_t *parser) {
 gravity_parser_t *gravity_parser_create (const char *source, size_t len, uint32_t fileid, bool is_static) {
 	init_grammer_rules();
 
-	gravity_parser_t *parser = mem_alloc(sizeof(gravity_parser_t));
+	gravity_parser_t *parser = mem_alloc(NULL, sizeof(gravity_parser_t));
 	if (!parser) return NULL;
 
 	gravity_lexer_t *lexer = gravity_lexer_create(source, len, fileid, is_static);
 	if (!lexer) goto abort_init;
 
-	parser->lexer = mem_alloc(sizeof(lexer_r));
+	parser->lexer = mem_alloc(NULL, sizeof(lexer_r));
 	marray_init(*parser->lexer);
 	marray_push(gravity_lexer_t*, *parser->lexer, lexer);
 

@@ -854,7 +854,6 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
             REPORT_ERROR(id, "Unable to find superclass %s for class %s.", id->value, node->identifier);
         } else {
             gnode_class_decl_t *target_class = NODE_ISA(target, NODE_CLASS_DECL) ? (gnode_class_decl_t *)target : NULL;
-
             if (!target_class) {
                 REPORT_ERROR(id, "Unable to set non class %s as superclass of %s.", id->value, node->identifier);
             } else if ((gnode_class_decl_t *)node == (gnode_class_decl_t *)target_class->superclass) {

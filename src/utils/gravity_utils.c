@@ -141,7 +141,7 @@ const char *file_read(const char *path, size_t *len) {
 	fd = open(path, O_RDONLY);
 	if (fd < 0) goto abort_read;
 
-	buffer = (char *)mem_alloc((size_t)fsize + 1);
+	buffer = (char *)mem_alloc(NULL, (size_t)fsize + 1);
 	if (buffer == NULL) goto abort_read;
 	buffer[fsize] = 0;
 
@@ -190,7 +190,7 @@ const char *file_buildpath (const char *filename, const char *dirpath) {
 	size_t len2 = strlen(dirpath);
 	size_t len = len1+len2+2;
 
-	char *full_path = (char *)mem_alloc(len);
+	char *full_path = (char *)mem_alloc(NULL, len);
 	if (!full_path) return NULL;
 
 	if ((len2) && (dirpath[len2-1] != '/'))
@@ -323,14 +323,15 @@ int string_cmp (const char *s1, const char *s2) {
 
 const char *string_dup (const char *s1) {
 	size_t	len = (size_t)strlen(s1);
-	char	*s = (char *)mem_alloc(len + 1);
-
+	char	*s = (char *)mem_alloc(NULL, len + 1);
+	if (!s) return NULL;
 	memcpy(s, s1, len);
 	return s;
 }
 
 const char *string_ndup (const char *s1, size_t n) {
-	char *s = (char *)mem_alloc(n + 1);
+	char *s = (char *)mem_alloc(NULL, n + 1);
+    if (!s) return NULL;
 	memcpy(s, s1, n);
 	return s;
 }

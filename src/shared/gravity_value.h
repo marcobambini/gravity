@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.3.0"     // git tag 0.3.0
-#define GRAVITY_VERSION_NUMBER				0x000300    // git push --tags
+#define GRAVITY_VERSION						"0.3.5"     // git tag 0.3.5
+#define GRAVITY_VERSION_NUMBER				0x000305    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -89,10 +89,10 @@ extern "C" {
 #ifndef GRAVITY_MAP_DOTSUGAR
 #define GRAVITY_MAP_DOTSUGAR				1			// if 1 then map objects can be accessed with both map[key] and map.key
 #endif
-
+    
 #ifdef _MSC_VER
 #undef GRAVITY_COMPUTED_GOTO
-#define GRAVITY_COMPUTED_GOTO 0 // MSVC does not support it
+#define GRAVITY_COMPUTED_GOTO               0           // MSVC does not support it
 #endif
 
 #define MAIN_FUNCTION						"main"
@@ -128,7 +128,7 @@ extern "C" {
 #define MAX_ALLOCATION                      4194304     // 1024 * 1024 * 4 (about 4 millions entry)
 #define MAX_CCALLS                          100         // default maximum number of nested C calls
 #define MAX_MEMORY_BLOCK                    157286400   // 150MB
-
+    
 #define DEFAULT_CONTEXT_SIZE				256			// default VM context entries (can grow)
 #define DEFAULT_MINSTRING_SIZE				32			// minimum string allocation size
 #define DEFAULT_MINSTACK_SIZE				256			// sizeof(gravity_value_t) * 256	 = 16 * 256 => 4 KB
@@ -136,7 +136,7 @@ extern "C" {
 #define DEFAULT_CG_THRESHOLD				5*1024*1024 // 5MB
 #define DEFAULT_CG_MINTHRESHOLD				1024*1024	// 1MB
 #define DEFAULT_CG_RATIO					0.5			// 50%
-
+    
 #define MAXNUM(a,b)							((a) > (b) ? a : b)
 #define MINNUM(a,b)							((a) < (b) ? a : b)
 #define EPSILON								0.000001
@@ -214,7 +214,12 @@ typedef marray_t(gravity_value_t)		gravity_value_r;		// array of values
 #define GRAVITY_HASH_DEFINED
 typedef struct gravity_hash_t			gravity_hash_t;			// forward declaration
 #endif
+    
+#ifndef GRAVITY_VM_DEFINED
+#define GRAVITY_VM_DEFINED
 typedef struct gravity_vm				gravity_vm;				// vm is an opaque data type
+#endif
+    
 typedef bool (*gravity_c_internal)(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex);
 
 typedef enum {
