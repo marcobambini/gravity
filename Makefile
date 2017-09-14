@@ -25,7 +25,7 @@ else
 	ifeq ($(UNAME_S),Darwin)
 		# MacOS
 		LIBTARGET = libgravity.dylib
-		LDFLAGS = -lm 
+		LDFLAGS = -lm
 	else ifeq ($(UNAME_S),OpenBSD)
 		# OpenBSD
 		# LIBTARGET = libgravity.so (not used)

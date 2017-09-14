@@ -1,7 +1,7 @@
 class Crash
 {
     var x,y,w,h;
-    
+
     func init (n1,n2,n3,n4)
     {
         x = n1;
@@ -9,16 +9,16 @@ class Crash
         w = n3;
         h = n4;
     }
-    
+
     func Int()
     {
         var i;
-        
+
         while (i < self)
         {
             i += 1;
         }
-        
+
         return i+i;
     }
 }

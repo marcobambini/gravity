@@ -37,7 +37,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -75,17 +75,17 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">List</h1><hr>
-			
+
 			<p class="section-content">
 			Lists (or arrays) are simple sequence of objects, their size is dynamic and their index starts always at 0. They provide fast random access to their elements. You can create a list by placing a sequence of comma-separated expressions inside square brackets:
 			</p>
 			<pre><code class="swift">
 	var r = [1, 2, "Hello", 3.1415, true];
-	
+
 	// list has a count property
 	var n = r.count;	// n is 5
 			</code></pre>
-			
+
 			<h4 class="section-h4">Accessing elements</h4>
 			<p>You can access an element from a list by calling the subscript operator [] on it with the index of the element you want. Like most languages, indices start at 0:
 			</p>
@@ -94,32 +94,32 @@
 	names[0];	// "Mark"
 	names[2];	// "Paul"
 			</code></pre>
-			
+
 			<p>Negative indices count backwards from the end:</p>
 			<pre><code class="swift">
 	var names = ["Mark", "Andrew", "Paul", "Ross", "Frank", "Max"];
 	names[-1];	// "Max"
 	names[-2];	// "Frank"
 			</code></pre>
-			
+
 			<h4 class="section-h4">Iterating elements</h4>
-			<p>The subscript operator works well for finding values when you know the key you’re looking for, but sometimes you want to see everything that’s in the list. Since the List class implements the iterator method, you can easily use it in a for loop:</p> 
+			<p>The subscript operator works well for finding values when you know the key you’re looking for, but sometimes you want to see everything that’s in the list. Since the List class implements the iterator method, you can easily use it in a for loop:</p>
 			<pre><code class="swift">
 	var people = ["Mark", "Andrew", "Paul", "Ross", "Frank", "Max"];
 	for (var name in people) {
 		System.print("Current name is " + name);
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">Adding elements</h4>
 			<p>A List instance can be expanded by setting an index that is greater than the current size of the list:</p>
 			<pre><code class="swift">
 	var list = [10,20,30,40,50];
 	list[30] = 22;	// list contains now 31 elements (index 0...30)
 			</code></pre>
-			
+
 			<h4 class="section-h4">List as a stack</h4>
-			<p>The List class implements the push/pop methods as a convenient way to treat a list as a stack:</p> 
+			<p>The List class implements the push/pop methods as a convenient way to treat a list as a stack:</p>
 			<pre><code class="swift">
 	var list = [10,20,30,40,50];
 	list.push(100);		// add 100 to the list
@@ -133,15 +133,15 @@
 	var list = [1, 2, "Hello", 3.1415, true];
 	return list.contains(3.1415); // Returns: true
 			</code></pre>
-            
+
 			<h4 class="section-h4">List Joins</h4>
 			<p>The List class implements the join method as a convenient way to
-			interpret a list as a string:</p> 
+			interpret a list as a string:</p>
 			<pre><code class="swift">
 	var list = [1,2,3,4,5];
 	list.join(" + "); // Becomes: "1 + 2 + 3 + 4 + 5"
 			</code></pre>
-            
+
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
      </div> <!-- /container -->
@@ -154,14 +154,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

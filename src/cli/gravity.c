@@ -37,7 +37,7 @@ static void report_error (error_type_t error_type, const char *message, error_de
 		case GRAVITY_WARNING: type = "WARNING"; break;
 		case GRAVITY_ERROR_IO: type = "I/O"; break;
 	}
-	
+
 	if (error_type == GRAVITY_ERROR_RUNTIME) printf("RUNTIME ERROR: ");
 	else printf("%s ERROR on %d (%d,%d): ", type, error_desc.fileid, error_desc.lineno, error_desc.colno);
 	printf("%s\n", message);
@@ -45,30 +45,30 @@ static void report_error (error_type_t error_type, const char *message, error_de
 
 static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata) {
 	#pragma unused(fileid, xdata)
-	
+
 	// this callback is called each time an import statement is parsed
 	// file arg represents what user wrote after the import keyword, for example:
 	// import "file2"
 	// import "file2.gravity"
 	// import "../file2"
 	// import "/full_path_to_file2"
-	
+
 	// it is callback's responsability to resolve file path based on current working directory
 	// or based on user defined search paths
 	// and returns:
 	// size of file in *size
 	// fileid (if any) in *fileid
 	// content of file as return value of the function
-	
+
 	// fileid will then be used each time an error is reported by the compiler
 	// so it is responsability of this function to map somewhere the association
 	// between fileid and real file/path name
-	
+
 	// fileid is not used in this example
 	// xdata not used here but it the xdata field set in the delegate
 	// please note than in this simple example the imported file must be
 	// in the same folder as the main input file
-	
+
 	if (!file_exists(file)) return NULL;
 	return file_read(file, size);
 }
@@ -95,17 +95,17 @@ static void print_help (void) {
 
 static op_type parse_args (int argc, const char* argv[]) {
 	if (argc == 1) return OP_REPL;
-	
+
 	if (argc == 2 && strcmp(argv[1], "--version") == 0) {
 		print_version();
 		exit(0);
 	}
-	
+
 	if (argc == 2 && strcmp(argv[1], "--help") == 0) {
 		print_help();
 		exit(0);
 	}
-	
+
 	op_type type = OP_RUN;
 	for (int i=1; i<argc; ++i) {
 		if ((strcmp(argv[i], "-c") == 0) && (i+1 < argc)) {
@@ -131,7 +131,7 @@ static op_type parse_args (int argc, const char* argv[]) {
 			type = OP_COMPILE_RUN;
 		}
 	}
-	
+
 	return type;
 }
 
@@ -140,13 +140,13 @@ static op_type parse_args (int argc, const char* argv[]) {
 static void gravity_repl (void) {
 	printf("REPL not yet implemented.\n");
 	exit(0);
-	
+
 	/*
 	// setup compiler/VM delegate
 	gravity_delegate_t delegate = {
 		.error_callback = report_error,
 	};
-	
+
 	gravity_compiler_t	*compiler = gravity_compiler_create(&delegate);
 	gravity_vm	*vm = gravity_vm_new(&delegate);
 	char		*line = NULL;
@@ -158,7 +158,7 @@ static void gravity_repl (void) {
 		//	gravity_compiler_eval(compiler, vm, line, length);
 		free(line);
 	}
-	
+
 	gravity_compiler_free(compiler);
 	gravity_vm_free(vm);
 	 */
@@ -169,48 +169,48 @@ static void gravity_repl (void) {
 int main (int argc, const char* argv[]) {
 	// parse arguments and return operation type
 	op_type type = parse_args(argc, argv);
-	
+
 	// special repl case
 	if (type == OP_REPL) gravity_repl();
-	
+
 	// initialize memory debugger (if activated)
 	mem_init();
-	
+
 	// closure to execute/serialize
 	gravity_closure_t *closure = NULL;
-	
+
 	// optional compiler
 	gravity_compiler_t *compiler = NULL;
-	
+
 	// setup compiler/VM delegate
 	gravity_delegate_t delegate = {
 		.error_callback = report_error,
 		.loadfile_callback = load_file
 	};
-	
+
 	// create VM
 	gravity_vm *vm = gravity_vm_new(&delegate);
-	
+
 	// check if input file is source code that needs to be compiled
 	if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
-		
+
 		// load source code
         size_t size = 0;
         const char *source_code = NULL;
-        
+
         if (type == OP_INLINE_RUN) {
             source_code = input_file;
             size = strlen(input_file);
         } else {
             source_code = file_read(input_file, &size);
         }
-        
+
         // sanity check
         if (!source_code || !size) {
             printf("Error loading %s %s\n", (type == OP_INLINE_RUN) ? "source" : "file", input_file);
             goto cleanup;
         }
-        
+
         // create closure to execute inline code
         if (type == OP_INLINE_RUN) {
             char *buffer = mem_alloc(NULL, size+1024);
@@ -218,24 +218,24 @@ int main (int argc, const char* argv[]) {
             size = snprintf(buffer, size+1024, "func main() {%s};", input_file);
             source_code = buffer;
         }
-		
+
 		// create compiler
 		compiler = gravity_compiler_create(&delegate);
-		
+
 		// compile source code into a closure
 		closure = gravity_compiler_run(compiler, source_code, size, 0, false);
 		if (!closure) goto cleanup;
-		
+
 		// check if closure needs to be serialized
 		if (type == OP_COMPILE) {
 			bool result = gravity_compiler_serialize_infile(compiler, closure, output_file);
 			if (!result) printf("Error serializing file %s\n", output_file);
 			goto cleanup;
 		}
-		
+
 		// op is OP_COMPILE_RUN so transfer memory from compiler to VM
 		gravity_compiler_transfer(compiler, vm);
-		
+
 	} else if (type == OP_RUN) {
 		// unserialize file
 		closure = gravity_vm_loadfile(vm, input_file);
@@ -244,26 +244,26 @@ int main (int argc, const char* argv[]) {
 			goto cleanup;
 		}
     }
-	
+
 	// sanity check
 	assert(closure);
-	
+
 	if (gravity_vm_runmain(vm, closure)) {
 		gravity_value_t result = gravity_vm_result(vm);
 		double t = gravity_vm_time(vm);
-		
+
 		char buffer[512];
 		gravity_value_dump(vm, result, buffer, sizeof(buffer));
 		if (!quiet_flag) {
 			printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
 		}
 	}
-	
+
 cleanup:
 	if (compiler) gravity_compiler_free(compiler);
 	if (vm) gravity_vm_free(vm);
 	gravity_core_free();
-	
+
 	#if GRAVITY_MEMORY_DEBUG
 	size_t current_memory = mem_leaks();
 	if (current_memory != 0) {
@@ -273,6 +273,6 @@ cleanup:
 		printf("\tNo VM leaks found!\n");
 	}
 	#endif
-	
+
 	return 0;
 }

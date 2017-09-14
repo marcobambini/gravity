@@ -9,7 +9,7 @@
 #ifndef __GRAVITY_MUTABLE_ARRAY__
 #define __GRAVITY_MUTABLE_ARRAY__
 
-#include <stdint.h> 
+#include <stdint.h>
 
 // Inspired by https://github.com/attractivechaos/klib/blob/master/kvec.h
 

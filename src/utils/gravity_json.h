@@ -117,14 +117,14 @@ typedef enum
 } json_type;
 
 extern const struct _json_value json_value_none;
-       
+
 typedef struct _json_object_entry
 {
     json_char * name;
     unsigned int name_length;
-    
+
     struct _json_value * value;
-    
+
 } json_object_entry;
 
 typedef struct _json_value
@@ -219,7 +219,7 @@ typedef struct _json_value
          }
 
          inline const struct _json_value &operator [] (const char * index) const
-         { 
+         {
             if (type != json_object)
                return json_value_none;
 
@@ -231,7 +231,7 @@ typedef struct _json_value
          }
 
          inline operator const char * () const
-         {  
+         {
             switch (type)
             {
                case json_string:
@@ -243,7 +243,7 @@ typedef struct _json_value
          }
 
          inline operator json_int_t () const
-         {  
+         {
             switch (type)
             {
                case json_integer:
@@ -258,7 +258,7 @@ typedef struct _json_value
          }
 
          inline operator bool () const
-         {  
+         {
             if (type != json_boolean)
                return false;
 
@@ -266,7 +266,7 @@ typedef struct _json_value
          }
 
          inline operator double () const
-         {  
+         {
             switch (type)
             {
                case json_integer:
@@ -286,7 +286,7 @@ typedef struct _json_value
 
 #define EMPTY_SETTINGS_STRUCT	{0,0,0,0,0,0}
 #define EMPTY_STATE_STRUCT		{0,0,0,EMPTY_SETTINGS_STRUCT,0,0,0,0}
-       
+
 json_value * json_parse (const json_char * json,
                          size_t length);
 
@@ -311,5 +311,3 @@ void json_value_free_ex (json_settings * settings,
 #endif
 
 #endif
-
-

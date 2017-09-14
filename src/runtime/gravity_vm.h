@@ -15,7 +15,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 #define GRAVITY_VM_GCENABLED_KEY            "gcenabled"
 #define GRAVITY_VM_GCMINTHRESHOLD_KEY       "gcminthreshold"
 #define GRAVITY_VM_GCTHRESHOLD_KEY          "gcthreshold"
@@ -50,7 +50,7 @@ GRAVITY_API gravity_value_t		gravity_vm_keyindex (gravity_vm *vm, uint32_t index
 GRAVITY_API bool				gravity_vm_isaborted (gravity_vm *vm);
 GRAVITY_API void				gravity_vm_setaborted (gravity_vm *vm);
 GRAVITY_API gravity_closure_t   *gravity_vm_getclosure (gravity_vm *vm);
-    
+
 GRAVITY_API void				gravity_gray_value (gravity_vm* vm, gravity_value_t v);
 GRAVITY_API void				gravity_gray_object (gravity_vm* vm, gravity_object_t *obj);
 GRAVITY_API void				gravity_gc_start (gravity_vm* vm);
@@ -87,4 +87,3 @@ GRAVITY_API void                gravity_opt_free (void);
 #endif
 
 #endif
-

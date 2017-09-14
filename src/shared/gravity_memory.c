@@ -53,11 +53,11 @@ typedef struct {
 	void					*ptr;
 	size_t					size;
 	size_t					nrealloc;
-	
+
 	// record where it has been allocated/reallocated
 	size_t					nframe;
 	char					**frames;
-	
+
 	// record where is has been freed
 	size_t					nframe2;
 	char					**frames2;
@@ -83,28 +83,28 @@ static void memdebug_report (char *str, char **stack, size_t nstack, memslot *sl
 		if (_is_internal(stack[i])) continue;
 		printf("%s\n", stack[i]);
 	}
-	
+
 	if (slot) {
 		printf("\nallocated:\n");
 		for (size_t i=0; i<slot->nframe; ++i) {
 			if (_is_internal(slot->frames[i])) continue;
 			printf("%s\n", slot->frames[i]);
 		}
-		
+
 		printf("\nfreed:\n");
 		for (size_t i=0; i<slot->nframe2; ++i) {
 			if (_is_internal(slot->frames2[i])) continue;
 			printf("%s\n", slot->frames2[i]);
 		}
 	}
-	
+
 	abort();
 }
 
 void memdebug_init (void) {
 	if (memdebug.slot) free(memdebug.slot);
 	bzero(&memdebug, sizeof(_memdebug));
-	
+
 	memdebug.slot = (memslot *) malloc(sizeof(memslot) * SLOT_MIN);
 	memdebug.aslot = SLOT_MIN;
 }
@@ -118,7 +118,7 @@ void *memdebug_malloc(gravity_vm *vm, size_t size) {
 		memdebug_report(current_error, stack, n, NULL);
 		return NULL;
 	}
-	
+
 	_ptr_add(ptr, size);
 	return ptr;
 }
@@ -137,7 +137,7 @@ void *memdebug_calloc(gravity_vm *vm, size_t num, size_t size) {
 		memdebug_report(current_error, stack, n, NULL);
 		return NULL;
 	}
-	
+
 	_ptr_add(ptr, num*size);
 	return ptr;
 }
@@ -152,7 +152,7 @@ void *memdebug_realloc(gravity_vm *vm, void *ptr, size_t new_size) {
 		memdebug_report(current_error, stack, n, NULL);
 		return NULL;
 	}
-	
+
 	void *new_ptr = realloc(ptr, new_size);
 	if (!ptr) {
 		BUILD_ERROR("Unable to reallocate a block of %zu bytes", new_size);
@@ -160,7 +160,7 @@ void *memdebug_realloc(gravity_vm *vm, void *ptr, size_t new_size) {
 		memdebug_report(current_error, stack, n, &memdebug.slot[index]);
 		return NULL;
 	}
-	
+
 	_ptr_replace(ptr, new_ptr, new_size);
 	return new_ptr;
 }
@@ -175,7 +175,7 @@ bool memdebug_remove(void *ptr) {
 			memdebug_report(current_error, stack, n, NULL);
 			return false;
 		}
-		
+
 		memslot m = memdebug.slot[index];
 		if (m.deleted) {
 			BUILD_ERROR("Pointer already freed");
@@ -184,7 +184,7 @@ bool memdebug_remove(void *ptr) {
 			return false;
 		}
 	}
-	
+
 	_ptr_remove(ptr);
 	return true;
 }
@@ -205,13 +205,13 @@ void memdebug_stat(void) {
 	printf("Leaked: %d (bytes)\n", memdebug.currmem);
 	printf("Max memory usage: %d (bytes)\n", memdebug.maxmem);
 	printf("==================================\n\n");
-	
+
 	if (memdebug.currmem > 0) {
 		printf("\n");
 		for (uint32_t i=0; i<memdebug.nslot; ++i) {
 			memslot m = memdebug.slot[i];
 			if ((!m.ptr) || (m.deleted)) continue;
-						
+
 			printf("Block %p size: %zu (reallocated %zu)\n", m.ptr, m.size, m.nrealloc);
 			printf("Call stack:\n");
 			printf("===========\n");
@@ -235,7 +235,7 @@ size_t memdebug_leaks (void) {
 // Internals
 void _ptr_add (void *ptr, size_t size) {
 	CHECK_FLAG();
-	
+
 	if (memdebug.nslot + 1 >= memdebug.aslot) {
 		size_t old_size = sizeof(memslot) * memdebug.nslot;
 		size_t new_size = sizeof(memslot) * SLOT_MIN;
@@ -248,7 +248,7 @@ void _ptr_add (void *ptr, size_t size) {
 		memdebug.slot = new_slot;
 		memdebug.aslot += SLOT_MIN;
 	}
-	
+
 	memslot slot = {
 		.deleted = false,
 		.ptr = ptr,
@@ -258,10 +258,10 @@ void _ptr_add (void *ptr, size_t size) {
 		.frames = NULL
 	};
 	slot.frames = _ptr_stacktrace(&slot.nframe);
-		
+
 	memdebug.slot[memdebug.nslot] = slot;
 	++memdebug.nslot;
-	
+
 	++memdebug.nalloc;
 	memdebug.currmem += size;
 	if (memdebug.currmem > memdebug.maxmem)
@@ -270,14 +270,14 @@ void _ptr_add (void *ptr, size_t size) {
 
 void _ptr_replace (void *old_ptr, void *new_ptr, size_t new_size) {
 	CHECK_FLAG();
-	
+
 	uint32_t index = _ptr_lookup(old_ptr);
-	
+
 	if (index == SLOT_NOTFOUND) {
 		BUILD_ERROR("Unable to find old pointer to realloc");
 		memdebug_report(current_error, NULL, 0, NULL);
 	}
-	
+
 	memslot slot = memdebug.slot[index];
 	if (slot.deleted) {
 		BUILD_ERROR("Pointer already freed");
@@ -290,7 +290,7 @@ void _ptr_replace (void *old_ptr, void *new_ptr, size_t new_size) {
 	if (slot.frames) free((void *)slot.frames);
 	slot.frames = _ptr_stacktrace(&slot.nframe);
 	++slot.nrealloc;
-	
+
 	memdebug.slot[index] = slot;
 	++memdebug.nrealloc;
 	memdebug.currmem += (new_size - old_size);
@@ -300,25 +300,25 @@ void _ptr_replace (void *old_ptr, void *new_ptr, size_t new_size) {
 
 void _ptr_remove (void *ptr) {
 	CHECK_FLAG();
-	
+
 	uint32_t index = _ptr_lookup(ptr);
-	
+
 	if (index == SLOT_NOTFOUND) {
 		BUILD_ERROR("Unable to find old pointer to realloc");
 		memdebug_report(current_error, NULL, 0, NULL);
 	}
-	
+
 	memslot slot = memdebug.slot[index];
 	if (slot.deleted) {
 		BUILD_ERROR("Pointer already freed");
 		BUILD_STACK(n, stack);
 		memdebug_report(current_error, stack, n, &slot);
 	}
-	
+
 	size_t old_size = memdebug.slot[index].size;
 	memdebug.slot[index].deleted = true;
 	memdebug.slot[index].frames2 = _ptr_stacktrace(&memdebug.slot[index].nframe2);
-	
+
 	++memdebug.nfree;
 	memdebug.currmem -= old_size;
 }
@@ -346,7 +346,7 @@ char **_ptr_stacktrace (size_t *nframes) {
 // Default callback
 bool _is_internal(const char *s) {
 	static const char *reserved[] = {"??? ", "libdyld.dylib ", "memdebug_", "_ptr_", NULL};
-	
+
 	const char **r = reserved;
 	while (*r) {
 		if (strstr(s, *r)) return true;

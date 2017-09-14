@@ -38,7 +38,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -73,11 +73,11 @@
 				</div>
 			</div>
 			<!-- END SIDEBAR -->
-			
+
 			<!-- BEGIN CONTENT -->
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">API</h1><hr>
-         				
+
 			<p class="section-content">
 				Gravity can be extended at runtime using C API. The right step to proceed is usually to create a new class, then add methods and properties to it and finally register that class inside the VM.
 			</p>
@@ -88,53 +88,53 @@
 		printf("%s\n", message);
 		exit(0);
 	}
-	
+
 	// function to be executed inside Gravity VM
 	bool my_function (gravity_vm *vm, gravity_value_t *args,
 	                  uint16_t nargs, uint32_t rindex) {
 		// do something useful here
 	}
-	
-	// Configure VM delegate		
+
+	// Configure VM delegate
 	gravity_delegate_t delegate = {.error_callback = report_error};
-	
+
 	// Create a new VM
 	gravity_vm *vm = gravity_vm_new(&delegate);
-	
+
 	// Create a new class
 	gravity_class_t *c = gravity_class_new_pair (vm, "MyClass", NULL, 0, 0);
-	
+
 	// Allocate and bind closures to the newly created class
 	gravity_closure_t *closure = gravity_closure_new(vm, my_function);
 	gravity_class_bind(c, "myfunc", VALUE_FROM_OBJECT(closure));
-	
+
 	// Register class inside VM
 	gravity_vm_setvalue(vm, "MyClass", VALUE_FROM_OBJECT(c));
 			</code></pre>
-			
+
 			<p>Using the above C code a "MyClass" class has been registered inside the VM and ready to be used by Gravity:</p>
-			<pre><code class="swift">		
+			<pre><code class="swift">
 	func main() {
 		// allocate a new class
 		var foo = MyClass();
-		
+
 		// execute the myfunc C function
 		foo.myfunc();
 	}
 			</code></pre>
-			
+
 			<!--<h4 class="section-h4">Execute Gravity code from C</h4>
 			<p></p>
 			<pre><code class="cpp">
 			</code></pre>-->
-			
+
 			<h4 class="section-h4">Bridge API</h4>
 			<p>Gravity C API offers much more flexibility using the delegate bridge API.
 			<br>TO DO: more information here.</p>
 			<br>TO DO: post objc bridge.</p>
          	</div>
          	<!-- END CONTENT -->
-         	
+
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
      </div> <!-- /container -->
@@ -147,14 +147,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

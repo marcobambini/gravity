@@ -50,12 +50,12 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 	uint32_t	*ip = NULL;
 	uint32_t	pc = 0, inst = 0, ninsts = 0;
 	opcode_t	op;
-	
+
 	const int	rowlen = 256;
 	uint32_t	bindex = 0;
 	uint32_t	balloc = 0;
 	char		*buffer = NULL;
-	
+
 	if (deserialize) {
 		// decode textual buffer to real bytecode
 		ip = gravity_bytecode_deserialize(bcode, blen, &ninsts);
@@ -64,37 +64,37 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 		ip = (uint32_t *)bcode;
 		ninsts = blen;
 	}
-		
+
 	// allocate a buffer big enought to fit all disassembled bytecode
 	// I assume that each instruction (each row) will be 256 chars long
 	balloc = ninsts * rowlen;
 	buffer = mem_alloc(NULL, balloc);
 	if (!buffer) goto abort_disassemble;
-		
+
 	// conversion loop
 	while (pc < ninsts) {
 		inst = *ip++;
 		op = (opcode_t)OPCODE_GET_OPCODE(inst);
-		
+
 		switch (op) {
 			case NOP: {
 				DUMP_VM(buffer, bindex, "NOP");
 				break;
 			}
-				
+
 			case MOVE: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
 				DUMP_VM(buffer, bindex, "MOVE %d %d", r1, r2);
 				break;
 			}
-				
+
 			case LOADI: {
 				//OPCODE_GET_ONE8bit_ONE18bit(inst, uint32_t r1, int32_t value); if no support for signed int
 				OPCODE_GET_ONE8bit_SIGN_ONE17bit(inst, const uint32_t r1, const int32_t value);
 				DUMP_VM(buffer, bindex, "LOADI %d %d", r1, value);
 				break;
 			}
-				
+
 			case LOADK: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t index);
 				if (index < CPOOL_INDEX_MAX) {
@@ -115,13 +115,13 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				}
 				break;
 			}
-				
+
 			case LOADG: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, uint32_t r1, int32_t index);
 				DUMP_VM(buffer, bindex, "LOADG %d %d", r1, index);
 				break;
 			}
-			
+
 			case LOAD:
 			case LOADS:
 			case LOADAT: {
@@ -129,32 +129,32 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				DUMP_VM(buffer, bindex, "%s %d %d %d", (op == LOAD) ? "LOAD" : "LOADAT", r1, r2, r3);
 				break;
 			}
-				
+
 			case LOADU: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
 				DUMP_VM(buffer, bindex, "LOADU %d %d", r1, r2);
 				break;
 			}
-				
+
 			case STOREG: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, uint32_t r1, int32_t index);
 				DUMP_VM(buffer, bindex, "STOREG %d %d", r1, index);
 				break;
 			}
-				
+
 			case STOREU: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
 				DUMP_VM(buffer, bindex, "STOREU %d %d", r1, r2);
 				break;
 			}
-				
+
 			case STORE:
 			case STOREAT: {
 				OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
 				DUMP_VM(buffer, bindex, "%s %d %d %d", (op == STORE) ? "STORE" : "STOREAT", r1, r2, r3);
 				break;
 			}
-			
+
 			case EQQ:
 			case NEQQ:
 			case ISA:
@@ -169,7 +169,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
 				break;
 			}
-				
+
 			// binary operators
 			case LSHIFT:
 			case RSHIFT:
@@ -187,7 +187,7 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
 				break;
 			}
-				
+
 			// unary operators
 			case BNOT:
 			case NEG:
@@ -197,32 +197,32 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
 				break;
 			}
-			
+
 			case RANGENEW: {
 				OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
 				DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
 				break;
 			}
-			
+
 			case JUMPF: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const int32_t value);
 				DUMP_VM(buffer, bindex, "JUMPF %d %d", r1, value);
 				break;
 			}
-				
+
 			case JUMP: {
 				OPCODE_GET_ONE26bit(inst, const uint32_t value);
 				DUMP_VM(buffer, bindex, "JUMP %d", value);
 				break;
 			}
-				
+
 			case CALL: {
 				// CALL A B C => R(A) = B(C0... CN)
 				OPCODE_GET_THREE8bit(inst, const uint32_t r1, const uint32_t r2, uint32_t r3);
 				DUMP_VM(buffer, bindex, "CALL %d %d %d", r1, r2, r3);
 				break;
 			}
-				
+
 			case RET0:
 			case RET: {
 				if (op == RET0) {
@@ -233,49 +233,49 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				}
 				break;
 			}
-				
+
 			case HALT: {
 				DUMP_VM(buffer, bindex, "HALT");
 				break;
 			}
-				
+
 			case SWITCH: {
 				DUMP_VM(buffer, bindex, "SWITCH instruction not yet implemented");
 				break;
 			}
-				
+
 			case MAPNEW: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t n);
 				DUMP_VM(buffer, bindex, "MAPNEW %d %d", r1, n);
 				break;
 			}
-				
+
 			case LISTNEW: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t n);
 				DUMP_VM(buffer, bindex, "LISTNEW %d %d", r1, n);
 				break;
 			}
-				
+
 			case SETLIST: {
 				OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, uint32_t r2, const uint32_t r3);
 				#pragma unused(r3)
 				DUMP_VM(buffer, bindex, "SETLIST %d %d", r1, r2);
 				break;
 			}
-			
+
 			case CLOSURE: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
 				DUMP_VM(buffer, bindex, "CLOSURE %d %d", r1, r2);
 				break;
 			}
-				
+
 			case CLOSE: {
 				OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
 				#pragma unused(r2)
 				DUMP_VM(buffer, bindex, "CLOSE %d", r1);
 				break;
 			}
-				
+
 			case RESERVED1:
 			case RESERVED2:
 			case RESERVED3:
@@ -286,12 +286,12 @@ const char *gravity_disassemble (const char *bcode, uint32_t blen, bool deserial
 				break;
 			}
 		}
-		
+
 		++pc;
 	}
-	
+
 	return buffer;
-	
+
 abort_disassemble:
 	if (ip && deserialize) mem_free(ip);
 	if (buffer) mem_free(buffer);

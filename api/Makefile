@@ -24,7 +24,7 @@ else
 		LDFLAGS = -lm
 	else ifeq ($(UNAME_S),NetBSD)
 		# NetBSD
-		LDFLAGS = -lm 
+		LDFLAGS = -lm
 	else ifeq ($(UNAME_S),OpenBSD)
 		# OpenBSD
 		LDFLAGS = -lm
@@ -38,7 +38,7 @@ all: exec_gravity exec_c
 
 exec_gravity:	$(OBJ) $(EXEC_GRAVITY_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-	
+
 exec_c:	$(OBJ) $(EXEC_C_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 

@@ -15,16 +15,16 @@ typedef marray_t(bool *)		context_r;
 
 struct ircode_t {
 	code_r		*list;						// array of ircode instructions
-	
+
 	uint32_r	label_true;					// labels used in loops
 	uint32_r	label_false;
 	uint32_t	label_counter;
-	
+
 	uint32_t	maxtemp;					// maximum number of temp registers used in this ircode
 	uint32_t	ntemps;						// current number of temp registers in use
 	uint16_t	nlocals;					// number of local registers (params + local variables)
 	bool		error;						// error flag set when no more registers are availables
-	
+
 	bool		state[MAX_REGISTERS];		// registers mask
 	bool		skipclear[MAX_REGISTERS];	// registers protection for temps used in for loop
 	uint32_r	registers;					// registers stack
@@ -38,14 +38,14 @@ ircode_t *ircode_create (uint16_t nlocals) {
 	code->ntemps = 0;
 	code->maxtemp = 0;
 	code->error = false;
-	
+
 	code->list = mem_alloc(NULL, sizeof(code_r));
 	marray_init(*code->list);
 	marray_init(code->label_true);
 	marray_init(code->label_false);
 	marray_init(code->registers);
 	marray_init(code->context);
-	
+
 	// init state array (register 0 is reserved)
 	bzero(code->state, MAX_REGISTERS * sizeof(bool));
 	code->state[0] = true;
@@ -61,7 +61,7 @@ void ircode_free (ircode_t *code) {
 		inst_t *inst = marray_get(*code->list, i);
 		mem_free(inst);
 	}
-	
+
 	marray_destroy(*code->list);
     marray_destroy(code->context);
 	marray_destroy(code->registers);
@@ -90,14 +90,14 @@ bool ircode_iserror (ircode_t *code) {
 // MARK: -
 
 static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, int64_t n, double d) {
-	
+
 	// debug code
 	#if GRAVITY_OPCODE_DEBUG
 	if (tag == LABEL_TAG) {
 		DEBUG_OPCODE("LABEL %d", p1);
 	} else {
 		const char *op_name = opcode_name(op);
-		
+
 		if (op == LOADI) {
 			if (tag == DOUBLE_TAG)
 				printf("%s %d %.2f\n", op_name, p1, d);
@@ -117,17 +117,17 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
 		}
 	}
 	#endif
-	
+
 	inst_t *inst = (inst_t *)mem_alloc(NULL, sizeof(inst_t));
 	inst->op = op;
 	inst->tag = tag;
 	inst->p1 = p1;
 	inst->p2 = p2;
 	inst->p3 = p3;
-	
+
 	if (tag == DOUBLE_TAG) inst->d = d;
 	else if (tag == INT_TAG) inst->n = n;
-	
+
 	assert(inst);
 	return inst;
 }
@@ -142,35 +142,35 @@ void ircode_patch_init (ircode_t *code, uint16_t index) {
 	// LOAD  temp 0 temp
 	// MOVE  temp+1 0
 	// CALL  temp temp 1
-	
+
 	// load constant
 	uint32_t dest = ircode_register_push_temp(code);
 	inst_t *inst1 = inst_new(LOADK, dest, index, 0, NO_TAG, 0, 0.0);
-	
+
 	// load from lookup
 	inst_t *inst2 = inst_new(LOAD, dest, 0, dest, NO_TAG, 0, 0.0);
-	
+
 	// prepare parameter
 	uint32_t dest2 = ircode_register_push_temp(code);
 	inst_t *inst3 = inst_new(MOVE, dest2, 0, 0, NO_TAG, 0, 0.0);
 	ircode_register_pop(code);
-	
+
 	// execute call
 	inst_t *inst4 = inst_new(CALL, dest, dest, 1, NO_TAG, 0, 0.0);
-	
+
 	// pop temps used
 	ircode_register_pop(code);
-	
+
 	// create new instruction list
 	code_r		*list = mem_alloc(NULL, sizeof(code_r));
 	marray_init(*list);
-	
+
 	// add newly create instructions
 	marray_push(inst_t*, *list, inst1);
 	marray_push(inst_t*, *list, inst2);
 	marray_push(inst_t*, *list, inst3);
 	marray_push(inst_t*, *list, inst4);
-	
+
 	// then copy original instructions
 	code_r *orig_list = code->list;
 	uint32_t count = ircode_count(code);
@@ -178,11 +178,11 @@ void ircode_patch_init (ircode_t *code, uint16_t index) {
 		inst_t *inst = marray_get(*orig_list, i);
 		marray_push(inst_t*, *list, inst);
 	}
-	
+
 	// free dest list
 	marray_destroy(*orig_list);
 	mem_free(code->list);
-	
+
 	// replace dest list with the newly created list
 	code->list = list;
 }
@@ -247,7 +247,7 @@ uint8_t opcode_numop (opcode_t op) {
 		case RESERVED5:
 		case RESERVED6: return 0;
 	}
-	
+
 	assert(0);
 	return 0;
 }
@@ -256,12 +256,12 @@ void ircode_dump  (void *_code) {
 	ircode_t	*code = (ircode_t *)_code;
 	code_r		*list = code->list;
 	uint32_t	count = ircode_count(code);
-	
+
 	if (count == 0) {
 		printf("NONE\n");
 		return;
 	}
-	
+
 	for (uint32_t i=0, line=0; i<count; ++i) {
 		inst_t *inst = marray_get(*list, i);
 		opcode_t	op = inst->op;
@@ -271,19 +271,19 @@ void ircode_dump  (void *_code) {
 		if (inst->tag == SKIP_TAG) continue;
 		if (inst->tag == PRAGMA_MOVE_OPTIMIZATION) continue;
 		if (inst->tag == LABEL_TAG) {printf("LABEL %d:\n", p1); continue;}
-		
+
 		uint8_t n = opcode_numop(op);
 		if ((op == SETLIST) && (p2 == 0)) n = 2;
-		
+
 		switch (n) {
 			case 0: {
 				printf("%05d\t%s\n", line, opcode_name(op));
 			}
-			
+
 			case 1: {
 				printf("%05d\t%s %d\n", line, opcode_name(op), p1);
 			} break;
-				
+
 			case 2: {
 				if (op == LOADI) {
 					if (inst->tag == DOUBLE_TAG) printf("%05d\t%s %d %.2f\n", line, opcode_name(op), p1, inst->d);
@@ -299,11 +299,11 @@ void ircode_dump  (void *_code) {
 					printf("%05d\t%s %d %d\n", line, opcode_name(op), p1, p2);
 				}
 			} break;
-				
+
 			case 3: {
 				printf("%05d\t%s %d %d %d\n", line, opcode_name(op), p1, p2, p3);
 			} break;
-				
+
 			default: assert(0);
 		}
 		++line;
@@ -426,15 +426,15 @@ void ircode_pop_context (ircode_t *code) {
 uint32_t ircode_register_pop_context_protect (ircode_t *code, bool protect) {
 	if (marray_size(code->registers) == 0) return REGISTER_ERROR;
 	uint32_t value = (uint32_t)marray_pop(code->registers);
-	
+
 	if (protect) code->state[value] = true;
 	else if (value >= code->nlocals) code->state[value] = false;
-	
+
 	if (protect && value >= code->nlocals) {
 		bool *context = marray_last(code->context);
 		context[value] = true;
 	}
-	
+
 	DEBUG_REGISTER("POP REGISTER %d", value);
 	return value;
 }
@@ -470,7 +470,7 @@ static uint32_t ircode_register_new (ircode_t *code) {
 uint32_t ircode_register_push (ircode_t *code, uint32_t nreg) {
 	marray_push(uint32_t, code->registers, nreg);
 	if (ircode_register_istemp(code, nreg)) ++code->ntemps;
-	
+
 	DEBUG_REGISTER("PUSH REGISTER %d", nreg);
 	return nreg;
 }
@@ -479,7 +479,7 @@ uint32_t ircode_register_push_temp (ircode_t *code) {
 	uint32_t value = ircode_register_new(code);
 	marray_push(uint32_t, code->registers, value);
 	if (value > code->maxtemp) {code->maxtemp = value; ++code->ntemps;}
-	
+
 	DEBUG_REGISTER("PUSH REGISTER %d", value);
 	return value;
 }
@@ -532,7 +532,7 @@ void ircode_register_unset_skip_clear (ircode_t *code, uint32_t nreg) {
 	code->skipclear[nreg] = false;
 }
 
-void ircode_register_clear_temps (ircode_t *code) {	
+void ircode_register_clear_temps (ircode_t *code) {
 	// clear all temporary registers (if not protected)
 	for (uint32_t i=code->nlocals; i<=code->maxtemp; ++i) {
 		if (!code->skipclear[i]) code->state[i] = false;

@@ -37,7 +37,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -75,14 +75,14 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Values and Types</h1><hr>
-			
+
 			<p class="section-content">
 			Gravity is a dynamically typed language so variables do not have a type, although they refer to a value that does have a type. In Gravity everything is an object (with methods you can call and instance variables you can use). Basic intrinsic types are of class Object, Int, Float, String, Bool, Null, <a href="classes.html">Class</a>, <a href="functions.html">Function</a>, Fiber, Instance, <a href="lists.html">List</a>, <a href="maps.html">Map</a> and Range.
 			</p>
-			
+
 			<h4 class="section-h4">Object</h4>
 			<p>Object is the root class of every object inside Gravity. Through the Object class, objects inherit a basic interface to the runtime system and the ability to behave as Gravity objects.</p>
-			
+
 			<h4 class="section-h4">Int</h4>
 			<p>An Int represents a 64 bit (can optionally be compiled as 32 bit) signed number:</p>
 			<pre><code class="swift">
@@ -96,7 +96,7 @@
 	var f = 30.radians // returns the result of converting 30 degrees to radians
 	var f = 3.degrees // returns the result of converting 3 radians to degrees
 			</code></pre>
-			
+
 			<h4 class="section-h4">Float</h4>
 			<p>A float represents a 32 bit (or better) floating point number:</p>
 			<pre><code class="swift">
@@ -106,13 +106,13 @@
 	var f = 30.5.radians // returns the result of converting 30.5 degrees to radians
 	var f = 3.14.degrees // returns the result of converting 3.14 radians to degrees
 			</code></pre>
-			
+
 			<h4 class="section-h4">String</h4>
 			<p>Strings are an immutable sequence of characters. String literals can be surrounded with double or single quotes.</p>
 			<pre><code class="swift">
 	var a = "Hello World";  // double quotes
 	var b = 'Hello World';  // single quotes
-	
+
 	// Strings have also a length property
 	var n = b.length;       // n is now 11
 
@@ -150,14 +150,14 @@
 	n = a[-5...10]          // n is now "World"
 	n = a[-1...-5]          // n is now "dlroW"
 			</code></pre>
-			
+
 			<h4 class="section-h4">Bool</h4>
 			<p>The Bool data type can have only two values, they are the literals true and false. A Bool value expresses the validity of a condition (tells whether the condition is true or false).</p>
 			<pre><code class="swift">
 	var a = true;
 	var b = false;
 			</code></pre>
-			
+
 			<h4 class="section-h4">Null</h4>
 			<p>It indicates the absence of a value. If you call a method that doesn’t return anything and get its returned value, you get null back. The null data type is also used to initialize uninitialized variables with a default value.</p>
 			<pre><code class="swift">
@@ -168,35 +168,35 @@
 			return mass * acceleration;
 		}
 	}
-			
+
 	func f2() {
 		var sir = Newton();
 		// acceleration instance variable has no default value
 		// so it is automatically set to null
 		return sir.force();
 	}
-			
+
 	func f1() {
 		var a;
 		// a is uninitialized so it has a default null value
 		return a;
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">Range</h4>
 			<p>A range is an object that represents a consecutive range of numbers. Syntax for this type has been directly inspired by Swift.</p>
 			<pre><code class="swift">
 	// a represents a range with values 1,2,3
 	var a = 1...3;
-	
+
 	// b represents a range with values 1,2
 	var b = 1..<3;
-	
+
 	// Ranges have also a conveniente count property
 	var n1 = a.count;	// n1 is now 3
 	var n2 = b.count;	// n2 is now 2
 			</code></pre>
-			
+
          	</div>
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
@@ -210,14 +210,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

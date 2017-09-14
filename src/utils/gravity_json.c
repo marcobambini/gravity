@@ -76,7 +76,7 @@ struct json_t {
 	size_t		blen;
 	size_t		bused;
 	uint32_t	ident;
-	
+
 	json_ctx_t	ctx[JSON_MAX_NESTED];
 	size_t		ctxidx;
 };
@@ -84,22 +84,22 @@ struct json_t {
 json_t *json_new (void) {
 	json_t *json = mem_alloc(NULL, sizeof(json_t));
 	assert(json);
-	
+
 	json->buffer = mem_alloc(NULL, JSON_MINSIZE);
 	assert(json->buffer);
-	
+
 	json->blen = JSON_MINSIZE;
 	json->bused = 0;
 	json->ident = 0;
 	json->ctxidx = 0;
-	
+
 	return json;
 }
 
 static void json_write_raw (json_t *json, const char *buffer, size_t len, bool escape, bool is_pretty) {
 	size_t	prettylen = (is_pretty) ? (json->ident * JSON_PRETTYSIZE)+1 : 0;
 	size_t	escapelen = (escape) ? 2 : 0;
-	
+
 	// check buffer reallocation
 	size_t reqlen = json->bused + len + prettylen + escapelen + JSON_MINSIZE;
 	if (reqlen >= json->blen) {
@@ -107,22 +107,22 @@ static void json_write_raw (json_t *json, const char *buffer, size_t len, bool e
 		assert(json->buffer);
 		json->blen += reqlen;
 	}
-	
+
 	if (is_pretty) {
 		for (uint32_t i=0; i<json->ident; ++i) {
 			memcpy(json->buffer+json->bused, JSON_PRETTYLINE, JSON_PRETTYSIZE);
 			json->bused += JSON_PRETTYSIZE;
 		}
 	}
-	
+
 	if (escape) {
 		memcpy(json->buffer+json->bused, "\"", 1);
 		json->bused += 1;
 	}
-	
+
 	memcpy(json->buffer+json->bused, buffer, len);
 	json->bused += len;
-	
+
 	if (escape) {
 		memcpy(json->buffer+json->bused, "\"", 1);
 		json->bused += 1;
@@ -134,11 +134,11 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
 		json_write_raw(json, "", 0, escape, is_pretty);
 		return;
 	}
-	
+
 	char	*new_buffer = mem_alloc(NULL, len*2);
 	size_t	j = 0;
 	assert(new_buffer);
-	
+
 	for (size_t i=0; i<len; ++i) {
 		char c = buffer[i];
 		switch (c) {
@@ -149,11 +149,11 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
 			case '\n': JSON_ESCAPE ('n');   continue;
 			case '\r': JSON_ESCAPE ('r');   continue;
 			case '\t': JSON_ESCAPE ('t');   continue;
-				
+
 			default: new_buffer[j] = c; ++j;break;
 		};
 	}
-	
+
 	json_write_raw(json, new_buffer, j, escape, is_pretty);
 	mem_free(new_buffer);
 }
@@ -169,25 +169,25 @@ void json_begin_object (json_t *json, const char *key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
 	}
-	
+
 	JSON_PUSH_CTX(json, json_ctx_object);
 	json_write_raw(json, "{", 1, false, (key == NULL));
 	json_write_raw(json, JSON_NEWLINE, 1, false, false);
-	
+
 	++json->ident;
 }
 
 void json_end_object (json_t *json) {
 	--json->ident;
 	JSON_POP_CTX(json);
-	
+
 	// check latest 2 characters
 	if ((json->buffer[json->bused-1] == JSON_NEWLINE_CHAR) && (json->buffer[json->bused-2] == ',')) {
 		json->buffer[json->bused-2] = JSON_NEWLINE_CHAR;
 		json->buffer[json->bused-1] = 0;
 		--json->bused;
 	}
-	
+
 	json_write_raw(json, "}", 1, false, true);
 	if (json->ident) {JSON_TERM_FIELD;}
 	else json_write_raw(json, JSON_NEWLINE, 1, false, false);
@@ -203,25 +203,25 @@ void json_begin_array (json_t *json, const char *key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
 	}
-	
+
 	JSON_PUSH_CTX(json, json_ctx_array);
 	json_write_raw(json, "[", 1, false, (key == NULL));
 	json_write_raw(json, JSON_NEWLINE, 1, false, false);
-	
+
 	++json->ident;
 }
 
 void json_end_array (json_t *json) {
 	--json->ident;
 	JSON_POP_CTX(json);
-	
+
 	// check latest 2 characters
 	if ((json->buffer[json->bused-1] == JSON_NEWLINE_CHAR) && (json->buffer[json->bused-2] == ',')) {
 		json->buffer[json->bused-2] = JSON_NEWLINE_CHAR;
 		json->buffer[json->bused-1] = 0;
 		--json->bused;
 	}
-	
+
 	json_write_raw(json, "]", 1, false, true);
 	JSON_TERM_FIELD;
 }
@@ -231,12 +231,12 @@ void json_add_string (json_t *json, const char *key, const char *value, size_t l
 		json_add_null(json, key);
 		return;
 	}
-	
+
 	if (key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
 	}
-	
+
 	// check if string value needs to be escaped
 	bool write_escaped = false;
 	for (size_t i=0; i<len; ++i) {
@@ -244,7 +244,7 @@ void json_add_string (json_t *json, const char *key, const char *value, size_t l
 	}
 	if (len == 0)
 		write_escaped = true;
-	
+
 	if (write_escaped)
 		json_write_escaped(json, value, len, true, (key == NULL));
 	else
@@ -259,20 +259,20 @@ void json_add_cstring (json_t *json, const char *key, const char *value) {
 void json_add_int (json_t *json, const char *key, int64_t value) {
 	char buffer[512];
 	size_t len = snprintf(buffer, sizeof(buffer), "%" PRId64, value);
-	
+
 	if (key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
 	}
 	json_write_raw(json, buffer, len, false, (key == NULL));
 	JSON_TERM_FIELD;
-	
+
 }
 
 void json_add_double (json_t *json, const char *key, double value) {
 	char buffer[512];
 	size_t len = snprintf(buffer, sizeof(buffer), "%f", value);
-	
+
 	if (key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
@@ -283,7 +283,7 @@ void json_add_double (json_t *json, const char *key, double value) {
 
 void json_add_bool (json_t *json, const char *key, bool bvalue) {
 	const char *value = (bvalue) ? "true" : "false";
-	
+
 	if (key) {
 		json_write_raw (json, key, strlen(key), true, true);
 		JSON_WRITE_SEP;
@@ -499,7 +499,7 @@ static const long
    flag_next             = 1 << 0,
    flag_reproc           = 1 << 1,
    flag_need_comma       = 1 << 2,
-   flag_seek_value       = 1 << 3, 
+   flag_seek_value       = 1 << 3,
    flag_escaped          = 1 << 4,
    flag_string           = 1 << 5,
    flag_need_colon       = 1 << 6,
@@ -567,7 +567,7 @@ json_value * json_parse_ex (json_settings * settings,
       for (state.ptr = json ;; ++ state.ptr)
       {
          json_char b = (state.ptr == end ? 0 : *state.ptr);
-         
+
          if (flags & flag_string)
          {
             if (!b)
@@ -591,7 +591,7 @@ json_value * json_parse_ex (json_settings * settings,
                   case 't':  string_add ('\t');  break;
                   case 'u':
 
-                    if (end - state.ptr < 4 || 
+                    if (end - state.ptr < 4 ||
                         (uc_b1 = hex_value (*++ state.ptr)) == 0xFF ||
                         (uc_b2 = hex_value (*++ state.ptr)) == 0xFF ||
                         (uc_b3 = hex_value (*++ state.ptr)) == 0xFF ||
@@ -607,7 +607,7 @@ json_value * json_parse_ex (json_settings * settings,
 
                     if ((uchar & 0xF800) == 0xD800) {
                         json_uchar uchar2;
-                        
+
                         if (end - state.ptr < 6 || (*++ state.ptr) != '\\' || (*++ state.ptr) != 'u' ||
                             (uc_b1 = hex_value (*++ state.ptr)) == 0xFF ||
                             (uc_b2 = hex_value (*++ state.ptr)) == 0xFF ||
@@ -621,7 +621,7 @@ json_value * json_parse_ex (json_settings * settings,
                         uc_b1 = (uc_b1 << 4) | uc_b2;
                         uc_b2 = (uc_b3 << 4) | uc_b4;
                         uchar2 = (uc_b1 << 8) | uc_b2;
-                        
+
                         uchar = 0x010000 | ((uchar & 0x3FF) << 10) | (uchar2 & 0x3FF);
                     }
 
@@ -651,7 +651,7 @@ json_value * json_parse_ex (json_settings * settings,
                            string [string_length ++] = 0x80 | ((uchar >> 6) & 0x3F);
                            string [string_length ++] = 0x80 | (uchar & 0x3F);
                         }
-                        
+
                         break;
                     }
 
@@ -701,7 +701,7 @@ json_value * json_parse_ex (json_settings * settings,
                      if (state.first_pass)
                         (*(json_char **) &top->u.object.values) += string_length + 1;
                      else
-                     {  
+                     {
                         top->u.object.values [top->u.object.length].name
                            = (json_char *) top->_reserved.object_mem;
 
@@ -846,7 +846,7 @@ json_value * json_parse_ex (json_settings * settings,
                         continue;
                      }
                      else
-                     { 
+                     {
                         sprintf (error, "%d:%d: Expected : before %c",
                                  state.cur_line, state.cur_col, b);
 
@@ -984,7 +984,7 @@ json_value * json_parse_ex (json_settings * settings,
             switch (top->type)
             {
             case json_object:
-               
+
                switch (b)
                {
                   whitespace:
@@ -1003,7 +1003,7 @@ json_value * json_parse_ex (json_settings * settings,
                      string_length = 0;
 
                      break;
-                  
+
                   case '}':
 
                      flags = (flags & ~ flag_need_comma) | flag_next;
@@ -1159,7 +1159,7 @@ json_value * json_parse_ex (json_settings * settings,
 
             if (top->parent->type == json_array)
                flags |= flag_seek_value;
-               
+
             if (!state.first_pass)
             {
                json_value * parent = top->parent;
@@ -1302,4 +1302,3 @@ void json_value_free (json_value * value)
    settings.memory_free = default_free;
    json_value_free_ex (&settings, value);
 }
-

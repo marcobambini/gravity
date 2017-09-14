@@ -38,7 +38,7 @@
 	<div class="container body-container">
 		<div class="main-content">
 			<div class="row">
-       	
+
        		<!-- BEGIN SIDEBAR -->
        		<div class="col-sm-3 border-right section-left">
 				<div saveheight="1" class="sidebar-nav">
@@ -76,7 +76,7 @@
 
        		<div class="col-sm-9 border-left section-right">
          	<h1 class="section-header">Syntax</h1><hr>
-			
+
 			<p class="section-content">
 			<strong>Gravity</strong> syntax is designed to be familiar to people coming from C-like languages like Javascript, Swift, C++, C# and many more. We started working on this new language a year before Apple announced Swift and we were happily surprised to discovered how similar both syntax appear. Semicolon separator <strong>;</strong> is optional.
 			<br><br>
@@ -86,28 +86,28 @@
 		// instance variables
 		var width;
 		var height;
-				
+
 		// instance method
 		func area() {
 			return width*height;
 		}
-				
+
 		// constructor
 		func init(w, h) {
 			width = w;
 			height = h;
 		}
 	}
-			
+
 	func main() {
 		// initialize a new Rectangle object
 		var r = Rectangle(20, 10);
-				
+
 		// return value is 20*10 = 200
 		return r.area();
 	}
 			</code></pre>
-			
+
 			<!-- COMMENTS -->
 			<h4 class="section-h4">Comments</h4>
 			<p>Gravity supports both line comments:</p>
@@ -154,12 +154,12 @@
 		System.print("5+4=" + add(5,4));
 	}
 			</code></pre>
-			
+
 			<h4 class="section-h4">Import</h4>
 			<p>While #include is used to include file at compilation time, the import statement enables you to load modules at runtime...</p>
 			<!--<p>Gravity supports importing code from other gravity files using the
 			import statement:</p>-->
-			
+
 			<!-- RESERVED KEYWORDS -->
 			<h4 class="section-h4">Reserved Keywords</h4>
 			<p>Like many other programming languages Gravity has some reserved keywords that assume a very specific meaning in the context of the source code:</p>
@@ -169,7 +169,7 @@
 	_args struct repeat switch return public static extern
 	import module default private continue internal undefined
 			</code></pre>
-			
+
 			<!-- IDENTIFIERS -->
 			<h4 class="section-h4">Identifiers</h4>
 			<p>Identifiers represent a naming rule used to identify objects inside your source code.
@@ -181,7 +181,7 @@
 	foo123
 	BYE_BYE
 			</code></pre>
-			
+
 			<!-- BLOCKS -->
 			<h4 class="section-h4">Blocks and Scope</h4>
 			<p>Every named identifier introduced in some portion of the source code is introduced in a scope. The scope is the largest part of the source code in which that identifier is valid. The names declared by a declaration are introduced into a specific scope based on the context of the declaration. For instance, local variable declarations introduce the name into the block scope, whereas class member variable declarations introduce the name into class scope.<br><br>There are three scopes defined: <strong>block scope</strong>, <strong>class scope</strong> and <strong>file scope</strong>. Names declared in the block scope become visible immediately after its completed declarator.  This means you cannot refer to a name within the block scope until after it has been fully declared. Names declared in the file and class scopes become visible immediately upon executing the starting statement of the script. This means you can refer to a name within the file or class scopes before it has been fully declared.<br><br>These are all valid scopes:</p>
@@ -194,7 +194,7 @@
 	func f2() {
 	    return 42;
 	}
-			
+
 	// block scope can be nested and
 	// can hide other local variables
 	func f3() {
@@ -206,7 +206,7 @@
 		return a;
 	}
 			</code></pre>
-			
+
          	</div>
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
@@ -220,14 +220,14 @@
 		</div>
 	</footer>
     <!-- END FOOTER -->
-	
+
 	<!-- Bootstrap JS -->
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
+
 	<!-- Highlights JS -->
     <script src="scripts/highlight/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    
+
 	</body>
 </html>

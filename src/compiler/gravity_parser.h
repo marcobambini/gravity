@@ -16,16 +16,16 @@
 /*
 	Parser is responsible to build the AST, convert strings and number from tokens and
 	implement syntax error recovery strategy.
-	
+
 	Notes about error recovery:
 	Each parse* function can return NULL in case of error but each function is RESPONSIBLE
-	to make appropriate actions in order to handle/recover errors. 
-	
+	to make appropriate actions in order to handle/recover errors.
+
 	Error recovery techniques can be:
 	Shallow Error Recovery
 	Deep Error Recovery
 	https://javacc.java.net/doc/errorrecovery.html
- 
+
  */
 
 // opaque datatype

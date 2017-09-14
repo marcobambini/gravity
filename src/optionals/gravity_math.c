@@ -62,11 +62,11 @@ static uint32_t                     refcount = 0;
 static bool math_abs (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_int_t computed_value;
         #ifdef GRAVITY_ENABLE_INT64
@@ -76,7 +76,7 @@ static bool math_abs (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
         #endif
         RETURN_VALUE(VALUE_FROM_INT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value;
         #ifdef GRAVITY_ENABLE_DOUBLE
@@ -86,7 +86,7 @@ static bool math_abs (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
         #endif
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -95,21 +95,21 @@ static bool math_abs (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_acos (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ACOS((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ACOS((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -118,21 +118,21 @@ static bool math_acos (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool math_asin (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ASIN((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ASIN((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -141,21 +141,21 @@ static bool math_asin (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool math_atan (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ATAN((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ATAN((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -163,31 +163,31 @@ static bool math_atan (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 // returns the arctangent of the quotient of its arguments
 static bool math_atan2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm)
-    
+
     if (nargs != 3) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
-    
+
     gravity_value_t value = GET_VALUE(1);
     gravity_value_t value2 = GET_VALUE(2);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     gravity_float_t n2;
     if (VALUE_ISA_INT(value2)) n2 = (gravity_float_t)value2.n;
     else if (VALUE_ISA_FLOAT(value2)) n2 = (gravity_float_t)value2.f;
     else RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ATAN2((gravity_float_t)value.n, n2);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ATAN2((gravity_float_t)value.f, n2);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -252,21 +252,21 @@ static bool math_xrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_ceil (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)CEIL((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)CEIL((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -275,21 +275,21 @@ static bool math_ceil (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool math_cos (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)COS((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)COS((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -298,21 +298,21 @@ static bool math_cos (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_exp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)EXP((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)EXP((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -321,21 +321,21 @@ static bool math_exp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_floor (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)FLOOR((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)FLOOR((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -397,21 +397,21 @@ static bool math_lcm (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_log (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -477,7 +477,7 @@ static bool math_logx (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     gravity_float_t n = FLOAT_MIN;
     gravity_value_t result = VALUE_FROM_UNDEFINED;
-    
+
     for (uint16_t i = 1; i<nargs; ++i) {
         gravity_value_t value = GET_VALUE(i);
         if (VALUE_ISA_INT(value)) {
@@ -486,7 +486,7 @@ static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
             if (value.f > n) result = value;
         } else continue;
     }
-    
+
     RETURN_VALUE(result, rindex);
 }
 
@@ -494,7 +494,7 @@ static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_min (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     gravity_float_t n = FLOAT_MAX;
     gravity_value_t result = VALUE_FROM_UNDEFINED;
-    
+
     for (uint16_t i = 1; i<nargs; ++i) {
         gravity_value_t value = GET_VALUE(i);
         if (VALUE_ISA_INT(value)) {
@@ -503,38 +503,38 @@ static bool math_min (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
             if (value.f < n) result = value;
         } else continue;
     }
-    
+
     RETURN_VALUE(result, rindex);
 }
 
 // returns the value of x to the power of y
 static bool math_pow (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm)
-    
+
     if (nargs != 3) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
-    
+
     gravity_value_t value = GET_VALUE(1);
     gravity_value_t value2 = GET_VALUE(2);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     gravity_float_t n2;
     if (VALUE_ISA_INT(value2)) n2 = (gravity_float_t)value2.n;
     else if (VALUE_ISA_FLOAT(value2)) n2 = (gravity_float_t)value2.f;
     else RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)POW((gravity_float_t)value.n, n2);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)POW((gravity_float_t)value.f, n2);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -542,14 +542,14 @@ static bool math_pow (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 // returns a random number between 0 and 1
 static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, args, nargs)
-    
+
     // only seed once
     static bool already_seeded = false;
     if (!already_seeded) {
         srand((unsigned)time(NULL));
         already_seeded = true;
     }
-    
+
     int r = rand();
     RETURN_VALUE(VALUE_FROM_FLOAT((float)r / RAND_MAX), rindex);
 }
@@ -558,21 +558,21 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ROUND((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)ROUND((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -581,21 +581,21 @@ static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 static bool math_sin (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)SIN((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)SIN((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -604,21 +604,21 @@ static bool math_sin (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_sqrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)SQRT((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)SQRT((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -627,21 +627,21 @@ static bool math_sqrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool math_tan (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
-    
+
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-    
+
     if (VALUE_ISA_INT(value)) {
         gravity_float_t computed_value = (gravity_float_t)TAN((gravity_float_t)value.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value = (gravity_float_t)TAN((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
-    
+
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
@@ -700,7 +700,7 @@ static bool math_SQRT1_2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 static void create_optional_class (void) {
     gravity_class_math = gravity_class_new_pair(NULL, MATH_CLASS_NAME, NULL, 0, 0);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_math);
-    
+
     gravity_class_bind(meta, "abs", NEW_CLOSURE_VALUE(math_abs));
     gravity_class_bind(meta, "acos", NEW_CLOSURE_VALUE(math_acos));
     gravity_class_bind(meta, "asin", NEW_CLOSURE_VALUE(math_asin));
@@ -725,7 +725,7 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "sin", NEW_CLOSURE_VALUE(math_sin));
     gravity_class_bind(meta, "sqrt", NEW_CLOSURE_VALUE(math_sqrt));
     gravity_class_bind(meta, "tan", NEW_CLOSURE_VALUE(math_tan));
-    
+
     gravity_closure_t *closure = NULL;
     closure = computed_property_create(NULL, NEW_FUNCTION(math_PI), NULL);
     gravity_class_bind(meta, "PI", VALUE_FROM_OBJECT(closure));
@@ -743,7 +743,7 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "SQRT2", VALUE_FROM_OBJECT(closure));
     closure = computed_property_create(NULL, NEW_FUNCTION(math_SQRT1_2), NULL);
     gravity_class_bind(meta, "SQRT1_2", VALUE_FROM_OBJECT(closure));
-    
+
     SETMETA_INITED(gravity_class_math);
 }
 
@@ -760,17 +760,17 @@ const char *gravity_math_name (void) {
 void gravity_math_register (gravity_vm *vm) {
     if (!gravity_class_math) create_optional_class();
     ++refcount;
-    
+
     if (!vm || gravity_vm_ismini(vm)) return;
     gravity_vm_setvalue(vm, MATH_CLASS_NAME, VALUE_FROM_OBJECT(gravity_class_math));
 }
 
 void gravity_math_free (void) {
     if (!gravity_class_math) return;
-    
+
     --refcount;
     if (refcount) return;
-    
+
     mem_check(false);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_math);
     computed_property_free(meta, "PI", true);
@@ -784,7 +784,7 @@ void gravity_math_free (void) {
     gravity_class_free_core(NULL, meta);
     gravity_class_free_core(NULL, gravity_class_math);
     mem_check(true);
-    
+
     gravity_class_math = NULL;
 }
 

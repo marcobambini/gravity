@@ -11,7 +11,7 @@
 
 /*
 		Big-endian vs Little-endian machines
- 
+
 		ARM architecture runs both little & big endianess, but the android, iOS, and windows phone platforms run little endian.
 		95% of modern desktop computers are little-endian.
 		All x86 desktops (which is nearly all desktops with the demise of the PowerPC-based Macs several years ago) are little-endian.
@@ -22,22 +22,22 @@
 
 /*
 		Instructions are 32bit in lenght
- 
+
 		// 2 registers and 1 register/constant
 		+------------------------------------+
 		|  OP  |   Ax   |   Bx   |    Cx/K   |
 		+------------------------------------+
- 
+
 		// instructions with no parameters
 		+------------------------------------+
 		|  OP  |0                            |
 		+------------------------------------+
- 
+
 		// unconditional JUMP
 		+------------------------------------+
 		|  OP  |             N1              |
 		+------------------------------------+
- 
+
 		// LOADI and JUMPF
 		+------------------------------------+
 		|  OP  |   Ax   |S|       N2         |
@@ -53,7 +53,7 @@
  */
 
 typedef enum {
-	
+
 	//		****************************************************************************************************
 	//		56 OPCODE INSTRUCTIONS (for a register based virtual machine)
 	//		opcode is a 6 bit value so at maximum 2^6 = 64 opcodes can be declared
@@ -69,7 +69,7 @@ typedef enum {
 			NOP,			//	NONE		//	NOP									http://en.wikipedia.org/wiki/NOP
 			RET,			//  A			//	return from a function				R(-1) = R(A)
 			CALL,			//	A, B, C		//	call a function						R(A) = B(C0...Cn) B is callable object and C is num args
-	
+
 											//	*** LOAD/STORE OPERATIONS (11) ***
 			LOAD,			//	A, B, C		//	load C from B and store in A		R(A) = R(B)[C]
 			LOADS,			//	A, B, C		//	load C from B and store in A		R(A) = R(B)[C] (super variant)
@@ -83,12 +83,12 @@ typedef enum {
 			STOREAT,		//	A, B, C		//	store A into R(B)[C]				R(B)[C] = R(A)
 			STOREG,			//	A, B		//	store global						G[K(B)] = R(A)
 			STOREU,			//	A, B		//	store upvalue						U(B) = R(A)
-	
+
 											//	*** JUMP OPERATIONS (3) ***
 			JUMP,			//	A			//	unconditional jump					PC += A
 			JUMPF,			//	A, B		//	jump if R(A) is false				(R(A) == 0)	? PC += B : 0
 			SWITCH,			//				//	switch statement
-	
+
 											//	*** MATH OPERATIONS (19) ***
 			ADD,			//	A, B, C		//	add operation						R(A) = R(B) + R(C)
 			SUB,			//	A, B, C		//	sub operation						R(A) = R(B) - R(C)
@@ -109,7 +109,7 @@ typedef enum {
 			MATCH,			//	A, B, C		//	=~ pattern match					R(A) = R(B) =~ R(C)
 			NEG,			//	A, B		//	neg operation						R(A) = -R(B)
 			NOT,			//	A, B		//	not operation						R(A) = !R(B)
-	
+
 											// *** BIT OPERATIONS (6) ***
 			LSHIFT,			//	A, B, C		// shift left							R(A) = R(B) << R(C)
 			RSHIFT,			//	A, B, C		// shift right							R(A) = R(B) >> R(C)
@@ -117,17 +117,17 @@ typedef enum {
 			BOR,			//	A, B, C		// bit or								R(A) = R(B) | R(C)
 			BXOR,			//	A, B, C		// bit xor								R(A) = R(B) ^ R(C)
 			BNOT,			//	A, B		// bit not								R(A) = ~R(B)
-	
+
 											// *** ARRAY/MAP/RANGE OPERATIONS (4) ***
 			MAPNEW,			//	A, B		//	create a new map					R(A) = Alloc a MAP(B)
 			LISTNEW,		//	A, B		//	create a new array					R(A) = Alloc a LIST(B)
 			RANGENEW,		//	A, B, C, f	//	create a new range					R(A) = Alloc a RANGE(B,C) f flag tells if B inclusive or exclusive
 			SETLIST,		//	A, B, C		//	set list/map items
-	
+
 											// *** CLOSURES (2) ***
 			CLOSURE,		//	A, B		//	create a new closure				R(A) = closure(K(B))
 			CLOSE,			//	A			//  close all upvalues from R(A)
-	
+
 											// *** UNUSED (6) ***
 			RESERVED1,		//				// reserved for future use
 			RESERVED2,		//				// reserved for future use

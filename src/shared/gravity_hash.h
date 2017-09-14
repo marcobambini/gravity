@@ -59,7 +59,7 @@ GRAVITY_API void				gravity_hash_append (gravity_hash_t *hashtable1, gravity_has
 GRAVITY_API void				gravity_hash_resetfree (gravity_hash_t *hashtable);
 
 GRAVITY_API bool                gravity_hash_compare (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2, gravity_hash_compare_fn compare, void *data);
-    
+
 #ifdef __cplusplus
 }
 #endif
