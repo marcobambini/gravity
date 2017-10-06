@@ -95,7 +95,7 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
 	#if GRAVITY_OPCODE_DEBUG
 	if (tag == LABEL_TAG) {
 		DEBUG_OPCODE("LABEL %d", p1);
-	} else {
+	} else if (tag != PRAGMA_MOVE_OPTIMIZATION){
 		const char *op_name = opcode_name(op);
 
 		if (op == LOADI) {
@@ -473,6 +473,17 @@ uint32_t ircode_register_push (ircode_t *code, uint32_t nreg) {
 
 	DEBUG_REGISTER("PUSH REGISTER %d", nreg);
 	return nreg;
+}
+
+uint32_t ircode_register_first_temp_available (ircode_t *code) {
+    for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
+        if (code->state[i] == false) {
+            return i;
+        }
+    }
+    // 0 means no registers available
+    code->error = true;
+    return 0;
 }
 
 uint32_t ircode_register_push_temp (ircode_t *code) {

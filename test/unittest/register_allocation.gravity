@@ -1,0 +1,40 @@
+#unittest {
+	name: "Sequential register allocation fix.";
+	result: "100°";
+};
+
+class foo {
+    private var _temp = 12;
+    var Temperature;
+    
+    var a {
+        set {
+            _temp = value;
+            var _temp_int = Int(_temp);
+            System.print("Hi");
+            self.Temperature.text = "\(_temp_int)°";
+        }
+    };
+    
+    class TClass {
+        var text;
+        func dump() {
+            System.print("\(text)");
+        }
+    }
+ 
+    func init() {
+        Temperature = TClass();
+        Temperature.text = "Hello World";
+    }
+}
+
+func main() {
+    var f = foo();
+    System.print("\(f.Temperature.text)");
+    
+    f.a = "100";
+    System.print("\(f.Temperature.text)");
+    
+    return f.Temperature.text;
+}

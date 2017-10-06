@@ -103,6 +103,7 @@ bool		ircode_register_istemp (ircode_t *code, uint32_t n);
 uint32_t	ircode_register_push_temp (ircode_t *code);
 uint32_t	ircode_register_push (ircode_t *code, uint32_t nreg);
 uint32_t	ircode_register_pop (ircode_t *code);
+uint32_t    ircode_register_first_temp_available (ircode_t *code);
 uint32_t	ircode_register_pop_context_protect (ircode_t *code, bool protect);
 bool		ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg);
 void		ircode_register_protect_in_context (ircode_t *code, uint32_t nreg);

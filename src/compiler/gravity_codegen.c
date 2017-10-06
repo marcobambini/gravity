@@ -1223,7 +1223,7 @@ static void visit_unary_expr (gvisitor_t *self, gnode_unary_expr_t *node) {
 }
 
 static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
-	DEBUG_CODEGEN("visit_call_expr");
+	DEBUG_CODEGEN("visit_postfix_expr");
 
 	// node->list usually cannot be NULL, it is NULL only as a result of a static enum transformation (see semacheck2.c)
 	if (node->list == NULL) {
@@ -1462,6 +1462,17 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	marray_destroy(self_list);
 	ircode_pop_context(code);
 
+    // temp fix for not optimal register allocation algorithm generated code
+    uint32_t temp_register = ircode_register_first_temp_available(code);
+    if (temp_register < dest_register) {
+        // free dest register
+        ircode_register_pop(code);
+        // allocate a new register (that I am now sure does not have holes)
+        temp_register = ircode_register_push_temp(code);
+        ircode_add(code, MOVE, temp_register, dest_register, 0);
+        ircode_register_clear(code, dest_register);
+    }
+    
 	CODEGEN_COUNT_REGISTERS(n2);
 	CODEGEN_ASSERT_REGISTERS(n1, n2, (is_assignment) ? -1 : 1);
 

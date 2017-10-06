@@ -73,7 +73,7 @@ func main() {
 	var v8 = v4 * v1;			// 3,6,9 (18)
 	var v9 = v1 + 2;			// 3,4,5 (12)
 
-	// just trigger this code in order in order to trigger internal test
+	// just trigger this code in order to trigger internal test
 	var test = v9.String();
 	if (test != "[3,4,5]") return false;
 
