@@ -1,0 +1,14 @@
+#unittest {
+    name: "List sorted.";
+    result: "[4,6,1,2,4]";
+};
+
+func main() {
+  func predicate(a, b) {
+    return a > b
+  }
+
+  var list = [4, 6, 1, 2, 4]
+  var sorted_list = list.sorted(predicate) //[1,2,4,4,6], list remains unmodified
+  return list.String()
+}
