@@ -928,6 +928,35 @@ static bool list_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
 }
 
+static bool list_reverse (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+  if (nargs > 1) RETURN_ERROR("Incorrect number of arguments.");
+  gravity_value_t value = GET_VALUE(0);							// self parameter
+  gravity_list_t *list = VALUE_AS_LIST(value);
+  register uint32_t count = (uint32_t)marray_size(list->array);
+  register gravity_int_t i = 0;
+  while (i < count/2) {
+    gravity_value_t tmp = marray_get(list->array, count-i-1);
+    marray_set(list->array, count-i-1,  marray_get(list->array, i));
+    marray_set(list->array, i,  tmp);
+    i++;
+  }
+  RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
+}
+
+static bool list_reversed (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+  if (nargs > 1) RETURN_ERROR("Incorrect number of arguments.");
+  gravity_value_t value = GET_VALUE(0);							// self parameter
+  gravity_list_t *list = VALUE_AS_LIST(value);
+  gravity_list_t *newlist = gravity_list_new(vm, list->array.n);
+  register uint32_t count = (uint32_t)marray_size(list->array);
+  register gravity_int_t i = 0;
+  while (i < count) {
+    marray_push(gravity_value_t, newlist->array, marray_get(list->array, count-i-1));
+    i++;
+  }
+  RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
+}
+
 static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
 	const char *sep = NULL;
@@ -2482,6 +2511,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_list, "contains", NEW_CLOSURE_VALUE(list_contains));
     gravity_class_bind(gravity_class_list, "remove", NEW_CLOSURE_VALUE(list_remove));
     gravity_class_bind(gravity_class_list, "indexOf", NEW_CLOSURE_VALUE(list_indexOf));
+    gravity_class_bind(gravity_class_list, "reverse", NEW_CLOSURE_VALUE(list_reverse));
+    gravity_class_bind(gravity_class_list, "reversed", NEW_CLOSURE_VALUE(list_reversed));
     // Meta
     gravity_class_t *list_meta = gravity_class_get_meta(gravity_class_list);
     gravity_class_bind(list_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(list_exec));
