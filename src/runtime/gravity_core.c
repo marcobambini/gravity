@@ -969,11 +969,11 @@ bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t v
   return truthy_value.n;
 }
 
-uint32_t partition(gravity_vm *vm, gravity_value_t *array, int64_t low, int64_t high, gravity_value_t selfvalue, gravity_closure_t *predicate)
+uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate)
 {
   gravity_value_t pivot = array[high];
-  int64_t i = low - 1;
-  for (int64_t j = low; j <= high - 1; j++) {
+  int32_t i = low - 1;
+  for (int32_t j = low; j <= high - 1; j++) {
     if (!compare_values(vm, selfvalue, array[j], pivot, predicate)) {
       i++;
       gravity_value_t temp = array[i]; //swap a[i], a[j]
@@ -987,9 +987,9 @@ uint32_t partition(gravity_vm *vm, gravity_value_t *array, int64_t low, int64_t 
   return i + 1;
 }
 
-void quicksort(gravity_vm *vm, gravity_value_t *array, int64_t low, int64_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
+void quicksort(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
   if (low < high) {
-    int64_t pi = partition(vm, array, low, high, selfvalue, predicate);
+    int32_t pi = partition(vm, array, low, high, selfvalue, predicate);
     quicksort(vm, array, low, pi - 1, selfvalue, predicate);
     quicksort(vm, array, pi + 1, high, selfvalue, predicate);
   }
@@ -1002,7 +1002,7 @@ static bool list_sort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
   //the predicate is the comparison function, passed to list.sort()
   gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
   gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-  int64_t count = (int64_t)marray_size(list->array);
+  int32_t count = (int32_t)marray_size(list->array);
   quicksort(vm, list->array.p, 0, count-1, selfvalue, predicate);
   RETURN_VALUE(VALUE_FROM_OBJECT((gravity_object_t *)list), rindex);
 }
