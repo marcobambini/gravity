@@ -1,10 +1,16 @@
 #unittest {
     name: "List reversed.";
-    result: "[4,6,1,2,4]";
+    result: true;
 };
 
 func main() {
   var list = [4, 6, 1, 2, 4]
-  var reversed_list = list.reversed() //[4,2,1,6,4], list remains unmodified
-  return list.String()
+  if (list.reversed().String() != [4, 2, 1, 6, 4].String()) {//[4,2,1,6,4], list remains unmodified
+    return false
+  }
+  var list2 = []
+  if (list2.reversed().String() != [].String()) {
+    return false
+  }
+  return true
 }
