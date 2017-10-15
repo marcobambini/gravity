@@ -932,8 +932,8 @@ static bool list_reverse (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
   if (nargs > 1) RETURN_ERROR("Incorrect number of arguments.");
   gravity_value_t value = GET_VALUE(0);							// self parameter
   gravity_list_t *list = VALUE_AS_LIST(value);
-  register uint32_t count = (uint32_t)marray_size(list->array);
-  register gravity_int_t i = 0;
+  uint32_t count = (uint32_t)marray_size(list->array);
+  gravity_int_t i = 0;
   while (i < count/2) {
     gravity_value_t tmp = marray_get(list->array, count-i-1);
     marray_set(list->array, count-i-1,  marray_get(list->array, i));
@@ -948,8 +948,8 @@ static bool list_reversed (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
   gravity_value_t value = GET_VALUE(0);							// self parameter
   gravity_list_t *list = VALUE_AS_LIST(value);
   gravity_list_t *newlist = gravity_list_new(vm, list->array.n);
-  register uint32_t count = (uint32_t)marray_size(list->array);
-  register gravity_int_t i = 0;
+  uint32_t count = (uint32_t)marray_size(list->array);
+  gravity_int_t i = 0;
   while (i < count) {
     marray_push(gravity_value_t, newlist->array, marray_get(list->array, count-i-1));
     i++;
