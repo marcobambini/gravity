@@ -1,0 +1,31 @@
+#unittest {
+    name: "List sorted.";
+    result: true;
+};
+
+func main() {
+  func predicate(a, b) {
+    return a > b
+  }
+  var list = [4, 6, 1, 2, 4]
+  if (list.sorted(predicate).String() != [1, 2, 4, 4, 6].String()) {
+    return false
+  }
+  var list2 = []
+  if (list2.sorted(predicate).String() != [].String()) {
+    return false
+  }
+  var list3 = [1,2,3,4,5,6,7]
+  if (list3.sorted(predicate).String() != [1,2,3,4,5,6,7].String()) {
+    return false
+  }
+  var list4 = [-1, -5, 300, -40, 20]
+  if (list4.sorted(predicate).String() != [-40, -5, -1, 20, 300].String()) {
+    return false
+  }
+  var list5 = [-3]
+  if (list5.sorted(predicate).String() != [-3].String()) {
+    return false
+  }
+  return true
+}

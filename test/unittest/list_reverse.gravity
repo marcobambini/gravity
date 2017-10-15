@@ -1,0 +1,23 @@
+#unittest {
+    name: "List reverse.";
+    result: true;
+};
+
+func main() {
+  var list = [4, 6, 1, 2, 4]
+  list.reverse()
+  if (list.String() != [4, 2, 1, 6, 4].String()) {//[4,2,1,6,4], list remains unmodified
+    return false
+  }
+  var list2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  list2.reverse()
+  if (list2.String() != [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0].String()) {
+    return false
+  }
+  var list3 = []
+  list3.reverse()
+  if (list3.String() != [].String()) {
+    return false
+  }
+  return true
+}
