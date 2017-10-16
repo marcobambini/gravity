@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.3.6"     // git tag 0.3.6
-#define GRAVITY_VERSION_NUMBER				0x000306    // git push --tags
+#define GRAVITY_VERSION						"0.3.7"     // git tag 0.3.7
+#define GRAVITY_VERSION_NUMBER				0x000307    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -140,6 +140,7 @@ extern "C" {
 #define MAXNUM(a,b)							((a) > (b) ? a : b)
 #define MINNUM(a,b)							((a) < (b) ? a : b)
 #define EPSILON								0.000001
+#define MIN_LIST_RESIZE                     12          // value used when a List is resized
 
 #define GRAVITY_DATA_REGISTER				UINT32_MAX
 #define GRAVITY_FIBER_REGISTER				UINT32_MAX-1

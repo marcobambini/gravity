@@ -1,0 +1,137 @@
+#unittest {
+    name: "List resize.";
+    result: "[2,4,6,8,10,12,14,16,18]";
+};
+
+// BEGIN PARRO CODE
+
+func raiseError(msg) {
+    Fiber.abort(msg);
+}
+
+func reverseArgs(fn) {
+    return func(/* args */) {
+        var revertedArgs = [];
+        for (var i in (_args.count - 1) ... 0) {
+            revertedArgs.push(_args[i]);
+        }
+        return fn.apply(null, revertedArgs);
+    }
+}
+
+func compose(/* fns */) {
+    if (_args.count < 1) {
+        return raiseError('Arguments must contain at least one function.');
+    }
+    var lastFn = _args.pop();
+    var otherFns = _args;
+    
+    return func(/* first fn args */) {
+        var result = lastFn.apply(null, _args);
+        for (var i in (otherFns.count - 1) ... 0) {
+            var fn = otherFns[i];
+            result = fn(result);
+        }
+        return result;
+    }
+}
+
+var pipe = reverseArgs(compose);
+
+func curry (arity, fn) {
+    var accumulatedArgs = [];
+    return func() {
+        accumulatedArgs = concat(accumulatedArgs, _args);
+        
+        if (accumulatedArgs.count == arity) {
+            return fn.apply(null, accumulatedArgs);
+        }
+        return _func;
+    };
+}
+
+func concat(arr1, arr2) {
+    var result = [];
+    for (var item in arr1) {
+        result.push(item);
+    }
+    for (var item in arr2) {
+        result.push(item);
+    }
+    return result
+}
+
+func partial(fn /*...args*/) {
+    var argsToApply = [];
+    
+    for (var i in 1 ..< _args.count) {
+        argsToApply.push(_args[i]);
+    }
+    
+    return func() {
+        var args = concat(argsToApply, _args);
+        return fn.apply(null, args);
+    }
+}
+
+var map = curry(2, func(fn, data) {
+    if (!(fn is Closure)) {
+        return raiseError('First argument must be a function.');
+    }
+    
+    var results = [];
+    var idx = 0;
+    
+    for (var item in data) {
+        results[idx] = fn(item, idx);
+        idx += 1;
+    }
+    
+    return results;
+});
+
+var filter = curry(2, func(fn, data) {
+    if (!(fn is Closure)) {
+        return raiseError('First argument must be a function.');
+    }
+    
+    var results = [];
+    var idx = 0;
+    
+    for (var item in data) {
+        if ( fn(item, idx) ) {
+            results[idx] = item;
+            idx += 1;
+        }
+    }
+    
+    return results;
+});
+
+
+var reduce = curry(3, func(fn, accumulator, data) {
+    if (!(fn is Closure)) {
+        return raiseError('First argument must be a function.');
+    }
+    
+    var result = accumulator;
+    var idx = 0;
+    
+    for (var item in data) {
+        result = fn(result, item, idx);
+        idx += 1;
+    }
+    
+    return result;
+});
+
+// END PARRO CODE
+
+func double(x) {
+    return x * 2
+}
+
+func main() {
+    var list = [1,2,3,4,5,6,7,8,9]
+    return map(double, list).String();
+}

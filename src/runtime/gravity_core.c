@@ -825,12 +825,13 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 	if (index < 0) index = count + index;
 	if (index < 0) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, count-1);
+    
 	if ((uint32_t)index >= count) {
 		// handle list resizing here
-		marray_resize(gravity_value_t, list->array, index-count);
+		marray_resize(gravity_value_t, list->array, index-count+MIN_LIST_RESIZE);
         if (!list->array.p) RETURN_ERROR("Not enough memory to resize List.");
 		marray_nset(list->array, index+1);
-		for (int32_t i=count; i<index; ++i) {
+		for (int32_t i=count; i<=(index+MIN_LIST_RESIZE); ++i) {
 			marray_set(list->array, i, VALUE_FROM_NULL);
 		}
 		marray_set(list->array, index, value);
@@ -934,12 +935,14 @@ static bool list_reverse (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
   gravity_list_t *list = VALUE_AS_LIST(value);
   uint32_t count = (uint32_t)marray_size(list->array);
   gravity_int_t i = 0;
+    
   while (i < count/2) {
     gravity_value_t tmp = marray_get(list->array, count-i-1);
     marray_set(list->array, count-i-1,  marray_get(list->array, i));
     marray_set(list->array, i,  tmp);
     i++;
   }
+    
   RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
 
@@ -947,21 +950,23 @@ static bool list_reversed (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
   if (nargs > 1) RETURN_ERROR("Incorrect number of arguments.");
   gravity_value_t value = GET_VALUE(0);							// self parameter
   gravity_list_t *list = VALUE_AS_LIST(value);
-  gravity_list_t *newlist = gravity_list_new(vm, list->array.n);
+    gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)list->array.n);
   uint32_t count = (uint32_t)marray_size(list->array);
   gravity_int_t i = 0;
+    
   while (i < count) {
     marray_push(gravity_value_t, newlist->array, marray_get(list->array, count-i-1));
     i++;
   }
+    
   RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
-static
-bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t val1, gravity_value_t val2, gravity_closure_t *predicate) {
+static bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t val1, gravity_value_t val2, gravity_closure_t *predicate) {
   gravity_value_t params[2] = {val1, val2};
   if (!gravity_vm_runclosure(vm, predicate, selfvalue, params, 2)) return false;
   gravity_value_t result = gravity_vm_result(vm);
+    
   //the conversion will make sure that the comparison function only returns a
   //truthy value that can be interpreted as the result of a comparison
   //(i.e. only integer, bool, float, null, undefined, or string)
@@ -969,10 +974,10 @@ bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t v
   return truthy_value.n;
 }
 
-uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate)
-{
+static uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
   gravity_value_t pivot = array[high];
   int32_t i = low - 1;
+    
   for (int32_t j = low; j <= high - 1; j++) {
     if (!compare_values(vm, selfvalue, array[j], pivot, predicate)) {
       i++;
@@ -981,13 +986,15 @@ uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t 
       array[j] = temp;
     }
   }
+    
   gravity_value_t temp = array[i + 1];
   array[i + 1] = array[high];
   array[high] = temp;
+    
   return i + 1;
 }
 
-void quicksort(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
+static void quicksort(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
   if (low < high) {
     int32_t pi = partition(vm, array, low, high, selfvalue, predicate);
     quicksort(vm, array, low, pi - 1, selfvalue, predicate);
@@ -1011,16 +1018,19 @@ static bool list_sorted (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
   if (nargs != 2) RETURN_ERROR("One argument is needed by the sort function.");
   if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
   gravity_value_t selfvalue = GET_VALUE(0);							// self parameter
+    
   //the predicate is the comparison function, passed to list.sort()
   gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
   gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-  int64_t count = (int64_t)marray_size(list->array);
-  gravity_list_t *newlist = gravity_list_new(vm, count);
+    size_t count = marray_size(list->array);
+    gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)count);
+    
   //memcpy should be faster than pushing element by element
   memcpy(newlist->array.p, list->array.p, sizeof(gravity_value_t)*count);
   newlist->array.m = list->array.m;
   newlist->array.n = list->array.n;
-  quicksort(vm, newlist->array.p, 0, count-1, selfvalue, predicate);
+    quicksort(vm, newlist->array.p, 0, (int32_t)count-1, selfvalue, predicate);
+    
   RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
