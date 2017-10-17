@@ -26,6 +26,7 @@ struct gravity_parser_t {
     gnode_r								*statements;        // used to build AST
 	gravity_delegate_t					*delegate;          // compiler delegate
     gravity_hash_t                      *meta;              // current node meta (if any)
+    uint16_r                            vdecl;             // to keep track of func expression in variable declaration nondes
 
 	double								time;
 	uint32_t							nerrors;
@@ -304,8 +305,12 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
 	gnode_compound_stmt_t *compound = (gnode_compound_stmt_t*)parse_compound_statement(parser);
 	POP_DECLARATION();
 
+    // if func is declarared inside a variable declaration node then the semicolon check must be
+    // performed once at variable declaration node level ad not inside the func node
+    bool is_inside_var_declaration = ((marray_size(parser->vdecl) > 0) && (marray_last(parser->vdecl) == 1));
+    
 	// parse optional semicolon
-	parse_semicolon(parser);
+	if (!is_inside_var_declaration) parse_semicolon(parser);
 
     // finish func setup
     func->params = params;
@@ -1308,7 +1313,9 @@ loop:
 	peek = gravity_lexer_peek(lexer);
 	if (token_isvariable_assignment(peek)) {
 		gravity_lexer_next(lexer); // consume ASSIGNMENT
+        marray_push(uint16_t, parser->vdecl, 1);
 		expr = parse_expression(parser);
+        marray_pop(parser->vdecl);
 	} else if (peek == TOK_OP_OPEN_CURLYBRACE) {
 		gravity_lexer_next(lexer); // consume TOK_OP_OPEN_CURLYBRACE
 		expr = parse_getter_setter(parser, meta);
@@ -2597,6 +2604,8 @@ gravity_parser_t *gravity_parser_create (const char *source, size_t len, uint32_
     parser->declarations = gnode_array_create();
     if (!parser->declarations) goto abort_init;
 
+    marray_init(parser->vdecl);
+	
 	parser->last_error_lineno = UINT32_MAX;
 	return parser;
 
@@ -2649,5 +2658,6 @@ void gravity_parser_free (gravity_parser_t *parser) {
 	// parser->statements is returned from gravity_parser_run
 	// and must be deallocated using gnode_free
 
+    marray_destroy(parser->vdecl);
 	mem_free(parser);
 }
