@@ -2285,7 +2285,7 @@ static gnode_t *parse_compound_statement (gravity_parser_t *parser) {
 	gnode_r *stmts = gnode_array_create();
 	while (token_isstatement(gravity_lexer_peek(lexer))) {
         if (++parser->depth > MAX_RECURSION_DEPTH) {
-            REPORT_ERROR(gravity_lexer_token(lexer), "Maximum statament recursion depth reached.");
+            REPORT_ERROR(gravity_lexer_token(lexer), "Maximum statement recursion depth reached.");
             return NULL;
         }
 		gnode_t *node = parse_statement(parser);
