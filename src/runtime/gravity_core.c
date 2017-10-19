@@ -1054,7 +1054,7 @@ static bool list_map (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 }
 
 static bool list_filter(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 2) RETURN_ERROR("One argument is needed by the map function.");
+  if (nargs != 2) RETURN_ERROR("One argument is needed by the filter function.");
   if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
   gravity_value_t selfvalue = GET_VALUE(0);	// self parameter
   gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
@@ -1074,10 +1074,10 @@ static bool list_filter(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 }
 
 static bool list_reduce(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 3) RETURN_ERROR("Two arguments are needed by the map function.");
+  if (nargs != 3) RETURN_ERROR("Two arguments are needed by the reduce function.");
   if (!VALUE_ISA_CLOSURE(GET_VALUE(2))) RETURN_ERROR("Argument 2 must be a Closure.");
   gravity_value_t selfvalue = GET_VALUE(0);	// self parameter
-  gravity_value_t start = GET_VALUE(1);	// self parameter
+  gravity_value_t start = GET_VALUE(1);	// start parameter
   gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(2));
   gravity_list_t *list = VALUE_AS_LIST(selfvalue);
   size_t count = marray_size(list->array);
