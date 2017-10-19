@@ -1,0 +1,17 @@
+#unittest {
+    name: "List reduce.";
+    result: "thisisatest";
+};
+
+func main() {
+  var list = [0, 1, 2, 3, 4, 5, 6]
+  func x(a, b) {
+    return a - b
+  }
+  var reduced = list.reduce(-1, x) //-22
+  var list2 = ["this","is","a","test"]
+  func y(a, b) {
+    return a + b
+  }
+  return list2.reduce("", y)
+}

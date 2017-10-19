@@ -1,0 +1,12 @@
+#unittest {
+    name: "List filter.";
+    result: "[3,12,6,24]";
+};
+
+func main() {
+  var list = [1, 5, 4, 7, 8, 98, 65, 3, 12, 6, 24]
+  func x(a) {
+    return !(a % 3) //! needed because modulo returns 0 if divisible
+  }
+  return list.filter(x).String()
+}

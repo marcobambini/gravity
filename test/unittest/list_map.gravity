@@ -1,0 +1,12 @@
+#unittest {
+    name: "List map.";
+    result: "[0,1,0,1,0,1]";
+};
+
+func main() {
+  var list = [0, 1, 2, 3, 4, 5]
+  func x(a) {
+    return a % 2
+  }
+  return list.map(x).String()
+}
