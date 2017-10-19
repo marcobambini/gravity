@@ -1053,6 +1053,26 @@ static bool list_map (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
   RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
+static bool list_filter(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+  if (nargs != 2) RETURN_ERROR("One argument is needed by the map function.");
+  if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
+  gravity_value_t selfvalue = GET_VALUE(0);	// self parameter
+  gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
+  gravity_list_t *list = VALUE_AS_LIST(selfvalue);
+  size_t count = marray_size(list->array);
+  gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)count);
+  for (uint32_t i = 0; i < count; i++) {
+    gravity_value_t *value = &marray_get(list->array, i);
+    if (!gravity_vm_runclosure(vm, predicate, selfvalue, value, 1)) return false;
+    gravity_value_t result = gravity_vm_result(vm);
+    gravity_value_t truthy_value = convert_value2bool(vm, result);
+    if (truthy_value.n) {
+      marray_push(gravity_value_t, newlist->array, *value);
+    }
+  }
+  RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
+}
+
 static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
 	const char *sep = NULL;
@@ -2612,6 +2632,7 @@ static void gravity_core_init (void) {
     gravity_class_bind(gravity_class_list, "sort", NEW_CLOSURE_VALUE(list_sort));
     gravity_class_bind(gravity_class_list, "sorted", NEW_CLOSURE_VALUE(list_sorted));
     gravity_class_bind(gravity_class_list, "map", NEW_CLOSURE_VALUE(list_map));
+    gravity_class_bind(gravity_class_list, "filter", NEW_CLOSURE_VALUE(list_filter));
     // Meta
     gravity_class_t *list_meta = gravity_class_get_meta(gravity_class_list);
     gravity_class_bind(list_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(list_exec));
