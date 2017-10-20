@@ -1,6 +1,6 @@
 #unittest {
     name: "List map.";
-    result: "[0,1,0,1,0,1]";
+    result: true;
 };
 
 func main() {
@@ -8,5 +8,15 @@ func main() {
   func x(a) {
     return a % 2
   }
-  return list.map(x).String()
+  if (list.map(x).String() != "[0,1,0,1,0,1]") {
+    return false
+  }
+  var list2 = ["this", "is", "a", "test"]
+  func y(a) {
+    return a.length
+  }
+  if (list2.map(y).String() != "[4,2,1,4]") {
+    return false
+  }
+  return true
 }

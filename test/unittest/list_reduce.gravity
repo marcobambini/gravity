@@ -1,6 +1,6 @@
 #unittest {
     name: "List reduce.";
-    result: "thisisatest";
+    result: true;
 };
 
 func main() {
@@ -9,9 +9,16 @@ func main() {
     return a - b
   }
   var reduced = list.reduce(-1, x) //-22
+  if (reduced != -22) {
+    return false
+  }
   var list2 = ["this","is","a","test"]
   func y(a, b) {
     return a + b
   }
-  return list2.reduce("", y)
+  reduced = list2.reduce("", y)
+  if (reduced != "thisisatest") {
+    return false
+  }
+  return true
 }
