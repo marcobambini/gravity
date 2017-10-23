@@ -1,0 +1,22 @@
+#unittest {
+    name: "List map.";
+    result: true;
+};
+
+func main() {
+  var list = [0, 1, 2, 3, 4, 5]
+  func x(a) {
+    return a % 2
+  }
+  if (list.map(x).String() != "[0,1,0,1,0,1]") {
+    return false
+  }
+  var list2 = ["this", "is", "a", "test"]
+  func y(a) {
+    return a.length
+  }
+  if (list2.map(y).String() != "[4,2,1,4]") {
+    return false
+  }
+  return true
+}

@@ -1,0 +1,25 @@
+#unittest {
+    name: "List filter.";
+    result: true;
+};
+
+func main() {
+  var list = [1, 5, 4, 7, 8, 98, 65, 3, 12, 6, 24]
+  func x(a) {
+    return !(a % 3) //! needed because modulo returns 0 if divisible
+  }
+  if (list.filter(x).String() != "[3,12,6,24]") {
+    return false
+  }
+  var list2 = ["this", "is", "a", "test"]
+  func y(a) {
+    if (a.length > 3) {
+      return true
+    }
+    return false
+  }
+  if (list2.filter(y).String() != ["this","test"].String()) {
+    return false
+  }
+  return true
+}
