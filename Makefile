@@ -13,7 +13,7 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(OPT_DIR)/*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
-CFLAGS = $(INCLUDE) -O2 -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
+CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
 OBJ = $(SRC:.c=.o)
 
 ifeq ($(OS),Windows_NT)
@@ -35,6 +35,12 @@ else
 		LIBTARGET = libgravity.so
 		LDFLAGS = -lm -lrt
 	endif
+endif
+
+ifeq ($(mode),debug)
+	CFLAGS += -g -O0 -DDEBUG
+else
+	CFLAGS += -O2
 endif
 
 all: unittest gravity
