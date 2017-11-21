@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.3.7"     // git tag 0.3.7
-#define GRAVITY_VERSION_NUMBER				0x000307    // git push --tags
+#define GRAVITY_VERSION						"0.3.8"     // git tag 0.3.8
+#define GRAVITY_VERSION_NUMBER				0x000308    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE

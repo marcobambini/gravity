@@ -174,7 +174,10 @@ static inline bool next_utf8(gravity_lexer_t *lexer, int *result) {
 	int c = NEXT;
 	INC_TOKLEN;
 
-	uint32_t len = utf8_charbytes((const char *)&c, 0);
+    // the following explicit conversion fixes an issue with big-endian processor (like Motorola 68000, PowerPC, Sun Sparc and IBM S/390)
+    // was uint32_t len = utf8_charbytes((const char *)&c, 0);
+    const char s = c;
+	uint32_t len = utf8_charbytes((const char *)&s, 0);
 	if (len == 0) return false;
 
 	switch(len) {

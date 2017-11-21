@@ -421,7 +421,12 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
     }
 
 	// execute closure and return its value
-	if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) return gravity_vm_result(vm);
+    if (gravity_vm_runclosure(vm, closure, v, NULL, 0)) {
+        gravity_value_t result = gravity_vm_result(vm);
+        // sanity check closure return value because sometimes nil is returned by an objc instance (for example NSData String)
+        if (!VALUE_ISA_STRING(result)) return VALUE_FROM_CSTRING(vm, "null");
+        return result;
+    }
 
 	return VALUE_FROM_ERROR(NULL);
 }
