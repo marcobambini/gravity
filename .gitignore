@@ -282,8 +282,6 @@ paket-files/
 *.x86_64
 *.hex
 gravity
-unittest
-!test/unittest
 
 # Debug files
 *.dSYM/
@@ -309,12 +307,5 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 *.xcuserstate
-
 *.xcworkspacedata
-
-test/fuzzy/.DS_Store
-
-test/fuzzy/2017-04-04/.DS_Store
-
-test/unittest/.DS_Store
 .DS_Store
