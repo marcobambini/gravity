@@ -6,6 +6,7 @@ OPT_DIR = src/optionals/
 UNITTEST_SRC = src/cli/unittest.c
 GRAVITY_SRC = src/cli/gravity.c
 
+CC = gcc
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(RUNTIME_DIR)/*.c) \
       $(wildcard $(SHARED_DIR)/*.c) \
