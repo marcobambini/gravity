@@ -1355,7 +1355,6 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 	// in Gravity enum can contains String, Integer, Boolean and Float BUT cannot be mixed
 	// Integer case can also skip values and autoincrement will be applied
 	// String and Float must have a default value
-	// in any case default value must be unique (as identifiers)
 	// this code will take care of parsing and syntax check for the above restrictions
 
 	// in order to simplify node struct all the sematic checks are performed here
@@ -1365,9 +1364,8 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 
 	// checks are:
 	// 1: unique internal identifiers
-	// 2: unique internal values
-	// 3: if not INT then a default value is mandatory
-	// 4: all values must be literals
+	// 2: if not INT then a default value is mandatory
+	// 3: all values must be literals
 
 	// 'enum' IDENTIFIER '{' enum_list '}' ';'
 	// enum_list: enum_list_item (',' enum_list_item)*
@@ -1445,18 +1443,18 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 
 				// sanity check on unary expression
 				if (expr->base.tag != NODE_LITERAL_EXPR) {
-					REPORT_ERROR(enum_token, "%s", "Literal value expected here.");
+					REPORT_ERROR(enum_token, "Literal value expected here.");
 					continue;
 				}
 
 				if ((unary->op != TOK_OP_SUB) && (unary->op != TOK_OP_ADD)) {
-					REPORT_ERROR(enum_token, "%s", "Only + or - allowed in enum value definition.");
+					REPORT_ERROR(enum_token, "Only + or - allowed in enum value definition.");
 					continue;
 				}
 
 				enum_literal = (gnode_literal_expr_t *)expr;
 				if ((enum_literal->type != LITERAL_FLOAT) && (enum_literal->type != LITERAL_INT)) {
-					REPORT_ERROR(enum_token, "%s", "A number is expected after a + or - unary expression in an enum definition.");
+					REPORT_ERROR(enum_token, "A number is expected after a + or - unary expression in an enum definition.");
 					continue;
 				}
 
@@ -1467,7 +1465,7 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 				}
 
 			} else {
-				REPORT_ERROR(enum_token, "%s", "Literal value expected here.");
+				REPORT_ERROR(enum_token, "Literal value expected here.");
 				continue;
 			}
 
@@ -1480,7 +1478,7 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 
 			// check if literal value conforms to enum type
 			if (enum_literal->type != enum_type) {
-				REPORT_ERROR(enum_token, "%s", "Literal value of type %s expected here.", token_literal_name(enum_literal->type));
+				REPORT_ERROR(enum_token, "Literal value of type %s expected here.", token_literal_name(enum_type));
 			}
 
 			// update enum_autoint value to next value
@@ -2012,7 +2010,7 @@ loop:
 
 	// check pre-requisites
 	if ((!parser->delegate) || (!parser->delegate->loadfile_callback)) {
-		REPORT_ERROR(gravity_lexer_token(lexer), "%s", "Unable to load file because no loadfile callback registered in delegate.");
+		REPORT_ERROR(gravity_lexer_token(lexer), "Unable to load file because no loadfile callback registered in delegate.");
 		return NULL;
 	}
 
@@ -2332,7 +2330,7 @@ static gnode_t *parse_declaration_statement (gravity_parser_t *parser) {
 
 	// it is a syntax error to specify an access or storage specifier followed by an empty declaration
 	if ((peek == TOK_OP_SEMICOLON) && ((access_specifier) || (storage_specifier))) {
-		REPORT_ERROR(gravity_lexer_token(lexer), "%s", "Access or storage specifier cannot be used here.");
+		REPORT_ERROR(gravity_lexer_token(lexer), "Access or storage specifier cannot be used here.");
 	}
 
 	switch (peek) {
