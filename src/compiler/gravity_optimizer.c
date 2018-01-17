@@ -259,6 +259,8 @@ inline static inst_t *current_instruction (ircode_t *code, uint32_t i) {
 // MARK: -
 
 static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *inst2) {
+    if (!inst2) return false;
+    
 	// select type algorithm:
 	// two numeric types are supported here, int64 or double
 	// if types are equals then set the first one
