@@ -689,14 +689,6 @@ static bool math_SQRT1_2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 // MARK: - Internals -
 
-//static void free_computed_property (gravity_class_t *c, const char *name) {
-//    // computed properties are not registered inside VM gc so they need to be manually freed here
-//    STATICVALUE_FROM_STRING(key, name, strlen(name));
-//    gravity_closure_t *closure = gravity_class_lookup_closure(c, key);
-//    computed_property_free(closure);
-//    gravity_hash_remove(c->htable, key);
-//}
-
 static void create_optional_class (void) {
     gravity_class_math = gravity_class_new_pair(NULL, MATH_CLASS_NAME, NULL, 0, 0);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_math);
@@ -767,11 +759,8 @@ void gravity_math_register (gravity_vm *vm) {
 
 void gravity_math_free (void) {
     if (!gravity_class_math) return;
+    if (--refcount) return;
 
-    --refcount;
-    if (refcount) return;
-
-    mem_check(false);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_math);
     computed_property_free(meta, "PI", true);
     computed_property_free(meta, "E", true);
@@ -783,7 +772,6 @@ void gravity_math_free (void) {
     computed_property_free(meta, "SQRT1_2", true);
     gravity_class_free_core(NULL, meta);
     gravity_class_free_core(NULL, gravity_class_math);
-    mem_check(true);
 
     gravity_class_math = NULL;
 }

@@ -717,7 +717,7 @@ static bool object_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	}
 
 	// check if instance has already an anonymous class added to its hierarchy
-	if (string_casencmp(c->identifier, GRAVITY_VM_ANONYMOUS_PREFIX, strlen(GRAVITY_VM_ANONYMOUS_PREFIX) != 0)) {
+	if (!gravity_class_is_anon(c)) {
 		// no super anonymous class found so create a new one, set its super as c, and add it to the hierarchy
 		char *name = gravity_vm_anonymous(vm);
 		gravity_class_t *anon = gravity_class_new_pair(NULL, name, c, 0, 0);
@@ -2532,7 +2532,7 @@ static void gravity_core_init (void) {
 	if (core_inited) return;
 	core_inited = true;
 
-	mem_check(false);
+	//mem_check(false);
 
 	// Creation order here is very important
 	// for example in a earlier version the intrinsic classes
@@ -2838,7 +2838,7 @@ static void gravity_core_init (void) {
 	SETMETA_INITED(gravity_class_system);
 	//SETMETA_INITED(gravity_class_module);
 
-	mem_check(true);
+	//mem_check(true);
 }
 
 void gravity_core_free (void) {
@@ -2848,13 +2848,13 @@ void gravity_core_free (void) {
 	if (!core_inited) return;
 
 	// check if others VM are still running
-	if (--refcount != 0) return;
+	if (--refcount) return;
 
 	// this function should never be called
 	// it is just called when we need to internally check for memory leaks
 
     // computed properties are not registered inside VM gc so they need to be manually freed here
-	mem_check(false);
+	//mem_check(false);
     computed_property_free(gravity_class_list, "count", true);
     computed_property_free(gravity_class_map, "count", true);
     computed_property_free(gravity_class_range, "count", true);
@@ -2905,7 +2905,7 @@ void gravity_core_free (void) {
 	// object must be the last class to be freed
 	gravity_class_free_core(NULL, gravity_class_class);
 	gravity_class_free_core(NULL, gravity_class_object);
-	mem_check(true);
+	//mem_check(true);
 
 	gravity_class_int = NULL;
 	gravity_class_float = NULL;

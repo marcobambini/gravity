@@ -1417,9 +1417,11 @@ void gravity_vm_seterror_string (gravity_vm* vm, const char *s) {
 
 #if GRAVITY_VM_STATS
 static void gravity_vm_stats (gravity_vm *vm) {
-	printf("\n============================================\n");
-	printf("%12s %10s %20s\n", "OPCODE", "USAGE", "MICROBENCH (ms)");
-	printf("============================================\n");
+    printf("\n=======================================================\n");
+    printf("                   GRAVITY VM STATS\n");
+	printf("=======================================================\n");
+	printf("%12s %10s %10s %20s\n", "OPCODE", "USAGE", "MEAN", "MICROBENCH (ms)");
+	printf("=======================================================\n");
 
 	double total = 0.0;
 	for (uint32_t i=0; i<GRAVITY_LATEST_OPCODE; ++i) {
@@ -1431,15 +1433,16 @@ static void gravity_vm_stats (gravity_vm *vm) {
 	for (uint32_t i=0; i<GRAVITY_LATEST_OPCODE; ++i) {
 		if (vm->nstat[i]) {
 			uint32_t n = vm->nstat[i];
-			double d = vm->tstat[i] / (double)n;
-			double p = (vm->tstat[i] * 100) / total;
-			printf("%12s %*d %*.4f (%.2f%%)\n", opcode_name((opcode_t)i), 10, n, 11, d, p);
+            double d = vm->tstat[i];
+            double m = d / (double)n;
+			double p = (d * 100) / total;
+			printf("%12s %*d %*.4f %*.4f (%.2f%%)\n", opcode_name((opcode_t)i), 10, n, 11, m, 10, d, p);
 		}
 	}
-	printf("============================================\n");
+	printf("=======================================================\n");
 	printf("# Frames reallocs: %d (%d)\n", vm->nfrealloc, vm->fiber->framesalloc);
 	printf("# Stack  reallocs: %d (%d)\n", vm->nsrealloc, vm->fiber->stackalloc);
-	printf("============================================\n");
+	printf("=======================================================\n");
 }
 #endif
 

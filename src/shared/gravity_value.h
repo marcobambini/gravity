@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.3.8"     // git tag 0.3.8
-#define GRAVITY_VERSION_NUMBER				0x000308    // git push --tags
+#define GRAVITY_VERSION						"0.3.9"     // git tag 0.3.8
+#define GRAVITY_VERSION_NUMBER				0x000309    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -437,6 +437,7 @@ GRAVITY_API gravity_class_t		*gravity_class_new_single (gravity_vm *vm, const ch
 GRAVITY_API gravity_class_t		*gravity_class_new_pair (gravity_vm *vm, const char *identifier, gravity_class_t *superclass, uint32_t nivar, uint32_t nsvar);
 GRAVITY_API gravity_class_t		*gravity_class_get_meta (gravity_class_t *c);
 GRAVITY_API bool				gravity_class_is_meta (gravity_class_t *c);
+GRAVITY_API bool                gravity_class_is_anon (gravity_class_t *c);
 GRAVITY_API uint32_t			gravity_class_count_ivars (gravity_class_t *c);
 GRAVITY_API void				gravity_class_dump (gravity_class_t *c);
 GRAVITY_API void				gravity_class_setxdata (gravity_class_t *c, void *xdata);
@@ -526,6 +527,7 @@ GRAVITY_API uint32_t			gravity_string_size (gravity_vm *vm, gravity_string_t *st
 GRAVITY_API void				gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
 GRAVITY_API void				gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
 GRAVITY_API void				gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void                gravity_hash_finteralfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
 
 #ifdef __cplusplus
 }

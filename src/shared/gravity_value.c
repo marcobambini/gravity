@@ -58,6 +58,17 @@ void gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_v
 	gravity_value_free(vm, key);
 }
 
+void gravity_hash_finteralfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
+    #pragma unused(table, key, data)
+    if (gravity_value_isobject(value)) {
+        gravity_object_t *obj = VALUE_AS_OBJECT(value);
+        if (OBJECT_ISA_CLOSURE(obj)) {
+            gravity_closure_t *closure = (gravity_closure_t *)obj;
+            if (closure->f && closure->f->tag == EXEC_TYPE_INTERNAL) gravity_function_free(NULL, closure->f);
+        }
+    }
+}
+
 void gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
 	#pragma unused(table, key)
 	gravity_vm *vm = (gravity_vm *)data;
@@ -203,6 +214,10 @@ gravity_class_t *gravity_class_get_meta (gravity_class_t *c) {
 bool gravity_class_is_meta (gravity_class_t *c) {
 	// meta classes have objclass set to class object
 	return (c->objclass == gravity_class_object);
+}
+
+bool gravity_class_is_anon (gravity_class_t *c) {
+    return (string_casencmp(c->identifier, GRAVITY_VM_ANONYMOUS_PREFIX, strlen(GRAVITY_VM_ANONYMOUS_PREFIX)) == 0);
 }
 
 uint32_t gravity_class_count_ivars (gravity_class_t *c) {
@@ -371,6 +386,7 @@ static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, boo
 	if (c->identifier) mem_free((void *)c->identifier);
 	if (!skip_base) {
 		// base classes have functions not registered inside VM so manually free all of them
+        gravity_hash_iterate(c->htable, gravity_hash_finteralfree, NULL);
 		gravity_hash_iterate(c->htable, gravity_hash_valuefree, NULL);
 	}
 
@@ -1658,7 +1674,7 @@ bool gravity_value_isobject (gravity_value_t v) {
 	// return true;
 
 	if ((v.isa == NULL) || (v.isa == gravity_class_int) || (v.isa == gravity_class_float) ||
-		(v.isa == gravity_class_bool) || (v.isa == gravity_class_null)) return false;
+		(v.isa == gravity_class_bool) || (v.isa == gravity_class_null) || (v.p == NULL)) return false;
 	return true;
 }
 
