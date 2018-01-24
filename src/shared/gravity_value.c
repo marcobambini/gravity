@@ -375,7 +375,7 @@ abort_load:
 static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, bool skip_base) {
 	if (skip_base && (gravity_iscore_class(c) || gravity_isopt_class(c))) return;
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)c));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)c, true));
 
 	// check if bridged data needs to be freed too
 	if (c->xdata && vm) {
@@ -952,7 +952,7 @@ abort_load:
 void gravity_function_free (gravity_vm *vm, gravity_function_t *f) {
 	if (!f) return;
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)f));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)f, true));
 
 	// check if bridged data needs to be freed too
 	if (f->xdata && vm) {
@@ -1032,7 +1032,7 @@ gravity_closure_t *gravity_closure_new (gravity_vm *vm, gravity_function_t *f) {
 void gravity_closure_free (gravity_vm *vm, gravity_closure_t *closure) {
 	#pragma unused(vm)
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)closure));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)closure, true));
 
 	if (closure->upvalue) mem_free(closure->upvalue);
 	mem_free(closure);
@@ -1093,7 +1093,7 @@ void gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue) {
 void gravity_upvalue_free(gravity_vm *vm, gravity_upvalue_t *upvalue) {
 	#pragma unused(vm)
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)upvalue));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)upvalue, true));
 	mem_free(upvalue);
 }
 
@@ -1134,7 +1134,7 @@ gravity_fiber_t *gravity_fiber_new (gravity_vm *vm, gravity_closure_t *closure, 
 void gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber) {
 	#pragma unused(vm)
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)fiber));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)fiber, true));
 	if (fiber->error) mem_free(fiber->error);
 	mem_free(fiber->stack);
 	mem_free(fiber->frames);
@@ -1250,7 +1250,7 @@ gravity_object_t *gravity_object_deserialize (gravity_vm *vm, json_value *entry)
 }
 #undef REPORT_JSON_ERROR
 
-const char *gravity_object_debug (gravity_object_t *obj) {
+const char *gravity_object_debug (gravity_object_t *obj, bool is_free) {
 	if ((!obj) || (!OBJECT_IS_VALID(obj))) return "";
 
 	if (OBJECT_ISA_INT(obj)) return "INT";
@@ -1267,7 +1267,8 @@ const char *gravity_object_debug (gravity_object_t *obj) {
 	}
 
 	if (OBJECT_ISA_CLOSURE(obj)) {
-		const char *name = ((gravity_closure_t*)obj)->f->identifier;
+        // cannot guarantee ptr validity during a free
+        const char *name = (is_free) ? NULL : ((gravity_closure_t*)obj)->f->identifier;
 		if (!name) name = "ANONYMOUS";
 		snprintf(buffer, sizeof(buffer), "CLOSURE %p %s", obj, name);
 		return buffer;
@@ -1286,8 +1287,9 @@ const char *gravity_object_debug (gravity_object_t *obj) {
 	}
 
 	if (OBJECT_ISA_INSTANCE(obj)) {
-		gravity_class_t *c = ((gravity_instance_t*)obj)->objclass;
-		const char *name = (c->identifier) ? c->identifier : "ANONYMOUS";
+        // cannot guarantee ptr validity during a free
+        gravity_class_t *c = (is_free) ? NULL : ((gravity_instance_t*)obj)->objclass;
+		const char *name = (c && c->identifier) ? c->identifier : "ANONYMOUS";
 		snprintf(buffer, sizeof(buffer), "INSTANCE %p OF %s", obj, name);
 		return buffer;
 	}
@@ -1404,7 +1406,7 @@ void gravity_instance_setxdata (gravity_instance_t *i, void *xdata) {
 }
 
 void gravity_instance_free (gravity_vm *vm, gravity_instance_t *i) {
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)i));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)i, true));
 
 	// check if bridged data needs to be freed too
 	if (i->xdata && vm) {
@@ -1810,7 +1812,7 @@ gravity_list_t *gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_val
 void gravity_list_free (gravity_vm *vm, gravity_list_t *list) {
 	#pragma unused(vm)
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)list));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)list, true));
 	marray_destroy(list->array);
 	mem_free((void *)list);
 }
@@ -1856,7 +1858,7 @@ gravity_map_t *gravity_map_new (gravity_vm *vm, uint32_t n) {
 void gravity_map_free (gravity_vm *vm, gravity_map_t *map) {
 	#pragma unused(vm)
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)map));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)map, true));
 	gravity_hash_free(map->hash);
 	mem_free((void *)map);
 }
@@ -1930,7 +1932,7 @@ gravity_range_t *gravity_range_new (gravity_vm *vm, gravity_int_t from_range, gr
 void gravity_range_free (gravity_vm *vm, gravity_range_t *range) {
 	#pragma unused(vm)
 
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)range));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)range, true));
 	mem_free((void *)range);
 }
 
@@ -1989,7 +1991,7 @@ inline void gravity_string_set (gravity_string_t *obj, char *s, uint32_t len) {
 
 inline void gravity_string_free (gravity_vm *vm, gravity_string_t *value) {
 	#pragma unused(vm)
-	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)value));
+	DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)value, true));
 	if (value->alloc) mem_free(value->s);
 	mem_free(value);
 }

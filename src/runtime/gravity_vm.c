@@ -1892,7 +1892,7 @@ void gravity_gray_object (gravity_vm *vm, gravity_object_t *obj) {
 	// avoid recursion if object has already been visited
 	if (obj->gc.isdark) return;
 
-	DEBUG_GC("GRAY %s", gravity_object_debug(obj));
+	DEBUG_GC("GRAY %s", gravity_object_debug(obj, false));
 
 	// object has been reached
 	obj->gc.isdark = true;
@@ -1969,7 +1969,7 @@ void gravity_vm_initmodule (gravity_vm *vm, gravity_function_t *f) {
 }
 
 static void gravity_gc_transfer_object (gravity_vm *vm, gravity_object_t *obj) {
-	DEBUG_GC("GC TRANSFER %s", gravity_object_debug(obj));
+	DEBUG_GC("GC TRANSFER %s", gravity_object_debug(obj, false));
 	++vm->gccount;
 	obj->gc.next = vm->gchead;
 	vm->gchead = obj;
@@ -1982,7 +1982,7 @@ static void gravity_gc_transfer (gravity_vm *vm, gravity_object_t *obj) {
 		gravity_object_t **ptr = &vm->gchead;
 		while (*ptr) {
 			if (obj == *ptr) {
-				printf("Object %s already GC!\n", gravity_object_debug(obj));
+				printf("Object %s already GC!\n", gravity_object_debug(obj, false));
 				assert(0);
 			}
 			ptr = &(*ptr)->gc.next;

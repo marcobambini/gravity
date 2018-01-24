@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.3.9"     // git tag 0.3.8
-#define GRAVITY_VERSION_NUMBER				0x000309    // git push --tags
+#define GRAVITY_VERSION						"0.4.0"     // git tag 0.4.0
+#define GRAVITY_VERSION_NUMBER				0x000400    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -490,7 +490,7 @@ GRAVITY_API gravity_object_t	*gravity_object_deserialize (gravity_vm *vm, json_v
 GRAVITY_API void				gravity_object_free (gravity_vm *vm, gravity_object_t *obj);
 GRAVITY_API void				gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj);
 GRAVITY_API uint32_t			gravity_object_size (gravity_vm *vm, gravity_object_t *obj);
-GRAVITY_API const char			*gravity_object_debug (gravity_object_t *obj);
+GRAVITY_API const char			*gravity_object_debug (gravity_object_t *obj, bool is_free);
 
 // MARK: - LIST -
 GRAVITY_API gravity_list_t		*gravity_list_new (gravity_vm *vm, uint32_t n);
