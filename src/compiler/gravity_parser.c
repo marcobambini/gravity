@@ -154,7 +154,7 @@ static void report_error (gravity_parser_t *parser, error_type_t error_type, gto
 	parser->last_error_lineno = token.lineno;
 
 	// increment internal error counter
-	++parser->nerrors;
+	if (error_type != GRAVITY_WARNING) ++parser->nerrors;
 
 	// get error callback (if any)
 	void *data = (parser->delegate) ? parser->delegate->xdata : NULL;
@@ -1307,6 +1307,9 @@ loop:
 	// type annotation is optional so it can be NULL
 	type_annotation = parse_optional_type_annotation(parser);
 	DEBUG_PARSER("IDENTIFIER: %s %s", identifier, (type_annotation) ? type_annotation : "");
+    if (type_annotation && parser->delegate && parser->delegate->type_callback) {
+        parser->delegate->type_callback(&token2, type_annotation, parser->delegate->xdata);
+    }
 
 	// check for optional assignment or getter/setter declaration (ONLY = is ALLOWED here!)
 	expr = NULL;
@@ -1528,6 +1531,7 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 static gnode_t *parse_module_declaration (gravity_parser_t *parser, gtoken_t access_specifier, gtoken_t storage_specifier) {
 	DEBUG_PARSER("parse_module_declaration");
 
+    // module parsed but not yet supported
 	// 'module' IDENTIFIER '{' declaration_statement* '}' ';'
 
 	// optional scope already consumed
@@ -1539,18 +1543,21 @@ static gnode_t *parse_module_declaration (gravity_parser_t *parser, gtoken_t acc
 	// parse IDENTIFIER
 	const char *identifier = parse_identifier(parser);
 	DEBUG_PARSER("parse_module_declaration %s", identifier);
+    #pragma unused(identifier)
 
 	// parse optional curly brace
 	bool curly_brace = parse_optional(parser, TOK_OP_OPEN_CURLYBRACE);
 
     // parse optional meta
     gravity_hash_t *meta = parser_getmeta(parser, true);
+    #pragma unused(meta)
 
     // create array of declarations nodes
 	gnode_r *declarations = gnode_array_create();
 
     // create module node
     gnode_t *node = NULL;//gnode_module_decl_create(token, identifier, access_specifier, storage_specifier, declarations, meta, LAST_DECLARATION());
+    #pragma unused(access_specifier,storage_specifier)
 
 	while (token_isdeclaration_statement(gravity_lexer_peek(lexer))) {
 		gnode_t *decl = parse_declaration_statement(parser);
@@ -1761,6 +1768,7 @@ static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, 
 	// string_dup mandatory here because when the node will be freed
 	// memory for the identifier will be deallocated
 	node = gnode_variable_create(token, string_dup(SELF_PARAMETER_NAME), type_annotation, 0, NULL, LAST_DECLARATION());
+    DEBUG_PARSER("PARAMETER: %s %s", SELF_PARAMETER_NAME, (type_annotation) ? type_annotation : "");
 	if (node) gnode_array_push(params, node);
     if (is_implicit) return params;
 
@@ -1779,10 +1787,14 @@ loop:
 
 	// parse optional type annotation
 	type_annotation = parse_optional_type_annotation(parser);
+    if (type_annotation && parser->delegate && parser->delegate->type_callback) {
+        parser->delegate->type_callback(&token, type_annotation, parser->delegate->xdata);
+    }
 
 	// fill parameters array with the new node
 	node = gnode_variable_create(token, identifier, type_annotation, 0, NULL, LAST_DECLARATION());
 	if (node) gnode_array_push(params, node);
+    DEBUG_PARSER("PARAMETER: %s %s", identifier, (type_annotation) ? type_annotation : "");
 
 	// check for optional comma in order to decide
 	// if the loop should continue or not

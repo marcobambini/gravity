@@ -55,7 +55,7 @@ static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *no
 	current->lasterror = node->token.lineno;
 
 	// increment internal error counter
-	++self->nerr;
+	if (error_type != GRAVITY_WARNING) ++self->nerr;
 
 	// get error callback (if any)
 	void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
@@ -187,11 +187,14 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 
 		// symbol found so process it bases on target type
 		if (target_is_global) {
-			// identifier found in global no other information is needed
-			SET_NODE_LOCATION(node, LOCATION_GLOBAL, 0, 0);
 			DEBUG_LOOKUP("Identifier %s found in GLOBALS", identifier);
 
-			node->symbol = symbol;
+			// identifier found in global no other information is needed
+            if (node) {
+                SET_NODE_LOCATION(node, LOCATION_GLOBAL, 0, 0);
+				node->symbol = symbol;
+            }
+
 			return symbol;
 		}
 
