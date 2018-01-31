@@ -65,7 +65,6 @@ void		json_pop (json_t *json, uint32_t n);
 
 #ifndef json_int_t
    #ifndef _MSC_VER
-      #include <inttypes.h>
       #define json_int_t int64_t
    #else
       #define json_int_t __int64
