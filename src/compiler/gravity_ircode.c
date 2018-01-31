@@ -9,6 +9,7 @@
 #include "gravity_ircode.h"
 #include "gravity_value.h"
 #include "gravity_debug.h"
+#include <inttypes.h>
 
 typedef marray_t(inst_t *)		code_r;
 typedef marray_t(bool *)		context_r;
