@@ -36,6 +36,7 @@ typedef void				(*gravity_log_callback)	(const char *message, void *xdata);
 typedef void				(*gravity_error_callback) (error_type_t error_type, const char *description, error_desc_t error_desc, void *xdata);
 typedef void				(*gravity_unittest_callback) (error_type_t error_type, const char *desc, const char *note, gravity_value_t value, int32_t row, int32_t col, void *xdata);
 typedef void				(*gravity_parser_callback) (void *token, void *xdata);
+typedef void                (*gravity_type_callback) (void *token, const char *type, void *xdata);
 typedef const char*			(*gravity_precode_callback) (void *xdata);
 typedef const char*			(*gravity_loadfile_callback) (const char *file, size_t *size, uint32_t *fileid, void *xdata);
 typedef const char*			(*gravity_filename_callback) (uint32_t fileid, void *xdata);
@@ -59,7 +60,8 @@ typedef struct {
 	gravity_log_callback		log_callback;			// log reporting callback
 	gravity_error_callback		error_callback;			// error reporting callback
 	gravity_unittest_callback	unittest_callback;		// special unit test callback
-	gravity_parser_callback		parser_callback;		// parser callback used for syntax highlight
+	gravity_parser_callback		parser_callback;		// lexer callback used for syntax highlight
+    gravity_type_callback       type_callback;          // callback used to bind a token with a declared type
 	gravity_precode_callback	precode_callback;		// called at parse time in order to give the opportunity to add custom source code
 	gravity_loadfile_callback	loadfile_callback;		// callback to give the opportunity to load a file from an import statement
 	gravity_filename_callback	filename_callback;		// called while reporting an error in order to be able to convert a fileid to a real filename
