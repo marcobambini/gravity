@@ -142,7 +142,7 @@ bool gravity_semacheck1 (gnode_t *node, gravity_delegate_t *delegate) {
 
 	gvisitor_t visitor = {
 		.nerr = 0,							// used to store number of found errors
-		.data = (void *)context,			// used to store a pointer to the symbol table
+		.data = (void *)context,			// used to store a pointer to the global symbol table
 		.delegate = (void *)delegate,		// compiler delegate to report errors
 
         // COMMON
