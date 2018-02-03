@@ -1001,6 +1001,8 @@ static uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, i
 }
 
 static void quicksort(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
+    if (gravity_vm_isaborted(vm)) return;
+    
   if (low < high) {
     int32_t pi = partition(vm, array, low, high, selfvalue, predicate);
     quicksort(vm, array, low, pi - 1, selfvalue, predicate);
@@ -1012,10 +1014,12 @@ static bool list_sort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
   if (nargs != 2) RETURN_ERROR("One argument is needed by the sort function.");
   if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
   gravity_value_t selfvalue = GET_VALUE(0);							// self parameter
+    
   //the predicate is the comparison function, passed to list.sort()
   gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
   gravity_list_t *list = VALUE_AS_LIST(selfvalue);
   int32_t count = (int32_t)marray_size(list->array);
+    
   quicksort(vm, list->array.p, 0, count-1, selfvalue, predicate);
   RETURN_VALUE(VALUE_FROM_OBJECT((gravity_object_t *)list), rindex);
 }
