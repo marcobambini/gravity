@@ -24,7 +24,9 @@ struct gravity_lexer_t {
 	gtoken_s					token;			// current token
 	bool						peeking;		// flag to check if a peek operation is in progress
 	bool						is_static;		// flag to check if buffer is static and must not be freed
-	gravity_delegate_t			*delegate;		// delegate if any
+	gravity_delegate_t			*delegate;		// delegate (if any)
+    
+    gtoken_t                    cache;
 };
 
 typedef enum {
@@ -538,6 +540,8 @@ gravity_lexer_t *gravity_lexer_create (const char *source, size_t len, uint32_t 
 	lexer->length = (uint32_t)len;
 	lexer->fileid = fileid;
 	lexer->peeking = false;
+    lexer->cache = TOK_END;
+    
 	return lexer;
 }
 
@@ -546,6 +550,8 @@ void gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_delegate_t *dele
 }
 
 gtoken_t gravity_lexer_peek (gravity_lexer_t *lexer) {
+    if (lexer->cache != TOK_END) return lexer->cache;
+    
 	lexer->peeking = true;
 	gravity_lexer_t saved = *lexer;
 
@@ -554,6 +560,7 @@ gtoken_t gravity_lexer_peek (gravity_lexer_t *lexer) {
 	*lexer = saved;
 	lexer->peeking = false;
 
+    lexer->cache = result;
 	return result;
 }
 
@@ -561,6 +568,9 @@ gtoken_t gravity_lexer_next (gravity_lexer_t *lexer) {
 	int			c;
 	gtoken_t	token;
 
+    // reset cached value
+    if (!lexer->peeking) lexer->cache = TOK_END;
+	
 loop:
 	if (IS_EOF) return TOK_EOF;
 	c = PEEK_CURRENT;

@@ -309,3 +309,5 @@ xcuserdata/
 *.xcuserstate
 *.xcworkspacedata
 .DS_Store
+gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/unittest.xcscheme
+*.xcscheme
