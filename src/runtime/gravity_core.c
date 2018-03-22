@@ -1658,7 +1658,12 @@ static bool operator_int_not (gravity_vm *vm, gravity_value_t *args, uint16_t na
 }
 
 static bool operator_int_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-	if (VALUE_ISA_FLOAT(args[1])) return operator_float_cmp(vm, args, nargs, rindex);
+    if (VALUE_ISA_FLOAT(args[1])) {
+        // args[0] is INT and args[1] is FLOAT, in this case
+        // args[0] must be manually converted to FLOAT before the call
+        args[0] = VALUE_FROM_FLOAT((gravity_float_t)args[0].n);
+        return operator_float_cmp(vm, args, nargs, rindex);
+    }
 
 	DECLARE_2VARIABLES(v1, v2, 0, 1);
 	INTERNAL_CONVERT_INT(v2);
