@@ -282,6 +282,8 @@ paket-files/
 *.x86_64
 *.hex
 gravity
+unittest
+!test/unittest
 
 # Debug files
 *.dSYM/
