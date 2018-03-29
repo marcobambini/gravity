@@ -30,26 +30,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -74,22 +74,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir);$(SolutionDir)src\compiler\;$(SolutionDir)src\utils\;$(SolutionDir)src\shared\;$(SolutionDir)src\runtime\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)..\src\utils;$(ProjectDir)..\src\shared;$(ProjectDir)..\src\runtime;$(ProjectDir)..\src\optionals;$(ProjectDir)..\src\compiler;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir);$(SolutionDir)src\compiler\;$(SolutionDir)src\utils\;$(SolutionDir)src\shared\;$(SolutionDir)src\runtime\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)..\src\utils;$(ProjectDir)..\src\shared;$(ProjectDir)..\src\runtime;$(ProjectDir)..\src\optionals;$(ProjectDir)..\src\compiler;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir);$(SolutionDir)src\compiler\;$(SolutionDir)src\utils\;$(SolutionDir)src\shared\;$(SolutionDir)src\runtime\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)..\src\utils;$(ProjectDir)..\src\shared;$(ProjectDir)..\src\runtime;$(ProjectDir)..\src\optionals;$(ProjectDir)..\src\compiler;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir);$(SolutionDir)src\compiler\;$(SolutionDir)src\utils\;$(SolutionDir)src\shared\;$(SolutionDir)src\runtime\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(ProjectDir)..\src\utils;$(ProjectDir)..\src\shared;$(ProjectDir)..\src\runtime;$(ProjectDir)..\src\optionals;$(ProjectDir)..\src\compiler;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -181,6 +181,8 @@
     <ClInclude Include="..\src\compiler\gravity_symboltable.h" />
     <ClInclude Include="..\src\compiler\gravity_token.h" />
     <ClInclude Include="..\src\compiler\gravity_visitor.h" />
+    <ClInclude Include="..\src\optionals\gravity_math.h" />
+    <ClInclude Include="..\src\optionals\gravity_optionals.h" />
     <ClInclude Include="..\src\runtime\gravity_core.h" />
     <ClInclude Include="..\src\runtime\gravity_vm.h" />
     <ClInclude Include="..\src\runtime\gravity_vmmacros.h" />
@@ -209,6 +211,7 @@
     <ClCompile Include="..\src\compiler\gravity_symboltable.c" />
     <ClCompile Include="..\src\compiler\gravity_token.c" />
     <ClCompile Include="..\src\compiler\gravity_visitor.c" />
+    <ClCompile Include="..\src\optionals\gravity_math.c" />
     <ClCompile Include="..\src\runtime\gravity_core.c" />
     <ClCompile Include="..\src\runtime\gravity_vm.c" />
     <ClCompile Include="..\src\shared\gravity_hash.c" />

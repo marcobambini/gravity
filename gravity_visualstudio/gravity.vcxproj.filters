@@ -37,6 +37,9 @@
     <Filter Include="Source Files\runtime">
       <UniqueIdentifier>{f749a6f3-c597-4f03-84cd-f658262caebd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\opt">
+      <UniqueIdentifier>{3e8f2185-8296-463c-86de-94c8a5ac3f4b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\compiler\debug_macros.h">
@@ -120,6 +123,12 @@
     <ClInclude Include="unistd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\optionals\gravity_math.h">
+      <Filter>Source Files\opt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\optionals\gravity_optionals.h">
+      <Filter>Source Files\opt</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\compiler\gravity_ast.c">
@@ -181,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="..\src\runtime\gravity_vm.c">
       <Filter>Source Files\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\optionals\gravity_math.c">
+      <Filter>Source Files\opt</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

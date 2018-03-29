@@ -11,8 +11,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
-#include <strings.h>
 
 // memory debugger must be turned on ONLY with Xcode GuardMalloc ON
 #define GRAVITY_MEMORY_DEBUG            0
