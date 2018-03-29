@@ -89,6 +89,12 @@ gravity_class_t *gravity_class_range;
 gravity_class_t *gravity_class_upvalue;
 gravity_class_t *gravity_class_system;
 
+typedef enum {
+    number_format_any,
+    number_format_int,
+    number_format_float
+} number_format_type;
+
 // MARK: - Utils -
 static void map_keys_array (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
     #pragma unused (hashtable, value)
@@ -98,9 +104,9 @@ static void map_keys_array (gravity_hash_t *hashtable, gravity_value_t key, grav
 
 // MARK: - Conversions -
 
-static gravity_value_t convert_string2number (gravity_string_t *string, bool float_preferred) {
+static gravity_value_t convert_string2number (gravity_string_t *string, number_format_type number_format) {
 	// empty string case
-	if (string->len == 0) return (float_preferred) ? VALUE_FROM_FLOAT(0.0) : VALUE_FROM_INT(0);
+	if (string->len == 0) return (number_format == number_format_float) ? VALUE_FROM_FLOAT(0.0) : VALUE_FROM_INT(0);
 
 	register const char *s = string->s;
 	register uint32_t len = string->len;
@@ -121,11 +127,14 @@ static gravity_value_t convert_string2number (gravity_string_t *string, bool flo
 		else if (c == 'O') n = number_from_oct(&s[2], len-2);
 		else if (c == 'X') n = number_from_hex(s, len);
 		if (sign == -1) n = -n;
-		return (float_preferred) ? VALUE_FROM_FLOAT((gravity_float_t)n) : VALUE_FROM_INT((gravity_int_t)n);
+		return (number_format == number_format_float) ? VALUE_FROM_FLOAT((gravity_float_t)n) : VALUE_FROM_INT((gravity_int_t)n);
 	}
 
+    // if dot character is contained into the string than force the float_preferred flag
+    if (number_format == number_format_any && (strchr(string->s, '.') != NULL)) number_format = number_format_float;
+    
 	// default case
-	return (float_preferred) ? VALUE_FROM_FLOAT(strtod(string->s, NULL)) : VALUE_FROM_INT(strtoll(string->s, NULL, 0));
+	return (number_format == number_format_float) ? VALUE_FROM_FLOAT(strtod(string->s, NULL)) : VALUE_FROM_INT(strtoll(string->s, NULL, 0));
 }
 
 static bool convert_object_int (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -285,7 +294,7 @@ inline gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
 	if (VALUE_ISA_BOOL(v)) return VALUE_FROM_INT(v.n);
 	if (VALUE_ISA_NULL(v)) return VALUE_FROM_INT(0);
 	if (VALUE_ISA_UNDEFINED(v)) return VALUE_FROM_INT(0);
-	if (VALUE_ISA_STRING(v)) {return convert_string2number(VALUE_AS_STRING(v), false);}
+	if (VALUE_ISA_STRING(v)) return convert_string2number(VALUE_AS_STRING(v), number_format_int);
 
 	// check if class implements the Int method
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_INT_INDEX);
@@ -308,7 +317,7 @@ inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
 	if (VALUE_ISA_BOOL(v)) return VALUE_FROM_FLOAT(v.n);
 	if (VALUE_ISA_NULL(v)) return VALUE_FROM_FLOAT(0);
 	if (VALUE_ISA_UNDEFINED(v)) return VALUE_FROM_FLOAT(0);
-	if (VALUE_ISA_STRING(v)) {return convert_string2number(VALUE_AS_STRING(v), true);}
+	if (VALUE_ISA_STRING(v)) return convert_string2number(VALUE_AS_STRING(v), number_format_float);
 
 	// check if class implements the Float method
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_FLOAT_INDEX);
@@ -2033,6 +2042,12 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	RETURN_VALUE(VALUE_FROM_OBJECT(s), rindex);
 }
 
+static bool string_number (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    gravity_value_t value = convert_string2number(VALUE_AS_STRING(GET_VALUE(0)), number_format_any);
+    RETURN_VALUE(value, rindex);
+}
+
 static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
 
@@ -2780,6 +2795,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_string, "loop", NEW_CLOSURE_VALUE(string_loop));
 	gravity_class_bind(gravity_class_string, "iterate", NEW_CLOSURE_VALUE(string_iterator));
 	gravity_class_bind(gravity_class_string, "next", NEW_CLOSURE_VALUE(string_iterator_next));
+    gravity_class_bind(gravity_class_string, "number", NEW_CLOSURE_VALUE(string_number));
     // Meta
     gravity_class_t *string_meta = gravity_class_get_meta(gravity_class_string);
     gravity_class_bind(string_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(string_exec));

@@ -21,7 +21,7 @@ func main() {
 	var f1 = foo();
 	var b1 = bar(0);
 	var b2 = bar(4);
-	var b3 = bar("1-string");
+	var b3 = bar(1);
 	var r;
 	
 	r = b1.f1();	if (r != 0)		return "-1 (" + r + ")";

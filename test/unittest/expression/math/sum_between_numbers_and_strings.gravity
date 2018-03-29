@@ -1,16 +1,16 @@
 #unittest {
 	name: "Sum between numbers and strings and null;";
 	error: NONE;
-	result: 12.5;
+	result: 12.6;
 };
 
 func main() {
-	var string = "this is a string";
-	var string_int = "1";
-	var string_float = "1.1";
+	var string = "this is a string".number();
+	var string_int = "1".number();
+	var string_float = "1.1".number();
 	
 	var num_int_1 = 1 + string_int;								//  2	+
-	var num_int_2 = 1 + string_float;							//  2	+
+	var num_int_2 = 1 + string_float;							//  2.1	+
 	var num_int_3 = 1 + string;									//  1	+
 	var num_float_1 = 1.1 + string_int;							//  2.1	+
 	var num_float_2 = 1.1 + string_float;						//  2.2	+
@@ -19,5 +19,5 @@ func main() {
 	var	num_float_null = 1.1 + null;							//	1.1
 	return num_int_1 + num_int_2 + num_int_3 +					// ______
 		   num_float_1 + num_float_2 + num_float_3 +			//
-		   num_int_null + num_float_null;						// 12.5
+		   num_int_null + num_float_null;						// 12.6
  }

@@ -171,7 +171,7 @@
 #define DEFINE_INDEX_VARIABLE(_v,_r)				register gravity_value_t _v = (_r < MAX_REGISTERS) ? STACK_GET(_r) : VALUE_FROM_INT(_r-MAX_REGISTERS)
 
 #define NO_CHECK
-#define CHECK_ZERO(_v)								if ((VALUE_ISA_INT(_v) && (_v.n == 0)) || (VALUE_ISA_FLOAT(_v) && (_v.f == 0.0)))			\
+#define CHECK_ZERO(_v)								if ((VALUE_ISA_INT(_v) && (_v.n == 0)) || (VALUE_ISA_FLOAT(_v) && (_v.f == 0.0)) || (VALUE_ISA_NULL(_v))) \
 													RUNTIME_ERROR("Division by 0 error.")
 
 #define CHECK_FAST_BINARY_BOOL(r1,r2,r3,v2,v3,OP)	DEFINE_STACK_VARIABLE(v2,r2);																\
@@ -189,9 +189,13 @@
 													if (VALUE_ISA_INT(v2)) {																	\
 														if (VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, OP);								\
 														if (VALUE_ISA_FLOAT(v3)) FMATH_BIN_FLOAT(r1, v2.n, v3.f, OP);							\
+                                                        if (VALUE_ISA_NULL(v3)) FMATH_BIN_INT(r1, v2.n, 0, OP);                                 \
+                                                        if (VALUE_ISA_STRING(v3)) RUNTIME_ERROR("Right operand must be a number (use the number() method).");   \
 													} else if (VALUE_ISA_FLOAT(v2)) {															\
 														if (VALUE_ISA_FLOAT(v3)) FMATH_BIN_FLOAT(r1, v2.f, v3.f, OP);							\
 														if (VALUE_ISA_INT(v3)) FMATH_BIN_FLOAT(r1, v2.f, v3.n, OP);								\
+                                                        if (VALUE_ISA_NULL(v3)) FMATH_BIN_FLOAT(r1, v2.f, 0, OP);                               \
+                                                        if (VALUE_ISA_STRING(v3)) RUNTIME_ERROR("Right operand must be a number (use the number() method).");   \
 													}
 
 #define CHECK_FAST_UNARY_MATH(r1,r2,v2,OP)			DEFINE_STACK_VARIABLE(v2,r2);	\

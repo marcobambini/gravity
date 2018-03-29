@@ -809,7 +809,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 
 				// check fast math operation first  (only in case of int and float)
 				// a special check macro is added in order to check for divide by zero cases
+                #pragma clang diagnostic push
+                #pragma clang diagnostic ignored "-Wdivision-by-zero"
 				CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, /, CHECK_ZERO(v3));
+                 #pragma clang diagnostic pop
 
 				// prepare function call for binary operation
 				PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_DIV_INDEX, rwin);

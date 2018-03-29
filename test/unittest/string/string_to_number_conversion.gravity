@@ -5,9 +5,9 @@
 };
 
 func main() {
-	var str_hex_num = "-0x1a";
-	var str_dec_num = "-26";
-	var str_oct_num = "-0O32";
+	var str_hex_num = "-0x1a".number();
+	var str_dec_num = "-26".number();
+	var str_oct_num = "-0O32".number();
 	
 	var r;
 	
