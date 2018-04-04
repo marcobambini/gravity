@@ -19,7 +19,7 @@
 
 #define MATH_CLASS_NAME             "Math"
 
-#ifdef GRAVITY_ENABLE_DOUBLE
+#if GRAVITY_ENABLE_DOUBLE
 #define SIN                         sin
 #define COS                         cos
 #define TAN                         tan
@@ -69,7 +69,7 @@ static bool math_abs (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 
     if (VALUE_ISA_INT(value)) {
         gravity_int_t computed_value;
-        #ifdef GRAVITY_ENABLE_INT64
+        #if GRAVITY_ENABLE_INT64
         computed_value = (gravity_int_t)llabs((long long)value.n);
         #else
         computed_value = (gravity_int_t)labs((long)value.n);
@@ -79,7 +79,7 @@ static bool math_abs (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 
     if (VALUE_ISA_FLOAT(value)) {
         gravity_float_t computed_value;
-        #ifdef GRAVITY_ENABLE_DOUBLE
+        #if GRAVITY_ENABLE_DOUBLE
         computed_value = (gravity_float_t)fabs((double)value.f);
         #else
         computed_value = (gravity_float_t)fabsf((float)value.f);
