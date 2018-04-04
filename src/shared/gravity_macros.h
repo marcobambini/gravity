@@ -108,6 +108,7 @@
 #define GRAVITY_JSON_LABELTAG				"tag"
 #define GRAVITY_JSON_LABELNAME				"name"
 #define GRAVITY_JSON_LABELTYPE				"type"
+#define GRAVITY_JSON_LABELVALUE             "value"
 #define GRAVITY_JSON_LABELIDENTIFIER		"identifier"
 #define GRAVITY_JSON_LABELPOOL				"pool"
 #define GRAVITY_JSON_LABELMETA				"meta"
