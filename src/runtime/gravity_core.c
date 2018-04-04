@@ -1239,6 +1239,8 @@ static bool map_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	gravity_value_t value = GET_VALUE(2);
 
     #if GRAVITY_MAP_DOTSUGAR
+    // Runtime sanity check added on April 04, 2018 in order to prevent the user from
+    // accidentally override a predefined Map built-in method/property
     gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
     if (obj) RETURN_ERROR("Cannot override an internal Map method (%s) using the dot syntax.", VALUE_ISA_STRING(key) ? VALUE_AS_CSTRING(key) : "N/A");
     #endif
