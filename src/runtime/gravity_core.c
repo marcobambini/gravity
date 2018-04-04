@@ -1200,7 +1200,7 @@ static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	gravity_value_t key = GET_VALUE(1);
 	if (VALUE_ISA_NOTVALID(key)) RETURN_ERROR("Invalid map key.");
 
-    #ifdef GRAVITY_MAP_DOTSUGAR
+    #if GRAVITY_MAP_DOTSUGAR
     gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
     if (obj) {
         if (OBJECT_ISA_CLOSURE(obj)) {
@@ -1238,10 +1238,10 @@ static bool map_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	gravity_value_t key = GET_VALUE(1);
 	gravity_value_t value = GET_VALUE(2);
 
-//    #ifdef GRAVITY_MAP_DOTSUGAR
-//    gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
-//    if (obj) RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
-//    #endif
+    #if GRAVITY_MAP_DOTSUGAR
+    gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
+    if (obj) RETURN_ERROR("Cannot override an internal Map method (%s) using the dot syntax.", VALUE_ISA_STRING(key) ? VALUE_AS_CSTRING(key) : "N/A");
+    #endif
 
 	gravity_hash_insert(map->hash, key, value);
 	RETURN_NOVALUE();
