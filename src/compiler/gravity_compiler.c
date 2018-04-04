@@ -186,6 +186,7 @@ abort_compilation:
 
 json_t *gravity_compiler_serialize (gravity_compiler_t *compiler, gravity_closure_t *closure) {
 	#pragma unused(compiler)
+	if (!closure) return NULL;
 
 	json_t *json = json_new();
 	json_begin_object(json, NULL);
@@ -200,6 +201,7 @@ bool gravity_compiler_serialize_infile (gravity_compiler_t *compiler, gravity_cl
 	if (!closure) return false;
 	json_t *json = gravity_compiler_serialize(compiler, closure);
 	if (!json) return false;
+	
 	json_write_file(json, path);
 	json_free(json);
 	return true;
