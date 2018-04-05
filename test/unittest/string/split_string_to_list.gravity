@@ -1,0 +1,17 @@
+#unittest {
+	name: "Split() with empty argument Test";
+	error: NONE;
+	result: true;
+};
+
+func main () {
+	var s = "123456789"
+  var list = s.split("")
+
+	var sum = list.reduce(0, func(num1, num2) {
+		return num1.Int()+num2.Int()
+	})
+
+	// Check expected just to make sure the loop actually ran
+	return sum == 45 and list.count == 9
+}

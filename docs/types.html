@@ -137,6 +137,12 @@
 	list[0]                // "Roses are Red"
 	list[1]                // "Violets are Blue"
 
+	// Split can also be used to convert a string to a list type so that you can
+	// call list specific methods
+	var string = "abcdefghijklmnpqrstuvwxyz".split('')
+	string.contains("o")   // false
+	string.contains("s")   // true
+
 	// You are also able to edit strings by character...
 	b[0] = "Z"              // b is now "Zello World"
 	b[1] = "abc"            // b is now "Zabco World"
