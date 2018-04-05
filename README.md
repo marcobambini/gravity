@@ -20,10 +20,7 @@ class Vector {
 	var z = 0;
 
 	// constructor
-	func init (a, b, c) {
-		if (!a) a = 0;
-		if (!b) b = 0;
-		if (!c) c = 0;
+	func init (a = 0, b = 0, c = 0) {
 		x = a; y = b; z = c;
 	}
 
