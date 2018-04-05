@@ -1063,6 +1063,14 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				execute_call_function:
 				switch(closure->f->tag) {
 					case EXEC_TYPE_NATIVE: {
+                        // support for default arg values
+                        if (marray_size(closure->f->pvalue)) {
+                            uint32_t n = 1; // from 1 in order to skip self implicit argument
+                            while (n < closure->f->nparams) {
+                                if (VALUE_ISA_UNDEFINED(STACK_GET(rwin+n))) SETVALUE(rwin+n, marray_get(closure->f->pvalue, n-1));
+                                ++n;
+                            }
+                        }
 						PUSH_FRAME(closure, &stackstart[rwin], r1, r3);
 					} break;
 

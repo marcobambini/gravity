@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.1"     // git tag 0.4.1
-#define GRAVITY_VERSION_NUMBER				0x000401    // git push --tags
+#define GRAVITY_VERSION						"0.4.2"     // git tag 0.4.2
+#define GRAVITY_VERSION_NUMBER				0x000402    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -255,6 +255,8 @@ typedef struct {
 		// tag == EXEC_TYPE_NATIVE
 		struct {
 			gravity_value_r	cpool;				// constant pool
+            gravity_value_r pvalue;             // default param value
+            gravity_value_r pname;              // param names
 			uint32_t		ninsts;				// number of instructions in the bytecode
 			uint32_t		*bytecode;			// bytecode as array of 32bit values
 			float			purity;				// experimental value

@@ -123,6 +123,7 @@ typedef struct {
 	gnode_compound_stmt_t *block;			// internal function statements
 	uint16_t			nlocals;			// locals counter
 	uint16_t			nparams;			// formal parameters counter
+    bool                has_defaults;       // flag set if parmas has default values
 	gupvalue_r			*uplist;			// list of upvalues used in function (can be empty)
 } gnode_function_decl_t;
 typedef gnode_function_decl_t gnode_function_expr_t;

@@ -488,6 +488,8 @@ gravity_function_t *gravity_function_new (gravity_vm *vm, const char *identifier
 	f->useargs = false;
 	f->bytecode = (uint32_t *)code;
 	marray_init(f->cpool);
+    marray_init(f->pvalue);
+    marray_init(f->pname);
 
 	if (vm) gravity_vm_transfer(vm, (gravity_object_t*)f);
 	return f;
@@ -545,47 +547,82 @@ void gravity_function_setxdata (gravity_function_t *f, void *xdata) {
 	f->xdata = xdata;
 }
 
-static void gravity_function_cpool_serialize (gravity_function_t *f, json_t *json) {
+static void gravity_function_array_serialize (gravity_function_t *f, json_t *json, gravity_value_r r) {
 	assert(f->tag == EXEC_TYPE_NATIVE);
-	size_t n = marray_size(f->cpool);
+	size_t n = marray_size(r);
 
 	for (size_t i=0; i<n; i++) {
-		gravity_value_t v = marray_get(f->cpool, i);
+		gravity_value_t v = marray_get(r, i);
 		gravity_value_serialize(v, json);
 	}
 }
 
-static void gravity_function_cpool_dump (gravity_function_t *f) {
+static void gravity_function_array_dump (gravity_function_t *f, gravity_value_r r) {
 	assert(f->tag == EXEC_TYPE_NATIVE);
-	size_t n = marray_size(f->cpool);
+	size_t n = marray_size(r);
 
 	for (size_t i=0; i<n; i++) {
-		gravity_value_t v = marray_get(f->cpool, i);
+		gravity_value_t v = marray_get(r, i);
 
-		if (v.isa == gravity_class_bool) {
+        if (VALUE_ISA_NULL(v)) {
+            printf("%05zu\tNULL\n", i);
+            continue;
+        }
+        
+        if (VALUE_ISA_UNDEFINED(v)) {
+            printf("%05zu\tUNDEFINED\n", i);
+            continue;
+        }
+        
+		if (VALUE_ISA_BOOL(v)) {
 			printf("%05zu\tBOOL: %d\n", i, (v.n == 0) ? 0 : 1);
-		} else if (v.isa == gravity_class_int) {
+            continue;
+        }
+        
+        if (VALUE_ISA_INT(v)) {
 			printf("%05zu\tINT: %" PRId64 "\n", i, (int64_t)v.n);
-		} else if (v.isa == gravity_class_float) {
+            continue;
+		}
+        
+        if (VALUE_ISA_FLOAT(v)) {
 			printf("%05zu\tFLOAT: %f\n", i, (double)v.f);
-		} else if (v.isa == gravity_class_function) {
+            continue;
+		}
+        
+        if (VALUE_ISA_FUNCTION(v)) {
 			gravity_function_t *vf = VALUE_AS_FUNCTION(v);
 			printf("%05zu\tFUNC: %s\n", i, (vf->identifier) ? vf->identifier : "$anon");
-		}  else if (v.isa == gravity_class_class) {
+            continue;
+		}
+        
+        if (VALUE_ISA_CLASS(v)) {
 			gravity_class_t *c = VALUE_AS_CLASS(v);
 			printf("%05zu\tCLASS: %s\n", i, (c->identifier) ? c->identifier: "$anon");
-		} else if (v.isa == gravity_class_string) {
+            continue;
+            
+		}
+        
+        if (VALUE_ISA_STRING(v)) {
 			printf("%05zu\tSTRING: %s\n", i, VALUE_AS_CSTRING(v));
-		} else if (v.isa == gravity_class_list) {
+            continue;
+		}
+        
+        if (VALUE_ISA_LIST(v)) {
 			gravity_list_t *value = VALUE_AS_LIST(v);
 			size_t count = marray_size(value->array);
 			printf("%05zu\tLIST: %zu items\n", i, count);
-		} else if (v.isa == gravity_class_map) {
+            continue;
+            
+		}
+        
+        if (VALUE_ISA_MAP(v)) {
 			gravity_map_t *map = VALUE_AS_MAP(v);
 			printf("%05zu\tMAP: %u items\n", i, gravity_hash_count(map->hash));
-		} else {
-			assert(0);
+            continue;
 		}
+        
+        // should never reach this point
+        assert(0);
 	}
 }
 
@@ -659,10 +696,16 @@ void gravity_function_dump (gravity_function_t *f, code_dump_function codef) {
 	printf("Params:%d Locals:%d Temp:%d Upvalues:%d Tag:%d xdata:%p\n", f->nparams, f->nlocals, f->ntemps, f->nupvalues, f->tag, f->xdata);
 
 	if (f->tag == EXEC_TYPE_NATIVE) {
-		if (marray_size(f->cpool)) printf("======= CPOOL =======\n");
-		gravity_function_cpool_dump(f);
+		if (marray_size(f->cpool)) printf("======= CONST POOL =======\n");
+		gravity_function_array_dump(f, f->cpool);
+        
+        if (marray_size(f->pname)) printf("======= PARAM NAMES =======\n");
+        gravity_function_array_dump(f, f->pname);
+        
+        if (marray_size(f->pvalue)) printf("======= PARAM VALUES =======\n");
+        gravity_function_array_dump(f, f->pvalue);
 
-		printf("======= BYTECODE ====\n");
+		printf("======= BYTECODE =======\n");
 		if ((f->bytecode) && (codef)) codef(f->bytecode);
 	}
 
@@ -730,10 +773,24 @@ void gravity_function_serialize (gravity_function_t *f, json_t *json) {
 
 		// constant pool
 		json_begin_array(json, GRAVITY_JSON_LABELPOOL);
-		gravity_function_cpool_serialize(f, json);
+		gravity_function_array_serialize(f, json, f->cpool);
+		json_end_array(json);
+        
+        // default values (if any)
+        if (marray_size(f->pvalue)) {
+            json_begin_array(json, GRAVITY_JSON_LABELPVALUES);
+            gravity_function_array_serialize(f, json, f->pvalue);
 		json_end_array(json);
 	}
 
+        // arg names (if any)
+        if (marray_size(f->pname)) {
+            json_begin_array(json, GRAVITY_JSON_LABELPNAMES);
+            gravity_function_array_serialize(f, json, f->pname);
+            json_end_array(json);
+        }
+	}
+	
 	if (identifier) json_end_object(json);
 }
 
@@ -875,6 +932,59 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 			continue;
 		}
 
+        // names
+        if (string_casencmp(label, GRAVITY_JSON_LABELPNAMES, label_size) == 0) {
+            if (value->type != json_array) goto abort_load;
+            if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
+            uint32_t m = value->u.array.length;
+            for (uint32_t j=0; j<m; ++j) {
+                json_value *r = value->u.array.values[j];
+                if (r->type != json_string) goto abort_load;
+                marray_push(gravity_value_t, f->pname, VALUE_FROM_STRING(NULL, r->u.string.ptr, r->u.string.length));
+            }
+        }
+        
+        // defaults
+        if (string_casencmp(label, GRAVITY_JSON_LABELPVALUES, label_size) == 0) {
+            if (value->type != json_array) goto abort_load;
+            if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
+            
+            uint32_t m = value->u.array.length;
+            for (uint32_t j=0; j<m; ++j) {
+                json_value *r = value->u.array.values[j];
+                switch (r->type) {
+                    case json_integer:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_INT((gravity_int_t)r->u.integer));
+                        break;
+                        
+                    case json_double:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_FLOAT((gravity_float_t)r->u.dbl));
+                        break;
+                        
+                    case json_boolean:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_BOOL(r->u.boolean));
+                        break;
+                        
+                    case json_string:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_STRING(NULL, r->u.string.ptr, r->u.string.length));
+                        break;
+                        
+                    case json_object:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_UNDEFINED);
+                        break;
+                        
+                    case json_null:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_NULL);
+                        break;
+                        
+                    case json_none:
+                    case json_array:
+                        marray_push(gravity_value_t, f->pvalue, VALUE_FROM_NULL);
+                        break;
+                }
+            }
+        }
+		
 		// cpool
 		if (string_casencmp(label, GRAVITY_JSON_LABELPOOL, label_size) == 0) {
 			if (value->type != json_array) goto abort_load;
@@ -963,6 +1073,23 @@ void gravity_function_free (gravity_vm *vm, gravity_function_t *f) {
 	if (f->identifier) mem_free((void *)f->identifier);
 	if (f->tag == EXEC_TYPE_NATIVE) {
 		if (f->bytecode) mem_free((void *)f->bytecode);
+        
+        // FREE EACH DEFAULT value
+        size_t n = marray_size(f->pvalue);
+        for (size_t i=0; i<n; i++) {
+            gravity_value_t v = marray_get(f->pvalue, i);
+            gravity_value_free(NULL, v);
+        }
+        marray_destroy(f->pvalue);
+        
+        // FREE EACH PARAM name
+        n = marray_size(f->pname);
+        for (size_t i=0; i<n; i++) {
+            gravity_value_t v = marray_get(f->pname, i);
+            gravity_value_free(NULL, v);
+        }
+        marray_destroy(f->pname);
+        
 		// DO NOT FREE EACH INDIVIDUAL CPOOL ITEM HERE
 		marray_destroy(f->cpool);
     }
@@ -1598,6 +1725,18 @@ static void gravity_map_serialize_iterator (gravity_hash_t *hashtable, gravity_v
 }
 
 void gravity_value_serialize (gravity_value_t v, json_t *json) {
+    // NULL
+    if (VALUE_ISA_NULL(v)) {
+        json_add_null(json, NULL);
+        return;
+    }
+    
+    // UNDEFINED (convention used to represent an UNDEFINED value)
+    if (VALUE_ISA_UNDEFINED(v)) {
+        json_begin_object(json, NULL);
+        json_end_object(json);
+        return;
+    }
 
 	// BOOL
 	if (VALUE_ISA_BOOL(v)) {

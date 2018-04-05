@@ -133,15 +133,15 @@ static opcode_t token2opcode (gtoken_t op) {
 	assert(0);
 	return NOT;
 }
-
-#if 0
 static gravity_value_t literal2value (gnode_literal_expr_t *node) {
 	if (node->type == LITERAL_STRING) return VALUE_FROM_STRING(NULL, node->value.str, node->len);
 	if (node->type == LITERAL_FLOAT) return VALUE_FROM_FLOAT(node->value.d);
 	if (node->type == LITERAL_INT) return VALUE_FROM_INT(node->value.n64);
-	return VALUE_FROM_INT(node->value.n64); // default BOOLEAN case
+    if (node->type == LITERAL_BOOL) return VALUE_FROM_BOOL(node->value.n64);
+    return VALUE_FROM_NULL;
 }
 
+#if 0
 static gravity_list_t *literals2list (gvisitor_t *self, gnode_r *r, uint32_t start, uint32_t stop) {
 	gravity_list_t *list = gravity_list_new(GET_VM(), stop-start);
 
@@ -876,6 +876,23 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	// name must be CLASS_CONSTRUCTOR_NAME and context_object must be a class
 	bool is_constructor = (string_cmp(node->identifier, CLASS_CONSTRUCTOR_NAME) == 0) && (is_class_ctx);
 
+    // loop at each param to save name and check for default values
+    // loop from 1 in order to skip implicit self argument
+    size_t len = gnode_array_size(node->params);
+    for (size_t i=1; i<len; ++i) {
+        gnode_var_t *param = (gnode_var_t *)gnode_array_get(node->params, i);
+        gravity_value_t name = VALUE_FROM_CSTRING(NULL, param->identifier);
+        marray_push(gravity_value_t, f->pname, name);
+        
+        if (node->has_defaults) {
+            // LOOP for each node->params[i]->expr and convert literal to gravity_value_t
+            // if expr is NULL then compute value as UNDEFINED (and add each one to f->defaults preserving the index)
+            gnode_literal_expr_t *literal = (gnode_literal_expr_t *)param->expr;
+            gravity_value_t value = (literal) ? literal2value(literal) : VALUE_FROM_UNDEFINED;
+            marray_push(gravity_value_t, f->pvalue, value);
+        }
+    }
+    
 	CONTEXT_PUSH(f);
 
 	if (is_constructor) {

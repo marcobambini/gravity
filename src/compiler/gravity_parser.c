@@ -112,12 +112,13 @@ static grammar_rule rules[TOK_END];
 // MARK: - Prototypes -
 static const char *parse_identifier (gravity_parser_t *parser);
 static gnode_t *parse_statement (gravity_parser_t *parser);
-static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, bool is_implicit);
+static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, bool is_implicit, bool *has_default_values);
 static gnode_t *parse_compound_statement (gravity_parser_t *parser);
 static gnode_t *parse_expression (gravity_parser_t *parser);
 static gnode_t *parse_declaration_statement (gravity_parser_t *parser);
 static gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier);
 static gnode_t *adjust_assignment_expression (gravity_parser_t *parser, gtoken_t tok, gnode_t *lnode, gnode_t *rnode);
+static gnode_t *parse_literal_expression (gravity_parser_t *parser);
 static gnode_t *parse_macro_statement (gravity_parser_t *parser);
 
 // MARK: - Utils functions -
@@ -295,7 +296,8 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
 	if (!is_implicit) parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
 
 	// parse optional parameter declaration clause
-	gnode_r *params = parse_optional_parameter_declaration(parser, is_implicit);
+    bool has_default_values = false;
+	gnode_r *params = parse_optional_parameter_declaration(parser, is_implicit, &has_default_values);
 
 	// check and consume TOK_OP_CLOSED_PARENTHESIS
 	if (!is_implicit) parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
@@ -313,6 +315,7 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
 	if (!is_inside_var_declaration) parse_semicolon(parser);
 
     // finish func setup
+    func->has_defaults = has_default_values;
     func->params = params;
     func->block = compound;
     return (gnode_t *)func;
@@ -470,10 +473,29 @@ static const char *parse_optional_type_annotation (gravity_parser_t *parser) {
 
 		// parse identifier
 		type_annotation = parse_identifier(parser);
-		if (!type_annotation) return NULL;
 	}
 
 	return type_annotation;
+}
+
+static gnode_t *parse_optional_default_value (gravity_parser_t *parser) {
+    DECLARE_LEXER;
+    gnode_t     *default_value = NULL;
+    gtoken_t    peek = gravity_lexer_peek(lexer);
+    
+    // optional literal default value
+    // function foo (a: string = "Hello", b: number = 3)
+    // type annotation not enforced here
+    
+    // check for optional default value
+    if (peek == TOK_OP_ASSIGN) {
+        gravity_lexer_next(lexer); // consume TOK_OP_ASSIGN
+        
+        // parse literal value
+        default_value = parse_literal_expression(parser);
+    }
+    
+    return default_value;
 }
 
 static gnode_t *parse_parentheses_expression (gravity_parser_t *parser) {
@@ -833,7 +855,7 @@ return_string:
 	return (r) ? gnode_string_interpolation_create(token, r, LAST_DECLARATION()) : gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION());
 }
 
-static gnode_t *parse_literal_expression (gravity_parser_t *parser) {
+gnode_t *parse_literal_expression (gravity_parser_t *parser) {
 	DEBUG_PARSER("parse_literal_expression");
 	DECLARE_LEXER;
 
@@ -1225,7 +1247,7 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser, gravity_hash_t *m
 			// check if parameters are explicit
 			if (gravity_lexer_peek(lexer) == TOK_OP_OPEN_PARENTHESIS) {
 				parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
-				params = parse_optional_parameter_declaration(parser, false);	// add implicit SELF
+				params = parse_optional_parameter_declaration(parser, false, NULL);	// add implicit SELF
 				parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
 			} else {
 				params = gnode_array_create();	// add implicit SELF and VALUE params
@@ -1744,12 +1766,13 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
 	return (gnode_t *)node;
 }
 
-static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, bool is_implicit) {
+static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, bool is_implicit, bool *has_default_values) {
 	DEBUG_PARSER("parse_parameter_declaration");
 	DECLARE_LEXER;
 
 	gtoken_s	token = NO_TOKEN;
 	gnode_t		*node = NULL;
+    gnode_t     *default_value = NULL;
 	const char	*identifier = NULL;
 	const char	*type_annotation = NULL;
 
@@ -1791,8 +1814,12 @@ loop:
         parser->delegate->type_callback(&token, type_annotation, parser->delegate->xdata);
     }
 
+    // parse optional default LITERAL value
+    default_value = parse_optional_default_value(parser);
+    if (default_value && has_default_values) *has_default_values = true;
+    
 	// fill parameters array with the new node
-	node = gnode_variable_create(token, identifier, type_annotation, 0, NULL, LAST_DECLARATION());
+	node = gnode_variable_create(token, identifier, type_annotation, 0, default_value, LAST_DECLARATION());
 	if (node) gnode_array_push(params, node);
     DEBUG_PARSER("PARAMETER: %s %s", identifier, (type_annotation) ? type_annotation : "");
 

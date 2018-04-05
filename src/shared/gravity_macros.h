@@ -111,6 +111,8 @@
 #define GRAVITY_JSON_LABELVALUE             "value"
 #define GRAVITY_JSON_LABELIDENTIFIER		"identifier"
 #define GRAVITY_JSON_LABELPOOL				"pool"
+#define GRAVITY_JSON_LABELPVALUES           "pvalues"
+#define GRAVITY_JSON_LABELPNAMES            "pnames"
 #define GRAVITY_JSON_LABELMETA				"meta"
 #define GRAVITY_JSON_LABELBYTECODE			"bytecode"
 #define GRAVITY_JSON_LABELNPARAM			"nparam"
