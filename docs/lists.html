@@ -142,6 +142,47 @@
 	list.join(" + "); // Becomes: "1 + 2 + 3 + 4 + 5"
 			</code></pre>
 
+			<h4 class="section-h4">List Map</h4>
+			<p>The List class implements the map method as a convenient way to
+			create a new list using the current values of a list in some defined way:
+			</p>
+			<pre><code class="swift">
+  var numbers = [1,2,3,4,5,6,7,8,9,10]
+
+  var squared = numbers.map(func(num) {
+    return num*num
+  })
+  // squared is now equal to [1,4,9,16,25,36,49,64,81,100]
+			</code></pre>
+
+			<h4 class="section-h4">List Filter</h4>
+			<p>The List class implements the filter method as a convenient way to
+			create a new list that contains the elements of the original list which
+			passed a specified test:
+			</p>
+			<pre><code class="swift">
+  var numbers = [1,2,3,4,5,6,7,8,9,10]
+
+  var even = numbers.map(func(num) {
+    return !(num % 2)
+  })
+  // even is now equal to [2,4,6,8,10]
+			</code></pre>
+
+			<h4 class="section-h4">List Reduce</h4>
+			<p>The List class implements the reduce method as a convenient way to
+			create a new list reduces a list to a single value based on a provided
+			callback:
+			</p>
+			<pre><code class="swift">
+  var numbers = [1,2,3,4,5,6,7,8,9,10]
+
+  var sum = numbers.reduce(0, func(num1, num2) {
+    return num1+num2
+  })
+  // sum is now equal to 55
+			</code></pre>
+
        	</div> <!-- /row -->
        </div> <!-- /main-content -->
      </div> <!-- /container -->
