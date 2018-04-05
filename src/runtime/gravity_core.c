@@ -2228,9 +2228,19 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 	// initialize the list to have a size of 0
 	gravity_list_t *list = gravity_list_new(vm, 0);
 
-	// split loop
 	char *original = string->s;
-    uint32_t slen = string->len;
+	uint32_t slen = string->len;
+
+	// If the separator is empty, then we split the string at every character
+	if (seplen == 0) {
+    for (uint32_t i=0; i<slen; ++i) {
+			marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, 1));
+			original += 1;
+		}
+		RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
+	}
+
+	// split loop
 	while (1) {
 		char *p = string_strnstr(original, sep, (size_t)slen);
 		if (p == NULL) {
