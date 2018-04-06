@@ -1194,13 +1194,22 @@ static bool map_keys (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 	RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
 
-static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+#if GRAVITY_MAP_DOTSUGAR
+static bool map_load (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
+    
+    // called when a map is accessed with dot notation
+    // for example:
+    // var map = ["key1": 10];
+    // return map.key1;
+    // in this case (since we override object_load super) try to access
+    // class first and if nothing is found access its internal hash table
+    
 	gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
 	gravity_value_t key = GET_VALUE(1);
 	if (VALUE_ISA_NOTVALID(key)) RETURN_ERROR("Invalid map key.");
 
-    #if GRAVITY_MAP_DOTSUGAR
+    // check class first (so user will not be able to break anything)
     gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
     if (obj) {
         if (OBJECT_ISA_CLOSURE(obj)) {
@@ -1217,8 +1226,26 @@ static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         }
         RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
     }
+    
+    // then check its internal hash
+    gravity_value_t *value = gravity_hash_lookup(map->hash, key);
+    RETURN_VALUE((value) ? *value : VALUE_FROM_NULL, rindex);
+}
     #endif
 
+static bool map_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    
+    // called when a map is accessed with [] notation
+    // for example:
+    // var map = ["key1": 10];
+    // return map["key1"];
+    // in this case ALWAYS access its internal hash table
+    
+	gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
+	gravity_value_t key = GET_VALUE(1);
+	if (VALUE_ISA_NOTVALID(key)) RETURN_ERROR("Invalid map key.");
+    
 	gravity_value_t *value = gravity_hash_lookup(map->hash, key);
 	RETURN_VALUE((value) ? *value : VALUE_FROM_NULL, rindex);
 }
@@ -1237,13 +1264,6 @@ static bool map_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 	gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
 	gravity_value_t key = GET_VALUE(1);
 	gravity_value_t value = GET_VALUE(2);
-
-    #if GRAVITY_MAP_DOTSUGAR
-    // Runtime sanity check added on April 04, 2018 in order to prevent the user from
-    // accidentally override a predefined Map built-in method/property
-    gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_map, key);
-    if (obj) RETURN_ERROR("Cannot override an internal Map method (%s) using the dot syntax.", VALUE_ISA_STRING(key) ? VALUE_AS_CSTRING(key) : "N/A");
-    #endif
 
 	gravity_hash_insert(map->hash, key, value);
 	RETURN_NOVALUE();
@@ -2706,7 +2726,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(map_storeat));
     gravity_class_bind(gravity_class_map, "hasKey", NEW_CLOSURE_VALUE(map_haskey));
 	#if GRAVITY_MAP_DOTSUGAR
-	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOAD_NAME, NEW_CLOSURE_VALUE(map_loadat));
+	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOAD_NAME, NEW_CLOSURE_VALUE(map_load));
 	gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(map_storeat));
 	#endif
 

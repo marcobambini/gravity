@@ -1,10 +1,7 @@
 #unittest {
 	name: "Map count redeclared (when GRAVITY_MAP_DOTSUGAR is set to 1).";
-	result: 6;
+	result: 669;
 };
-
-// result is 669 when GRAVITY_MAP_DOTSUGAR macro is 0
-// result is 6 when GRAVITY_MAP_DOTSUGAR macro is 1
 
 func main() {
 	var map = ["Andrea":22, "Marco":23, "count":666];
