@@ -380,7 +380,7 @@ static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, boo
 	// check if bridged data needs to be freed too
 	if (c->xdata && vm) {
 		gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-		if (delegate && delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)c);
+		if (delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)c);
 	}
 
 	if (c->identifier) mem_free((void *)c->identifier);
@@ -446,7 +446,7 @@ uint32_t gravity_class_size (gravity_vm *vm, gravity_class_t *c) {
 	hash_size += gravity_hash_memsize(c->htable);
 
 	gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-	if ((c->xdata) && (delegate) && (delegate->bridge_size))
+	if (c->xdata && delegate->bridge_size)
 		class_size += delegate->bridge_size(vm, c->xdata);
 
 	return class_size;
@@ -932,7 +932,7 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
 			continue;
 		}
 
-        // names
+        // arguments names
         if (string_casencmp(label, GRAVITY_JSON_LABELPNAMES, label_size) == 0) {
             if (value->type != json_array) goto abort_load;
             if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
@@ -944,7 +944,7 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
             }
         }
         
-        // defaults
+        // arguments default values
         if (string_casencmp(label, GRAVITY_JSON_LABELPVALUES, label_size) == 0) {
             if (value->type != json_array) goto abort_load;
             if (f->tag != EXEC_TYPE_NATIVE) goto abort_load;
@@ -1067,7 +1067,7 @@ void gravity_function_free (gravity_vm *vm, gravity_function_t *f) {
 	// check if bridged data needs to be freed too
 	if (f->xdata && vm) {
 		gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-		if (delegate && delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)f);
+		if (delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)f);
 	}
 
 	if (f->identifier) mem_free((void *)f->identifier);
@@ -1112,7 +1112,7 @@ uint32_t gravity_function_size (gravity_vm *vm, gravity_function_t *f) {
 		if ((f->special[1]) && (f->special[0] != f->special[1])) func_size += gravity_closure_size(vm, (gravity_closure_t *)f->special[1]);
 	} else if (f->tag == EXEC_TYPE_BRIDGED) {
 		gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-		if ((f->xdata) && (delegate) && (delegate->bridge_size))
+		if (f->xdata && delegate->bridge_size)
 			func_size += delegate->bridge_size(vm, f->xdata);
 	}
 
@@ -1513,11 +1513,15 @@ gravity_instance_t *gravity_instance_new (gravity_vm *vm, gravity_class_t *c) {
 	return instance;
 }
 
-gravity_instance_t *gravity_instance_dup (gravity_vm *vm, gravity_instance_t *src) {
+gravity_instance_t *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *src) {
 	gravity_class_t *c = src->objclass;
 
 	gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t) + (c->nivars * sizeof(gravity_value_t)));
-	instance->objclass = c;
+	instance->isa = gravity_class_instance;
+    instance->objclass = c; // TODO: if gravity_class_is_anon(c) then c must be deeply copied
+    
+    gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+    instance->xdata = (src->xdata && delegate->bridge_clone) ? delegate->bridge_clone(vm, src->xdata) : NULL;
 	for (uint32_t i=0; i<c->nivars; ++i) instance->ivars[i] = src->ivars[i];
 
 	if (vm) gravity_vm_transfer(vm, (gravity_object_t*) instance);
@@ -1538,7 +1542,7 @@ void gravity_instance_free (gravity_vm *vm, gravity_instance_t *i) {
 	// check if bridged data needs to be freed too
 	if (i->xdata && vm) {
 		gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-		if (delegate && delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)i);
+		if (delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)i);
 	}
 
 	mem_free((void *)i);
@@ -1562,7 +1566,7 @@ uint32_t gravity_instance_size (gravity_vm *vm, gravity_instance_t *i) {
 	uint32_t instance_size = sizeof(gravity_instance_t) + (i->objclass->nivars * sizeof(gravity_value_t));
 
 	gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-	if ((i->xdata) && (delegate) && (delegate->bridge_size))
+	if (i->xdata && delegate->bridge_size)
 		instance_size += delegate->bridge_size(vm, i->xdata);
 
 	return instance_size;
@@ -1598,7 +1602,7 @@ bool gravity_value_vm_equals (gravity_vm *vm, gravity_value_t v1, gravity_value_
     gravity_instance_t *obj2 = (gravity_instance_t *)VALUE_AS_OBJECT(v2);
 
     gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-    if (delegate && obj1->xdata && obj2->xdata && delegate->bridge_equals) {
+    if (obj1->xdata && obj2->xdata && delegate->bridge_equals) {
         return delegate->bridge_equals(vm, obj1->xdata, obj2->xdata);
     }
 

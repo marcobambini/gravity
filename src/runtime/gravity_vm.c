@@ -28,6 +28,9 @@ static void gravity_gc_transform (gravity_hash_t *hashtable, gravity_value_t key
 static uint32_t cache_refcount = 0;
 static gravity_value_t cache[GRAVITY_VTABLE_SIZE];
 
+// Used in order to guarantee a NON NULL delegate (so I can speedup comparisons)
+static gravity_delegate_t empty_delegate;
+
 // Opaque VM struct
 struct gravity_vm {
 	gravity_hash_t		*context;							// context hash table
@@ -86,12 +89,10 @@ static void report_runtime_error (gravity_vm *vm, error_type_t error_type, const
 		va_end (arg);
 	}
 
-	gravity_error_callback errorf = NULL;
-	if (vm->delegate) errorf = ((gravity_delegate_t *)vm->delegate)->error_callback;
-
-	if (errorf) {
+	gravity_error_callback error_cb = ((gravity_delegate_t *)vm->delegate)->error_callback;
+	if (error_cb) {
 		void *data = ((gravity_delegate_t *)vm->delegate)->xdata;
-		errorf(error_type, buffer, ERROR_DESC_NONE, data);
+		error_cb(error_type, buffer, ERROR_DESC_NONE, data);
 	} else {
 		printf("%s\n", buffer);
 		fflush(stdout);
@@ -1329,7 +1330,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
     vm->maxccalls = MAX_CCALLS;
 
 	vm->pc = 0;
-	vm->delegate = delegate;
+    vm->delegate = (delegate) ? delegate : &empty_delegate;
 	vm->context = gravity_hash_create(DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
 
 	// garbage collector
@@ -1549,7 +1550,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 			break;
 
 		case EXEC_TYPE_BRIDGED:
-			if (vm && vm->delegate && vm->delegate->bridge_execute)
+			if (vm && vm->delegate->bridge_execute)
 				result = vm->delegate->bridge_execute(vm, f->xdata, &stackstart[rwin], nparams, GRAVITY_FIBER_REGISTER);
 			break;
 

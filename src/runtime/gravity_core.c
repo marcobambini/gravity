@@ -556,7 +556,7 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
     if (!obj) {
         // not explicitly declared so check for dynamic property in bridge case
         gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-        if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_getundef)) {
+        if (instance && instance->xdata && delegate->bridge_getundef) {
             if (delegate->bridge_getundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), rindex)) return true;
         }
     }
@@ -651,7 +651,7 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     if (!obj) {
         // not explicitly declared so check for dynamic property in bridge case
         gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-        if ((instance) && (instance->xdata) && (delegate) && (delegate->bridge_setundef)) {
+        if (instance && instance->xdata && delegate->bridge_setundef) {
             if (delegate->bridge_setundef(vm, instance->xdata, target, VALUE_AS_CSTRING(key), value)) RETURN_NOVALUE();
         }
     }
@@ -1439,7 +1439,7 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 
 	// no closure found (means no constructor found in this class)
 	gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-	if (c->xdata && delegate && delegate->bridge_initinstance) {
+	if (c->xdata && delegate->bridge_initinstance) {
 		// even if no closure is found try to execute the default bridge init instance (if class is bridged)
 		if (nargs != 1) RETURN_ERROR("No init with %d parameters found in class %s", nargs-1, c->identifier);
 		delegate->bridge_initinstance(vm, c->xdata, instance, args, nargs);

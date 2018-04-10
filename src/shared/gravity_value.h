@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.2"     // git tag 0.4.2
-#define GRAVITY_VERSION_NUMBER				0x000402    // git push --tags
+#define GRAVITY_VERSION						"0.4.3"     // git tag 0.4.3
+#define GRAVITY_VERSION_NUMBER				0x000403    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -464,7 +464,7 @@ GRAVITY_API uint32_t			gravity_fiber_size (gravity_vm *vm, gravity_fiber_t *fibe
 
 // MARK: - INSTANCE -
 GRAVITY_API gravity_instance_t	*gravity_instance_new (gravity_vm *vm, gravity_class_t *c);
-GRAVITY_API gravity_instance_t	*gravity_instance_dup (gravity_vm *vm, gravity_instance_t *src);
+GRAVITY_API gravity_instance_t	*gravity_instance_clone (gravity_vm *vm, gravity_instance_t *instance);
 GRAVITY_API void				gravity_instance_setivar (gravity_instance_t *instance, uint32_t idx, gravity_value_t value);
 GRAVITY_API void				gravity_instance_setxdata (gravity_instance_t *i, void *xdata);
 GRAVITY_API void				gravity_instance_free (gravity_vm *vm, gravity_instance_t *i);
