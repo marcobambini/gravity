@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.3"     // git tag 0.4.3
-#define GRAVITY_VERSION_NUMBER				0x000403    // git push --tags
+#define GRAVITY_VERSION						"0.4.4"     // git tag 0.4.4
+#define GRAVITY_VERSION_NUMBER				0x000404    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -83,7 +83,7 @@ extern "C" {
 #endif
 
 #ifndef GRAVITY_NULL_SILENT
-#define GRAVITY_NULL_SILENT					1			// if 1 then messages sent to null does not produce any runtime error
+#define GRAVITY_NULL_SILENT					0			// if 1 then messages sent to null does not produce any runtime error
 #endif
 
 #ifndef GRAVITY_MAP_DOTSUGAR
