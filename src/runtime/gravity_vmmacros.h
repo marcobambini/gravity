@@ -259,7 +259,7 @@
 													} break;																				\
 													case EXEC_TYPE_BRIDGED:	{																\
 														DEBUG_ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");	\
-														if (!delegate->bridge_execute(vm, _c->f->xdata, &stackstart[rwin], nargs, r1)) {	\
+														if (!delegate->bridge_execute(vm, _c->f->xdata, STACK_GET(0), &stackstart[rwin], nargs, r1)) {	\
 															if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);							\
 														}																					\
 													} break;																				\

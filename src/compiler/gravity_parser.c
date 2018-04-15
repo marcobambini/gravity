@@ -310,6 +310,7 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
     // if func is declarared inside a variable declaration node then the semicolon check must be
     // performed once at variable declaration node level ad not inside the func node
     bool is_inside_var_declaration = ((marray_size(parser->vdecl) > 0) && (marray_last(parser->vdecl) == 1));
+    func->is_closure = is_inside_var_declaration;
     
 	// parse optional semicolon
 	if (!is_inside_var_declaration) parse_semicolon(parser);
@@ -612,7 +613,8 @@ static gnode_t *parse_function_expression (gravity_parser_t *parser) {
 	// if it is a func keyword used to refers to
 	// the current executing function
 
-	return parse_function(parser, false, 0, 0);
+    gnode_t *node = parse_function(parser, false, 0, 0);
+    return node;
 }
 
 static gnode_t *parse_identifier_expression (gravity_parser_t *parser) {
@@ -1629,7 +1631,11 @@ static gnode_t *parse_function_declaration (gravity_parser_t *parser, gtoken_t a
 	// identifier uniqueness checks
 	gnode_t *node = parse_function(parser, true, access_specifier, storage_specifier);
 
-	if (IS_FUNCTION_ENCLOSED()) return local_store_declaration(parser, ((gnode_function_decl_t *)node)->identifier, access_specifier, storage_specifier, node);
+    if (IS_FUNCTION_ENCLOSED()) {
+        gnode_function_decl_t *func = (gnode_function_decl_t *)node;
+        func->is_closure = true;
+        return local_store_declaration(parser, func->identifier, access_specifier, storage_specifier, node);
+    }
 	return node;
 }
 

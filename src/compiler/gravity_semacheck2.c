@@ -236,12 +236,12 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 				// symbol is local
 				SET_NODE_LOCATION(node, LOCATION_LOCAL, index, nf);
 			}
-			DEBUG_LOOKUP("Identifier %s found in FUNCTION %s (nf: %lu index: %d)", identifier, ((gnode_function_decl_t *)target)->identifier, nf-1, index);
+            DEBUG_LOOKUP("Identifier %s found in FUNCTION %s (nf: %d index: %d)", identifier, ((gnode_function_decl_t *)target)->identifier, nf-1, index);
 		}
 		else if (target_is_class) {
 			// Symbol found in a class
 			SET_NODE_LOCATION(node, (nc == 1) ? LOCATION_CLASS_IVAR_SAME : LOCATION_CLASS_IVAR_OUTER, index, nc-1);
-			DEBUG_LOOKUP("Identifier %s found in CLASS %s (up to %zu outer levels)", identifier, ((gnode_class_decl_t *)target)->identifier, nc-1);
+            DEBUG_LOOKUP("Identifier %s found in CLASS %s (up to %d outer levels)", identifier, ((gnode_class_decl_t *)target)->identifier, nc-1);
 		}
 		else if (target_is_module) {
 			// Symbol found in a module

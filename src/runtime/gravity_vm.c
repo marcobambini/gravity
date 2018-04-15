@@ -1100,11 +1100,12 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						if (VALUE_ISA_CLASS(v)) {
 							DEBUG_ASSERT(delegate->bridge_initinstance, "bridge_initinstance delegate callback is mandatory");
 							gravity_instance_t *instance = (gravity_instance_t *)VALUE_AS_OBJECT(stackstart[rwin]);
-							result = delegate->bridge_initinstance(vm, closure->f->xdata, instance, &stackstart[rwin], r3);
+							result = delegate->bridge_initinstance(vm, closure->f->xdata, STACK_GET(0), instance, &stackstart[rwin], r3);
 							SETVALUE(r1, VALUE_FROM_OBJECT(instance));
 						} else {
 							DEBUG_ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");
-							result = delegate->bridge_execute(vm, closure->f->xdata, &stackstart[rwin], r3, r1);
+                            // starting from version 0.4.4 we pass context object to execute in order to give the opportunity to pass it as self parameter to closures
+							result = delegate->bridge_execute(vm, closure->f->xdata, STACK_GET(0), &stackstart[rwin], r3, r1);
 						}
 						if (!result && fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
 					} break;
@@ -1470,7 +1471,7 @@ void gravity_vm_loadclosure (gravity_vm *vm, gravity_closure_t *closure) {
 }
 
 bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t selfvalue, gravity_value_t params[], uint16_t nparams) {
-	if (vm->aborted) return false;
+	if (!vm || !closure || vm->aborted) return false;
 
 	// do not waste cycles on empty functions
 	gravity_function_t *f = closure->f;
@@ -1550,8 +1551,8 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 			break;
 
 		case EXEC_TYPE_BRIDGED:
-			if (vm && vm->delegate->bridge_execute)
-				result = vm->delegate->bridge_execute(vm, f->xdata, &stackstart[rwin], nparams, GRAVITY_FIBER_REGISTER);
+			if (vm->delegate->bridge_execute)
+				result = vm->delegate->bridge_execute(vm, f->xdata, selfvalue, &stackstart[rwin], nparams, GRAVITY_FIBER_REGISTER);
 			break;
 
 		case EXEC_TYPE_SPECIAL:

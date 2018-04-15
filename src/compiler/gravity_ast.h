@@ -124,6 +124,7 @@ typedef struct {
 	uint16_t			nlocals;			// locals counter
 	uint16_t			nparams;			// formal parameters counter
     bool                has_defaults;       // flag set if parmas has default values
+    bool                is_closure;         // flag to check if function is a closure
 	gupvalue_r			*uplist;			// list of upvalues used in function (can be empty)
 } gnode_function_decl_t;
 typedef gnode_function_decl_t gnode_function_expr_t;

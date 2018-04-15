@@ -251,6 +251,39 @@ static void fix_superclasses (gvisitor_t *self) {
 	}
 }
 
+static bool context_is_class (gvisitor_t *self) {
+    gravity_object_r ctx = ((codegen_t *)self->data)->context;
+    size_t len = marray_size(ctx);
+    
+    for (int i=(int)len-1; i>=0; --i) {
+        gravity_object_t *context_object = (gravity_object_t *)marray_get(ctx, i);
+        if (OBJECT_ISA_CLASS(context_object)) return true;
+    }
+    
+    return false;
+}
+
+static bool node_is_closure (gnode_t *node) {
+    DEBUG_CODEGEN("node_is_closure");
+    
+    if (node && NODE_ISA(node, NODE_IDENTIFIER_EXPR)) {
+        gnode_identifier_expr_t *identifier = (gnode_identifier_expr_t *)node;
+        node = identifier->symbol;
+    }
+    
+    if (node && NODE_ISA(node, NODE_VARIABLE)) {
+        gnode_var_t *var = (gnode_var_t *)node;
+        node = var->expr;
+    }
+    
+    if (node && NODE_ISA(node, NODE_FUNCTION_DECL)) {
+        gnode_function_decl_t *f = (gnode_function_decl_t *)node;
+        return f->is_closure;
+    }
+    
+    return false;
+}
+
 // this function can be called ONLY from visit_postfix_expr where a context has been pushed
 static uint32_t compute_self_register (gvisitor_t *self, ircode_t *code, gnode_t *node, uint32_t target_register, gnode_r *list) {
 	DEBUG_CODEGEN("compute_self_register");
@@ -285,7 +318,11 @@ static uint32_t compute_self_register (gvisitor_t *self, ircode_t *code, gnode_t
 		return reg;
 	}
 
-	// no special register found, so just return the target
+	// no special register found
+    // check if node is a closure defined inside a class context (so self is needed)
+    if (node_is_closure(node) && context_is_class(self)) return 0;
+    
+    // default case is to return the target register
 	return target_register;
 }
 

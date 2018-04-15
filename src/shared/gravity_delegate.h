@@ -41,12 +41,12 @@ typedef const char*			(*gravity_precode_callback) (void *xdata);
 typedef const char*			(*gravity_loadfile_callback) (const char *file, size_t *size, uint32_t *fileid, void *xdata);
 typedef const char*			(*gravity_filename_callback) (uint32_t fileid, void *xdata);
 
-typedef bool				(*gravity_bridge_initinstance) (gravity_vm *vm, void *xdata, gravity_instance_t *instance, gravity_value_t args[], int16_t nargs);
+typedef bool				(*gravity_bridge_initinstance) (gravity_vm *vm, void *xdata, gravity_value_t ctx, gravity_instance_t *instance, gravity_value_t args[], int16_t nargs);
 typedef bool				(*gravity_bridge_setvalue) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, gravity_value_t value);
 typedef bool				(*gravity_bridge_getvalue) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, uint32_t vindex);
 typedef bool				(*gravity_bridge_setundef) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, gravity_value_t value);
 typedef bool				(*gravity_bridge_getundef) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, uint32_t vindex);
-typedef bool				(*gravity_bridge_execute)  (gravity_vm *vm, void *xdata, gravity_value_t args[], int16_t nargs, uint32_t vindex);
+typedef bool				(*gravity_bridge_execute)  (gravity_vm *vm, void *xdata, gravity_value_t ctx, gravity_value_t args[], int16_t nargs, uint32_t vindex);
 typedef bool                (*gravity_bridge_equals) (gravity_vm *vm, void *obj1, void *obj2);
 typedef const char*         (*gravity_bridge_string) (gravity_vm *vm, void *xdata, uint32_t *len);
 typedef void*               (*gravity_bridge_clone)  (gravity_vm *vm, void *xdata);

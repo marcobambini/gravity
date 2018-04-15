@@ -1442,7 +1442,7 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 	if (c->xdata && delegate->bridge_initinstance) {
 		// even if no closure is found try to execute the default bridge init instance (if class is bridged)
 		if (nargs != 1) RETURN_ERROR("No init with %d parameters found in class %s", nargs-1, c->identifier);
-		delegate->bridge_initinstance(vm, c->xdata, instance, args, nargs);
+		delegate->bridge_initinstance(vm, c->xdata, args[0], instance, args, nargs);
 	}
 
 	// in any case set destination register to newly allocated instance
@@ -1457,7 +1457,7 @@ static bool closure_disassemble (gravity_vm *vm, gravity_value_t *args, uint16_t
 	gravity_closure_t *closure = (gravity_closure_t *)(GET_VALUE(0).p);
 	if (closure->f->tag != EXEC_TYPE_NATIVE) RETURN_VALUE(VALUE_FROM_NULL, rindex);
 
-	const char *buffer = gravity_disassemble((const char *)closure->f->bytecode, closure->f->ninsts, false);
+	const char *buffer = gravity_disassemble(vm, closure->f, (const char *)closure->f->bytecode, closure->f->ninsts, false);
 	if (!buffer) RETURN_VALUE(VALUE_FROM_NULL, rindex);
 
 	RETURN_VALUE(gravity_string_to_value(vm, buffer, AUTOLENGTH), rindex);
