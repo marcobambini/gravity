@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.4"     // git tag 0.4.4
-#define GRAVITY_VERSION_NUMBER				0x000404    // git push --tags
+#define GRAVITY_VERSION						"0.4.5"     // git tag 0.4.5
+#define GRAVITY_VERSION_NUMBER				0x000405    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -288,6 +288,7 @@ typedef struct {
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
 
 	gravity_function_t		*f;					// function prototype
+    gravity_object_t        *context;           // context where the closure has been created
 	gravity_upvalue_t		**upvalue;			// upvalue array
 } gravity_closure_t;
 

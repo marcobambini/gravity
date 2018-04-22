@@ -32,7 +32,7 @@ GRAVITY_API gravity_vm			*gravity_vm_newmini (void);
 GRAVITY_API void				gravity_vm_set_callbacks (gravity_vm *vm, vm_transfer_cb vm_transfer, vm_cleanup_cb vm_cleanup);
 GRAVITY_API void				gravity_vm_free (gravity_vm *vm);
 GRAVITY_API void				gravity_vm_reset (gravity_vm *vm);
-GRAVITY_API bool				gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t selfvalue, gravity_value_t params[], uint16_t nparams);
+GRAVITY_API bool				gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t sender, gravity_value_t params[], uint16_t nparams);
 GRAVITY_API bool				gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure);
 GRAVITY_API void				gravity_vm_loadclosure (gravity_vm *vm, gravity_closure_t *closure);
 GRAVITY_API void				gravity_vm_setvalue (gravity_vm *vm, const char *key, gravity_value_t value);
