@@ -33,6 +33,9 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 	// increment internal error counter
 	++self->nerr;
 
+    // sanity check
+    if (!node) return;
+    
 	// get error callback (if any)
 	void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
 	gravity_error_callback error_fn = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->error_callback : NULL;
