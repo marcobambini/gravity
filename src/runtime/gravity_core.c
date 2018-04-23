@@ -1896,7 +1896,12 @@ static bool operator_string_sub (gravity_vm *vm, gravity_value_t *args, uint16_t
 
 	gravity_string_t *s1 = VALUE_AS_STRING(v1);
 	gravity_string_t *s2 = VALUE_AS_STRING(v2);
-
+    
+    // special case
+    if (s2->len == 0) {
+        RETURN_VALUE(VALUE_FROM_CSTRING(vm, s1->s), rindex);
+    }
+    
 	// subtract s2 from s1
 	char *found = string_strnstr(s1->s, s2->s, (size_t)s1->len);
 	if (!found) RETURN_VALUE(VALUE_FROM_STRING(vm, s1->s, s1->len), rindex);
