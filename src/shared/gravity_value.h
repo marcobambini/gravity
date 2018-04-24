@@ -166,10 +166,12 @@ extern "C" {
 typedef double								gravity_float_t;
 #define FLOAT_MAX                           DBL_MAX
 #define FLOAT_MIN                           DBL_MIN
+#define FLOAT_EPSILON                       0.00001
 #else
 typedef float								gravity_float_t;
 #define FLOAT_MAX                           FLT_MAX
 #define FLOAT_MIN                           FLT_MIN
+#define FLOAT_EPSILON                       0.00001
 #endif
 
 #if GRAVITY_ENABLE_INT64

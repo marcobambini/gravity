@@ -1565,7 +1565,38 @@ static bool operator_float_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t 
 
 	DECLARE_2VARIABLES(v1, v2, 0, 1);
 	INTERNAL_CONVERT_FLOAT(v2);
+    
+    // simpler equality test
 	if (v1.f == v2.f) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    
+    #if GRAVITY_ENABLE_DOUBLE
+    double diff = fabs(v1.f - v2.f);
+    #else
+    float diff = fabsf(v1.f - v2.f);
+    #endif
+    
+    // simple equality test
+    if (diff < FLOAT_EPSILON) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    
+    // a more accurate equality test is needed for floating point numbers
+    // from https://stackoverflow.com/questions/30808556/float-vs-double-comparison
+    // and http://floating-point-gui.de/errors/comparison/
+    // check also https://bitbashing.io/comparing-floats.html
+    if (v1.f == 0 || v2.f == 0 || diff < FLOAT_MIN) {
+        if (diff < (FLOAT_EPSILON * FLOAT_MIN)) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    } else {
+        #if GRAVITY_ENABLE_DOUBLE
+        double a = fabs((double)v1.f);
+        double b = fabs((double)v2.f);
+        double min = fmin(a + b, FLOAT_MAX);
+        #else
+        float a = fabsf((float)v1.f);
+        float b = fabsf((float)v2.f);
+        float min = fminf(a + b, FLOAT_MAX);
+        #endif
+        if (diff / min < FLOAT_EPSILON) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+    }
+    
 	if (v1.f > v2.f) RETURN_VALUE(VALUE_FROM_INT(1), rindex);
 	RETURN_VALUE(VALUE_FROM_INT(-1), rindex);
 }
