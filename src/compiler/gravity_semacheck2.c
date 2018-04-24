@@ -936,6 +936,9 @@ static void visit_unary_expr (gvisitor_t *self, gnode_unary_expr_t *node) {
 
 static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 	DEBUG_SEMANTIC("visit_postfix_expr");
+    
+    // sanity check
+    if (!node->id) {REPORT_ERROR(node, "Invalid postfix expression."); return;}
 
 	// a postfix expression is an expression that requires an in-context lookup that depends on id
 	// in a statically typed language the loop should check every member of the postfix expression
