@@ -33,6 +33,7 @@ typedef struct {
 #define ERROR_DESC_NONE		(error_desc_t){0,0,0,0,NULL}
 
 typedef void				(*gravity_log_callback)	(const char *message, void *xdata);
+typedef void                (*gravity_log_clear) (void *xdata);
 typedef void				(*gravity_error_callback) (error_type_t error_type, const char *description, error_desc_t error_desc, void *xdata);
 typedef void				(*gravity_unittest_callback) (error_type_t error_type, const char *desc, const char *note, gravity_value_t value, int32_t row, int32_t col, void *xdata);
 typedef void				(*gravity_parser_callback) (void *token, void *xdata);
@@ -40,6 +41,7 @@ typedef void                (*gravity_type_callback) (void *token, const char *t
 typedef const char*			(*gravity_precode_callback) (void *xdata);
 typedef const char*			(*gravity_loadfile_callback) (const char *file, size_t *size, uint32_t *fileid, void *xdata);
 typedef const char*			(*gravity_filename_callback) (uint32_t fileid, void *xdata);
+typedef const char**        (*gravity_optclass_callback) (void);
 
 typedef bool				(*gravity_bridge_initinstance) (gravity_vm *vm, void *xdata, gravity_value_t ctx, gravity_instance_t *instance, gravity_value_t args[], int16_t nargs);
 typedef bool				(*gravity_bridge_setvalue) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, gravity_value_t value);
@@ -59,6 +61,7 @@ typedef struct {
 
 	// callbacks
 	gravity_log_callback		log_callback;			// log reporting callback
+    gravity_log_clear           log_clear;              // log reset callback
 	gravity_error_callback		error_callback;			// error reporting callback
 	gravity_unittest_callback	unittest_callback;		// special unit test callback
 	gravity_parser_callback		parser_callback;		// lexer callback used for syntax highlight
@@ -66,6 +69,7 @@ typedef struct {
 	gravity_precode_callback	precode_callback;		// called at parse time in order to give the opportunity to add custom source code
 	gravity_loadfile_callback	loadfile_callback;		// callback to give the opportunity to load a file from an import statement
 	gravity_filename_callback	filename_callback;		// called while reporting an error in order to be able to convert a fileid to a real filename
+    gravity_optclass_callback   optional_classes;       // optional classes to be exposed to the semantic checher as extern (to be later registered)
 
 	// bridge
 	gravity_bridge_initinstance	bridge_initinstance;	// init class

@@ -1582,6 +1582,7 @@ static bool operator_float_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t 
     // from https://stackoverflow.com/questions/30808556/float-vs-double-comparison
     // and http://floating-point-gui.de/errors/comparison/
     // check also https://bitbashing.io/comparing-floats.html
+    // the ref should be https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
     if (v1.f == 0 || v2.f == 0 || diff < FLOAT_MIN) {
         if (diff < (FLOAT_EPSILON * FLOAT_MIN)) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     } else {

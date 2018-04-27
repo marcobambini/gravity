@@ -2568,6 +2568,18 @@ static void parser_register_optional_classes (gravity_parser_t *parser) {
     gnode_array_push(decls, decl);
     #endif
 
+    // check if optional classes callback is registered
+    if (parser->delegate && parser->delegate->optional_classes) {
+        const char **list = parser->delegate->optional_classes();
+        uint32_t i = 0;
+        while (list[i]) {
+            const char *identifier = list[i];
+            gnode_t *decl = gnode_variable_create(NO_TOKEN, string_dup(identifier), NULL, 0, NULL, LAST_DECLARATION());
+            gnode_array_push(decls, decl);
+            ++i;
+        }
+    }
+    
     // register a variable declaration node in global statements
     gnode_t *node = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, 0, TOK_KEY_EXTERN, decls, NULL, LAST_DECLARATION());;
     gnode_array_push(parser->statements, (gnode_t *)node);
