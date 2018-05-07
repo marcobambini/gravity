@@ -186,7 +186,7 @@ static void report_error (gravity_parser_t *parser, error_type_t error_type, gto
 	};
 
 	// finally call error callback
-	if (error_fn) error_fn(error_type, buffer, error_desc, data);
+	if (error_fn) error_fn(NULL, error_type, buffer, error_desc, data);
 	else printf("%s\n", buffer);
 }
 
@@ -2009,7 +2009,7 @@ static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
 	// report unittest to delegate
 	if ((parser->delegate) && (parser->delegate->unittest_callback)) {
 		gravity_unittest_callback unittest_cb = parser->delegate->unittest_callback;
-		unittest_cb(expected_error, description, note, expected_value, expected_nrow, expected_ncol, parser->delegate->xdata);
+		unittest_cb(NULL, expected_error, description, note, expected_value, expected_nrow, expected_ncol, parser->delegate->xdata);
 	} else {
 		// it was unit test responsability to free expected_value but if no unit test delegate is set I should take care of it
 		gravity_value_free(NULL, expected_value);
@@ -2574,8 +2574,8 @@ static void parser_register_optional_classes (gravity_parser_t *parser) {
         uint32_t i = 0;
         while (list[i]) {
             const char *identifier = list[i];
-            gnode_t *decl = gnode_variable_create(NO_TOKEN, string_dup(identifier), NULL, 0, NULL, LAST_DECLARATION());
-            gnode_array_push(decls, decl);
+            gnode_t *decl_node = gnode_variable_create(NO_TOKEN, string_dup(identifier), NULL, 0, NULL, LAST_DECLARATION());
+            gnode_array_push(decls, decl_node);
             ++i;
         }
     }

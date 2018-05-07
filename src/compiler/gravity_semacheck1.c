@@ -59,7 +59,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 	};
 
 	// finally call error callback
-	if (error_fn) error_fn(GRAVITY_ERROR_SEMANTIC, buffer, error_desc, data);
+	if (error_fn) error_fn(NULL, GRAVITY_ERROR_SEMANTIC, buffer, error_desc, data);
 	else printf("%s\n", buffer);
 }
 

@@ -80,7 +80,7 @@ static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *no
 	};
 
 	// finally call error callback
-	if (error_fn) error_fn(error_type, buffer, error_desc, data);
+	if (error_fn) error_fn(NULL, error_type, buffer, error_desc, data);
 	else printf("%s\n", buffer);
 }
 

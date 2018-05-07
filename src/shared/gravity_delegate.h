@@ -32,10 +32,10 @@ typedef struct {
 
 #define ERROR_DESC_NONE		(error_desc_t){0,0,0,0,NULL}
 
-typedef void				(*gravity_log_callback)	(const char *message, void *xdata);
-typedef void                (*gravity_log_clear) (void *xdata);
-typedef void				(*gravity_error_callback) (error_type_t error_type, const char *description, error_desc_t error_desc, void *xdata);
-typedef void				(*gravity_unittest_callback) (error_type_t error_type, const char *desc, const char *note, gravity_value_t value, int32_t row, int32_t col, void *xdata);
+typedef void				(*gravity_log_callback)	(gravity_vm *vm, const char *message, void *xdata);
+typedef void                (*gravity_log_clear) (gravity_vm *vm, void *xdata);
+typedef void				(*gravity_error_callback) (gravity_vm *vm, error_type_t error_type, const char *description, error_desc_t error_desc, void *xdata);
+typedef void				(*gravity_unittest_callback) (gravity_vm *vm, error_type_t error_type, const char *desc, const char *note, gravity_value_t value, int32_t row, int32_t col, void *xdata);
 typedef void				(*gravity_parser_callback) (void *token, void *xdata);
 typedef void                (*gravity_type_callback) (void *token, const char *type, void *xdata);
 typedef const char*			(*gravity_precode_callback) (void *xdata);

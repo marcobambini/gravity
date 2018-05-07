@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.5"     // git tag 0.4.5
-#define GRAVITY_VERSION_NUMBER				0x000405    // git push --tags
+#define GRAVITY_VERSION						"0.4.6"     // git tag 0.4.6
+#define GRAVITY_VERSION_NUMBER				0x000406    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -83,7 +83,7 @@ extern "C" {
 #endif
 
 #ifndef GRAVITY_NULL_SILENT
-#define GRAVITY_NULL_SILENT					0			// if 1 then messages sent to null does not produce any runtime error
+#define GRAVITY_NULL_SILENT					1			// if 1 then messages sent to null does not produce any runtime error
 #endif
 
 #ifndef GRAVITY_MAP_DOTSUGAR
@@ -486,6 +486,7 @@ GRAVITY_API void				gravity_value_serialize (gravity_value_t v, json_t *json);
 GRAVITY_API void				gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16_t len);
 GRAVITY_API bool				gravity_value_isobject (gravity_value_t v);
 GRAVITY_API void				*gravity_value_xdata (gravity_value_t value);
+GRAVITY_API const char          *gravity_value_name (gravity_value_t value);
 GRAVITY_API void				gravity_value_blacken (gravity_vm *vm, gravity_value_t v);
 GRAVITY_API uint32_t			gravity_value_size (gravity_vm *vm, gravity_value_t v);
 

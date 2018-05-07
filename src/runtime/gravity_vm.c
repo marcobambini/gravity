@@ -74,6 +74,35 @@ struct gravity_vm {
 	#endif
 };
 
+// MARK: - Debug -
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
+static void gravity_stack_dump (gravity_fiber_t *fiber) {
+    uint32_t index = 0;
+    for (gravity_value_t *stack = fiber->stack; stack < fiber->stacktop; ++stack) {
+        printf("[%05d]\t", index++);
+        if (!stack->isa) {printf("\n"); continue;}
+        gravity_value_dump(NULL, *stack, NULL, 0);
+    }
+    if (index) printf("\n\n");
+}
+
+static void gravity_callframe_dump (gravity_fiber_t *fiber) {
+    printf("===========================\n");
+    printf("CALL FRAME\n");
+    printf("===========================\n");
+    for (uint32_t i = 0; i < fiber->nframes; ++i) {
+        gravity_callframe_t *frame = &fiber->frames[i];
+        const char *fname = (frame->closure->f->identifier) ? frame->closure->f->identifier : "N/A";
+        gravity_value_t self_value = frame->stackstart[0];
+        char buffer[256];
+        gravity_value_dump(NULL, self_value, buffer, sizeof(buffer));
+        printf("[%03d]\t%s\t(%s)\n", i, fname, buffer);
+    }
+}
+#pragma clang diagnostic pop
+
 // MARK: -
 
 static void report_runtime_error (gravity_vm *vm, error_type_t error_type, const char *format, ...) {
@@ -92,11 +121,13 @@ static void report_runtime_error (gravity_vm *vm, error_type_t error_type, const
 	gravity_error_callback error_cb = ((gravity_delegate_t *)vm->delegate)->error_callback;
 	if (error_cb) {
 		void *data = ((gravity_delegate_t *)vm->delegate)->xdata;
-		error_cb(error_type, buffer, ERROR_DESC_NONE, data);
+		error_cb(vm, error_type, buffer, ERROR_DESC_NONE, data);
 	} else {
 		printf("%s\n", buffer);
 		fflush(stdout);
 	}
+    
+    // gravity_callframe_dump(vm->fiber);
 }
 
 static void gravity_cache_setup (void) {
@@ -152,19 +183,6 @@ gravity_value_t gravity_vm_keyindex (gravity_vm *vm, uint32_t index) {
 	#pragma unused (vm)
 	return cache[index];
 }
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-static void gravity_stack_dump (gravity_fiber_t *fiber) {
-	uint32_t index = 0;
-	for (gravity_value_t *stack = fiber->stack; stack < fiber->stacktop; ++stack) {
-		printf("[%05d]\t", index++);
-		if (!stack->isa) {printf("\n"); continue;}
-		gravity_value_dump(NULL, *stack, NULL, 0);
-	}
-	if (index) printf("\n\n");
-}
-#pragma clang diagnostic pop
 
 static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber_t *fiber) {
 	#pragma unused(vm)
@@ -295,7 +313,7 @@ static void gravity_vm_loadclass (gravity_vm *vm, gravity_class_t *c) {
 	gravity_hash_transform(meta->htable, gravity_gc_transform, (void *)vm);
 }
 
-// MARK: Internals -
+// MARK: - Optionals -
 
 void gravity_opt_register (gravity_vm *vm) {
     GRAVITY_MATH_REGISTER(vm);
@@ -309,7 +327,7 @@ bool gravity_isopt_class (gravity_class_t *c) {
     return GRAVITY_ISMATH_CLASS(c);
 }
 
-// MARK: -
+// MARK: - MAIN EXECUTION -
 
 static bool gravity_vm_exec (gravity_vm *vm) {
 	DECLARE_DISPATCH_TABLE;

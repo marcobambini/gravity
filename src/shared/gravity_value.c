@@ -1838,6 +1838,17 @@ void *gravity_value_xdata (gravity_value_t value) {
 	return NULL;
 }
 
+const char *gravity_value_name (gravity_value_t value) {
+    if (VALUE_ISA_INSTANCE(value)) {
+        gravity_instance_t *instance = VALUE_AS_INSTANCE(value);
+        return instance->objclass->identifier;
+    } else if (VALUE_ISA_CLASS(value)) {
+        gravity_class_t *c = VALUE_AS_CLASS(value);
+        return c->identifier;
+    }
+    return NULL;
+}
+
 void gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16_t len) {
 	const char *type = NULL;
 	const char *value = NULL;

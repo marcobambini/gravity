@@ -26,8 +26,8 @@ static const char *input_file = NULL;
 static const char *output_file = DEFAULT_OUTPUT;
 static bool quiet_flag = false;
 
-static void report_error (error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
-	#pragma unused(xdata)
+static void report_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
+	#pragma unused(vm, xdata)
 	const char *type = "N/A";
 	switch (error_type) {
 		case GRAVITY_ERROR_NONE: type = "NONE"; break;

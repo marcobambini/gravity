@@ -37,7 +37,7 @@ static void unittest_cleanup (const char *target_file, test_data *data) {
 	#pragma unused(target_file,data)
 }
 
-static void	unittest_callback (error_type_t error_type, const char *description, const char *notes, gravity_value_t value, int32_t row, int32_t col, void *xdata) {
+static void	unittest_callback (gravity_vm *vm, error_type_t error_type, const char *description, const char *notes, gravity_value_t value, int32_t row, int32_t col, void *xdata) {
 	test_data *data = (test_data *)xdata;
 	data->expected_error = error_type;
 	data->expected_value = value;
@@ -50,7 +50,7 @@ static void	unittest_callback (error_type_t error_type, const char *description,
 
 // MARK: -
 
-static void callback_error (error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
+static void callback_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
 	test_data *data = (test_data *)xdata;
 
 	if (data->processed == true) return; // ignore 2nd error

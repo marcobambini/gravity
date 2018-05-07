@@ -2513,7 +2513,14 @@ static bool operator_null_not (gravity_vm *vm, gravity_value_t *args, uint16_t n
 #if GRAVITY_NULL_SILENT
 static bool operator_null_silent (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm,args,nargs)
+    // every operation on NULL returns NULL
 	RETURN_VALUE(VALUE_FROM_NULL, rindex);
+}
+
+static bool operator_store_null_silent (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm,args,nargs,rindex)
+    // do not touch any register, a store op on NULL is a NOP operation
+    return true;
 }
 #endif
 
@@ -2893,7 +2900,7 @@ static void gravity_core_init (void) {
 	#if GRAVITY_NULL_SILENT
 	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(operator_null_silent));
 	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_LOAD_NAME, NEW_CLOSURE_VALUE(operator_null_silent));
-	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(operator_null_silent));
+	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(operator_store_null_silent));
 	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_NOTFOUND_NAME, NEW_CLOSURE_VALUE(operator_null_silent));
 	#endif
 
