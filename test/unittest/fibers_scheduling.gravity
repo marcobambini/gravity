@@ -15,7 +15,7 @@ func main() {
         for (var i in 1...n) {g += "c"; Fiber.yield();}
     });
     
-    for (var i in 1...n) {task1();task2();}
+    for (var i in 1...n) {task1.call(); task2.call();}
     
     g += "d";
     return g;

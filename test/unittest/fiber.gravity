@@ -13,9 +13,9 @@ func main() {
     });
     
     g += 1;
-    fiber()
+    fiber.call()
     g += 1;
-    fiber()
+    fiber.call()
     g += 1;
     
     return g;

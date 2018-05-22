@@ -1,0 +1,9 @@
+#unittest {
+	name: "Check optimizer fix.";
+	result: 1320;
+};
+
+func main() {
+    var i = 13;
+    return 20 + i*100;
+}
