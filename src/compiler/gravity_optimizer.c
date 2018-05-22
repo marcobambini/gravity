@@ -273,6 +273,21 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
 	if (inst1->tag == inst2->tag) type = inst1->tag;
 	else type = DOUBLE_TAG;
 
+    // check registers
+    // code like:
+    //      var i = 13;
+    //      return 20 + i*100;
+    // produces the following bytecode
+    //      00000    LOADI 2 13
+    //      00001    MOVE 1 2
+    //      00002    LOADI 2 20
+    //      00003    LOADI 3 100
+    //      00004    MUL 3 1 3
+    //      00005    ADD 2 2 3
+    // inst points to a MATH instruction but registers are not the same as the LOADI instructions
+    // so no optimizations must be performed
+    if (!(inst->p2 == inst1->p1 && inst->p3 == inst2->p2)) return false;
+    
 	// compute operands
 	if (type == DOUBLE_TAG) {
 		d1 = (inst1->tag == INT_TAG) ? (double)inst1->n : inst1->d;
