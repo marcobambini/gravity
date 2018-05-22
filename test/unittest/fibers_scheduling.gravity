@@ -1,0 +1,22 @@
+#unittest {
+	name: "Fibers scheduling.";
+	result: "abcbcbcbcbcbcbcbcd";
+};
+
+func main() {
+    var g = "a";
+    var n = 8;
+    
+    var task1 = Fiber.create({
+        for (var i in 1...n) {g += "b"; Fiber.yield();}
+    });
+    
+    var task2 = Fiber.create({
+        for (var i in 1...n) {g += "c"; Fiber.yield();}
+    });
+    
+    for (var i in 1...n) {task1();task2();}
+    
+    g += "d";
+    return g;
+}

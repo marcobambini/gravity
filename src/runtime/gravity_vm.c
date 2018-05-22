@@ -388,11 +388,16 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				// prepare function call for binary operation
 				PREPARE_FUNC_CALL2(closure, v2, v3, (op == LOAD) ? GRAVITY_LOAD_INDEX : ((op == LOADAT) ? GRAVITY_LOADAT_INDEX : GRAVITY_LOADS_INDEX), rwin);
 
+                // save currently executing fiber (that can change!)
+                gravity_fiber_t *current_fiber = fiber;
+                
 				// call closure (do not use a macro here because we want to handle both the bridged and special cases)
 				STORE_FRAME();
 				execute_load_function:
 				switch(closure->f->tag) {
 					case EXEC_TYPE_NATIVE: {
+                        // invalidate current_fiber because it does not need to be synced in this case
+                        current_fiber = NULL;
 						PUSH_FRAME(closure, &stackstart[rwin], r1, 2);
 					} break;
 
@@ -430,7 +435,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 				}
 				LOAD_FRAME();
-				SYNC_STACKTOP(closure, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
 
 				// continue execution
 				DISPATCH();
@@ -516,11 +521,16 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 				// prepare function call
 				PREPARE_FUNC_CALL3(closure, v2, v3, v1, (op == STORE) ? GRAVITY_STORE_INDEX : GRAVITY_STOREAT_INDEX, rwin);
 
+                // save currently executing fiber (that can change!)
+                gravity_fiber_t *current_fiber = fiber;
+                
 				// call function f (do not use a macro here because we want to handle both the bridged and special cases)
 				STORE_FRAME();
 				execute_store_function:
 				switch(closure->f->tag) {
 					case EXEC_TYPE_NATIVE: {
+                        // invalidate current_fiber because it does not need to be synced in this case
+                        current_fiber = NULL;
 						SETVALUE(rwin+1, v1);
 						PUSH_FRAME(closure, &stackstart[rwin], r1, 2);
 					} break;
@@ -559,7 +569,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					} break;
 				}
 				LOAD_FRAME();
-				SYNC_STACKTOP(closure, MAXNUM(_rneed, rwin));
+				SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
 
 				// continue execution
 				DISPATCH();
@@ -1077,11 +1087,16 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 
 				DEBUG_STACK();
 
+                // save currently executing fiber (that can change!)
+                gravity_fiber_t *current_fiber = fiber;
+                
 				// execute function
 				STORE_FRAME();
 				execute_call_function:
 				switch(closure->f->tag) {
 					case EXEC_TYPE_NATIVE: {
+                        // invalidate current_fiber because it does not need to be synced in this case
+                        current_fiber = NULL;
                         // support for default arg values
                         if (marray_size(closure->f->pvalue)) {
                             uint32_t n = 1; // from 1 in order to skip self implicit argument
@@ -1106,8 +1121,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 								goto execute_call_function;
 							}
 
-							// check for special fiber error
+                            // reset current fiber that could be changed during the call
 							fiber = vm->fiber;
+                            
+							// check for special fiber error
 							if (fiber == NULL) return true;
 							if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
 						}
@@ -1133,7 +1150,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						break;
 				}
 				LOAD_FRAME();
-				SYNC_STACKTOP(closure, MAXNUM(_rneed, rwin));
+				SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
 
 				DISPATCH();
 			}

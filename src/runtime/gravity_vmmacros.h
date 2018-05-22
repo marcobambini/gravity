@@ -157,7 +157,7 @@
 									cframe->outloop = false;																			\
 									cframe->args = (USE_ARGS(_c)) ? gravity_list_from_array(vm, _n-1, _s+1) : NULL;						\
 
-#define SYNC_STACKTOP(_c,_n)		if (_c->f->tag != EXEC_TYPE_NATIVE) fiber->stacktop -= _n
+#define SYNC_STACKTOP(_fiber,_n)	if (_fiber) _fiber->stacktop -= _n
 #define SETFRAME_OUTLOOP(cframe)	(cframe)->outloop = true
 
 #define COMPUTE_JUMP(value)			(func->bytecode + (value))
@@ -238,10 +238,12 @@
 													SETVALUE(_w+2, _v3)
 
 
-#define CALL_FUNC(_name,_c,r1,nargs,rwin)			STORE_FRAME();																			\
+#define CALL_FUNC(_name,_c,r1,nargs,rwin)           gravity_fiber_t *current_fiber = fiber;                                                 \
+                                                    STORE_FRAME();																			\
 													execute_op_##_name:																		\
 													switch(_c->f->tag) {																	\
 													case EXEC_TYPE_NATIVE: {																\
+                                                        current_fiber = NULL;                                                               \
 														PUSH_FRAME(_c, &stackstart[rwin], r1, nargs);										\
 													} break;																				\
 													case EXEC_TYPE_INTERNAL: {																\
@@ -268,7 +270,7 @@
 														break;																				\
 													}																						\
 													LOAD_FRAME();																			\
-													SYNC_STACKTOP(_c, MAXNUM(_rneed, rwin))
+													SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin))
 
 // MACROS used in core and optionals
 #define SETMETA_INITED(c)                           gravity_class_get_meta(c)->is_inited = true

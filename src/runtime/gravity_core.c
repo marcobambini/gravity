@@ -410,6 +410,13 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 		return convert_map2string(vm, map);
 	}
 
+    if (VALUE_ISA_RANGE(v)) {
+        gravity_range_t *r = VALUE_AS_RANGE(v);
+        char buffer[512];
+        snprintf(buffer, sizeof(buffer), "%" PRId64 "...%" PRId64, r->from, r->to);
+        return VALUE_FROM_CSTRING(vm, buffer);
+    }
+	
 	// check if class implements the String method (avoiding infinte loop by checking for convert_object_string)
 	gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_STRING_INDEX);
 
@@ -2392,6 +2399,9 @@ static bool fiber_create (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 static bool fiber_run (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex, bool is_trying) {
 	#pragma unused(nargs, rindex)
 
+    // set rindex slot to NULL in order to falsify the if closure check performed by the VM
+    gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);
+	
 	gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
 	if (fiber->caller != NULL) RETURN_ERROR("Fiber has already been called.");
 
