@@ -2889,7 +2889,7 @@ static void gravity_core_init (void) {
 	// FIBER CLASS
 	gravity_class_t *fiber_meta = gravity_class_get_meta(gravity_class_fiber);
 	gravity_class_bind(fiber_meta, "create", NEW_CLOSURE_VALUE(fiber_create));
-	gravity_class_bind(gravity_class_fiber, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(fiber_exec));
+	gravity_class_bind(gravity_class_fiber, "call", NEW_CLOSURE_VALUE(fiber_exec));
 	gravity_class_bind(gravity_class_fiber, "try", NEW_CLOSURE_VALUE(fiber_try));
 	gravity_class_bind(fiber_meta, "yield", NEW_CLOSURE_VALUE(fiber_yield));
 	gravity_class_bind(gravity_class_fiber, "status", NEW_CLOSURE_VALUE(fiber_status));
