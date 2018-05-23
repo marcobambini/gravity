@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.8"     // git tag 0.4.8
-#define GRAVITY_VERSION_NUMBER				0x000408    // git push --tags
+#define GRAVITY_VERSION						"0.4.9"     // git tag 0.4.9
+#define GRAVITY_VERSION_NUMBER				0x000409    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -292,6 +292,8 @@ typedef struct {
 	gravity_function_t		*f;					// function prototype
     gravity_object_t        *context;           // context where the closure has been created
 	gravity_upvalue_t		**upvalue;			// upvalue array
+    
+    gravity_value_t         self_value;        // custom self value set by the user
 } gravity_closure_t;
 
 typedef struct {
@@ -338,6 +340,9 @@ typedef struct fiber_s {
 	bool					trying;				// set when the try flag is set by the user
 	struct fiber_s			*caller;			// optional caller fiber
 	gravity_value_t			result;				// end result of the fiber
+    
+    nanotime_t              lasttime;           // last time Fiber has been called
+    gravity_float_t         timewait;           // used in yieldTime
 } gravity_fiber_t;
 
 typedef struct gravity_class_s {

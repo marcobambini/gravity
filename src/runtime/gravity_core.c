@@ -431,6 +431,12 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
                     const char *s = delegate->bridge_string(vm, instance->xdata, &len);
                     if (s) return VALUE_FROM_STRING(vm, s, len);
                 }
+            } else {
+                char buffer[512];
+                const char *identifier = (instance->objclass->identifier);
+                if (!identifier) identifier = "anonymous class";
+                snprintf(buffer, sizeof(buffer), "instance of %s (%p)", identifier, instance);
+                return VALUE_FROM_CSTRING(vm, buffer);
             }
         }
         return VALUE_FROM_ERROR(NULL);
@@ -1484,6 +1490,16 @@ static bool closure_apply (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 	RETURN_VALUE(result, rindex);
 }
 
+static bool closure_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 2) RETURN_ERROR("An argument is required by the setself function.");
+    
+    gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(0));
+    gravity_value_t self_value = GET_VALUE(1);
+    closure->self_value = self_value;
+    
+    RETURN_NOVALUE();
+}
+
 // MARK: - Float Class -
 
 static bool operator_float_add (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2405,6 +2421,12 @@ static bool fiber_run (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
 	if (fiber->caller != NULL) RETURN_ERROR("Fiber has already been called.");
 
+    if (fiber->timewait > 0.0f) {
+        // check if minimum timewait is passed
+        nanotime_t elapsed = (nanotime() - fiber->lasttime) / 1000000000.0f;
+        if (elapsed < fiber->timewait) RETURN_NOVALUE();
+    }
+    
 	// remember who ran the fiber
 	fiber->caller = gravity_vm_fiber(vm);
 
@@ -2434,6 +2456,43 @@ static bool fiber_yield (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     // get currently executed fiber
 	gravity_fiber_t *fiber = gravity_vm_fiber(vm);
 
+    // reset wait time and update last time
+    fiber->timewait = 0.0f;
+    fiber->lasttime = nanotime();
+    
+    // in no caller then this is just a NOP
+    if (fiber->caller) {
+        gravity_vm_setfiber(vm, fiber->caller);
+    
+        // unhook this fiber from the one that called it
+        fiber->caller = NULL;
+        fiber->trying = false;
+	
+        RETURN_FIBER();
+    } else {
+        RETURN_NOVALUE();
+    }
+}
+
+static bool fiber_yield_time (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(args, nargs, rindex)
+    
+    // set rindex slot to NULL in order to falsify the if closure check performed by the VM
+    gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);
+    
+    // get currently executed fiber
+    gravity_fiber_t *fiber = gravity_vm_fiber(vm);
+    
+    // if parameter is a float/int set its wait time (otherwise ignore it)
+    if (VALUE_ISA_FLOAT(GET_VALUE(1))) {
+        fiber->timewait = VALUE_AS_FLOAT(GET_VALUE(1));
+    } else if (VALUE_ISA_INT(GET_VALUE(1))) {
+        fiber->timewait = (gravity_float_t)GET_VALUE(1).n;
+    }
+    
+    // update last time
+    fiber->lasttime = nanotime();
+    
     // in no caller then this is just a NOP
     if (fiber->caller) {
         gravity_vm_setfiber(vm, fiber->caller);
@@ -2744,6 +2803,7 @@ static void gravity_core_init (void) {
 	// CLOSURE CLASS
 	gravity_class_bind(gravity_class_closure, "disassemble", NEW_CLOSURE_VALUE(closure_disassemble));
 	gravity_class_bind(gravity_class_closure, "apply", NEW_CLOSURE_VALUE(closure_apply));
+    gravity_class_bind(gravity_class_closure, "bind", NEW_CLOSURE_VALUE(closure_bind));
 
 	// LIST CLASS
     gravity_closure_t *closure = computed_property_create(NULL, NEW_FUNCTION(list_count), NULL);
@@ -2892,6 +2952,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_fiber, "call", NEW_CLOSURE_VALUE(fiber_exec));
 	gravity_class_bind(gravity_class_fiber, "try", NEW_CLOSURE_VALUE(fiber_try));
 	gravity_class_bind(fiber_meta, "yield", NEW_CLOSURE_VALUE(fiber_yield));
+    gravity_class_bind(fiber_meta, "yieldWaitTime", NEW_CLOSURE_VALUE(fiber_yield_time));
 	gravity_class_bind(gravity_class_fiber, "status", NEW_CLOSURE_VALUE(fiber_status));
 	gravity_class_bind(fiber_meta, "abort", NEW_CLOSURE_VALUE(fiber_abort));
 

@@ -1,0 +1,21 @@
+#unittest {
+	name: "Closure bind.";
+	result: 20;
+};
+
+class foo {
+    var a = 10;
+    
+    func f1() {
+        return a;
+    }
+}
+
+func main() {
+    var c = foo();
+    
+    var f1 = c.f1;
+    f1.bind(c);
+    
+    return f1() + c.f1();
+}

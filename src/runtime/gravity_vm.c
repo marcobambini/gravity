@@ -1085,6 +1085,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					++r3;
 				}
 
+                // check for custom self
+                if (VALUE_ISA_VALID(closure->self_value)) SETVALUE(rwin, closure->self_value);
+				
 				DEBUG_STACK();
 
                 // save currently executing fiber (that can change!)
