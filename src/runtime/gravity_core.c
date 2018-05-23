@@ -2423,7 +2423,7 @@ static bool fiber_run (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 
     if (fiber->timewait > 0.0f) {
         // check if minimum timewait is passed
-        nanotime_t elapsed = (nanotime() - fiber->lasttime) / 1000000000.0f;
+        gravity_float_t elapsed = (nanotime() - fiber->lasttime) / 1000000000.0f;
         if (elapsed < fiber->timewait) RETURN_NOVALUE();
     }
     
