@@ -202,7 +202,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 		uint16_t index = UINT16_MAX;
 		if (NODE_ISA(symbol, NODE_VARIABLE)) {
 			gnode_var_t *p = (gnode_var_t *)symbol;
-			index = p->index;
+			if (!p->iscomputed) index = p->index;
 		}
 
 		if (target_is_function) {
@@ -490,7 +490,7 @@ static bool check_class_ivar (gvisitor_t *self, gnode_class_decl_t *classnode, g
 	for (size_t i=0; i<count; ++i) {
 		gnode_var_t *p = (gnode_var_t *)gnode_array_get(node->decls, i);
         if (!p) continue;
-		DEBUG_SEMANTIC("check_ivar %s", p->identifier);
+		DEBUG_SEMA2("check_ivar %s", p->identifier);
 
 		// do not check internal outer var
 		if (string_cmp(p->identifier, OUTER_IVAR_NAME) == 0) continue;
@@ -536,7 +536,7 @@ static void free_postfix_subexpr (gnode_postfix_subexpr_t *subnode) {
 // MARK: - Statements -
 
 static void visit_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_list_stmt");
+	DEBUG_SEMA2("visit_list_stmt");
 
 	PUSH_DECLARATION(node);
 	gnode_array_each(node->stmts, {visit(val);});
@@ -544,7 +544,7 @@ static void visit_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
 }
 
 static void visit_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_compound_stmt");
+	DEBUG_SEMA2("visit_compound_stmt");
 
 	gnode_t			*top = TOP_DECLARATION();
 	symboltable_t	*symtable = symtable_from_node(top);
@@ -557,7 +557,7 @@ static void visit_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) 
 }
 
 static void visit_label_stmt (gvisitor_t *self, gnode_label_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_label_stmt");
+	DEBUG_SEMA2("visit_label_stmt");
 
 	gtoken_t type = NODE_TOKEN_TYPE(node);
 	if (!TOP_STATEMENT_ISA_SWITCH()) {
@@ -570,7 +570,7 @@ static void visit_label_stmt (gvisitor_t *self, gnode_label_stmt_t *node) {
 }
 
 static void visit_flow_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_flow_stmt");
+	DEBUG_SEMA2("visit_flow_stmt");
 
 	// assignment has no side effect so report error in case of assignment
 	if (is_expression_assignment(node->cond)) REPORT_ERROR(node->cond, "Assignment not allowed here");
@@ -593,7 +593,7 @@ static void visit_flow_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
 }
 
 static void visit_loop_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_loop_stmt");
+	DEBUG_SEMA2("visit_loop_stmt");
 
 	gtoken_t type = NODE_TOKEN_TYPE(node);
 	PUSH_STATEMENT(type);
@@ -664,7 +664,7 @@ static void visit_loop_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 }
 
 static void visit_jump_stmt (gvisitor_t *self, gnode_jump_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_jump_stmt");
+	DEBUG_SEMA2("visit_jump_stmt");
 
 	gtoken_t type = NODE_TOKEN_TYPE(node);
 	if (type == TOK_KEY_BREAK) {
@@ -691,7 +691,7 @@ static void visit_jump_stmt (gvisitor_t *self, gnode_jump_stmt_t *node) {
 }
 
 static void visit_empty_stmt (gvisitor_t *self, gnode_empty_stmt_t *node) {
-	DEBUG_SEMANTIC("visit_empty_stmt");
+	DEBUG_SEMA2("visit_empty_stmt");
 
 	// get top declaration
 	gnode_t *top = TOP_DECLARATION();
@@ -703,7 +703,7 @@ static void visit_empty_stmt (gvisitor_t *self, gnode_empty_stmt_t *node) {
 // MARK: - Declarations -
 
 static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) {
-	DEBUG_SEMANTIC("visit_function_decl %s", node->identifier);
+	DEBUG_SEMA2("visit_function_decl %s", node->identifier);
 
 	// set top declaration
 	gnode_t *top = TOP_DECLARATION();
@@ -716,7 +716,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 
 	// enter function scope
 	PUSH_DECLARATION(node);
-	symboltable_t *symtable = symboltable_create(false);
+	symboltable_t *symtable = symboltable_create(SYMTABLE_TAG_FUNC);
 	symboltable_enter_scope(symtable);
 
 	// process parameters
@@ -730,7 +730,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
                 continue;
             }
 			SET_LOCAL_INDEX(p, symtable);
-			DEBUG_SEMANTIC("Local:%s index:%d", p->identifier, p->index);
+			DEBUG_SEMA2("Local:%s index:%d", p->identifier, p->index);
 		});
 	}
 
@@ -756,7 +756,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 
 	POP_DECLARATION();
 
-	DEBUG_SEMANTIC("MAX LOCALS for function %s: %d", node->identifier, node->nlocals);
+	DEBUG_SEMA2("MAX LOCALS for function %s: %d", node->identifier, node->nlocals);
 }
 
 static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) {
@@ -772,7 +772,7 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 	// loop to check each individual declaration
 	for (size_t i=0; i<count; ++i) {
 		gnode_var_t *p = (gnode_var_t *)gnode_array_get(node->decls, i);
-		DEBUG_SEMANTIC("visit_variable_decl %s", p->identifier);
+		DEBUG_SEMA2("visit_variable_decl %s", p->identifier);
 
 		// set enclosing environment
 		p->env = top;
@@ -788,13 +788,15 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
                 continue;
             }
 			SET_LOCAL_INDEX(p, symtable);
-			DEBUG_SEMANTIC("Local:%s index:%d", p->identifier, p->index);
+			DEBUG_SEMA2("Local:%s index:%d", p->identifier, p->index);
 		} else if (env == NODE_CLASS_DECL) {
+            if (p->iscomputed) continue;
+            
 			// variable defined inside a class => property
 			gnode_class_decl_t *c = (gnode_class_decl_t *)top;
 
 			// compute new ivar index
-			uint32_t n1 = (node->storage == TOK_KEY_STATIC) ? c->nsvar++ : c->nivar++;
+			(node->storage == TOK_KEY_STATIC) ? ++c->nsvar : ++c->nivar;
 			uint32_t n2 = 0;
 
 			// super class is a static information so I can solve the fragile class problem at compilation time
@@ -806,14 +808,14 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 				super = (gnode_class_decl_t *)super->superclass;
 			}
 
-			p->index = n1+n2;
-			DEBUG_SEMANTIC("Class: %s property:%s index:%d (static %d)", c->identifier, p->identifier, p->index, (node->storage == TOK_KEY_STATIC));
+			p->index += n2;
+			DEBUG_SEMA2("Class: %s property:%s index:%d (static %d)", c->identifier, p->identifier, p->index, (node->storage == TOK_KEY_STATIC));
 		}
 	}
 }
 
 static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
-	DEBUG_SEMANTIC("visit_enum_decl %s", node->identifier);
+	DEBUG_SEMA2("visit_enum_decl %s", node->identifier);
 
 	// check if optional access and storage specifiers make sense in current context
 	gnode_t *top = TOP_DECLARATION();
@@ -821,7 +823,7 @@ static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
 }
 
 static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
-	DEBUG_SEMANTIC("visit_class_decl %s", node->identifier);
+	DEBUG_SEMA2("visit_class_decl %s", node->identifier);
 
 	gnode_t *top = TOP_DECLARATION();
 
@@ -891,7 +893,7 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 }
 
 static void visit_module_decl (gvisitor_t *self, gnode_module_decl_t *node) {
-	DEBUG_SEMANTIC("visit_module_decl %s", node->identifier);
+	DEBUG_SEMA2("visit_module_decl %s", node->identifier);
 
 	gnode_t *top = TOP_DECLARATION();
 
@@ -910,7 +912,7 @@ static void visit_module_decl (gvisitor_t *self, gnode_module_decl_t *node) {
 // MARK: - Expressions -
 
 static void visit_binary_expr (gvisitor_t *self, gnode_binary_expr_t *node) {
-	DEBUG_SEMANTIC("visit_binary_expr %s", token_name(node->op));
+	DEBUG_SEMA2("visit_binary_expr %s", token_name(node->op));
 
 	// sanity check
 	if (!is_expression(node->left)) REPORT_ERROR(node->left, "LValue must be an expression.");
@@ -929,13 +931,13 @@ static void visit_binary_expr (gvisitor_t *self, gnode_binary_expr_t *node) {
 }
 
 static void visit_unary_expr (gvisitor_t *self, gnode_unary_expr_t *node) {
-	DEBUG_SEMANTIC("visit_unary_expr %s", token_name(node->op));
+	DEBUG_SEMA2("visit_unary_expr %s", token_name(node->op));
 	visit(node->expr);
 	if (!is_expression_valid(node->expr)) REPORT_ERROR(node->expr, "Invalid expression.");
 }
 
 static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
-	DEBUG_SEMANTIC("visit_postfix_expr");
+	DEBUG_SEMA2("visit_postfix_expr");
     
     // sanity check
     if (!node->id) {REPORT_ERROR(node, "Invalid postfix expression."); return;}
@@ -1070,13 +1072,13 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 		}
 
 		// should never reach this point
-		DEBUG_SEMANTIC("UNRECOGNIZED POSTFIX OPTIONAL EXPRESSION");
+		DEBUG_SEMA2("UNRECOGNIZED POSTFIX OPTIONAL EXPRESSION");
 		assert(0);
 	}
 }
 
 static void visit_file_expr (gvisitor_t *self, gnode_file_expr_t *node) {
-	DEBUG_SEMANTIC("visit_file_expr");
+	DEBUG_SEMA2("visit_file_expr");
 
 	gnode_r *decls = ((semacheck_t *)self->data)->declarations;
 	gnode_t *globals = gnode_array_get(decls, 0);
@@ -1088,7 +1090,7 @@ static void visit_file_expr (gvisitor_t *self, gnode_file_expr_t *node) {
 	n = 1;
 	for (size_t i=0; i<n; ++i) {
 		const char *identifier = gnode_array_get(node->identifiers, i);
-		DEBUG_SEMANTIC("LOOKUP %s", identifier);
+		DEBUG_SEMA2("LOOKUP %s", identifier);
 
 		gnode_t *symbol = lookup_node(target, identifier);
 		if (!symbol) {REPORT_ERROR(node, "Module identifier %s not found.", identifier); break;}
@@ -1103,8 +1105,8 @@ static void visit_literal_expr (gvisitor_t *self, gnode_literal_expr_t *node) {
 	#if GRAVITY_SEMANTIC_DEBUG
 	char value[256];
 	gnode_literal_dump(node, value, sizeof(value));
-	DEBUG_SEMANTIC("visit_literal_expr %s", value);
-	DEBUG_SEMANTIC("end visit_literal_expr");
+	DEBUG_SEMA2("visit_literal_expr %s", value);
+	DEBUG_SEMA2("end visit_literal_expr");
 	#endif
 
 	if (node->type == LITERAL_STRING_INTERPOLATED) {
@@ -1115,7 +1117,7 @@ static void visit_literal_expr (gvisitor_t *self, gnode_literal_expr_t *node) {
 }
 
 static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *node) {
-	DEBUG_SEMANTIC("visit_identifier_expr %s", node->value);
+	DEBUG_SEMA2("visit_identifier_expr %s", node->value);
 
 	gnode_t *symbol = lookup_identifier(self, node->value, node);
 	if (!symbol) REPORT_ERROR(node, "Identifier %s not found.", node->value);
@@ -1123,14 +1125,14 @@ static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *no
 
 static void visit_keyword_expr (gvisitor_t *self, gnode_keyword_expr_t *node) {
 	#pragma unused(self, node)
-	DEBUG_SEMANTIC("visit_keyword_expr %s", token_name(node->base.token.type));
+	DEBUG_SEMA2("visit_keyword_expr %s", token_name(node->base.token.type));
 }
 
 static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 	size_t	n = gnode_array_size(node->list1);
 	bool	ismap = (node->list2 != NULL);
 
-	DEBUG_SEMANTIC("visit_list_expr (n: %zu ismap: %d)", n, ismap);
+	DEBUG_SEMA2("visit_list_expr (n: %zu ismap: %d)", n, ismap);
 
 	for (size_t j=0; j<n; ++j) {
 		gnode_t *e = gnode_array_get(node->list1, j);
@@ -1197,9 +1199,9 @@ bool gravity_semacheck2 (gnode_t *node, gravity_delegate_t *delegate) {
 		.visit_postfix_expr = visit_postfix_expr,
 	};
 
-	DEBUG_SEMANTIC("=== SEMANTIC CHECK STEP 2 ===");
+	DEBUG_SEMA2("=== SEMANTIC CHECK STEP 2 ===");
 	gvisit(&visitor, node);
-	DEBUG_SEMANTIC("\n");
+	DEBUG_SEMA2("\n");
 
 	marray_destroy(data.statements);
 	gnode_array_free(data.declarations);

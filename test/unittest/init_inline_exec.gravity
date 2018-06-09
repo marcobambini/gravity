@@ -1,0 +1,21 @@
+#unittest {
+    name: "Init/exec inline.";
+    result: 600;
+};
+
+class Foo {
+    func test(value) {
+        return value * 2;
+    }
+}
+
+func main() {
+    var foo = Foo();
+    var n1 = foo.test(100);
+    if (n1 != 200) return 0;
+    
+    var n2 = Foo().test(200);
+    if (n2 != 400) return 0;
+    
+    return n1+n2;
+}

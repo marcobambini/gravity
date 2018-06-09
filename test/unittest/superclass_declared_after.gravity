@@ -1,0 +1,35 @@
+#unittest {
+    name: "Superclass declared after subclass.";
+    result: 410;
+};
+
+class GameBehaviourChild:GameBehaviour {
+    func start () {
+        time = 200
+        view = 40
+        return view + destroy + time;
+    }
+}
+
+class GameBehaviour {
+    var destroy = 20;
+    var time = 100;
+    var view = null;
+    
+    func start () {
+        view = 30
+        return view + destroy + time;
+    }
+}
+
+func main() {
+    var c = GameBehaviourChild()
+    var n1 = c.start()
+    if (n1 != 260) return 0;
+    
+    var d = GameBehaviour()
+    var n2 = d.start()
+    if (n2 != 150) return 0;
+    
+    return n1 + n2;
+}

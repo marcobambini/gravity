@@ -677,10 +677,11 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
 		else if (c == 'X') {type = decode_number_hex(token, &n, &d); goto report_node;}
 	}
 
-	// number is decimal (check if is float)
+	// number is decimal (check if it is float)
 	bool isfloat = false;
 	for (uint32_t i=0; i<token.bytes; ++i) {
 		if (value[i] == '.') {isfloat = true; break;}
+        if (value[i] == 'e') {isfloat = true; break;}
 	}
 
 	STATIC_TOKEN_CSTRING(str, MAX_NUMBER_LENGTH, len, buffer, token);
@@ -1337,6 +1338,7 @@ loop:
 
 	// check for optional assignment or getter/setter declaration (ONLY = is ALLOWED here!)
 	expr = NULL;
+    bool is_computed = false;
 	peek = gravity_lexer_peek(lexer);
 	if (token_isvariable_assignment(peek)) {
 		gravity_lexer_next(lexer); // consume ASSIGNMENT
@@ -1347,6 +1349,7 @@ loop:
 		gravity_lexer_next(lexer); // consume TOK_OP_OPEN_CURLYBRACE
 		expr = parse_getter_setter(parser, meta);
 		parse_required(parser, TOK_OP_CLOSED_CURLYBRACE);
+        is_computed = true;
 	}
 
 	// sanity checks
@@ -1354,7 +1357,10 @@ loop:
 	// 2. check if identifier is unique inside variable declarations
 
 	decl = gnode_variable_create(token2, identifier, type_annotation, access_specifier, expr, LAST_DECLARATION());
-	if (decl) gnode_array_push(decls, decl);
+    if (decl) {
+        ((gnode_var_t *)decl)->iscomputed = is_computed;
+        gnode_array_push(decls, decl);
+    }
 
 	peek = gravity_lexer_peek(lexer);
 	if (peek == TOK_OP_COMMA) {
@@ -1412,7 +1418,7 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
 	// check and consume TOK_OP_OPEN_CURLYBRACE
 	parse_required(parser, TOK_OP_OPEN_CURLYBRACE);
 
-	symboltable_t	*symtable = symboltable_create(true);	// enum symbol table (symtable is OK because order is not important inside an enum)
+	symboltable_t	*symtable = symboltable_create(SYMTABLE_TAG_ENUM);	// enum symbol table (symtable is OK because order is not important inside an enum)
 	int64_t			enum_autoint = 0;						// autoincrement value (in case of INT enum)
 	uint32_t		enum_counter = 0;						// enum internal counter (first value (if any) determines enum type)
 	gliteral_t		enum_type = LITERAL_INT;				// enum type (default to int)
@@ -2307,7 +2313,7 @@ static gnode_t *parse_jump_statement (gravity_parser_t *parser) {
 	assert((type == TOK_KEY_BREAK) || (type == TOK_KEY_CONTINUE) || (type == TOK_KEY_RETURN));
 
 	gnode_t	*expr = NULL;
-	if ((type == TOK_KEY_RETURN) && (gravity_lexer_peek(lexer) != TOK_OP_SEMICOLON)) {
+	if ((type == TOK_KEY_RETURN) && (gravity_lexer_peek(lexer) != TOK_OP_SEMICOLON) && (gravity_lexer_peek(lexer) != TOK_OP_CLOSED_CURLYBRACE)) {
 		expr = parse_expression(parser);
 	}
 

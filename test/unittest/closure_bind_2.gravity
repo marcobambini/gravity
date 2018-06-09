@@ -1,0 +1,32 @@
+#unittest {
+	name: "Closure bind test 2.";
+	result: 183;
+};
+
+var g = 33;
+
+class Class1 {
+    func foo1 () {
+        g += 100;
+    }
+}
+
+class Class2 {
+    func foo1 () {
+        g += 50;
+    }
+}
+
+func main() {
+    var c1 = Class1();
+    var c2 = Class2();
+    var closure = {self.foo1()};
+    
+    closure.bind(c1);
+    closure();
+    
+    closure.bind(c2);
+    closure();
+    
+    return g;
+}

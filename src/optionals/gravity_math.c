@@ -393,6 +393,51 @@ static bool math_lcm (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     RETURN_VALUE(VALUE_FROM_INT(lcm_value), rindex);
 }
 
+// returns the linear interpolation from a to b of value t
+static bool math_lerp (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+#pragma unused(vm, nargs)
+    // three arguments are required
+    if (nargs < 4) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+
+    gravity_float_t a, b, t;
+
+    gravity_value_t value = GET_VALUE(1);
+    if (VALUE_ISA_INT(value)) {
+        a = (gravity_float_t)value.n;
+    } else {
+        if (VALUE_ISA_FLOAT(value)) {
+            a = value.f;
+        } else {
+            RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+        }
+    }
+
+    value = GET_VALUE(2);
+    if (VALUE_ISA_INT(value)) {
+        b = (gravity_float_t)value.n;
+    } else {
+        if (VALUE_ISA_FLOAT(value)) {
+            b = value.f;
+        } else {
+            RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+        }
+    }
+
+    value = GET_VALUE(3);
+    if (VALUE_ISA_INT(value)) {
+        t = (gravity_float_t)value.n;
+    } else {
+        if (VALUE_ISA_FLOAT(value)) {
+            t = value.f;
+        } else {
+            RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+        }
+    }
+
+    gravity_float_t lerp = a+(b-a)*t;
+    RETURN_VALUE(VALUE_FROM_FLOAT(lerp), rindex);
+}
+
 // returns the natural logarithm (base E) of x
 static bool math_log (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -475,36 +520,66 @@ static bool math_logx (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 
 // returns the number with the highest value
 static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    gravity_float_t n = FLOAT_MIN;
-    gravity_value_t result = VALUE_FROM_UNDEFINED;
+    if (nargs == 1) RETURN_VALUE(VALUE_FROM_NULL, rindex);
+
+    gravity_float_t n = -FLOAT_MAX;
+    uint16_t maxindex = 1;
+    bool found = false;
 
     for (uint16_t i = 1; i<nargs; ++i) {
         gravity_value_t value = GET_VALUE(i);
         if (VALUE_ISA_INT(value)) {
-            if ((gravity_float_t)value.n > n) result = value;
+            found = true;
+            if ((gravity_float_t)value.n > n) {
+                n = (gravity_float_t)value.n;
+                maxindex = i;
+            }
         } else if (VALUE_ISA_FLOAT(value)) {
-            if (value.f > n) result = value;
+            found = true;
+            if (value.f > n) {
+                n = value.f;
+                maxindex = i;
+            }
         } else continue;
     }
 
-    RETURN_VALUE(result, rindex);
+    if (!found) {
+        RETURN_VALUE(VALUE_FROM_NULL, rindex);
+    }
+
+    RETURN_VALUE(GET_VALUE(maxindex), rindex);
 }
 
 // returns the number with the lowest value
 static bool math_min (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs == 1) RETURN_VALUE(VALUE_FROM_NULL, rindex);
+
     gravity_float_t n = FLOAT_MAX;
-    gravity_value_t result = VALUE_FROM_UNDEFINED;
+    uint16_t minindex = 1;
+    bool found = false;
 
     for (uint16_t i = 1; i<nargs; ++i) {
         gravity_value_t value = GET_VALUE(i);
         if (VALUE_ISA_INT(value)) {
-            if ((gravity_float_t)value.n < n) result = value;
+            found = true;
+            if ((gravity_float_t)value.n < n) {
+                n = (gravity_float_t)value.n;
+                minindex = i;
+            }
         } else if (VALUE_ISA_FLOAT(value)) {
-            if (value.f < n) result = value;
+            found = true;
+            if (value.f < n) {
+                n = value.f;
+                minindex = i;
+            }
         } else continue;
     }
 
-    RETURN_VALUE(result, rindex);
+    if (!found) {
+        RETURN_VALUE(VALUE_FROM_NULL, rindex);
+    }
+
+    RETURN_VALUE(GET_VALUE(minindex), rindex);
 }
 
 // returns the value of x to the power of y
@@ -706,6 +781,7 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "floor", NEW_CLOSURE_VALUE(math_floor));
     gravity_class_bind(meta, "gcf", NEW_CLOSURE_VALUE(math_gcf));
     gravity_class_bind(meta, "lcm", NEW_CLOSURE_VALUE(math_lcm));
+    gravity_class_bind(meta, "lerp", NEW_CLOSURE_VALUE(math_lerp));
     gravity_class_bind(meta, "log", NEW_CLOSURE_VALUE(math_log));
     gravity_class_bind(meta, "log10", NEW_CLOSURE_VALUE(math_log10));
     gravity_class_bind(meta, "logx", NEW_CLOSURE_VALUE(math_logx));

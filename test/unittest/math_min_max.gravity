@@ -1,0 +1,33 @@
+#unittest {
+    name: "Math min/max test.";
+    result: -1;
+};
+
+func main() {
+    var n0 = Math.min(1,2,3);       // 1
+    if (n0 != 1) return 0;
+    
+    var n1 = Math.max(1,2,3);       // 3
+    if (n1 != 3) return 0;
+    
+    var n2 = Math.min(-1,-2,-3);    // -3
+    if (n2 != -3) return 0;
+    
+    var n3 = Math.max(-1,-2,-3);    // -1
+    if (n3 != -1) return 0;
+    
+    var n4 = Math.min(-1,-2,0,1);   // -2
+    if (n4 != -2) return 0;
+    
+    var n5 = Math.max(-1,-2,0,1);   // 1
+    if (n5 != 1) return 0;
+    
+    var n6 = Math.min("not a number", -1,-2, "not a number", 1,2);  // -2
+    if (n6 != -2) return 0;
+    
+    var n7 = Math.max("not a number", -1,-2, "not a number", 1,2);  // 2
+    if (n7 != 2) return 0;
+    
+    
+    return n0+n1+n2+n3+n4+n5+n6+n7;
+}

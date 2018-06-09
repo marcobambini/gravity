@@ -1,0 +1,37 @@
+#unittest {
+	name: "Game loop with Fibers.";
+	result: 100;
+};
+
+var g = 50;
+
+class FirePool {
+    func reset (index) {
+        g = index;
+    }
+}
+
+class Level {
+    var firePool = FirePool();
+}
+
+class Window1 {
+    var level = Level();
+}
+
+class Game {
+    var window1 = Window1();
+    
+    func start() {
+        var fireIndex = 100;
+        var reset = {window1.level.firePool.reset(fireIndex);}
+        var fiber = Fiber.create({reset()})
+        fiber.call();
+    }
+}
+
+func main() {
+    var game = Game();
+    game.start();
+    return g;
+}

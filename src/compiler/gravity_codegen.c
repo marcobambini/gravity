@@ -263,8 +263,11 @@ static bool context_is_class (gvisitor_t *self) {
     return false;
 }
 
-static bool node_is_closure (gnode_t *node) {
+static bool node_is_closure (gnode_t *node, uint16_t *local_index) {
     DEBUG_CODEGEN("node_is_closure");
+    
+    // init local_index to 0 (means not a local index)
+    if (local_index) *local_index = 0;
     
     if (node && NODE_ISA(node, NODE_IDENTIFIER_EXPR)) {
         gnode_identifier_expr_t *identifier = (gnode_identifier_expr_t *)node;
@@ -273,6 +276,7 @@ static bool node_is_closure (gnode_t *node) {
     
     if (node && NODE_ISA(node, NODE_VARIABLE)) {
         gnode_var_t *var = (gnode_var_t *)node;
+        if (local_index) *local_index = var->index;
         node = var->expr;
     }
     
@@ -320,7 +324,11 @@ static uint32_t compute_self_register (gvisitor_t *self, ircode_t *code, gnode_t
 
 	// no special register found
     // check if node is a closure defined inside a class context (so self is needed)
-    if (node_is_closure(node) && context_is_class(self)) return 0;
+    uint16_t local_index = 0;
+    if (node_is_closure(node, &local_index)) {
+        if (next_is_access) return local_index;
+        if (context_is_class(self)) return 0;
+    }
     
     // default case is to return the target register
 	return target_register;
@@ -1061,7 +1069,7 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 			gravity_class_t *context_class = (is_static) ? ((gravity_class_t *)context_object)->objclass : (gravity_class_t *)context_object;
 
 			// check computed property case first
-			if ((p->expr) && (p->expr->tag == NODE_COMPOUND_STAT)) {
+			if ((p->expr) && (p->iscomputed)) {
 				process_getter_setter(self, p, context_class);
 				continue;
 			}

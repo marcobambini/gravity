@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.4.9"     // git tag 0.4.9
-#define GRAVITY_VERSION_NUMBER				0x000409    // git push --tags
+#define GRAVITY_VERSION						"0.5.0"     // git tag 0.5.0
+#define GRAVITY_VERSION_NUMBER				0x000500    // git push --tags
 #define GRAVITY_BUILD_DATE					__DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -290,10 +290,8 @@ typedef struct {
 	gravity_gc_t			gc;					// to be collectable by the garbage collector
 
 	gravity_function_t		*f;					// function prototype
-    gravity_object_t        *context;           // context where the closure has been created
+    gravity_object_t        *context;           // context where the closure has been created (or object bound by the user)
 	gravity_upvalue_t		**upvalue;			// upvalue array
-    
-    gravity_value_t         self_value;        // custom self value set by the user
 } gravity_closure_t;
 
 typedef struct {
@@ -321,6 +319,14 @@ typedef struct {
 	bool					outloop;			// special case for events or native code executed from C that must be executed separately
 } gravity_callframe_t;
 
+typedef enum {
+    FIBER_NEVER_EXECUTED = 0,
+    FIBER_ABORTED_WITH_ERROR = 1,
+    FIBER_TERMINATED = 2,
+    FIBER_RUNNING = 3,
+    FIBER_TRYING = 4
+} gravity_fiber_status;
+    
 // Fiber is the core executable model
 typedef struct fiber_s {
 	gravity_class_t			*isa;				// to be an object
@@ -341,8 +347,10 @@ typedef struct fiber_s {
 	struct fiber_s			*caller;			// optional caller fiber
 	gravity_value_t			result;				// end result of the fiber
     
+    gravity_fiber_status    status;             // Fiber status (see enum)
     nanotime_t              lasttime;           // last time Fiber has been called
     gravity_float_t         timewait;           // used in yieldTime
+    gravity_float_t         elapsedtime;        // time passed since last execution
 } gravity_fiber_t;
 
 typedef struct gravity_class_s {
@@ -377,7 +385,7 @@ typedef struct {
 
 	gravity_class_t			*objclass;			// real instance class
 	void					*xdata;				// extra bridged data
-	gravity_value_t			ivars[];			// instance variables (MUST BE LAST in the struct!)
+	gravity_value_t			*ivars;			    // instance variables
 } gravity_instance_t;
 
 typedef struct {

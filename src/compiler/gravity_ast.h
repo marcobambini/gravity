@@ -138,6 +138,7 @@ typedef struct {
 	gtoken_t			access;				// optional access token (duplicated value from its gnode_variable_decl_t)
 	uint16_t			index;				// local variable index (if local)
 	bool				upvalue;			// flag set if this variable is used as an upvalue
+    bool                iscomputed;         // flag set is variable must not be backed
 } gnode_var_t;
 
 typedef struct {
@@ -323,7 +324,7 @@ void    *meta_from_node (gnode_t *node);
 
 #define NODE_TOKEN_TYPE(_node)				_node->base.token.type
 #define NODE_TAG(_node)						((gnode_base_t *)_node)->base.tag
-#define NODE_ISA(_node,_tag)				(NODE_TAG(_node) == _tag)
+#define NODE_ISA(_node,_tag)				((_node) && NODE_TAG(_node) == _tag)
 #define NODE_ISA_FUNCTION(_node)			(NODE_ISA(_node, NODE_FUNCTION_DECL))
 #define NODE_ISA_CLASS(_node)				(NODE_ISA(_node, NODE_CLASS_DECL))
 

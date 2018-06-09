@@ -1,0 +1,19 @@
+#unittest {
+    name: "ivar access.";
+    result: 100;
+};
+
+class Foo {
+    var v1;
+    
+    func test() {
+        return v2;
+    }
+    
+    var v2 = 100;
+}
+
+func main() {
+    var c = Foo();
+    return c.test();
+}

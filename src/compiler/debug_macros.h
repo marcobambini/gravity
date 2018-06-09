@@ -25,7 +25,8 @@
 #define GRAVITY_LEXEM_DEBUG			0
 #define GRAVITY_LEXER_DEGUB			0
 #define GRAVITY_PARSER_DEBUG		0
-#define GRAVITY_SEMANTIC_DEBUG		0
+#define GRAVITY_SEMA1_DEBUG         0
+#define GRAVITY_SEMA2_DEBUG		    0
 #define GRAVITY_AST_DEBUG			0
 #define GRAVITY_LOOKUP_DEBUG		0
 #define GRAVITY_SYMTABLE_DEBUG		0
@@ -60,10 +61,16 @@
 #define DEBUG_PARSER(...)
 #endif
 
-#if GRAVITY_SEMANTIC_DEBUG
-#define DEBUG_SEMANTIC(...)			PRINT_LINE(__VA_ARGS__)
+#if GRAVITY_SEMA1_DEBUG
+#define DEBUG_SEMA1(...)            PRINT_LINE(__VA_ARGS__)
 #else
-#define DEBUG_SEMANTIC(...)
+#define DEBUG_SEMA1(...)
+#endif
+
+#if GRAVITY_SEMA2_DEBUG
+#define DEBUG_SEMA2(...)			PRINT_LINE(__VA_ARGS__)
+#else
+#define DEBUG_SEMA2(...)
 #endif
 
 #if GRAVITY_LOOKUP_DEBUG

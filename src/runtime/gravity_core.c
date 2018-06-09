@@ -376,6 +376,7 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 	if (VALUE_ISA_BOOL(v)) return VALUE_FROM_CSTRING(vm, (v.n) ? "true" : "false");
 	if (VALUE_ISA_NULL(v)) return VALUE_FROM_CSTRING(vm, "null");
 	if (VALUE_ISA_UNDEFINED(v)) return VALUE_FROM_CSTRING(vm, "undefined");
+    
 	if (VALUE_ISA_FLOAT(v)) {
 		char buffer[512];
 		snprintf(buffer, sizeof(buffer), "%f", v.f);
@@ -414,6 +415,12 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
         gravity_range_t *r = VALUE_AS_RANGE(v);
         char buffer[512];
         snprintf(buffer, sizeof(buffer), "%" PRId64 "...%" PRId64, r->from, r->to);
+        return VALUE_FROM_CSTRING(vm, buffer);
+    }
+	
+    if (VALUE_ISA_FIBER(v)) {
+        char buffer[512];
+        snprintf(buffer, sizeof(buffer), "Fiber %p", VALUE_AS_OBJECT(v));
         return VALUE_FROM_CSTRING(vm, buffer);
     }
 	
@@ -575,9 +582,8 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
     }
 	if (!obj) goto execute_notfound;
 
-	gravity_closure_t *closure;
 	if (OBJECT_ISA_CLOSURE(obj)) {
-		closure = (gravity_closure_t *)obj;
+		gravity_closure_t *closure = (gravity_closure_t *)obj;
 		if (!closure || !closure->f) goto execute_notfound;
 
 		// execute optimized default getter
@@ -602,10 +608,11 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
 
 	RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
 
-execute_notfound:
-	// in case of not found error return the notfound function to be executed (MANDATORY)
-	closure = (gravity_closure_t *)gravity_class_lookup(c, gravity_vm_keyindex(vm, GRAVITY_NOTFOUND_INDEX));
-	RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
+execute_notfound: {
+		// in case of not found error return the notfound function to be executed (MANDATORY)
+    	gravity_closure_t *closure = (gravity_closure_t *)gravity_class_lookup(c, gravity_vm_keyindex(vm, GRAVITY_NOTFOUND_INDEX));
+		RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
+	}
 }
 
 static bool object_loads (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1128,6 +1135,7 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 
 	// create a new empty buffer
 	uint32_t alloc = (uint32_t) (marray_size(list->array) * 64);
+    if (alloc == 0) alloc = 256;
 	uint32_t len = 0;
 	uint32_t seplen = (sep) ? VALUE_AS_STRING(GET_VALUE(1))->len : 0;
 	char *_buffer = mem_alloc(vm, alloc);
@@ -1144,13 +1152,13 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
             RETURN_VALUE(value, rindex);
         }
 
-        // compute string to appen
+        // compute string to append
 		const char *s2 = VALUE_AS_STRING(value)->s;
 		uint32_t req = VALUE_AS_STRING(value)->len;
 		uint32_t free_mem = alloc - len;
 
 		// check if buffer needs to be reallocated
-		if (free_mem < req + seplen) {
+		if (free_mem < req + seplen + 1) {
             uint64_t to_alloc = alloc + (req + seplen) * 2 + 4096;
 			_buffer = mem_realloc(vm, _buffer, (uint32_t)to_alloc);
             if (!_buffer) {
@@ -1164,10 +1172,14 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 		memcpy(_buffer+len, s2, req);
 		len += req;
 
+        // NULL terminate the C string
+        _buffer[len] = 0;
+		
 		// check for separator string
 		if (i+1 < n && seplen) {
 			memcpy(_buffer+len, sep, seplen);
 			len += seplen;
+            _buffer[len] = 0;
 		}
 
 		++i;
@@ -1356,8 +1368,8 @@ static bool range_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t narg
 	#pragma unused(vm, nargs)
 	gravity_range_t *range = VALUE_AS_RANGE(GET_VALUE(0));
 
-	// check for empty range first
-	if (range->from == range->to) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
+	// check for invalid range first
+	if (range->to < range->from) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
 
 	// check for start of iteration
 	if (VALUE_ISA_NULL(GET_VALUE(1))) RETURN_VALUE(VALUE_FROM_INT(range->from), rindex);
@@ -1491,11 +1503,19 @@ static bool closure_apply (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 }
 
 static bool closure_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    if (nargs != 2) RETURN_ERROR("An argument is required by the setself function.");
+    if (nargs != 2) RETURN_ERROR("An argument is required by the bind function.");
+    
+    if (!VALUE_ISA_CLOSURE(GET_VALUE(0))) {
+        // Houston, we have a problem
+        RETURN_NOVALUE();
+    }
     
     gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(0));
-    gravity_value_t self_value = GET_VALUE(1);
-    closure->self_value = self_value;
+    if (VALUE_ISA_NULL(GET_VALUE(1))) {
+        closure->context = NULL;
+    } else if (gravity_value_isobject(GET_VALUE(1))) {
+        closure->context = VALUE_AS_OBJECT(GET_VALUE(1));
+    }
     
     RETURN_NOVALUE();
 }
@@ -1591,36 +1611,6 @@ static bool operator_float_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t 
     
     // simpler equality test
 	if (v1.f == v2.f) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-    
-    #if GRAVITY_ENABLE_DOUBLE
-    double diff = fabs(v1.f - v2.f);
-    #else
-    float diff = fabsf(v1.f - v2.f);
-    #endif
-    
-    // simple equality test
-    if (diff < FLOAT_EPSILON) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-    
-    // a more accurate equality test is needed for floating point numbers
-    // from https://stackoverflow.com/questions/30808556/float-vs-double-comparison
-    // and http://floating-point-gui.de/errors/comparison/
-    // check also https://bitbashing.io/comparing-floats.html
-    // the ref should be https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
-    if (v1.f == 0 || v2.f == 0 || diff < FLOAT_MIN) {
-        if (diff < (FLOAT_EPSILON * FLOAT_MIN)) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-    } else {
-        #if GRAVITY_ENABLE_DOUBLE
-        double a = fabs((double)v1.f);
-        double b = fabs((double)v2.f);
-        double min = fmin(a + b, FLOAT_MAX);
-        #else
-        float a = fabsf((float)v1.f);
-        float b = fabsf((float)v2.f);
-        float min = fminf(a + b, FLOAT_MAX);
-        #endif
-        if (diff / min < FLOAT_EPSILON) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-    }
-    
 	if (v1.f > v2.f) RETURN_VALUE(VALUE_FROM_INT(1), rindex);
 	RETURN_VALUE(VALUE_FROM_INT(-1), rindex);
 }
@@ -1672,7 +1662,36 @@ static bool float_degrees (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 static bool float_radians (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm, nargs)
 	// Convert the float from degrees to radians
-	RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).f*3.141592653589793/180), rindex);
+	RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).f*3.141592653589793/180.0), rindex);
+}
+
+static bool float_isclose (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs < 2) RETURN_VALUE(VALUE_FROM_BOOL(true), rindex);
+    
+    DECLARE_2VARIABLES(v1, v2, 0, 1);
+    INTERNAL_CONVERT_FLOAT(v2);
+    gravity_float_t rel_tol = 1e-09;
+    gravity_float_t abs_tol=0.0;
+    if (nargs > 2 && VALUE_ISA_FLOAT(GET_VALUE(2))) rel_tol = VALUE_AS_FLOAT(GET_VALUE(2));
+    if (nargs > 3 && VALUE_ISA_FLOAT(GET_VALUE(3))) abs_tol = VALUE_AS_FLOAT(GET_VALUE(3));
+    
+    // abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+    
+    #if GRAVITY_ENABLE_DOUBLE
+    gravity_float_t abs_diff = fabs(v1.f - v2.f);
+    gravity_float_t abs_a = fabs(v1.f);
+    gravity_float_t abs_b = fabs(v2.f);
+    gravity_float_t abs_max = fmax(abs_a, abs_b);
+    gravity_float_t result = fmax(rel_tol * abs_max, abs_tol);
+    #else
+    gravity_float_t abs_diff = fabsf(v1.f - v2.f);
+    gravity_float_t abs_a = fabsf(v1.f);
+    gravity_float_t abs_b = fabsf(v2.f);
+    gravity_float_t abs_max = fmaxf(abs_a, abs_b);
+    gravity_float_t result = fmaxf(rel_tol * abs_max, abs_tol);
+    #endif
+    
+    RETURN_VALUE(VALUE_FROM_BOOL(abs_diff <= result), rindex);
 }
 
 // MARK: - Int Class -
@@ -2421,10 +2440,12 @@ static bool fiber_run (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 	gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
 	if (fiber->caller != NULL) RETURN_ERROR("Fiber has already been called.");
 
-    if (fiber->timewait > 0.0f) {
+    // always update elapsed time
+    fiber->elapsedtime = (nanotime() - fiber->lasttime) / 1000000000.0f;
+    
         // check if minimum timewait is passed
-        gravity_float_t elapsed = (nanotime() - fiber->lasttime) / 1000000000.0f;
-        if (elapsed < fiber->timewait) RETURN_NOVALUE();
+    if (fiber->timewait > 0.0f) {
+        if (fiber->elapsedtime < fiber->timewait) RETURN_NOVALUE();
     }
     
 	// remember who ran the fiber
@@ -2432,6 +2453,7 @@ static bool fiber_run (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 
 	// set trying flag
 	fiber->trying = is_trying;
+    fiber->status = (is_trying) ? FIBER_TRYING : FIBER_RUNNING;
 
 	// switch currently running fiber
 	gravity_vm_setfiber(vm, fiber);
@@ -2507,11 +2529,35 @@ static bool fiber_yield_time (gravity_vm *vm, gravity_value_t *args, uint16_t na
     }
 }
 
-static bool fiber_status (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+static bool fiber_done (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(nargs)
 
+    // returns true is the fiber has terminated execution
 	gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
 	RETURN_VALUE(VALUE_FROM_BOOL(fiber->nframes == 0 || fiber->error), rindex);
+}
+
+static bool fiber_status (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    
+    // status codes:
+    // 0    never executed
+    // 1    aborted with error
+    // 2    terminated
+    // 3    running
+    // 4    trying
+    
+    gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
+    if (fiber->error) RETURN_VALUE(VALUE_FROM_INT(FIBER_ABORTED_WITH_ERROR), rindex);
+    if (fiber->nframes == 0) RETURN_VALUE(VALUE_FROM_INT(FIBER_TERMINATED), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(fiber->status), rindex);
+}
+
+static bool fiber_elapsed_time (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    
+    gravity_fiber_t *fiber = VALUE_AS_FIBER(GET_VALUE(0));
+    RETURN_VALUE(VALUE_FROM_FLOAT(fiber->elapsedtime), rindex);
 }
 
 static bool fiber_abort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2582,6 +2628,12 @@ static bool operator_null_not (gravity_vm *vm, gravity_value_t *args, uint16_t n
 #if GRAVITY_NULL_SILENT
 static bool operator_null_silent (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 	#pragma unused(vm,args,nargs)
+    gravity_value_t key = GET_VALUE(1);
+    if (VALUE_ISA_STRING(key)) {
+        gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(gravity_class_null, key);
+        if (obj) RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
+    }
+    
     // every operation on NULL returns NULL
 	RETURN_VALUE(VALUE_FROM_NULL, rindex);
 }
@@ -2608,6 +2660,11 @@ static bool operator_null_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t n
 static bool null_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, args, nargs)
     RETURN_VALUE(VALUE_FROM_NULL, rindex);
+}
+
+static bool null_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_VALUE(VALUE_FROM_FALSE, rindex);
 }
 
 // MARK: - System -
@@ -2893,6 +2950,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_NEG_NAME, NEW_CLOSURE_VALUE(operator_float_neg));
 	gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_NOT_NAME, NEW_CLOSURE_VALUE(operator_float_not));
 	gravity_class_bind(gravity_class_float, "round", NEW_CLOSURE_VALUE(function_float_round));
+    gravity_class_bind(gravity_class_float, "isClose", NEW_CLOSURE_VALUE(float_isclose));
 	gravity_class_bind(gravity_class_float, "floor", NEW_CLOSURE_VALUE(function_float_floor));
 	gravity_class_bind(gravity_class_float, "ceil", NEW_CLOSURE_VALUE(function_float_ceil));
     closure = computed_property_create(NULL, NEW_FUNCTION(float_radians), NULL);
@@ -2954,6 +3012,8 @@ static void gravity_core_init (void) {
 	gravity_class_bind(fiber_meta, "yield", NEW_CLOSURE_VALUE(fiber_yield));
     gravity_class_bind(fiber_meta, "yieldWaitTime", NEW_CLOSURE_VALUE(fiber_yield_time));
 	gravity_class_bind(gravity_class_fiber, "status", NEW_CLOSURE_VALUE(fiber_status));
+    gravity_class_bind(gravity_class_fiber, "isDone", NEW_CLOSURE_VALUE(fiber_done));
+    gravity_class_bind(gravity_class_fiber, "elapsedTime", NEW_CLOSURE_VALUE(fiber_elapsed_time));
 	gravity_class_bind(fiber_meta, "abort", NEW_CLOSURE_VALUE(fiber_abort));
 
 	// BASIC OPERATIONS added also to NULL CLASS (and UNDEFINED since they points to the same class)
@@ -2974,6 +3034,7 @@ static void gravity_core_init (void) {
 	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(operator_store_null_silent));
 	gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_NOTFOUND_NAME, NEW_CLOSURE_VALUE(operator_null_silent));
 	#endif
+    gravity_class_bind(gravity_class_null, "iterate", NEW_CLOSURE_VALUE(null_iterator));
 
 	// SYSTEM class
 	gravity_class_system = gravity_class_new_pair(NULL, GRAVITY_CLASS_SYSTEM_NAME, NULL, 0, 0);

@@ -1189,6 +1189,9 @@ void gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure) {
 		gravity_gray_object(vm, (gravity_object_t*)upvalue[0]);
 		++upvalue;
 	}
+    
+    // mark context (if any)
+    if (closure->context) gravity_gray_object(vm, closure->context);
 }
 
 // MARK: -
@@ -1254,6 +1257,9 @@ gravity_fiber_t *gravity_fiber_new (gravity_vm *vm, gravity_closure_t *closure, 
 	frame->dest = 0;
 	frame->stackstart = fiber->stack;
 
+    // replace self with fiber instance
+    frame->stackstart[0] = VALUE_FROM_OBJECT(fiber);
+	
 	gravity_vm_transfer(vm, (gravity_object_t*) fiber);
 	return fiber;
 }
@@ -1503,10 +1509,12 @@ void gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj) {
 // MARK: -
 
 gravity_instance_t *gravity_instance_new (gravity_vm *vm, gravity_class_t *c) {
-	gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t) + (c->nivars * sizeof(gravity_value_t)));
+	gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t));
 
 	instance->isa = gravity_class_instance;
 	instance->objclass = c;
+    
+    if (c->nivars) instance->ivars = (gravity_value_t *)mem_alloc(NULL, c->nivars * sizeof(gravity_value_t));
 	for (uint32_t i=0; i<c->nivars; ++i) instance->ivars[i] = VALUE_FROM_NULL;
 
 	if (vm) gravity_vm_transfer(vm, (gravity_object_t*) instance);
@@ -1516,12 +1524,14 @@ gravity_instance_t *gravity_instance_new (gravity_vm *vm, gravity_class_t *c) {
 gravity_instance_t *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *src) {
 	gravity_class_t *c = src->objclass;
 
-	gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t) + (c->nivars * sizeof(gravity_value_t)));
+	gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t));
 	instance->isa = gravity_class_instance;
     instance->objclass = c; // TODO: if gravity_class_is_anon(c) then c must be deeply copied
     
     gravity_delegate_t *delegate = gravity_vm_delegate(vm);
     instance->xdata = (src->xdata && delegate->bridge_clone) ? delegate->bridge_clone(vm, src->xdata) : NULL;
+    
+    if (c->nivars) instance->ivars = (gravity_value_t *)mem_alloc(NULL, c->nivars * sizeof(gravity_value_t));
 	for (uint32_t i=0; i<c->nivars; ++i) instance->ivars[i] = src->ivars[i];
 
 	if (vm) gravity_vm_transfer(vm, (gravity_object_t*) instance);
@@ -1545,6 +1555,7 @@ void gravity_instance_free (gravity_vm *vm, gravity_instance_t *i) {
 		if (delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)i);
 	}
 
+    if (i->ivars) mem_free(i->ivars);
 	mem_free((void *)i);
 }
 

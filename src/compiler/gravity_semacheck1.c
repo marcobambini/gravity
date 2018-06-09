@@ -13,10 +13,10 @@
 
 #define REPORT_ERROR(node,...)			{report_error(self, (gnode_t *)node, __VA_ARGS__); return;}
 
-#define DECLARE_SYMTABLE				symboltable_t *symtable = (symboltable_t *)self->data
-#define SAVE_SYMTABLE					symboltable_t *saved = symtable
-#define CREATE_SYMTABLE					INC_IDENT; SAVE_SYMTABLE; self->data = (void *)symboltable_create(false);
-#define RESTORE_SYMTABLE				DEC_IDENT; node->symtable = ((symboltable_t *)self->data); self->data = (void *)saved
+#define DECLARE_SYMTABLE()				symboltable_t *symtable = (symboltable_t *)self->data
+#define SAVE_SYMTABLE()					symboltable_t *saved = symtable
+#define CREATE_SYMTABLE(tag)			INC_IDENT; SAVE_SYMTABLE(); self->data = (void *)symboltable_create(tag);
+#define RESTORE_SYMTABLE()				DEC_IDENT; node->symtable = ((symboltable_t *)self->data); self->data = (void *)saved
 
 #if GRAVITY_SYMTABLE_DEBUG
 static int ident =0;
@@ -66,82 +66,98 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 // MARK: - Declarations -
 
 static void visit_list_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) {
-	DECLARE_SYMTABLE;
+	DECLARE_SYMTABLE();
+    DEBUG_SYMTABLE("GLOBALS");
 
 	node->symtable = symtable;	// GLOBALS
-	gnode_array_each(node->stmts, {visit(val);});
+	gnode_array_each(node->stmts, {
+        visit(val);
+    });
 }
 
 static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) {
-	DECLARE_SYMTABLE;
-
+	DECLARE_SYMTABLE();
 	DEBUG_SYMTABLE("function: %s", node->identifier);
 
 	// function identifier
-	if (!symboltable_insert(symtable, node->identifier, (void *)node))
+    if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
+    }
 
 	// we are just interested in non-local declarations so don't further scan function node
 	// node->symtable is NULL here and it will be created in semacheck2
 }
 
 static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) {
-	DECLARE_SYMTABLE;
+	DECLARE_SYMTABLE();
 
+    bool is_static = (node->storage == TOK_KEY_STATIC);
 	gnode_array_each(node->decls, {
 		gnode_var_t *p = (gnode_var_t *)val;
-		DEBUG_SYMTABLE("variable: %s", p->identifier);
-		if (!symboltable_insert(symtable, p->identifier, (void *)p))
+        
+        if (!symboltable_insert(symtable, p->identifier, (void *)p)) {
 			REPORT_ERROR(p, "Identifier %s redeclared.", p->identifier);
+        }
+        
+        // in CLASS case set a relative ivar index (if ivar is not computed)
+        if (symboltable_tag(symtable) == SYMTABLE_TAG_CLASS && p->iscomputed == false) {
+            p->index = symboltable_setivar(symtable, is_static);
+            DEBUG_SYMTABLE("ivar: %s index: %d", p->identifier, p->index);
+        } else {
+            DEBUG_SYMTABLE("variable: %s", p->identifier);
+        }
 	});
 }
 
 static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
-	DECLARE_SYMTABLE;
+	DECLARE_SYMTABLE();
 
 	DEBUG_SYMTABLE("enum: %s", node->identifier);
 
 	// check enum identifier uniqueness in current symbol table
-	if (!symboltable_insert(symtable, node->identifier, (void *)node))
+    if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
+	}
 }
 
 static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
-	DECLARE_SYMTABLE;
+	DECLARE_SYMTABLE();
 
 	DEBUG_SYMTABLE("class: %s", node->identifier);
 
 	// class identifier
-	if (!symboltable_insert(symtable, node->identifier, (void *)node))
+    if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
+    }
 
-	CREATE_SYMTABLE;
+	CREATE_SYMTABLE(SYMTABLE_TAG_CLASS);
 	gnode_array_each(node->decls, {
 		visit(val);
 	});
-	RESTORE_SYMTABLE;
+	RESTORE_SYMTABLE();
 }
 
 static void visit_module_decl (gvisitor_t *self, gnode_module_decl_t *node) {
-	DECLARE_SYMTABLE;
+	DECLARE_SYMTABLE();
 
 	DEBUG_SYMTABLE("module: %s", node->identifier);
 
 	// module identifier
-	if (!symboltable_insert(symtable, node->identifier, (void *)node))
+    if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
+    }
 
-	CREATE_SYMTABLE;
+	CREATE_SYMTABLE(SYMTABLE_TAG_MODULE);
 	gnode_array_each(node->decls, {
 		visit(val);
 	});
-	RESTORE_SYMTABLE;
+	RESTORE_SYMTABLE();
 }
 
 // MARK: -
 
 bool gravity_semacheck1 (gnode_t *node, gravity_delegate_t *delegate) {
-	symboltable_t *context = symboltable_create(false);
+	symboltable_t *context = symboltable_create(SYMTABLE_TAG_GLOBAL);
 
 	gvisitor_t visitor = {
 		.nerr = 0,							// used to store number of found errors

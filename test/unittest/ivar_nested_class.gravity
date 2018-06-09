@@ -1,0 +1,38 @@
+#unittest {
+    name: "Ivar and nested classes.";
+    result: 666;
+};
+
+class _Window1 {
+    
+    var Button1;
+    var Button2;
+    
+    class _Button1 {
+    };
+    
+    class _Button2 {
+    };
+    
+    public var var1;
+    func DidShow() {
+        return var1;
+    }
+    
+    func _init_container() {
+        Button1 = "Button1";
+        Button2 = "Button2";
+        var1 = 666;
+    }
+    
+    func _free_container() {
+        Button1 = null;
+        Button2 = null;
+    }
+};
+
+func main() {
+    var Window1 = _Window1();
+    Window1._init_container();
+    return Window1.DidShow();
+}

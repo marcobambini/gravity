@@ -639,13 +639,15 @@ void gravity_lexer_token_dump (gtoken_s token) {
 
 #if GRAVITY_LEXER_DEGUB
 void gravity_lexer_debug (gravity_lexer_t *lexer) {
-	//static int lineno = 0;
+	static uint32_t offset = UINT32_MAX;
 	if (lexer->peeking) return;
-	//if (lineno > 0) printf("\n");
+    
 	gtoken_s token = lexer->token;
 	if ((token.lineno == 0) && (token.colno == 0)) return;
+    if (offset == token.position) return;
+    offset = token.position;
+    
 	printf("(%02d, %02d) %s: ", token.lineno, token.colno, token_name(token.type));
 	printf("%.*s\t(offset: %d)\n", token.bytes, token.value, token.position);
-	//++lineno;
 }
 #endif

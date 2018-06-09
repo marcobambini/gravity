@@ -28,7 +28,11 @@ typedef marray_t(gravity_hash_t*)	ghash_r;
 
 struct symboltable_t {
 	ghash_r		*stack;
-	uint32_t	counter;
+	uint16_t	    count1;     // used for local var
+    uint16_t        count2;     // used for ivar
+    uint16_t        count3;     // used for static ivar
+    uint16_t        unused;
+    symtable_tag    tag;
 };
 
 // MARK: -
@@ -62,14 +66,19 @@ static void symboltable_keyvalue_free (gravity_hash_t *hashtable, gravity_value_
 	gravity_value_free(NULL, key);
 }
 
-symboltable_t *symboltable_create (bool is_enum) {
+symboltable_t *symboltable_create (symtable_tag tag) {
+    bool is_enum = (tag == SYMTABLE_TAG_ENUM);
+    
 	symboltable_t	*table = mem_alloc(NULL, sizeof(symboltable_t));
 	gravity_hash_t	*hash = gravity_hash_create(0, gravity_value_hash, gravity_value_equals,
 												(is_enum) ? symboltable_keyvalue_free : symboltable_hash_free, NULL);
 	if (!table) return NULL;
 
 	// init symbol table
-	table->counter = 0;
+    table->tag = tag;
+	table->count1 = 0;
+    table->count2 = 0;
+    table->count3 = 0;
 	table->stack = mem_alloc(NULL, sizeof(ghash_r));
 	scope_stack_init(table->stack);
 	scope_stack_push(table->stack, hash);
@@ -107,7 +116,7 @@ bool symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *
 	}
 	gravity_hash_insert(h, key, VALUE_FROM_NODE(node));
 
-	++table->counter;
+	++table->count1;
 	return true;
 }
 
@@ -129,6 +138,14 @@ uint32_t symboltable_count (symboltable_t *table, uint32_t index) {
 	return gravity_hash_count(h);
 }
 
+symtable_tag symboltable_tag (symboltable_t *table) {
+    return table->tag;
+}
+
+uint16_t symboltable_setivar (symboltable_t *table, bool is_static) {
+    return ((is_static) ? table->count3++ : table->count2++);
+}
+
 // MARK: -
 
 gnode_t *symboltable_global_lookup (symboltable_t *table, const char *identifier) {
@@ -145,7 +162,7 @@ void symboltable_enter_scope (symboltable_t *table) {
 }
 
 uint32_t symboltable_local_index (symboltable_t *table) {
-	return table->counter - 1;
+	return table->count1 - 1;
 }
 
 uint32_t symboltable_exit_scope (symboltable_t *table, uint32_t *nlevel) {
@@ -155,7 +172,7 @@ uint32_t symboltable_exit_scope (symboltable_t *table, uint32_t *nlevel) {
 		gravity_hash_iterate(h, check_upvalue_inscope, (void *)nlevel);
 	}
 	gravity_hash_free(h);
-	return table->counter;
+	return table->count1;
 }
 
 void symboltable_dump (symboltable_t *table) {

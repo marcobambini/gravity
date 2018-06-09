@@ -243,6 +243,7 @@ gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const ch
 	node->annotation_type = annotation_type;
 	node->expr = expr;
 	node->access = access_specifier;
+    node->iscomputed = false;
 	return (gnode_t *)node;
 }
 

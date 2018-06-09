@@ -1,0 +1,20 @@
+#unittest {
+    name: "Math lerp test.";
+    result: 11.0;
+};
+
+func main() {
+    var n0 = Math.lerp(0,1,0);          // 0.0
+    if (n0 != 0.0) return 0;
+    
+    var n1 = Math.lerp(10, 100, 0);     // 10.0
+    if (n1 != 10.0) return 0;
+    
+    var n2 = Math.lerp(-1,1,1);         // 1.0
+    if (n2 != 1.0) return 0;
+    
+    var n3 = Math.lerp(-1,1,0.5);       // 0.0
+    if (n3 != 0.0) return 0;
+    
+    return n0+n1+n2+n3;
+}
