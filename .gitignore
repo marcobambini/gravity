@@ -306,10 +306,10 @@ xcuserdata/
 
 ## Other
 *.moved-aside
+*.xcscheme
 *.xccheckout
 *.xcscmblueprint
 *.xcuserstate
 *.xcworkspacedata
 .DS_Store
-gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/unittest.xcscheme
-*.xcscheme
+gravity.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
