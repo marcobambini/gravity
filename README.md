@@ -48,8 +48,8 @@ func main() {
 	// call + function in the vector object
 	var v3 = v1 + v2;
 	
-	// returns string "[5,7,9]"
-	return v3.String();
+	// returns string "[1,2,3] + [4,5,6] = [5,7,9]"
+    	return "\(v1) + \(v2) = \(v3)";
  }
  ```
 
