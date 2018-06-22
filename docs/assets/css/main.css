@@ -1,0 +1,84 @@
+:root {
+	/* General */
+  	--base-font-size							  : 14px;
+  	--link-color 								  : var(--theme-color);
+  	--link-text-decoration 						  : none;
+  	--heading-h3-color							  : #7E267E;
+
+    /* Cover */
+    --cover-heading-color                      	  : #555555;
+
+    /* Nav Links */
+    --sidebar-nav-link-background-color           : ;
+    --sidebar-nav-link-background-color--active   : ;
+    --sidebar-nav-link-background-color--hover    : ;
+    --sidebar-nav-link-background-image           : ;
+    --sidebar-nav-link-background-image--active   : ;
+    --sidebar-nav-link-background-image--hover    : ;
+    --sidebar-nav-link-background-position        : ;
+    --sidebar-nav-link-background-position--active: ;
+    --sidebar-nav-link-background-position--hover : ;
+    --sidebar-nav-link-background-repeat          : ;
+    --sidebar-nav-link-background-size            : ;
+    --sidebar-nav-link-background-size--active    : ;
+    --sidebar-nav-link-background-size--hover     : ;
+    --sidebar-nav-link-border-color               : ;
+    --sidebar-nav-link-border-color--active       : ;
+    --sidebar-nav-link-border-color--hover        : ;
+    --sidebar-nav-link-border-radius              : ;
+    --sidebar-nav-link-border-style               : solid;
+    --sidebar-nav-link-border-style--active       : ;
+    --sidebar-nav-link-border-style--hover        : ;
+    --sidebar-nav-link-border-width               : 0;
+    --sidebar-nav-link-border-width--active       : ;
+    --sidebar-nav-link-border-width--hover        : ;
+    --sidebar-nav-link-color                      : var(--base-color);
+    --sidebar-nav-link-color--active              : ;
+    --sidebar-nav-link-color--hover               : var(--theme-color);
+    --sidebar-nav-link-font-weight                : ;
+    --sidebar-nav-link-font-weight--active        : ;
+    --sidebar-nav-link-font-weight--hover         : ;
+    --sidebar-nav-link-margin                     : ;
+    --sidebar-nav-link-padding                    : 0.25em 0;
+    --sidebar-nav-link-text-decoration            : ;
+    --sidebar-nav-link-text-decoration--active    : none;
+    --sidebar-nav-link-text-decoration--hover     : none;
+    --sidebar-nav-link-text-decoration-color      : ;
+    --sidebar-nav-link-transition                 : ;
+   
+  	/* Nav Page Links */
+    --sidebar-nav-pagelink-background-image             : ;
+    --sidebar-nav-pagelink-background-image--active     : ;
+    --sidebar-nav-pagelink-background-image--collapse   : ;
+    --sidebar-nav-pagelink-background-image--loaded     : ;
+    --sidebar-nav-pagelink-background-position          : ;
+    --sidebar-nav-pagelink-background-position--active  : ;
+    --sidebar-nav-pagelink-background-position--collapse: ;
+    --sidebar-nav-pagelink-background-position--loaded  : ;
+    --sidebar-nav-pagelink-background-repeat            : no-repeat;
+    --sidebar-nav-pagelink-padding                      : ;
+    --sidebar-nav-pagelink-transition                   : var(--sidebar-nav-link-transition);
+    
+    /* Toggle */
+    --sidebar-toggle-background                   : ;
+    --sidebar-toggle-border-color                 : ;
+    --sidebar-toggle-border-radius                : var(--border-radius-s);
+    --sidebar-toggle-border-style                 : solid;
+    --sidebar-toggle-border-width                 : 0;
+    --sidebar-toggle-height                       : 36px;
+    --sidebar-toggle-icon-color                   : var(--theme-color);
+    --sidebar-toggle-icon-height                  : 10px;
+    --sidebar-toggle-icon-stroke-width            : 2px;
+    --sidebar-toggle-icon-width                   : 16px;
+    --sidebar-toggle-offset-left                  : 0;
+    --sidebar-toggle-offset-top                   : calc(35px - (var(--sidebar-toggle-height) / 2));
+    --sidebar-toggle-width                        : 44px;
+    
+    --search-margin                          	  : ;
+    --search-padding                         	  : ;
+    --search-input-border-width          		  : 0 0 1px 0;
+}
+
+.sidebar li > p {
+  font-weight: 700;
+}
