@@ -1,7 +1,7 @@
 ## Getting started
 
 ### Install
-To install Gravity, simply execute the commands given below. It should make two executables: the compiler itself and test runner.
+To install Gravity, simply execute the commands given below. This should make two executables: **gravity**, the compiler itself and **unittest**, the test runner.
 ```bash
 	git clone https://github.com/marcobambini/gravity.git
 	cd gravity
@@ -12,7 +12,7 @@ To install Gravity, simply execute the commands given below. It should make two 
 You can also use the **Xcode** project to create the gravity or unittest executables.
 
 ### Configure your editor
-Programming is way more enjoyable when you have the right tools. That's why we equipped several code editors with Gravity support. Just click on your favourite editor and configure it accordingly:
+Programming is way more enjoyable when you have the right tools. That's why we've equipped several code editors with Gravity support. Just click on your favourite editor and configure it accordingly:
 * [Visual Studio Code](https://github.com/Dohxis/vscode-gravity)
 * [Atom](https://github.com/Tribex/atom-language-gravity)
 * [vim](https://github.com/hallzy/gravity.vim)
@@ -39,11 +39,11 @@ To directly execute a gravity file (without first serializing it to json):
 	./gravity myfile.gravity
 ```
 ### Unit Tests
-You can run unit tests by providing a path to a folder containing all test files:
+You can run [unit tests](../unittest) by providing a path to a folder containing all test files:
 ```bash
 	./unittest path_to_test_folder
 ```
-You should obtain an output like:
+This should produce output like:
 	<img src="assets/images/unittest.png" width="666px" height="466px">
 
 			
