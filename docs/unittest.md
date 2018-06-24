@@ -16,4 +16,4 @@ func main() {
 ```
 
 
-> A unittest can also be written in order to be able to check for syntax, semantic and runtime errors. For syntax and semantic errors the user can also specify row and column of the expected generated error.
+> A unit test can also be written in order to be able to check for syntax, semantic and runtime errors. For syntax and semantic errors the user can also specify row and column of the expected generated error.
