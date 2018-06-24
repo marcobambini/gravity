@@ -39,7 +39,7 @@ To directly execute a gravity file (without first serializing it to json):
 	./gravity myfile.gravity
 ```
 ### Unit Tests
-You can run [unit tests](../unittest) by providing a path to a folder containing all test files:
+You can run [unit tests](unittest.md) by providing a path to a folder containing all test files:
 ```bash
 	./unittest path_to_test_folder
 ```
