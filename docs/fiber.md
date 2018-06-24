@@ -49,13 +49,13 @@ var closure = {
 var fiber = Fiber.create(closure)
 
 fiber.call()
-// prints 0
-
-fiber.call()
 // prints 1
 
 fiber.call()
 // prints 2
+
+fiber.call()
+// prints 3
 
 fiber.call()
 // prints Done
