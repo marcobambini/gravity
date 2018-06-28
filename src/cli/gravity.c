@@ -14,16 +14,33 @@
 
 #define DEFAULT_OUTPUT "gravity.g"
 
+typedef struct {
+    bool            processed;
+    bool            is_fuzzy;
+    
+    uint32_t        ncount;
+    uint32_t        nsuccess;
+    uint32_t        nfailure;
+    
+    error_type_t    expected_error;
+    gravity_value_t expected_value;
+    int32_t         expected_row;
+    int32_t         expected_col;
+} unittest_data;
+
 typedef enum  {
 	OP_COMPILE,			// just compile source code and exit
 	OP_RUN,				// just run an already compiled file
 	OP_COMPILE_RUN,		// compile source code and run it
     OP_INLINE_RUN,      // compile and execure source passed inline
-	OP_REPL				// run a read eval print loop
+	OP_REPL,			// run a read eval print loop
+    OP_UNITTEST         // unit test mode
 } op_type;
 
 static const char *input_file = NULL;
 static const char *output_file = DEFAULT_OUTPUT;
+static const char *unittest_folder = NULL;
+static const char *test_folder_path = NULL;
 static bool quiet_flag = false;
 
 static void report_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
@@ -73,7 +90,161 @@ static const char *load_file (const char *file, size_t *size, uint32_t *fileid, 
 	return file_read(file, size);
 }
 
-// MARK: -
+// MARK: - Unit Test -
+
+static void unittest_init (const char *target_file, unittest_data *data) {
+    #pragma unused(target_file)
+    ++data->ncount;
+    data->processed = false;
+}
+
+static void unittest_cleanup (const char *target_file, unittest_data *data) {
+    #pragma unused(target_file,data)
+}
+
+static void unittest_callback (gravity_vm *vm, error_type_t error_type, const char *description, const char *notes, gravity_value_t value, int32_t row, int32_t col, void *xdata) {
+    #pragma unused(vm)
+    unittest_data *data = (unittest_data *)xdata;
+    data->expected_error = error_type;
+    data->expected_value = value;
+    data->expected_row = row;
+    data->expected_col = col;
+    
+    if (notes) printf("\tNOTE: %s\n", notes);
+    printf("\t%s\n", description);
+}
+
+static void unittest_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
+    #pragma unused(vm)
+    
+    unittest_data *data = (unittest_data *)xdata;
+    if (data->processed == true) return; // ignore 2nd error
+    data->processed = true;
+    
+    const char *type = "NONE";
+    if (error_type == GRAVITY_ERROR_SYNTAX) type = "SYNTAX";
+    else if (error_type == GRAVITY_ERROR_SEMANTIC) type = "SEMANTIC";
+    else if (error_type == GRAVITY_ERROR_RUNTIME) type = "RUNTIME";
+    else if (error_type == GRAVITY_WARNING) type = "WARNING";
+    
+    if (error_type == GRAVITY_ERROR_RUNTIME) printf("\tRUNTIME ERROR: ");
+    else printf("\t%s ERROR on %d (%d,%d): ", type, error_desc.fileid, error_desc.lineno, error_desc.colno);
+    printf("%s\n", message);
+    
+    bool same_error = (data->expected_error == error_type);
+    bool same_row = (data->expected_row != -1) ? (data->expected_row == error_desc.lineno) : true;
+    bool same_col = (data->expected_col != -1) ? (data->expected_col == error_desc.colno) : true;
+    
+    if (data->is_fuzzy) {
+        ++data->nsuccess;
+        printf("\tSUCCESS\n");
+        return;
+    }
+    
+    if (same_error && same_row && same_col) {
+        ++data->nsuccess;
+        printf("\tSUCCESS\n");
+    } else {
+        ++data->nfailure;
+        printf("\tFAILURE\n");
+    }
+}
+
+static const char *unittest_read (const char *path, size_t *size, uint32_t *fileid, void *xdata) {
+    #pragma unused(fileid,xdata)
+    if (file_exists(path)) return file_read(path, size);
+    
+    // this unittest is able to resolve path only next to main test folder (not in nested folders)
+    const char *newpath = file_buildpath(path, test_folder_path);
+    if (!newpath) return NULL;
+    
+    const char *buffer = file_read(newpath, size);
+    mem_free(newpath);
+    
+    return buffer;
+}
+
+static void unittest_scan (const char *folder_path, unittest_data *data) {
+    DIRREF dir = directory_init(folder_path);
+    if (!dir) return;
+    
+    const char *target_file;
+    while ((target_file = directory_read(dir))) {
+        
+        #ifdef WIN32
+        const char winbuffer[MAX_PATH];
+        WideCharToMultiByte (CP_UTF8, 0, (LPCWSTR)target_file, -1, winbuffer, sizeof(winbuffer), NULL, NULL );
+        target_file = (const char *)winbuffer;
+        #endif
+        
+        // if file is a folder then start recursion
+        const char *full_path = file_buildpath(target_file, folder_path);
+        if (is_directory(full_path)) {
+            // skip disabled folder
+            if (strcmp(target_file, "disabled") == 0) continue;
+            unittest_scan(full_path, data);
+            continue;
+        }
+        
+        // test only files with a .gravity extension
+        if (strstr(full_path, ".gravity") == NULL) continue;
+        data->is_fuzzy = (strstr(full_path, "/fuzzy/") != NULL);
+        
+        // load source code
+        size_t size = 0;
+        const char *source_code = file_read(full_path, &size);
+        assert(source_code);
+        
+        // start unit test
+        unittest_init(target_file, data);
+        
+        // compile and run source code
+        printf("\n%d\tTest file: %s\n", data->ncount, target_file);
+        printf("\tTest path: %s\n", full_path);
+        mem_free(full_path);
+        
+        // initialize compiler and delegates
+        gravity_delegate_t delegate = {
+            .xdata = (void *)data,
+            .error_callback = unittest_error,
+            .unittest_callback = unittest_callback,
+            .loadfile_callback = unittest_read
+        };
+        
+        gravity_compiler_t *compiler = gravity_compiler_create(&delegate);
+        gravity_closure_t *closure = gravity_compiler_run(compiler, source_code, size, 0, false);
+        gravity_vm *vm = gravity_vm_new(&delegate);
+        gravity_compiler_transfer(compiler, vm);
+        gravity_compiler_free(compiler);
+        
+        if (closure) {
+            if (gravity_vm_runmain(vm, closure)) {
+                data->processed = true;
+                gravity_value_t result = gravity_vm_result(vm);
+                if (data->is_fuzzy || gravity_value_equals(result, data->expected_value)) {
+                    ++data->nsuccess;
+                    printf("\tSUCCESS\n");
+                } else {
+                    ++data->nfailure;
+                    printf("\tFAILURE\n");
+                }
+                gravity_value_free(NULL, data->expected_value);
+            }
+        }
+        gravity_vm_free(vm);
+        
+        // case for empty files or simple declarations test
+        if (!data->processed) {
+            ++data->nsuccess;
+            printf("\tSUCCESS\n");
+        }
+        
+        // cleanup unitest
+        unittest_cleanup(target_file, data);
+    }
+}
+
+// MARK: - General -
 
 static void print_version (void) {
 	printf("Gravity version %s (%s)\n", GRAVITY_VERSION, GRAVITY_BUILD_DATE);
@@ -126,6 +297,10 @@ static op_type parse_args (int argc, const char* argv[]) {
 		else if (strcmp(argv[i], "-q") == 0) {
 			quiet_flag = true;
 		}
+        else if ((strcmp(argv[i], "-t") == 0) && (i+1 < argc)) {
+            unittest_folder = argv[++i];
+            type = OP_UNITTEST;
+        }
 		else {
 			input_file = argv[i];
 			type = OP_COMPILE_RUN;
@@ -135,7 +310,7 @@ static op_type parse_args (int argc, const char* argv[]) {
 	return type;
 }
 
-// MARK: -
+// MARK: - Special Modes
 
 static void gravity_repl (void) {
 	printf("REPL not yet implemented.\n");
@@ -164,6 +339,50 @@ static void gravity_repl (void) {
 	 */
 }
 
+static void gravity_unittest (void) {
+    unittest_data data = {
+        .ncount = 0,
+        .nsuccess = 0,
+        .nfailure = 0
+    };
+    
+    if (unittest_folder == NULL) {
+        printf("Usage: gravity -t /path/to/unitest/\n");
+        exit(-1);
+    }
+    
+    // print console header
+    printf("==============================================\n");
+    printf("Gravity Unit Test Mode\n");
+    printf("Gravity version %s\n", GRAVITY_VERSION);
+    printf("Build date: %s\n", GRAVITY_BUILD_DATE);
+    printf("==============================================\n");
+    
+    mem_init();
+    nanotime_t tstart = nanotime();
+    test_folder_path = unittest_folder;
+    unittest_scan(unittest_folder, &data);
+    nanotime_t tend = nanotime();
+    
+    double result = ((double)((data.nsuccess * 100)) / (double)data.ncount);
+    printf("\n\n");
+    printf("==============================================\n");
+    printf("Total Tests: %d\n", data.ncount);
+    printf("Total Successes: %d\n", data.nsuccess);
+    printf("Total Failures: %d\n", data.nfailure);
+    printf("Result: %.2f %%\n", result);
+    printf("Time: %.4f ms\n", millitime(tstart, tend));
+    printf("==============================================\n");
+    printf("\n");
+    
+    // If we have 1 or more failures, return an error.
+    if (data.nfailure != 0) {
+        exit(1);
+    }
+    
+    exit(0);
+}
+
 // MARK: -
 
 int main (int argc, const char* argv[]) {
@@ -172,6 +391,9 @@ int main (int argc, const char* argv[]) {
 
 	// special repl case
 	if (type == OP_REPL) gravity_repl();
+    
+    // special unit test mode
+    if (type == OP_UNITTEST) gravity_unittest();
 
 	// initialize memory debugger (if activated)
 	mem_init();

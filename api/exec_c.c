@@ -24,9 +24,9 @@ static const char *source =	"	extern var Math;				\
 								}";
 
 // error callback
-static void report_error (error_type_t error_type, const char *message,
+static void report_error (gravity_vm *vm, error_type_t error_type, const char *message,
 						  error_desc_t error_desc, void *xdata) {
-#pragma unused(xdata)
+    #pragma unused(vm, xdata)
 	const char *type = "N/A";
 	switch (error_type) {
 		case GRAVITY_ERROR_NONE: type = "NONE"; break;
@@ -176,7 +176,7 @@ int main(int argc, const char * argv[]) {
 		double t = gravity_vm_time(vm);
 
 		char buffer[512];
-		gravity_value_dump(result, buffer, sizeof(buffer));
+		gravity_value_dump(vm, result, buffer, sizeof(buffer));
 		printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
 	}
 

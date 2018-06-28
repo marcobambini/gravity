@@ -313,3 +313,6 @@ xcuserdata/
 *.xcworkspacedata
 .DS_Store
 gravity.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+api/api.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.xcscheme
+gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/xcschememanagement.plist

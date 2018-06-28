@@ -14,9 +14,9 @@ static const char *source = "func add (a, b) {return a + b;}; \
                              func mul (a, b) {return a * b;};";
 
 // error callback
-static void report_error (error_type_t error_type, const char *message,
+static void report_error (gravity_vm *vm, error_type_t error_type, const char *message,
 						  error_desc_t error_desc, void *xdata) {
-	#pragma unused(xdata)
+	#pragma unused(vm, xdata)
 	const char *type = "N/A";
 	switch (error_type) {
 		case GRAVITY_ERROR_NONE: type = "NONE"; break;
@@ -68,7 +68,7 @@ int main(int argc, const char * argv[]) {
 	if (gravity_vm_runclosure(vm, VALUE_AS_CLOSURE(add), add, params, 2)) {
 		gravity_value_t result = gravity_vm_result(vm);
 		printf("add result ");
-		gravity_value_dump(result, NULL, 0);
+		gravity_value_dump(vm, result, NULL, 0);
 	}
 
 	// lookup mul closure
@@ -79,7 +79,7 @@ int main(int argc, const char * argv[]) {
 	if (gravity_vm_runclosure(vm, VALUE_AS_CLOSURE(mul), mul, params, 2)) {
 		gravity_value_t result = gravity_vm_result(vm);
 		printf("mul result ");
-		gravity_value_dump(result, NULL, 0);
+		gravity_value_dump(vm, result, NULL, 0);
 	}
 
 	// free vm and core classes

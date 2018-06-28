@@ -3,7 +3,6 @@ RUNTIME_DIR = src/runtime/
 SHARED_DIR = src/shared/
 UTILS_DIR = src/utils/
 OPT_DIR = src/optionals/
-UNITTEST_SRC = src/cli/unittest.c
 GRAVITY_SRC = src/cli/gravity.c
 
 CC ?= gcc
@@ -44,18 +43,15 @@ else
 	CFLAGS += -O2
 endif
 
-all: unittest gravity
-
-unittest:	$(OBJ) $(UNITTEST_SRC)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+all: gravity
 
 gravity:	$(OBJ) $(GRAVITY_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-.PHONY: all clean unittest gravity
+.PHONY: all clean gravity
 
 lib: gravity
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) unittest gravity libgravity.so gravity.dll
+	rm -f $(OBJ) gravity libgravity.so gravity.dll

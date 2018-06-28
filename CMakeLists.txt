@@ -6,7 +6,6 @@ SET(SHARED_DIR src/shared/)
 SET(UTILS_DIR src/utils/)
 SET(OPT_DIR src/optionals/)
 
-SET(UNITTEST_SRC src/cli/unittest.c)
 SET(GRAVITY_SRC src/cli/gravity.c)
 
 AUX_SOURCE_DIRECTORY(${COMPILER_DIR} COMPILER_FILES)
@@ -32,10 +31,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     LIST(APPEND LIBS "m" "rt")
 endif()
-
-ADD_EXECUTABLE(unittest ${UNITTEST_SRC} $<TARGET_OBJECTS:libgravity>)
-TARGET_LINK_LIBRARIES(unittest ${LIBS})
-
 
 ADD_EXECUTABLE(gravity ${GRAVITY_SRC} $<TARGET_OBJECTS:libgravity>)
 TARGET_LINK_LIBRARIES(gravity ${LIBS})

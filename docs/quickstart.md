@@ -41,7 +41,7 @@ To directly execute a gravity file (without first serializing it to json):
 ### Unit Tests
 You can run [unit tests](unittest.md) by providing a path to a folder containing all test files:
 ```bash
-	./unittest path_to_test_folder
+	./gravity -t path_to_test_folder
 ```
 This should produce output like:
 	<img src="assets/images/unittest.png" width="666px" height="466px">

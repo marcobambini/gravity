@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		A9506D381E69AB66009A0045 /* gravity.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506CFC1E69AB1E009A0045 /* gravity.c */; };
-		A9506D391E69AB6A009A0045 /* unittest.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506CFD1E69AB1E009A0045 /* unittest.c */; };
 		A9506D3A1E69AB78009A0045 /* gravity_ast.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D001E69AB1E009A0045 /* gravity_ast.c */; };
 		A9506D3B1E69AB78009A0045 /* gravity_codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D021E69AB1E009A0045 /* gravity_codegen.c */; };
 		A9506D3C1E69AB78009A0045 /* gravity_compiler.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D041E69AB1E009A0045 /* gravity_compiler.c */; };
@@ -21,49 +20,19 @@
 		A9506D431E69AB78009A0045 /* gravity_symboltable.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D121E69AB1E009A0045 /* gravity_symboltable.c */; };
 		A9506D441E69AB78009A0045 /* gravity_token.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D141E69AB1E009A0045 /* gravity_token.c */; };
 		A9506D451E69AB78009A0045 /* gravity_visitor.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D161E69AB1E009A0045 /* gravity_visitor.c */; };
-		A9506D461E69AB78009A0045 /* gravity_ast.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D001E69AB1E009A0045 /* gravity_ast.c */; };
-		A9506D471E69AB78009A0045 /* gravity_codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D021E69AB1E009A0045 /* gravity_codegen.c */; };
-		A9506D481E69AB78009A0045 /* gravity_compiler.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D041E69AB1E009A0045 /* gravity_compiler.c */; };
-		A9506D491E69AB78009A0045 /* gravity_ircode.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D061E69AB1E009A0045 /* gravity_ircode.c */; };
-		A9506D4A1E69AB78009A0045 /* gravity_lexer.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D081E69AB1E009A0045 /* gravity_lexer.c */; };
-		A9506D4B1E69AB78009A0045 /* gravity_optimizer.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D0A1E69AB1E009A0045 /* gravity_optimizer.c */; };
-		A9506D4C1E69AB78009A0045 /* gravity_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D0C1E69AB1E009A0045 /* gravity_parser.c */; };
-		A9506D4D1E69AB78009A0045 /* gravity_semacheck1.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D0E1E69AB1E009A0045 /* gravity_semacheck1.c */; };
-		A9506D4E1E69AB78009A0045 /* gravity_semacheck2.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D101E69AB1E009A0045 /* gravity_semacheck2.c */; };
-		A9506D4F1E69AB78009A0045 /* gravity_symboltable.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D121E69AB1E009A0045 /* gravity_symboltable.c */; };
-		A9506D501E69AB78009A0045 /* gravity_token.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D141E69AB1E009A0045 /* gravity_token.c */; };
-		A9506D511E69AB78009A0045 /* gravity_visitor.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D161E69AB1E009A0045 /* gravity_visitor.c */; };
 		A9506D521E69AB7E009A0045 /* gravity_core.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D191E69AB1E009A0045 /* gravity_core.c */; };
 		A9506D531E69AB7E009A0045 /* gravity_vm.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D1B1E69AB1E009A0045 /* gravity_vm.c */; };
-		A9506D541E69AB7E009A0045 /* gravity_core.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D191E69AB1E009A0045 /* gravity_core.c */; };
-		A9506D551E69AB7E009A0045 /* gravity_vm.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D1B1E69AB1E009A0045 /* gravity_vm.c */; };
 		A9506D561E69AB86009A0045 /* gravity_hash.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D211E69AB1E009A0045 /* gravity_hash.c */; };
 		A9506D571E69AB86009A0045 /* gravity_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D241E69AB1E009A0045 /* gravity_memory.c */; };
 		A9506D581E69AB86009A0045 /* gravity_value.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D271E69AB1E009A0045 /* gravity_value.c */; };
-		A9506D591E69AB86009A0045 /* gravity_hash.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D211E69AB1E009A0045 /* gravity_hash.c */; };
-		A9506D5A1E69AB86009A0045 /* gravity_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D241E69AB1E009A0045 /* gravity_memory.c */; };
-		A9506D5B1E69AB86009A0045 /* gravity_value.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D271E69AB1E009A0045 /* gravity_value.c */; };
 		A9506D5C1E69AB8D009A0045 /* gravity_debug.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2A1E69AB1E009A0045 /* gravity_debug.c */; };
 		A9506D5D1E69AB8D009A0045 /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2C1E69AB1E009A0045 /* gravity_json.c */; };
 		A9506D5E1E69AB8D009A0045 /* gravity_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2E1E69AB1E009A0045 /* gravity_utils.c */; };
-		A9506D5F1E69AB8E009A0045 /* gravity_debug.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2A1E69AB1E009A0045 /* gravity_debug.c */; };
-		A9506D601E69AB8E009A0045 /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2C1E69AB1E009A0045 /* gravity_json.c */; };
-		A9506D611E69AB8E009A0045 /* gravity_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2E1E69AB1E009A0045 /* gravity_utils.c */; };
 		A9BB72F01F470832002FD2D6 /* gravity_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A9BB72EC1F470832002FD2D6 /* gravity_math.c */; };
-		A9BB72F21F470888002FD2D6 /* gravity_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A9BB72EC1F470832002FD2D6 /* gravity_math.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		A9506CEE1E69AAEB009A0045 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		A9506D331E69AB33009A0045 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -77,7 +46,6 @@
 /* Begin PBXFileReference section */
 		A9506CF01E69AAEB009A0045 /* gravity */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gravity; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9506CFC1E69AB1E009A0045 /* gravity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gravity.c; sourceTree = "<group>"; };
-		A9506CFD1E69AB1E009A0045 /* unittest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = unittest.c; sourceTree = "<group>"; };
 		A9506CFF1E69AB1E009A0045 /* debug_macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug_macros.h; sourceTree = "<group>"; };
 		A9506D001E69AB1E009A0045 /* gravity_ast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gravity_ast.c; sourceTree = "<group>"; };
 		A9506D011E69AB1E009A0045 /* gravity_ast.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_ast.h; sourceTree = "<group>"; };
@@ -124,7 +92,6 @@
 		A9506D2D1E69AB1E009A0045 /* gravity_json.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_json.h; sourceTree = "<group>"; };
 		A9506D2E1E69AB1E009A0045 /* gravity_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gravity_utils.c; sourceTree = "<group>"; };
 		A9506D2F1E69AB1E009A0045 /* gravity_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_utils.h; sourceTree = "<group>"; };
-		A9506D371E69AB33009A0045 /* unittest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = unittest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9BB72EC1F470832002FD2D6 /* gravity_math.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_math.c; sourceTree = "<group>"; };
 		A9BB72ED1F470832002FD2D6 /* gravity_math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_math.h; sourceTree = "<group>"; };
 		A9BB72EE1F470832002FD2D6 /* gravity_optionals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optionals.h; sourceTree = "<group>"; };
@@ -138,16 +105,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A9506D321E69AB33009A0045 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A90CDBC220E4AF2400616D56 /* cli */ = {
+			isa = PBXGroup;
+			children = (
+				A9506CFC1E69AB1E009A0045 /* gravity.c */,
+			);
+			path = cli;
+			sourceTree = "<group>";
+		};
 		A9506CE71E69AAEB009A0045 = {
 			isa = PBXGroup;
 			children = (
@@ -160,7 +128,6 @@
 			isa = PBXGroup;
 			children = (
 				A9506CF01E69AAEB009A0045 /* gravity */,
-				A9506D371E69AB33009A0045 /* unittest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -168,7 +135,7 @@
 		A9506CFA1E69AB1E009A0045 /* gravity */ = {
 			isa = PBXGroup;
 			children = (
-				A9506CFB1E69AB1E009A0045 /* cli */,
+				A90CDBC220E4AF2400616D56 /* cli */,
 				A9506CFE1E69AB1E009A0045 /* compiler */,
 				A9506D181E69AB1E009A0045 /* runtime */,
 				A9506D1E1E69AB1E009A0045 /* shared */,
@@ -177,15 +144,6 @@
 			);
 			name = gravity;
 			path = src;
-			sourceTree = "<group>";
-		};
-		A9506CFB1E69AB1E009A0045 /* cli */ = {
-			isa = PBXGroup;
-			children = (
-				A9506CFC1E69AB1E009A0045 /* gravity.c */,
-				A9506CFD1E69AB1E009A0045 /* unittest.c */,
-			);
-			path = cli;
 			sourceTree = "<group>";
 		};
 		A9506CFE1E69AB1E009A0045 /* compiler */ = {
@@ -292,23 +250,6 @@
 			productReference = A9506CF01E69AAEB009A0045 /* gravity */;
 			productType = "com.apple.product-type.tool";
 		};
-		A9506D301E69AB33009A0045 /* unittest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A9506D341E69AB33009A0045 /* Build configuration list for PBXNativeTarget "unittest" */;
-			buildPhases = (
-				A9506D311E69AB33009A0045 /* Sources */,
-				A9506D321E69AB33009A0045 /* Frameworks */,
-				A9506D331E69AB33009A0045 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = unittest;
-			productName = gravity;
-			productReference = A9506D371E69AB33009A0045 /* unittest */;
-			productType = "com.apple.product-type.tool";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -337,7 +278,6 @@
 			projectRoot = "";
 			targets = (
 				A9506CEF1E69AAEB009A0045 /* gravity */,
-				A9506D301E69AB33009A0045 /* unittest */,
 			);
 		};
 /* End PBXProject section */
@@ -369,35 +309,6 @@
 				A9506D451E69AB78009A0045 /* gravity_visitor.c in Sources */,
 				A9506D3C1E69AB78009A0045 /* gravity_compiler.c in Sources */,
 				A9506D521E69AB7E009A0045 /* gravity_core.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A9506D311E69AB33009A0045 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A9506D491E69AB78009A0045 /* gravity_ircode.c in Sources */,
-				A9506D4B1E69AB78009A0045 /* gravity_optimizer.c in Sources */,
-				A9506D501E69AB78009A0045 /* gravity_token.c in Sources */,
-				A9506D5A1E69AB86009A0045 /* gravity_memory.c in Sources */,
-				A9506D5B1E69AB86009A0045 /* gravity_value.c in Sources */,
-				A9506D471E69AB78009A0045 /* gravity_codegen.c in Sources */,
-				A9506D601E69AB8E009A0045 /* gravity_json.c in Sources */,
-				A9506D551E69AB7E009A0045 /* gravity_vm.c in Sources */,
-				A9506D4D1E69AB78009A0045 /* gravity_semacheck1.c in Sources */,
-				A9506D4C1E69AB78009A0045 /* gravity_parser.c in Sources */,
-				A9506D5F1E69AB8E009A0045 /* gravity_debug.c in Sources */,
-				A9506D391E69AB6A009A0045 /* unittest.c in Sources */,
-				A9506D591E69AB86009A0045 /* gravity_hash.c in Sources */,
-				A9506D4E1E69AB78009A0045 /* gravity_semacheck2.c in Sources */,
-				A9506D4A1E69AB78009A0045 /* gravity_lexer.c in Sources */,
-				A9506D4F1E69AB78009A0045 /* gravity_symboltable.c in Sources */,
-				A9BB72F21F470888002FD2D6 /* gravity_math.c in Sources */,
-				A9506D461E69AB78009A0045 /* gravity_ast.c in Sources */,
-				A9506D611E69AB8E009A0045 /* gravity_utils.c in Sources */,
-				A9506D511E69AB78009A0045 /* gravity_visitor.c in Sources */,
-				A9506D481E69AB78009A0045 /* gravity_compiler.c in Sources */,
-				A9506D541E69AB7E009A0045 /* gravity_core.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -549,20 +460,6 @@
 			};
 			name = Release;
 		};
-		A9506D351E69AB33009A0045 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		A9506D361E69AB33009A0045 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -580,15 +477,6 @@
 			buildConfigurations = (
 				A9506CF81E69AAEB009A0045 /* Debug */,
 				A9506CF91E69AAEB009A0045 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A9506D341E69AB33009A0045 /* Build configuration list for PBXNativeTarget "unittest" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A9506D351E69AB33009A0045 /* Debug */,
-				A9506D361E69AB33009A0045 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
