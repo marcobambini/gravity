@@ -48,7 +48,7 @@ typedef struct {
 	uint32_t	refcount;					// reference count to manage duplicated nodes
 	gtoken_s	token;						// token type and location
 	bool		is_assignment;				// flag to check if it is an assignment node
-    void        *meta;                      // meta decoration (used only in decl nodes in this versin but added here in order to prepare for a more complete solution)
+    void        *meta;                      // meta decoration (used only in decl nodes in this version but added here in order to prepare for a more complete solution)
     void        *decl;                      // enclosing declaration node
 } gnode_t;
 

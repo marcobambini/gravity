@@ -34,6 +34,7 @@ struct ircode_t {
 
 ircode_t *ircode_create (uint16_t nlocals) {
 	ircode_t *code = (ircode_t *)mem_alloc(NULL, sizeof(ircode_t));
+    if (!code) return NULL;
 	code->label_counter = 0;
 	code->nlocals = nlocals;
 	code->ntemps = 0;
@@ -41,6 +42,7 @@ ircode_t *ircode_create (uint16_t nlocals) {
 	code->error = false;
 
 	code->list = mem_alloc(NULL, sizeof(code_r));
+    if (!code->list) return NULL;
 	marray_init(*code->list);
 	marray_init(code->label_true);
 	marray_init(code->label_false);
