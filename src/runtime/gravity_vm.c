@@ -43,6 +43,10 @@ struct gravity_vm {
     uint32_t            maxccalls;                          // maximum number of nested c calls
     uint32_t            nccalls;                            // current number of nested c calls
 
+    // recursion
+    gravity_int_t       maxrecursion;                       // maximum recursive depth
+    gravity_int_t       recursioncount;                     // recustion counter
+    
 	// anonymous names
 	uint32_t			nanon;								// counter for anonymous classes (used in object_bind)
 	char				temp[64];							// temprary buffer used for anonymous names generator
@@ -1109,6 +1113,16 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                             }
                         }
 						PUSH_FRAME(closure, &stackstart[rwin], r1, r3);
+                        
+                        // max depth recursion check
+                        if (vm->maxrecursion != 0) {
+                            if (func != closure->f) vm->recursioncount = 0;
+                            else if (++vm->recursioncount >= vm->maxrecursion) {
+                                const char *identifier = (func->identifier) ? func->identifier : "anon";
+                                RUNTIME_ERROR("Max recursion depth exceeded for func %s (limit is set to %d)", identifier , vm->maxrecursion);
+                                break;
+                            }
+                        }
 					} break;
 
 					case EXEC_TYPE_INTERNAL: {
@@ -1152,6 +1166,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 						RUNTIME_ERROR("Unable to handle a special function in current context");
 						break;
 				}
+                
 				LOAD_FRAME();
 				SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
 
@@ -1370,6 +1385,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
 	// allocate default fiber
 	vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
     vm->maxccalls = MAX_CCALLS;
+    vm->maxrecursion = 0; // default is no limit
 
 	vm->pc = 0;
     vm->delegate = (delegate) ? delegate : &empty_delegate;
@@ -1718,24 +1734,26 @@ gravity_int_t gravity_vm_maxmemblock (gravity_vm *vm) {
 
 gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
 	if (key) {
-		if (strcmp(key, GRAVITY_VM_GCENABLED_KEY) == 0) return VALUE_FROM_BOOL(vm->gcenabled);
-		if (strcmp(key, GRAVITY_VM_GCMINTHRESHOLD_KEY) == 0) return VALUE_FROM_INT(vm->gcminthreshold);
-		if (strcmp(key, GRAVITY_VM_GCTHRESHOLD_KEY) == 0) return VALUE_FROM_INT(vm->gcthreshold);
-		if (strcmp(key, GRAVITY_VM_GCRATIO_KEY) == 0) return VALUE_FROM_FLOAT(vm->gcratio);
-        if (strcmp(key, GRAVITY_VM_MAXCALLS_KEY) == 0) return VALUE_FROM_INT(vm->maxccalls);
-        if (strcmp(key, GRAVITY_VM_MAXBLOCK_KEY) == 0) return VALUE_FROM_INT(vm->maxmemblock);
+		if (strcmp(key, GRAVITY_VM_GCENABLED) == 0) return VALUE_FROM_BOOL(vm->gcenabled);
+		if (strcmp(key, GRAVITY_VM_GCMINTHRESHOLD) == 0) return VALUE_FROM_INT(vm->gcminthreshold);
+		if (strcmp(key, GRAVITY_VM_GCTHRESHOLD) == 0) return VALUE_FROM_INT(vm->gcthreshold);
+		if (strcmp(key, GRAVITY_VM_GCRATIO) == 0) return VALUE_FROM_FLOAT(vm->gcratio);
+        if (strcmp(key, GRAVITY_VM_MAXCALLS) == 0) return VALUE_FROM_INT(vm->maxccalls);
+        if (strcmp(key, GRAVITY_VM_MAXBLOCK) == 0) return VALUE_FROM_INT(vm->maxmemblock);
+        if (strcmp(key, GRAVITY_VM_MAXRECURSION) == 0) return VALUE_FROM_INT(vm->maxrecursion);
 	}
 	return VALUE_FROM_NULL;
 }
 
 bool gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value) {
 	if (key) {
-		if ((strcmp(key, GRAVITY_VM_GCENABLED_KEY) == 0) && VALUE_ISA_BOOL(value)) {vm->gcenabled = VALUE_AS_BOOL(value); return true;}
-		if ((strcmp(key, GRAVITY_VM_GCMINTHRESHOLD_KEY) == 0) && VALUE_ISA_INT(value)) {vm->gcminthreshold = VALUE_AS_INT(value); return true;}
-		if ((strcmp(key, GRAVITY_VM_GCTHRESHOLD_KEY) == 0) && VALUE_ISA_INT(value)) {vm->gcthreshold = VALUE_AS_INT(value); return true;}
-		if ((strcmp(key, GRAVITY_VM_GCRATIO_KEY) == 0) && VALUE_ISA_FLOAT(value)) {vm->gcratio = VALUE_AS_FLOAT(value); return true;}
-        if ((strcmp(key, GRAVITY_VM_MAXCALLS_KEY) == 0) && VALUE_ISA_INT(value)) {vm->maxccalls = (uint32_t)VALUE_AS_INT(value); return true;}
-        if ((strcmp(key, GRAVITY_VM_MAXBLOCK_KEY) == 0) && VALUE_ISA_INT(value)) {vm->maxmemblock = (uint32_t)VALUE_AS_INT(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCENABLED) == 0) && VALUE_ISA_BOOL(value)) {vm->gcenabled = VALUE_AS_BOOL(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCMINTHRESHOLD) == 0) && VALUE_ISA_INT(value)) {vm->gcminthreshold = VALUE_AS_INT(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCTHRESHOLD) == 0) && VALUE_ISA_INT(value)) {vm->gcthreshold = VALUE_AS_INT(value); return true;}
+		if ((strcmp(key, GRAVITY_VM_GCRATIO) == 0) && VALUE_ISA_FLOAT(value)) {vm->gcratio = VALUE_AS_FLOAT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXCALLS) == 0) && VALUE_ISA_INT(value)) {vm->maxccalls = (uint32_t)VALUE_AS_INT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXBLOCK) == 0) && VALUE_ISA_INT(value)) {vm->maxmemblock = (uint32_t)VALUE_AS_INT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXRECURSION) == 0) && VALUE_ISA_INT(value)) {vm->maxrecursion = (uint32_t)VALUE_AS_INT(value); return true;}
 	}
 	return false;
 }

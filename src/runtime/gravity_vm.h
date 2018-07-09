@@ -16,12 +16,13 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VM_GCENABLED_KEY            "gcenabled"
-#define GRAVITY_VM_GCMINTHRESHOLD_KEY       "gcminthreshold"
-#define GRAVITY_VM_GCTHRESHOLD_KEY          "gcthreshold"
-#define GRAVITY_VM_GCRATIO_KEY              "gcratio"
-#define GRAVITY_VM_MAXCALLS_KEY             "maxcalls"
-#define GRAVITY_VM_MAXBLOCK_KEY             "maxblock"
+#define GRAVITY_VM_GCENABLED            "gcEnabled"
+#define GRAVITY_VM_GCMINTHRESHOLD       "gcMinThreshold"
+#define GRAVITY_VM_GCTHRESHOLD          "gcThreshold"
+#define GRAVITY_VM_GCRATIO              "gcRatio"
+#define GRAVITY_VM_MAXCALLS             "maxCCalls"
+#define GRAVITY_VM_MAXBLOCK             "maxBlock"
+#define GRAVITY_VM_MAXRECURSION         "maxRecursionDepth"
 
 typedef bool (*vm_filter_cb) (gravity_object_t *obj);
 typedef void (*vm_transfer_cb) (gravity_vm *vm, gravity_object_t *obj);

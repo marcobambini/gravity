@@ -3046,12 +3046,13 @@ static void gravity_core_init (void) {
 
     closure = computed_property_create(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set));
 	gravity_value_t value = VALUE_FROM_OBJECT(closure);
-	gravity_class_bind(system_meta, GRAVITY_VM_GCENABLED_KEY, value);
-	gravity_class_bind(system_meta, GRAVITY_VM_GCMINTHRESHOLD_KEY, value);
-	gravity_class_bind(system_meta, GRAVITY_VM_GCTHRESHOLD_KEY, value);
-	gravity_class_bind(system_meta, GRAVITY_VM_GCRATIO_KEY, value);
-    gravity_class_bind(system_meta, GRAVITY_VM_MAXCALLS_KEY, value);
-    gravity_class_bind(system_meta, GRAVITY_VM_MAXBLOCK_KEY, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCENABLED, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCMINTHRESHOLD, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCTHRESHOLD, value);
+	gravity_class_bind(system_meta, GRAVITY_VM_GCRATIO, value);
+    gravity_class_bind(system_meta, GRAVITY_VM_MAXCALLS, value);
+    gravity_class_bind(system_meta, GRAVITY_VM_MAXBLOCK, value);
+    gravity_class_bind(system_meta, GRAVITY_VM_MAXRECURSION, value);
 
 	// INIT META
 	SETMETA_INITED(gravity_class_int);
@@ -3098,7 +3099,7 @@ void gravity_core_free (void) {
     computed_property_free(gravity_class_float, "radians", true);
     computed_property_free(gravity_class_float, "degrees", true);
     gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
-    computed_property_free(system_meta, GRAVITY_VM_GCENABLED_KEY, true);
+    computed_property_free(system_meta, GRAVITY_VM_GCENABLED, true);
 
 	gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_int));
 	gravity_class_free_core(NULL, gravity_class_int);
@@ -3128,11 +3129,12 @@ void gravity_core_free (void) {
 	gravity_class_free_core(NULL, gravity_class_upvalue);
 
 	// before freeing the meta class we need to remove entries with duplicated functions
-	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCMINTHRESHOLD_KEY, strlen(GRAVITY_VM_GCMINTHRESHOLD_KEY)); gravity_hash_remove(system_meta->htable, key);}
-	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCTHRESHOLD_KEY, strlen(GRAVITY_VM_GCTHRESHOLD_KEY)); gravity_hash_remove(system_meta->htable, key);}
-	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCRATIO_KEY, strlen(GRAVITY_VM_GCRATIO_KEY)); gravity_hash_remove(system_meta->htable, key);}
-    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXCALLS_KEY, strlen(GRAVITY_VM_MAXCALLS_KEY)); gravity_hash_remove(system_meta->htable, key);}
-    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXBLOCK_KEY, strlen(GRAVITY_VM_MAXBLOCK_KEY)); gravity_hash_remove(system_meta->htable, key);}
+	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCMINTHRESHOLD, strlen(GRAVITY_VM_GCMINTHRESHOLD)); gravity_hash_remove(system_meta->htable, key);}
+	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCTHRESHOLD, strlen(GRAVITY_VM_GCTHRESHOLD)); gravity_hash_remove(system_meta->htable, key);}
+	{STATICVALUE_FROM_STRING(key, GRAVITY_VM_GCRATIO, strlen(GRAVITY_VM_GCRATIO)); gravity_hash_remove(system_meta->htable, key);}
+    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXCALLS, strlen(GRAVITY_VM_MAXCALLS)); gravity_hash_remove(system_meta->htable, key);}
+    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXBLOCK, strlen(GRAVITY_VM_MAXBLOCK)); gravity_hash_remove(system_meta->htable, key);}
+    {STATICVALUE_FROM_STRING(key, GRAVITY_VM_MAXRECURSION, strlen(GRAVITY_VM_MAXRECURSION)); gravity_hash_remove(system_meta->htable, key);}
 	gravity_class_free_core(NULL, system_meta);
 	gravity_class_free_core(NULL, gravity_class_system);
 
