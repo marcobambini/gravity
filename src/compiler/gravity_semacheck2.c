@@ -121,10 +121,12 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 
 	uint16_t nf = 0; // number of functions traversed
 	uint16_t nc = 0; // number of classes traversed
+    char buffer[512];
 
 	// get first node (the latest in the decls stack)
 	gnode_t	*base_node = gnode_array_get(decls, len-1);
 	bool base_is_class = ISA(base_node, NODE_CLASS_DECL);
+    bool base_is_static_function = (ISA(base_node, NODE_FUNCTION_DECL) && ((gnode_function_decl_t*)base_node)->storage == TOK_KEY_STATIC);
 
 	for (int i=(int)len-1; i>=0; --i) {
 		gnode_t	*target = gnode_array_get(decls, i);
@@ -135,11 +137,21 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
 		bool target_is_class = ISA(target, NODE_CLASS_DECL);
 		bool target_is_module = ISA(target, NODE_MODULE_DECL);
 
+        // count number of traversed func/class
 		if (target_is_function) ++nf;
 		else if (target_is_class) ++nc;
 
+		// if identifier has been declared in a static func
+        // and lookup target is a class, then use its special
+        // reserved name to perform the lookup
+        const char *id = identifier;
+        if (base_is_static_function && target_is_class) {
+            snprintf(buffer, sizeof(buffer), "$%s", identifier);
+            id = (const char *)buffer;
+        }
+        
 		// lookup identifier is current target (obtained traversing the declaration stack)
-		gnode_t	*symbol = lookup_node(target, identifier);
+		gnode_t	*symbol = lookup_node(target, id);
 
 		// sanity check: if base_node is a class and symbol was found inside a func then report an error
 		if (symbol && target_is_function && base_is_class) {

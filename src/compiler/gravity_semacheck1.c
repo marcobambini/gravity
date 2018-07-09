@@ -80,7 +80,18 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 	DEBUG_SYMTABLE("function: %s", node->identifier);
 
 	// function identifier
-    if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
+    const char *identifier = node->identifier;
+    
+    // reserve a special name for static objects defined inside a class
+    // to avoid name collision between class ivar and meta-class ivar
+    char buffer[512];
+    if ((symboltable_tag(symtable) == SYMTABLE_TAG_CLASS) && node->storage == TOK_KEY_STATIC) {
+        snprintf(buffer, sizeof(buffer), "$%s", identifier);
+        identifier = (const char *)buffer;
+    }
+    
+	// function identifier
+    if (!symboltable_insert(symtable, identifier, (void *)node)) {
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
     }
 
@@ -90,12 +101,23 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 
 static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) {
 	DECLARE_SYMTABLE();
+    char buffer[512];
 
     bool is_static = (node->storage == TOK_KEY_STATIC);
 	gnode_array_each(node->decls, {
 		gnode_var_t *p = (gnode_var_t *)val;
         
-        if (!symboltable_insert(symtable, p->identifier, (void *)p)) {
+        // variable identifier
+        const char  *identifier = p->identifier;
+        
+        // reserve a special name for static objects defined inside a class
+        // to avoid name collision between class ivar and meta-class ivar
+        if ((symboltable_tag(symtable) == SYMTABLE_TAG_CLASS) && is_static) {
+            snprintf(buffer, sizeof(buffer), "$%s", identifier);
+            identifier = (const char *)buffer;
+        }
+        
+        if (!symboltable_insert(symtable, identifier, (void *)p)) {
 			REPORT_ERROR(p, "Identifier %s redeclared.", p->identifier);
         }
         
@@ -126,7 +148,18 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 	DEBUG_SYMTABLE("class: %s", node->identifier);
 
 	// class identifier
-    if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
+    const char *identifier = node->identifier;
+    
+    // reserve a special name for static objects defined inside a class
+    // to avoid name collision between class ivar and meta-class ivar
+    char buffer[512];
+    if ((symboltable_tag(symtable) == SYMTABLE_TAG_CLASS) && node->storage == TOK_KEY_STATIC) {
+        snprintf(buffer, sizeof(buffer), "$%s", identifier);
+        identifier = (const char *)buffer;
+    }
+    
+	// class identifier
+    if (!symboltable_insert(symtable, identifier, (void *)node)) {
 		REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
     }
 
