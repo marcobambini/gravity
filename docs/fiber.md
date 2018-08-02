@@ -27,14 +27,14 @@ A Fiber is created with `create`:
 
 ```swift
 	Fiber.create( {
-		System.print("/(self) is the current fiber")
+		System.print("\(self) is the current fiber")
 	})
 ```
 and executed till the next `yield` with `fiber.call()`
 
 ```swift
 var closure = {
-	System.print("1")
+    System.print("1")
     Fiber.yield()
 
     System.print("2")
