@@ -1542,7 +1542,11 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 	DEBUG_STACK();
 
     // self value is default to the context where the closure has been created (or set by the user)
-    gravity_value_t selfvalue = (closure->context) ? VALUE_FROM_OBJECT(closure->context) : sender;
+    gravity_value_t selfvalue;
+
+    // MSVC bug: designated initializer was prematurely evaluated
+    if (closure->context) selfvalue = VALUE_FROM_OBJECT(closure->context);
+    else selfvalue = sender;
     
     // we need a way to give user the ability to access the sender value from a closure
     

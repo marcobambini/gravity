@@ -44,7 +44,7 @@ static const char *test_folder_path = NULL;
 static bool quiet_flag = false;
 
 static void report_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
-	#pragma unused(vm, xdata)
+  (void) vm, (void) xdata;
 	const char *type = "N/A";
 	switch (error_type) {
 		case GRAVITY_ERROR_NONE: type = "NONE"; break;
@@ -61,7 +61,7 @@ static void report_error (gravity_vm *vm, error_type_t error_type, const char *m
 }
 
 static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata) {
-	#pragma unused(fileid, xdata)
+    (void) fileid, (void) xdata;
 
 	// this callback is called each time an import statement is parsed
 	// file arg represents what user wrote after the import keyword, for example:
@@ -93,17 +93,17 @@ static const char *load_file (const char *file, size_t *size, uint32_t *fileid, 
 // MARK: - Unit Test -
 
 static void unittest_init (const char *target_file, unittest_data *data) {
-    #pragma unused(target_file)
+    (void) target_file;
     ++data->ncount;
     data->processed = false;
 }
 
 static void unittest_cleanup (const char *target_file, unittest_data *data) {
-    #pragma unused(target_file,data)
+    (void) target_file, (void) data;
 }
 
 static void unittest_callback (gravity_vm *vm, error_type_t error_type, const char *description, const char *notes, gravity_value_t value, int32_t row, int32_t col, void *xdata) {
-    #pragma unused(vm)
+    (void) vm;
     unittest_data *data = (unittest_data *)xdata;
     data->expected_error = error_type;
     data->expected_value = value;
@@ -115,7 +115,7 @@ static void unittest_callback (gravity_vm *vm, error_type_t error_type, const ch
 }
 
 static void unittest_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
-    #pragma unused(vm)
+    (void) vm;
     
     unittest_data *data = (unittest_data *)xdata;
     if (data->processed == true) return; // ignore 2nd error
@@ -151,7 +151,7 @@ static void unittest_error (gravity_vm *vm, error_type_t error_type, const char 
 }
 
 static const char *unittest_read (const char *path, size_t *size, uint32_t *fileid, void *xdata) {
-    #pragma unused(fileid,xdata)
+    (void) fileid, (void) xdata;
     if (file_exists(path)) return file_read(path, size);
     
     // this unittest is able to resolve path only next to main test folder (not in nested folders)
@@ -315,8 +315,7 @@ static op_type parse_args (int argc, const char* argv[]) {
 static void gravity_repl (void) {
 	printf("REPL not yet implemented.\n");
 	exit(0);
-
-	/*
+#if 0
 	// setup compiler/VM delegate
 	gravity_delegate_t delegate = {
 		.error_callback = report_error,
@@ -330,13 +329,13 @@ static void gravity_repl (void) {
 	printf("Welcome to Gravity v%s\n", GRAVITY_VERSION);
 	while((line = readline("> ", &length)) != NULL) {
 		// to be implemented
-		//	gravity_compiler_eval(compiler, vm, line, length);
+		// gravity_compiler_eval(compiler, vm, line, length);
 		free(line);
 	}
 
 	gravity_compiler_free(compiler);
 	gravity_vm_free(vm);
-	 */
+#endif
 }
 
 static void gravity_unittest (void) {

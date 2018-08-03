@@ -240,7 +240,7 @@ bool is_directory (const char *path) {
 
 DIRREF directory_init (const char *dirpath) {
 	#ifdef WIN32
-	WIN32_FIND_DATA findData;
+	WIN32_FIND_DATAW findData;
 	WCHAR			path[MAX_PATH];
 	WCHAR			dirpathW[MAX_PATH];
 	HANDLE			hFind;
@@ -250,7 +250,7 @@ DIRREF directory_init (const char *dirpath) {
 	MultiByteToWideChar(CP_UTF8, 0, dirpath, -1, dirpathW, MAX_PATH);
 	
 	// in this way I can be sure that the first file returned (and lost) is .
-	PathCombineW(path, dirpathW, _T("*"));
+	PathCombineW(path, dirpathW, L"*");
 	
 	// if the path points to a symbolic link, the WIN32_FIND_DATA buffer contains
 	// information about the symbolic link, not the target
@@ -265,15 +265,14 @@ const char *directory_read (DIRREF ref) {
 	
 	while (1) {
 		#ifdef WIN32
-		WIN32_FIND_DATA findData;
-		char 			*file_name;
+		WIN32_FIND_DATAA findData;
 		
-		if (FindNextFile(ref, &findData) == 0) {
+		if (FindNextFileA(ref, &findData) == 0) {
 			FindClose(ref);
 			return NULL;
 		}
 		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
-		if (findData.cFileName == NULL) continue;
+		if (findData.cFileName[0] == '\0') continue;
 		if (findData.cFileName[0] == '.') continue;
 		return (const char*)findData.cFileName;
 		#else
@@ -282,7 +281,7 @@ const char *directory_read (DIRREF ref) {
 			closedir(ref);
 			return NULL;
 		}
-		if (d->d_name[0] == 0) continue;
+		if (d->d_name[0] == '\0') continue;
 		if (d->d_name[0] == '.') continue;
 		return (const char *)d->d_name;
 		#endif

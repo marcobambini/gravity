@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{b0c80c0d-95af-4e26-9c3e-637541484df7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\compiler">
+      <UniqueIdentifier>{c581604b-3c03-4fa4-9b5c-a86836018102}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\runtime">
+      <UniqueIdentifier>{42ba48c2-f8d4-4d47-ba8e-53f9eb6840d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\shared">
+      <UniqueIdentifier>{8adf23ca-77a1-4c5b-9668-cddb3e9891d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\utils">
+      <UniqueIdentifier>{ec6eb4d2-c3a8-407d-9538-6076dcffa379}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="unistd.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\debug_macros.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_ast.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_codegen.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_compiler.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_ircode.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_lexer.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_optimizer.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_parser.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_semacheck1.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_semacheck2.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_symboltable.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_token.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compiler\gravity_visitor.h">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\runtime\gravity_core.h">
+      <Filter>include\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\runtime\gravity_vm.h">
+      <Filter>include\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\runtime\gravity_vmmacros.h">
+      <Filter>include\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_array.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_delegate.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_hash.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_macros.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_memory.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_opcodes.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_value.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\gravity_debug.h">
+      <Filter>include\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\gravity_json.h">
+      <Filter>include\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils\gravity_utils.h">
+      <Filter>include\utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dll.c" />
+  </ItemGroup>
+</Project>
