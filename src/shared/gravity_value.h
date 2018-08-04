@@ -480,7 +480,7 @@ GRAVITY_API uint32_t            gravity_fiber_size (gravity_vm *vm, gravity_fibe
 
 // MARK: - INSTANCE -
 GRAVITY_API gravity_instance_t  *gravity_instance_new (gravity_vm *vm, gravity_class_t *c);
-GRAVITY_API gravity_instance_t  *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *instance);
+GRAVITY_API gravity_instance_t  *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *src_instance);
 GRAVITY_API void                gravity_instance_setivar (gravity_instance_t *instance, uint32_t idx, gravity_value_t value);
 GRAVITY_API void                gravity_instance_setxdata (gravity_instance_t *i, void *xdata);
 GRAVITY_API void                gravity_instance_free (gravity_vm *vm, gravity_instance_t *i);
