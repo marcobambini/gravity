@@ -1,0 +1,14 @@
+#unittest {
+    name: "String contains";
+    result: 1;
+};
+
+func main() {
+    var n = 0;
+    var s = "Bob and Alice";
+    
+    if (s.contains("Alice")) n += 1;
+    if (s.contains("Anna")) n += 1;
+    
+    return n;
+}

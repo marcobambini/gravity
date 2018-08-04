@@ -7,22 +7,22 @@
 
 // MARK: JSON serializer -
 
-typedef struct json_t	json_t;
-json_t		*json_new (void);
-void		json_begin_object (json_t *json, const char *key);
-void		json_end_object (json_t *json);
-void		json_begin_array (json_t *json, const char *key);
-void		json_end_array (json_t *json);
-void		json_add_cstring (json_t *json, const char *key, const char *value);
-void		json_add_string (json_t *json, const char *key, const char *value, size_t len);
-void		json_add_int (json_t *json, const char *key, int64_t value);
-void		json_add_double (json_t *json, const char *key, double value);
-void		json_add_bool (json_t *json, const char *key, bool value);
-void		json_add_null (json_t *json, const char *key);
-void		json_free (json_t *json);
-const char	*json_buffer (json_t *json, size_t *len);
-bool		json_write_file (json_t *json, const char *path);
-void		json_pop (json_t *json, uint32_t n);
+typedef struct json_t    json_t;
+json_t      *json_new (void);
+void        json_begin_object (json_t *json, const char *key);
+void        json_end_object (json_t *json);
+void        json_begin_array (json_t *json, const char *key);
+void        json_end_array (json_t *json);
+void        json_add_cstring (json_t *json, const char *key, const char *value);
+void        json_add_string (json_t *json, const char *key, const char *value, size_t len);
+void        json_add_int (json_t *json, const char *key, int64_t value);
+void        json_add_double (json_t *json, const char *key, double value);
+void        json_add_bool (json_t *json, const char *key, bool value);
+void        json_add_null (json_t *json, const char *key);
+void        json_free (json_t *json);
+const char  *json_buffer (json_t *json, size_t *len);
+bool        json_write_file (json_t *json, const char *path);
+void        json_pop (json_t *json, uint32_t n);
 
 #endif
 
@@ -283,8 +283,8 @@ typedef struct _json_value
 
 } json_value;
 
-#define EMPTY_SETTINGS_STRUCT	{0,0,0,0,0,0}
-#define EMPTY_STATE_STRUCT		{0,0,0,EMPTY_SETTINGS_STRUCT,0,0,0,0}
+#define EMPTY_SETTINGS_STRUCT    {0,0,0,0,0,0}
+#define EMPTY_STATE_STRUCT        {0,0,0,EMPTY_SETTINGS_STRUCT,0,0,0,0}
 
 json_value * json_parse (const json_char * json,
                          size_t length);

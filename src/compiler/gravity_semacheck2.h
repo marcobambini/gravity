@@ -19,43 +19,43 @@ bool gravity_semacheck2(gnode_t *node, gravity_delegate_t *delegate);
 
 /*
 
-	The following table summarizes what can be defined inside a declaration:
+    The following table summarizes what can be defined inside a declaration:
 
     -------+---------------------------------------------------------+
-	       |   func   |   var   |   enum   |   class   |   module    |
-	-------+---------------------------------------------------------+
-	func   |   YES    |   YES   |   NO     |   YES     |   YES       |
+           |   func   |   var   |   enum   |   class   |   module    |
     -------+---------------------------------------------------------+
-	var    |   YES    |   NO    |   NO     |   YES     |   YES       |
-	-------+---------------------------------------------------------+
-	enum   |   YES    |   NO    |   NO     |   YES     |   YES       |
+    func   |   YES    |   YES   |   NO     |   YES     |   YES       |
     -------+---------------------------------------------------------+
-	class  |   YES    |   NO    |   NO     |   YES     |   YES       |
+    var    |   YES    |   NO    |   NO     |   YES     |   YES       |
     -------+---------------------------------------------------------+
-	module |   NO     |   NO    |   NO     |   NO      |   NO        |
+    enum   |   YES    |   NO    |   NO     |   YES     |   YES       |
+    -------+---------------------------------------------------------+
+    class  |   YES    |   NO    |   NO     |   YES     |   YES       |
+    -------+---------------------------------------------------------+
+    module |   NO     |   NO    |   NO     |   NO      |   NO        |
     -------+---------------------------------------------------------+
 
-	Everything declared inside a func is a local, so for example:
+    Everything declared inside a func is a local, so for example:
 
-	func foo {
-		func a...;
-		enum b...;
-		class c..;
-	}
+    func foo {
+        func a...;
+        enum b...;
+        class c..;
+    }
 
-	is converted by codegen to:
+    is converted by codegen to:
 
-	func foo {
-		var a = func...;
-		var b = enum...;
-		var c = class..;
-	}
+    func foo {
+        var a = func...;
+        var b = enum...;
+        var c = class..;
+    }
 
-	Even if the ONLY valid syntax is anonymous func assignment, user will not be able
-	to assign an anonymous enum or class to a variable. Restriction is applied by parser
-	and reported as a syntax error.
-	Define a module inside a function is not allowed (no real technical reason but I found
-	it a very bad programming practice), restriction is applied by samantic checker.
+    Even if the ONLY valid syntax is anonymous func assignment, user will not be able
+    to assign an anonymous enum or class to a variable. Restriction is applied by parser
+    and reported as a syntax error.
+    Define a module inside a function is not allowed (no real technical reason but I found
+    it a very bad programming practice), restriction is applied by samantic checker.
 
  */
 
