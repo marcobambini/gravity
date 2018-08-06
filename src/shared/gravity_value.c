@@ -1685,7 +1685,7 @@ uint32_t gravity_value_hash (gravity_value_t value) {
 
 inline gravity_class_t *gravity_value_getclass (gravity_value_t v) {
     if ((v.isa == gravity_class_class) && (v.p->objclass == gravity_class_object)) return (gravity_class_t *)v.p;
-    if ((v.isa == gravity_class_instance) || (v.isa == gravity_class_class)) return v.p->objclass;
+    if ((v.isa == gravity_class_instance) || (v.isa == gravity_class_class)) return (v.p) ? v.p->objclass : NULL;
     return v.isa;
 }
 

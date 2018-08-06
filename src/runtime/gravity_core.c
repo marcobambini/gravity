@@ -2079,6 +2079,24 @@ static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     }
 }
 
+static bool string_contains (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm)
+    
+    // sanity check
+    if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) {
+        RETURN_ERROR("String.index() expects a string as an argument");
+    }
+    
+    gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
+    gravity_string_t *str_to_index = VALUE_AS_STRING(GET_VALUE(1));
+    
+    // search for the string
+    char *ptr = string_strnstr(main_str->s, str_to_index->s, (size_t)main_str->len);
+    
+    // return a Bool value
+    RETURN_VALUE(VALUE_FROM_BOOL(ptr != NULL), rindex);
+}
+
 static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm)
 
@@ -2343,17 +2361,36 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     while (1) {
         char *p = string_strnstr(original, sep, (size_t)slen);
         if (p == NULL) {
-            if (marray_size(list->array) == 0) slen = 0;
-            marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, string->len - slen));
+			marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, slen));
             break;
         }
-        marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, (uint32_t)(p-original)));
+        uint32_t vlen = (uint32_t)(p-original);
+		marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, vlen));
 
         // update pointer and slen
         original = p + seplen;
-        slen = (uint32_t)(original - string->s);
+        slen -= vlen + seplen;
     }
+    
     RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
+}
+
+static bool string_find_replace (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // sanity check
+    if ((nargs != 3) || (!VALUE_ISA_STRING(GET_VALUE(1))) || (!VALUE_ISA_STRING(GET_VALUE(2)))) RETURN_ERROR("String.replace() expects 2 string arguments.");
+    
+    // setup arguments
+    gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
+    gravity_string_t *from = VALUE_AS_STRING(GET_VALUE(1));
+    gravity_string_t *to = VALUE_AS_STRING(GET_VALUE(2));
+    size_t len = 0;
+    
+    // perform search and replace
+    char *s = string_replace(string->s, from->s, to->s, &len);
+    
+    // return result
+    if (s && len) RETURN_VALUE(VALUE_FROM_STRING(vm, s, (uint32_t)len), rindex);
+    RETURN_VALUE(VALUE_FROM_NULL, rindex);
 }
 
 static bool string_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2991,6 +3028,8 @@ static void gravity_core_init (void) {
     closure = computed_property_create(NULL, NEW_FUNCTION(string_length), NULL);
     gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(closure));
     gravity_class_bind(gravity_class_string, "index", NEW_CLOSURE_VALUE(string_index));
+    gravity_class_bind(gravity_class_string, "contains", NEW_CLOSURE_VALUE(string_contains));
+    gravity_class_bind(gravity_class_string, "replace", NEW_CLOSURE_VALUE(string_find_replace));
     gravity_class_bind(gravity_class_string, "count", NEW_CLOSURE_VALUE(string_count));
     gravity_class_bind(gravity_class_string, "repeat", NEW_CLOSURE_VALUE(string_repeat));
     gravity_class_bind(gravity_class_string, "upper", NEW_CLOSURE_VALUE(string_upper));

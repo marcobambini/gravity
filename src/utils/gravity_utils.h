@@ -51,6 +51,7 @@ const char  *string_ndup (const char *s1, size_t n);
 void        string_reverse (char *p);
 uint32_t    string_size (const char *p);
 char        *string_strnstr(const char *s, const char *find, size_t slen);
+char        *string_replace(const char *str, const char *from, const char *to, size_t *rlen);
 
 // UTF-8
 uint32_t    utf8_charbytes (const char *s, uint32_t i);
