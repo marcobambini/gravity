@@ -15,25 +15,25 @@
 #define DEFAULT_OUTPUT "gravity.g"
 
 typedef struct {
-    bool            processed;
-    bool            is_fuzzy;
+    bool                processed;
+    bool                is_fuzzy;
     
-    uint32_t        ncount;
-    uint32_t        nsuccess;
-    uint32_t        nfailure;
+    uint32_t            ncount;
+    uint32_t            nsuccess;
+    uint32_t            nfailure;
     
-    error_type_t    expected_error;
-    gravity_value_t expected_value;
-    int32_t         expected_row;
-    int32_t         expected_col;
+    error_type_t        expected_error;
+    gravity_value_t     expected_value;
+    int32_t             expected_row;
+    int32_t             expected_col;
 } unittest_data;
 
 typedef enum  {
-	OP_COMPILE,			// just compile source code and exit
-	OP_RUN,				// just run an already compiled file
-	OP_COMPILE_RUN,		// compile source code and run it
+    OP_COMPILE,         // just compile source code and exit
+    OP_RUN,             // just run an already compiled file
+    OP_COMPILE_RUN,     // compile source code and run it
     OP_INLINE_RUN,      // compile and execure source passed inline
-	OP_REPL,			// run a read eval print loop
+    OP_REPL,            // run a read eval print loop
     OP_UNITTEST         // unit test mode
 } op_type;
 
@@ -247,95 +247,97 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
 // MARK: - General -
 
 static void print_version (void) {
-	printf("Gravity version %s (%s)\n", GRAVITY_VERSION, GRAVITY_BUILD_DATE);
+    printf("Gravity version %s (%s)\n", GRAVITY_VERSION, GRAVITY_BUILD_DATE);
 }
 
 static void print_help (void) {
-	printf("usage: gravity [options]\n");
-	printf("no options means enter interactive mode (not yet supported)\n");
-	printf("Available options are:\n");
-	printf("--version          show version information and exit\n");
-	printf("--help             show command line usage and exit\n");
-	printf("-c input_file      compile input_file (default to gravity.json)\n");
-	printf("-o output_file     specify output file name\n");
-	printf("-x input_file      execute input_file (JSON format expected)\n");
-	printf("-i source_code     compile and execute source_code string\n");
-	printf("-q                 don't print result and execution time\n");
-	printf("file_name          compile file_name and executes it\n");
+    printf("usage: gravity [options]\n");
+    printf("no options means enter interactive mode (not yet supported)\n");
+    printf("Available options are:\n");
+    printf("--version          show version information and exit\n");
+    printf("--help             show command line usage and exit\n");
+    printf("-c input_file      compile input_file (default to gravity.json)\n");
+    printf("-o output_file     specify output file name\n");
+    printf("-x input_file      execute input_file (JSON format expected)\n");
+    printf("-i source_code     compile and execute source_code string\n");
+    printf("-q                 don't print result and execution time\n");
+    printf("file_name          compile file_name and executes it\n");
 }
 
 static op_type parse_args (int argc, const char* argv[]) {
-	if (argc == 1) return OP_REPL;
+    if (argc == 1) return OP_REPL;
 
-	if (argc == 2 && strcmp(argv[1], "--version") == 0) {
-		print_version();
-		exit(0);
-	}
+    if (argc == 2 && strcmp(argv[1], "--version") == 0) {
+        print_version();
+        exit(0);
+    }
 
-	if (argc == 2 && strcmp(argv[1], "--help") == 0) {
-		print_help();
-		exit(0);
-	}
+    if (argc == 2 && strcmp(argv[1], "--help") == 0) {
+        print_help();
+        exit(0);
+    }
 
-	op_type type = OP_RUN;
-	for (int i=1; i<argc; ++i) {
-		if ((strcmp(argv[i], "-c") == 0) && (i+1 < argc)) {
-			input_file = argv[++i];
-			type = OP_COMPILE;
-		}
-		else if ((strcmp(argv[i], "-o") == 0) && (i+1 < argc)) {
-			output_file = argv[++i];
-		}
-		else if ((strcmp(argv[i], "-x") == 0) && (i+1 < argc)) {
-			input_file = argv[++i];
-			type = OP_RUN;
-		}
-		else if ((strcmp(argv[i], "-i") == 0) && (i+1 < argc)) {
-			input_file = argv[++i];
-			type = OP_INLINE_RUN;
-		}
-		else if (strcmp(argv[i], "-q") == 0) {
-			quiet_flag = true;
-		}
+    op_type type = OP_RUN;
+    for (int i=1; i<argc; ++i) {
+        if ((strcmp(argv[i], "-c") == 0) && (i+1 < argc)) {
+            input_file = argv[++i];
+            type = OP_COMPILE;
+        }
+        else if ((strcmp(argv[i], "-o") == 0) && (i+1 < argc)) {
+            output_file = argv[++i];
+        }
+        else if ((strcmp(argv[i], "-x") == 0) && (i+1 < argc)) {
+            input_file = argv[++i];
+            type = OP_RUN;
+        }
+        else if ((strcmp(argv[i], "-i") == 0) && (i+1 < argc)) {
+            input_file = argv[++i];
+            type = OP_INLINE_RUN;
+        }
+        else if (strcmp(argv[i], "-q") == 0) {
+            quiet_flag = true;
+        }
         else if ((strcmp(argv[i], "-t") == 0) && (i+1 < argc)) {
             unittest_folder = argv[++i];
             type = OP_UNITTEST;
         }
-		else {
-			input_file = argv[i];
-			type = OP_COMPILE_RUN;
-		}
-	}
+        else {
+            input_file = argv[i];
+            type = OP_COMPILE_RUN;
+        }
+    }
 
-	return type;
+    return type;
 }
 
 // MARK: - Special Modes
 
 static void gravity_repl (void) {
-	printf("REPL not yet implemented.\n");
-	exit(0);
-#if 0
-	// setup compiler/VM delegate
-	gravity_delegate_t delegate = {
-		.error_callback = report_error,
-	};
 
-	gravity_compiler_t	*compiler = gravity_compiler_create(&delegate);
-	gravity_vm	*vm = gravity_vm_new(&delegate);
-	char		*line = NULL;
-	int			length = 0;
+    printf("REPL not yet implemented.\n");
+    exit(0);
 
-	printf("Welcome to Gravity v%s\n", GRAVITY_VERSION);
-	while((line = readline("> ", &length)) != NULL) {
-		// to be implemented
-		// gravity_compiler_eval(compiler, vm, line, length);
-		free(line);
-	}
+    /*
+    // setup compiler/VM delegate
+    gravity_delegate_t delegate = {
+        .error_callback = report_error,
+    };
 
-	gravity_compiler_free(compiler);
-	gravity_vm_free(vm);
-#endif
+    gravity_compiler_t    *compiler = gravity_compiler_create(&delegate);
+    gravity_vm    *vm = gravity_vm_new(&delegate);
+    char        *line = NULL;
+    int            length = 0;
+
+    printf("Welcome to Gravity v%s\n", GRAVITY_VERSION);
+    while((line = readline("> ", &length)) != NULL) {
+        // to be implemented
+        //    gravity_compiler_eval(compiler, vm, line, length);
+        free(line);
+    }
+
+    gravity_compiler_free(compiler);
+    gravity_vm_free(vm);
+    */
 }
 
 static void gravity_unittest (void) {
@@ -385,37 +387,37 @@ static void gravity_unittest (void) {
 // MARK: -
 
 int main (int argc, const char* argv[]) {
-	// parse arguments and return operation type
-	op_type type = parse_args(argc, argv);
+    // parse arguments and return operation type
+    op_type type = parse_args(argc, argv);
 
-	// special repl case
-	if (type == OP_REPL) gravity_repl();
+    // special repl case
+    if (type == OP_REPL) gravity_repl();
     
     // special unit test mode
     if (type == OP_UNITTEST) gravity_unittest();
 
-	// initialize memory debugger (if activated)
-	mem_init();
+    // initialize memory debugger (if activated)
+    mem_init();
 
-	// closure to execute/serialize
-	gravity_closure_t *closure = NULL;
+    // closure to execute/serialize
+    gravity_closure_t *closure = NULL;
 
-	// optional compiler
-	gravity_compiler_t *compiler = NULL;
+    // optional compiler
+    gravity_compiler_t *compiler = NULL;
 
-	// setup compiler/VM delegate
-	gravity_delegate_t delegate = {
-		.error_callback = report_error,
-		.loadfile_callback = load_file
-	};
+    // setup compiler/VM delegate
+    gravity_delegate_t delegate = {
+        .error_callback = report_error,
+        .loadfile_callback = load_file
+    };
 
-	// create VM
-	gravity_vm *vm = gravity_vm_new(&delegate);
+    // create VM
+    gravity_vm *vm = gravity_vm_new(&delegate);
 
-	// check if input file is source code that needs to be compiled
-	if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
+    // check if input file is source code that needs to be compiled
+    if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
 
-		// load source code
+        // load source code
         size_t size = 0;
         const char *source_code = NULL;
 
@@ -440,60 +442,60 @@ int main (int argc, const char* argv[]) {
             source_code = buffer;
         }
 
-		// create compiler
-		compiler = gravity_compiler_create(&delegate);
+        // create compiler
+        compiler = gravity_compiler_create(&delegate);
 
-		// compile source code into a closure
-		closure = gravity_compiler_run(compiler, source_code, size, 0, false);
-		if (!closure) goto cleanup;
+        // compile source code into a closure
+        closure = gravity_compiler_run(compiler, source_code, size, 0, false);
+        if (!closure) goto cleanup;
 
-		// check if closure needs to be serialized
-		if (type == OP_COMPILE) {
-			bool result = gravity_compiler_serialize_infile(compiler, closure, output_file);
-			if (!result) printf("Error serializing file %s\n", output_file);
-			goto cleanup;
-		}
+        // check if closure needs to be serialized
+        if (type == OP_COMPILE) {
+            bool result = gravity_compiler_serialize_infile(compiler, closure, output_file);
+            if (!result) printf("Error serializing file %s\n", output_file);
+            goto cleanup;
+        }
 
-		// op is OP_COMPILE_RUN so transfer memory from compiler to VM
-		gravity_compiler_transfer(compiler, vm);
+        // op is OP_COMPILE_RUN so transfer memory from compiler to VM
+        gravity_compiler_transfer(compiler, vm);
 
-	} else if (type == OP_RUN) {
-		// unserialize file
-		closure = gravity_vm_loadfile(vm, input_file);
-		if (!closure) {
-			printf("Error while loading compile file %s\n", input_file);
-			goto cleanup;
-		}
+    } else if (type == OP_RUN) {
+        // unserialize file
+        closure = gravity_vm_loadfile(vm, input_file);
+        if (!closure) {
+            printf("Error while loading compile file %s\n", input_file);
+            goto cleanup;
+        }
     }
 
-	// sanity check
-	assert(closure);
+    // sanity check
+    assert(closure);
 
-	if (gravity_vm_runmain(vm, closure)) {
-		gravity_value_t result = gravity_vm_result(vm);
-		double t = gravity_vm_time(vm);
+    if (gravity_vm_runmain(vm, closure)) {
+        gravity_value_t result = gravity_vm_result(vm);
+        double t = gravity_vm_time(vm);
 
-		char buffer[512];
-		gravity_value_dump(vm, result, buffer, sizeof(buffer));
-		if (!quiet_flag) {
-			printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
-		}
-	}
+        char buffer[512];
+        gravity_value_dump(vm, result, buffer, sizeof(buffer));
+        if (!quiet_flag) {
+            printf("RESULT: %s (in %.4f ms)\n\n", buffer, t);
+        }
+    }
 
 cleanup:
-	if (compiler) gravity_compiler_free(compiler);
-	if (vm) gravity_vm_free(vm);
-	gravity_core_free();
+    if (compiler) gravity_compiler_free(compiler);
+    if (vm) gravity_vm_free(vm);
+    gravity_core_free();
 
-	#if GRAVITY_MEMORY_DEBUG
-	size_t current_memory = mem_leaks();
-	if (current_memory != 0) {
-		printf("--> VM leaks: %zu bytes\n", current_memory);
-		mem_stat();
-	} else {
-		printf("\tNo VM leaks found!\n");
-	}
-	#endif
+    #if GRAVITY_MEMORY_DEBUG
+    size_t current_memory = mem_leaks();
+    if (current_memory != 0) {
+        printf("--> VM leaks: %zu bytes\n", current_memory);
+        mem_stat();
+    } else {
+        printf("\tNo VM leaks found!\n");
+    }
+    #endif
 
-	return 0;
+    return 0;
 }

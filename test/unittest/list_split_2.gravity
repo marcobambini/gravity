@@ -1,0 +1,17 @@
+#unittest {
+    name: "List split test 2";
+    result: "the cat sat on the mat";
+};
+
+func main() {
+    var testString = "the %animal% sat on the mat";
+    var bestEffort = testString.split(" ");
+    
+    var result = [];
+    for (var s in bestEffort) {
+        if (s == "%animal%") s = "cat";
+        result.push(s);
+    }
+    
+    return result.join(" ");
+}

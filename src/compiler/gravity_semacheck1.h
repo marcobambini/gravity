@@ -20,35 +20,35 @@
 
 // Semantic Check Step 1 enables to resolve cases like:
 /*
-		function foo() {
-			return bar();
-		}
+        function foo() {
+            return bar();
+        }
 
-		function bar() {
-			...
-		}
+        function bar() {
+            ...
+        }
 
-		or
+        or
 
-		class foo:bar {
-			...
-		}
+        class foo:bar {
+            ...
+        }
 
-		class bar {
-			...
-		}
+        class bar {
+            ...
+        }
 
-		and
+        and
 
-		class foo {
-			var a;
+        class foo {
+            var a;
 
-			function bar() {
-				return a + b;
-			}
+            function bar() {
+                return a + b;
+            }
 
-			var b;
-		}
+            var b;
+        }
  */
 
 // It's a mandatory step in order to account for forward references

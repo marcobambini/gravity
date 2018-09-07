@@ -30,7 +30,7 @@ gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v);
 
 // internal functions
 gravity_closure_t *computed_property_create (gravity_vm *vm, gravity_function_t *getter_func, gravity_function_t *setter_func);
-void              computed_property_free (gravity_class_t *c, const char *name, bool remove_flag);
+void computed_property_free (gravity_class_t *c, const char *name, bool remove_flag);
 
 #ifdef __cplusplus
 }

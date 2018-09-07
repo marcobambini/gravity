@@ -48,276 +48,276 @@
 // MARK: - JSON Serializer -
 // Written by Marco Bambini
 
-#define JSON_MINSIZE		4096
-#define JSON_NEWLINE		"\n"
-#define JSON_NEWLINE_CHAR	'\n'
-#define JSON_PRETTYLINE		"    "
-#define JSON_PRETTYSIZE		4
-#define JSON_WRITE_SEP		json_write_raw(json, " : ", 3, false, false)
-#define JSON_TERM_FIELD		json_write_raw(json, ",", 1, false, false); json_write_raw(json, JSON_NEWLINE, 1, false, false)
-#define JSON_MAX_NESTED		1024
-#define JSON_POP_CTX(j)		--j->ctxidx
-#define JSON_PUSH_CTX(j,x)	if(j->ctxidx<JSON_MAX_NESTED-1) j->ctx[j->ctxidx++] = x
-#define JSON_CURR_XTX(j)	j->ctx[j->ctxidx-1]
-#define JSON_ESCAPE(c)		do {		\
-								new_buffer[j] = '\\';		\
-								new_buffer[j+1] = (c);		\
-								j+=2;						\
-							} while(0);						\
+#define JSON_MINSIZE        4096
+#define JSON_NEWLINE        "\n"
+#define JSON_NEWLINE_CHAR    '\n'
+#define JSON_PRETTYLINE        "    "
+#define JSON_PRETTYSIZE        4
+#define JSON_WRITE_SEP        json_write_raw(json, " : ", 3, false, false)
+#define JSON_TERM_FIELD        json_write_raw(json, ",", 1, false, false); json_write_raw(json, JSON_NEWLINE, 1, false, false)
+#define JSON_MAX_NESTED        1024
+#define JSON_POP_CTX(j)        --j->ctxidx
+#define JSON_PUSH_CTX(j,x)    if(j->ctxidx<JSON_MAX_NESTED-1) j->ctx[j->ctxidx++] = x
+#define JSON_CURR_XTX(j)    j->ctx[j->ctxidx-1]
+#define JSON_ESCAPE(c)        do {        \
+                                new_buffer[j] = '\\';        \
+                                new_buffer[j+1] = (c);        \
+                                j+=2;                        \
+                            } while(0);                        \
 
 
 typedef enum {
-	json_ctx_object,
-	json_ctx_array
+    json_ctx_object,
+    json_ctx_array
 } json_ctx_t;
 
 struct json_t {
-	char		*buffer;
-	size_t		blen;
-	size_t		bused;
-	uint32_t	ident;
+    char        *buffer;
+    size_t        blen;
+    size_t        bused;
+    uint32_t    ident;
 
-	json_ctx_t	ctx[JSON_MAX_NESTED];
-	size_t		ctxidx;
+    json_ctx_t    ctx[JSON_MAX_NESTED];
+    size_t        ctxidx;
 };
 
 json_t *json_new (void) {
-	json_t *json = mem_alloc(NULL, sizeof(json_t));
-	assert(json);
+    json_t *json = mem_alloc(NULL, sizeof(json_t));
+    assert(json);
 
-	json->buffer = mem_alloc(NULL, JSON_MINSIZE);
-	assert(json->buffer);
+    json->buffer = mem_alloc(NULL, JSON_MINSIZE);
+    assert(json->buffer);
 
-	json->blen = JSON_MINSIZE;
-	json->bused = 0;
-	json->ident = 0;
-	json->ctxidx = 0;
+    json->blen = JSON_MINSIZE;
+    json->bused = 0;
+    json->ident = 0;
+    json->ctxidx = 0;
 
-	return json;
+    return json;
 }
 
 static void json_write_raw (json_t *json, const char *buffer, size_t len, bool escape, bool is_pretty) {
-	size_t	prettylen = (is_pretty) ? (json->ident * JSON_PRETTYSIZE)+1 : 0;
-	size_t	escapelen = (escape) ? 2 : 0;
+    size_t    prettylen = (is_pretty) ? (json->ident * JSON_PRETTYSIZE)+1 : 0;
+    size_t    escapelen = (escape) ? 2 : 0;
 
-	// check buffer reallocation
-	size_t reqlen = json->bused + len + prettylen + escapelen + JSON_MINSIZE;
-	if (reqlen >= json->blen) {
-		json->buffer = mem_realloc(NULL, json->buffer, json->blen + reqlen);
-		assert(json->buffer);
-		json->blen += reqlen;
-	}
+    // check buffer reallocation
+    size_t reqlen = json->bused + len + prettylen + escapelen + JSON_MINSIZE;
+    if (reqlen >= json->blen) {
+        json->buffer = mem_realloc(NULL, json->buffer, json->blen + reqlen);
+        assert(json->buffer);
+        json->blen += reqlen;
+    }
 
-	if (is_pretty) {
-		for (uint32_t i=0; i<json->ident; ++i) {
-			memcpy(json->buffer+json->bused, JSON_PRETTYLINE, JSON_PRETTYSIZE);
-			json->bused += JSON_PRETTYSIZE;
-		}
-	}
+    if (is_pretty) {
+        for (uint32_t i=0; i<json->ident; ++i) {
+            memcpy(json->buffer+json->bused, JSON_PRETTYLINE, JSON_PRETTYSIZE);
+            json->bused += JSON_PRETTYSIZE;
+        }
+    }
 
-	if (escape) {
-		memcpy(json->buffer+json->bused, "\"", 1);
-		json->bused += 1;
-	}
+    if (escape) {
+        memcpy(json->buffer+json->bused, "\"", 1);
+        json->bused += 1;
+    }
 
-	memcpy(json->buffer+json->bused, buffer, len);
-	json->bused += len;
+    memcpy(json->buffer+json->bused, buffer, len);
+    json->bused += len;
 
-	if (escape) {
-		memcpy(json->buffer+json->bused, "\"", 1);
-		json->bused += 1;
-	}
+    if (escape) {
+        memcpy(json->buffer+json->bused, "\"", 1);
+        json->bused += 1;
+    }
 }
 
 static void json_write_escaped (json_t *json, const char *buffer, size_t len, bool escape, bool is_pretty) {
-	if (!len) {
-		json_write_raw(json, "", 0, escape, is_pretty);
-		return;
-	}
+    if (!len) {
+        json_write_raw(json, "", 0, escape, is_pretty);
+        return;
+    }
 
-	char	*new_buffer = mem_alloc(NULL, len*2);
-	size_t	j = 0;
-	assert(new_buffer);
+    char    *new_buffer = mem_alloc(NULL, len*2);
+    size_t    j = 0;
+    assert(new_buffer);
 
-	for (size_t i=0; i<len; ++i) {
-		char c = buffer[i];
-		switch (c) {
-			case '"' : JSON_ESCAPE ('\"');	continue;
-			case '\\': JSON_ESCAPE ('\\');  continue;
-			case '\b': JSON_ESCAPE ('b');   continue;
-			case '\f': JSON_ESCAPE ('f');   continue;
-			case '\n': JSON_ESCAPE ('n');   continue;
-			case '\r': JSON_ESCAPE ('r');   continue;
-			case '\t': JSON_ESCAPE ('t');   continue;
+    for (size_t i=0; i<len; ++i) {
+        char c = buffer[i];
+        switch (c) {
+            case '"' : JSON_ESCAPE ('\"');    continue;
+            case '\\': JSON_ESCAPE ('\\');  continue;
+            case '\b': JSON_ESCAPE ('b');   continue;
+            case '\f': JSON_ESCAPE ('f');   continue;
+            case '\n': JSON_ESCAPE ('n');   continue;
+            case '\r': JSON_ESCAPE ('r');   continue;
+            case '\t': JSON_ESCAPE ('t');   continue;
 
-			default: new_buffer[j] = c; ++j;break;
-		};
-	}
+            default: new_buffer[j] = c; ++j;break;
+        };
+    }
 
-	json_write_raw(json, new_buffer, j, escape, is_pretty);
-	mem_free(new_buffer);
+    json_write_raw(json, new_buffer, j, escape, is_pretty);
+    mem_free(new_buffer);
 }
 
 
 void json_begin_object (json_t *json, const char *key) {
-	// ignore given key if not inside an object
-	if (JSON_CURR_XTX(json) != json_ctx_object) {
-		key = NULL;
-	}
+    // ignore given key if not inside an object
+    if (JSON_CURR_XTX(json) != json_ctx_object) {
+        key = NULL;
+    }
 
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
 
-	JSON_PUSH_CTX(json, json_ctx_object);
-	json_write_raw(json, "{", 1, false, (key == NULL));
-	json_write_raw(json, JSON_NEWLINE, 1, false, false);
+    JSON_PUSH_CTX(json, json_ctx_object);
+    json_write_raw(json, "{", 1, false, (key == NULL));
+    json_write_raw(json, JSON_NEWLINE, 1, false, false);
 
-	++json->ident;
+    ++json->ident;
 }
 
 void json_end_object (json_t *json) {
-	--json->ident;
-	JSON_POP_CTX(json);
+    --json->ident;
+    JSON_POP_CTX(json);
 
-	// check latest 2 characters
-	if ((json->buffer[json->bused-1] == JSON_NEWLINE_CHAR) && (json->buffer[json->bused-2] == ',')) {
-		json->buffer[json->bused-2] = JSON_NEWLINE_CHAR;
-		json->buffer[json->bused-1] = 0;
-		--json->bused;
-	}
+    // check latest 2 characters
+    if ((json->buffer[json->bused-1] == JSON_NEWLINE_CHAR) && (json->buffer[json->bused-2] == ',')) {
+        json->buffer[json->bused-2] = JSON_NEWLINE_CHAR;
+        json->buffer[json->bused-1] = 0;
+        --json->bused;
+    }
 
-	json_write_raw(json, "}", 1, false, true);
-	if (json->ident) {JSON_TERM_FIELD;}
-	else json_write_raw(json, JSON_NEWLINE, 1, false, false);
+    json_write_raw(json, "}", 1, false, true);
+    if (json->ident) {JSON_TERM_FIELD;}
+    else json_write_raw(json, JSON_NEWLINE, 1, false, false);
 }
 
 void json_begin_array (json_t *json, const char *key) {
-	// ignore given key if not inside an object
-	if (JSON_CURR_XTX(json) != json_ctx_object) {
-		key = NULL;
-	}
+    // ignore given key if not inside an object
+    if (JSON_CURR_XTX(json) != json_ctx_object) {
+        key = NULL;
+    }
 
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
 
-	JSON_PUSH_CTX(json, json_ctx_array);
-	json_write_raw(json, "[", 1, false, (key == NULL));
-	json_write_raw(json, JSON_NEWLINE, 1, false, false);
+    JSON_PUSH_CTX(json, json_ctx_array);
+    json_write_raw(json, "[", 1, false, (key == NULL));
+    json_write_raw(json, JSON_NEWLINE, 1, false, false);
 
-	++json->ident;
+    ++json->ident;
 }
 
 void json_end_array (json_t *json) {
-	--json->ident;
-	JSON_POP_CTX(json);
+    --json->ident;
+    JSON_POP_CTX(json);
 
-	// check latest 2 characters
-	if ((json->buffer[json->bused-1] == JSON_NEWLINE_CHAR) && (json->buffer[json->bused-2] == ',')) {
-		json->buffer[json->bused-2] = JSON_NEWLINE_CHAR;
-		json->buffer[json->bused-1] = 0;
-		--json->bused;
-	}
+    // check latest 2 characters
+    if ((json->buffer[json->bused-1] == JSON_NEWLINE_CHAR) && (json->buffer[json->bused-2] == ',')) {
+        json->buffer[json->bused-2] = JSON_NEWLINE_CHAR;
+        json->buffer[json->bused-1] = 0;
+        --json->bused;
+    }
 
-	json_write_raw(json, "]", 1, false, true);
-	JSON_TERM_FIELD;
+    json_write_raw(json, "]", 1, false, true);
+    JSON_TERM_FIELD;
 }
 
 void json_add_string (json_t *json, const char *key, const char *value, size_t len) {
-	if (!value) {
-		json_add_null(json, key);
-		return;
-	}
+    if (!value) {
+        json_add_null(json, key);
+        return;
+    }
 
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
 
-	// check if string value needs to be escaped
-	bool write_escaped = false;
-	for (size_t i=0; i<len; ++i) {
-		if (value[i] == '"') {write_escaped = true; break;}
-	}
-	if (len == 0)
-		write_escaped = true;
+    // check if string value needs to be escaped
+    bool write_escaped = false;
+    for (size_t i=0; i<len; ++i) {
+        if (value[i] == '"') {write_escaped = true; break;}
+    }
+    if (len == 0)
+        write_escaped = true;
 
-	if (write_escaped)
-		json_write_escaped(json, value, len, true, (key == NULL));
-	else
-		json_write_raw(json, value, len, true, (key == NULL));
-	JSON_TERM_FIELD;
+    if (write_escaped)
+        json_write_escaped(json, value, len, true, (key == NULL));
+    else
+        json_write_raw(json, value, len, true, (key == NULL));
+    JSON_TERM_FIELD;
 }
 
 void json_add_cstring (json_t *json, const char *key, const char *value) {
-	json_add_string(json, key, value, (value) ? strlen(value) : 0);
+    json_add_string(json, key, value, (value) ? strlen(value) : 0);
 }
 
 void json_add_int (json_t *json, const char *key, int64_t value) {
-	char buffer[512];
-	size_t len = snprintf(buffer, sizeof(buffer), "%" PRId64, value);
+    char buffer[512];
+    size_t len = snprintf(buffer, sizeof(buffer), "%" PRId64, value);
 
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
-	json_write_raw(json, buffer, len, false, (key == NULL));
-	JSON_TERM_FIELD;
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
+    json_write_raw(json, buffer, len, false, (key == NULL));
+    JSON_TERM_FIELD;
 
 }
 
 void json_add_double (json_t *json, const char *key, double value) {
-	char buffer[512];
-	size_t len = snprintf(buffer, sizeof(buffer), "%f", value);
+    char buffer[512];
+    size_t len = snprintf(buffer, sizeof(buffer), "%f", value);
 
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
-	json_write_raw(json, buffer, len, false, (key == NULL));
-	JSON_TERM_FIELD;
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
+    json_write_raw(json, buffer, len, false, (key == NULL));
+    JSON_TERM_FIELD;
 }
 
 void json_add_bool (json_t *json, const char *key, bool bvalue) {
-	const char *value = (bvalue) ? "true" : "false";
+    const char *value = (bvalue) ? "true" : "false";
 
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
-	json_write_raw(json, value, strlen(value), false, (key == NULL));
-	JSON_TERM_FIELD;
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
+    json_write_raw(json, value, strlen(value), false, (key == NULL));
+    JSON_TERM_FIELD;
 }
 
 void json_add_null (json_t *json, const char *key) {
-	if (key) {
-		json_write_raw (json, key, strlen(key), true, true);
-		JSON_WRITE_SEP;
-	}
-	json_write_raw(json, "null", 4, false, (key == NULL));
-	JSON_TERM_FIELD;
+    if (key) {
+        json_write_raw (json, key, strlen(key), true, true);
+        JSON_WRITE_SEP;
+    }
+    json_write_raw(json, "null", 4, false, (key == NULL));
+    JSON_TERM_FIELD;
 }
 
 void json_free (json_t *json) {
-	mem_free(json->buffer);
-	mem_free(json);
+    mem_free(json->buffer);
+    mem_free(json);
 }
 
 const char *json_buffer (json_t *json, size_t *len) {
-	assert(json->buffer);
-	if (len) *len = json->bused;
-	return json->buffer;
+    assert(json->buffer);
+    if (len) *len = json->bused;
+    return json->buffer;
 }
 
 bool json_write_file (json_t *json, const char *path) {
-	return file_write(path, json->buffer, json->bused);
+    return file_write(path, json->buffer, json->bused);
 }
 
 void json_pop (json_t *json, uint32_t n) {
-	json->bused -= n;
+    json->bused -= n;
 }
 
 #undef JSON_MINSIZE
@@ -367,16 +367,16 @@ typedef struct
 
 static void * default_alloc (size_t size, int zero, void * user_data)
 {
-	#pragma unused(zero, user_data)
-	return mem_alloc(NULL, size);
-	//return zero ? calloc (1, size) : malloc (size);
+    #pragma unused(zero, user_data)
+    return mem_alloc(NULL, size);
+    //return zero ? calloc (1, size) : malloc (size);
 }
 
 static void default_free (void * ptr, void * user_data)
 {
-	#pragma unused(user_data)
-	mem_free(ptr);
-	//free (ptr);
+    #pragma unused(user_data)
+    mem_free(ptr);
+    //free (ptr);
 }
 
 static void * json_alloc (json_state * state, unsigned long size, int zero)
