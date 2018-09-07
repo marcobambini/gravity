@@ -239,55 +239,54 @@ bool is_directory (const char *path) {
 }
 
 DIRREF directory_init (const char *dirpath) {
-    #ifdef WIN32
-    WIN32_FIND_DATA findData;
-    WCHAR            path[MAX_PATH];
-    WCHAR            dirpathW[MAX_PATH];
-    HANDLE            hFind;
-    (void)hFind;
-    
-    // convert dirpath to dirpathW
-    MultiByteToWideChar(CP_UTF8, 0, dirpath, -1, dirpathW, MAX_PATH);
-    
-    // in this way I can be sure that the first file returned (and lost) is .
-    PathCombineW(path, dirpathW, _T("*"));
-    
-    // if the path points to a symbolic link, the WIN32_FIND_DATA buffer contains
-    // information about the symbolic link, not the target
-    return FindFirstFileW(path, &findData);
-    #else
-    return opendir(dirpath);
-    #endif
+	#ifdef WIN32
+	WIN32_FIND_DATAW findData;
+	WCHAR			path[MAX_PATH];
+	WCHAR			dirpathW[MAX_PATH];
+	HANDLE			hFind;
+	(void)hFind;
+	
+	// convert dirpath to dirpathW
+	MultiByteToWideChar(CP_UTF8, 0, dirpath, -1, dirpathW, MAX_PATH);
+	
+	// in this way I can be sure that the first file returned (and lost) is .
+	PathCombineW(path, dirpathW, L"*");
+	
+	// if the path points to a symbolic link, the WIN32_FIND_DATA buffer contains
+	// information about the symbolic link, not the target
+	return FindFirstFileW(path, &findData);
+	#else
+	return opendir(dirpath);
+	#endif
 }
 
 const char *directory_read (DIRREF ref) {
-    if (ref == NULL) return NULL;
-    
-    while (1) {
-        #ifdef WIN32
-        WIN32_FIND_DATA findData;
-        char             *file_name;
-        
-        if (FindNextFile(ref, &findData) == 0) {
-            FindClose(ref);
-            return NULL;
-        }
-        if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
-        if (findData.cFileName == NULL) continue;
-        if (findData.cFileName[0] == '.') continue;
-        return (const char*)findData.cFileName;
-        #else
-        struct dirent *d;
-        if ((d = readdir(ref)) == NULL) {
-            closedir(ref);
-            return NULL;
-        }
-        if (d->d_name[0] == 0) continue;
-        if (d->d_name[0] == '.') continue;
-        return (const char *)d->d_name;
-        #endif
-    }
-    return NULL;
+	if (ref == NULL) return NULL;
+	
+	while (1) {
+		#ifdef WIN32
+		WIN32_FIND_DATAA findData;
+		
+		if (FindNextFileA(ref, &findData) == 0) {
+			FindClose(ref);
+			return NULL;
+		}
+		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
+		if (findData.cFileName[0] == '\0') continue;
+		if (findData.cFileName[0] == '.') continue;
+		return (const char*)findData.cFileName;
+		#else
+		struct dirent *d;
+		if ((d = readdir(ref)) == NULL) {
+			closedir(ref);
+			return NULL;
+		}
+		if (d->d_name[0] == '\0') continue;
+		if (d->d_name[0] == '.') continue;
+		return (const char *)d->d_name;
+		#endif
+	}
+	return NULL;
 }
 
 // MARK: - String Functions -

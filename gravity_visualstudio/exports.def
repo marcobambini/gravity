@@ -1,4 +1,4 @@
-LIBRARY GravityLang
+LIBRARY gravity
 EXPORTS
 
 ;;;	gravity_vm.h
@@ -143,7 +143,7 @@ EXPORTS
 	gravity_fiber_size
 	
 	gravity_instance_new
-	gravity_instance_dup
+	gravity_instance_clone
 	gravity_instance_setivar
 	gravity_instance_setxdata
 	gravity_instance_free

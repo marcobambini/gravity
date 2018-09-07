@@ -150,14 +150,10 @@ extern "C" {
 #define GRAVITY_COMPUTED_INDEX              UINT16_MAX-1
 
 //DLL export/import support for Windows.
-#ifdef _WIN32
-    #ifdef BUILD_GRAVITY_API
-        #define GRAVITY_API __declspec(dllexport)
-    #else
-        #define GRAVITY_API __declspec(dllimport)
-    #endif
+#if !defined(GRAVITY_API) && defined(_WIN32) && defined(BUILD_GRAVITY_API)
+  #define GRAVITY_API __declspec(dllexport)
 #else
-    #define GRAVITY_API
+  #define GRAVITY_API
 #endif
 
 // MARK: - STRUCT -

@@ -1523,12 +1523,13 @@ gravity_instance_t *gravity_instance_new (gravity_vm *vm, gravity_class_t *c) {
 
 gravity_instance_t *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *src_instance) {
     gravity_class_t *c = src_instance->objclass;
-
+  
     gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t));
     instance->isa = gravity_class_instance;
     instance->objclass = c; // TODO: if gravity_class_is_anon(c) then c must be deeply copied
     
     gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+
     instance->xdata = (src_instance->xdata && delegate->bridge_clone) ? delegate->bridge_clone(vm, src_instance->xdata) : NULL;
     
     if (c->nivars) instance->ivars = (gravity_value_t *)mem_alloc(NULL, c->nivars * sizeof(gravity_value_t));

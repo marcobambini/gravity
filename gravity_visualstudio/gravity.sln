@@ -1,9 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GravityLang", "gravity.vcxproj", "{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gravity", "gravity.vcxproj", "{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gravity_dll", "gravity_dll.vcxproj", "{862AC390-2E85-4218-B640-013245710C17}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC12BE0A-025E-4168-9D2D-419A18CB2EF5} = {EC12BE0A-025E-4168-9D2D-419A18CB2EF5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gravity_cli", "gravity_cli.vcxproj", "{82CE17B8-1BC6-4021-A966-0CEC58DB641D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC12BE0A-025E-4168-9D2D-419A18CB2EF5} = {EC12BE0A-025E-4168-9D2D-419A18CB2EF5}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +31,27 @@ Global
 		{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}.Release|Win32.Build.0 = Release|Win32
 		{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}.Release|x64.ActiveCfg = Release|x64
 		{EC12BE0A-025E-4168-9D2D-419A18CB2EF5}.Release|x64.Build.0 = Release|x64
+		{862AC390-2E85-4218-B640-013245710C17}.Debug|Win32.ActiveCfg = Debug|Win32
+		{862AC390-2E85-4218-B640-013245710C17}.Debug|Win32.Build.0 = Debug|Win32
+		{862AC390-2E85-4218-B640-013245710C17}.Debug|x64.ActiveCfg = Debug|x64
+		{862AC390-2E85-4218-B640-013245710C17}.Debug|x64.Build.0 = Debug|x64
+		{862AC390-2E85-4218-B640-013245710C17}.Release|Win32.ActiveCfg = Release|Win32
+		{862AC390-2E85-4218-B640-013245710C17}.Release|Win32.Build.0 = Release|Win32
+		{862AC390-2E85-4218-B640-013245710C17}.Release|x64.ActiveCfg = Release|x64
+		{862AC390-2E85-4218-B640-013245710C17}.Release|x64.Build.0 = Release|x64
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Debug|Win32.Build.0 = Debug|Win32
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Debug|x64.ActiveCfg = Debug|x64
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Debug|x64.Build.0 = Debug|x64
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Release|Win32.ActiveCfg = Release|Win32
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Release|Win32.Build.0 = Release|Win32
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Release|x64.ActiveCfg = Release|x64
+		{82CE17B8-1BC6-4021-A966-0CEC58DB641D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CD1583B8-4B10-4C57-B579-CC2A7F0DD0C7}
 	EndGlobalSection
 EndGlobal

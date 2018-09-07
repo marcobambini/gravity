@@ -44,66 +44,66 @@ static const char *test_folder_path = NULL;
 static bool quiet_flag = false;
 
 static void report_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
-    #pragma unused(vm, xdata)
-    const char *type = "N/A";
-    switch (error_type) {
-        case GRAVITY_ERROR_NONE: type = "NONE"; break;
-        case GRAVITY_ERROR_SYNTAX: type = "SYNTAX"; break;
-        case GRAVITY_ERROR_SEMANTIC: type = "SEMANTIC"; break;
-        case GRAVITY_ERROR_RUNTIME: type = "RUNTIME"; break;
-        case GRAVITY_WARNING: type = "WARNING"; break;
-        case GRAVITY_ERROR_IO: type = "I/O"; break;
-    }
+  (void) vm, (void) xdata;
+	const char *type = "N/A";
+	switch (error_type) {
+		case GRAVITY_ERROR_NONE: type = "NONE"; break;
+		case GRAVITY_ERROR_SYNTAX: type = "SYNTAX"; break;
+		case GRAVITY_ERROR_SEMANTIC: type = "SEMANTIC"; break;
+		case GRAVITY_ERROR_RUNTIME: type = "RUNTIME"; break;
+		case GRAVITY_WARNING: type = "WARNING"; break;
+		case GRAVITY_ERROR_IO: type = "I/O"; break;
+	}
 
-    if (error_type == GRAVITY_ERROR_RUNTIME) printf("RUNTIME ERROR: ");
-    else printf("%s ERROR on %d (%d,%d): ", type, error_desc.fileid, error_desc.lineno, error_desc.colno);
-    printf("%s\n", message);
+	if (error_type == GRAVITY_ERROR_RUNTIME) printf("RUNTIME ERROR: ");
+	else printf("%s ERROR on %d (%d,%d): ", type, error_desc.fileid, error_desc.lineno, error_desc.colno);
+	printf("%s\n", message);
 }
 
 static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata) {
-    #pragma unused(fileid, xdata)
+    (void) fileid, (void) xdata;
 
-    // this callback is called each time an import statement is parsed
-    // file arg represents what user wrote after the import keyword, for example:
-    // import "file2"
-    // import "file2.gravity"
-    // import "../file2"
-    // import "/full_path_to_file2"
+	// this callback is called each time an import statement is parsed
+	// file arg represents what user wrote after the import keyword, for example:
+	// import "file2"
+	// import "file2.gravity"
+	// import "../file2"
+	// import "/full_path_to_file2"
 
-    // it is callback's responsability to resolve file path based on current working directory
-    // or based on user defined search paths
-    // and returns:
-    // size of file in *size
-    // fileid (if any) in *fileid
-    // content of file as return value of the function
+	// it is callback's responsability to resolve file path based on current working directory
+	// or based on user defined search paths
+	// and returns:
+	// size of file in *size
+	// fileid (if any) in *fileid
+	// content of file as return value of the function
 
-    // fileid will then be used each time an error is reported by the compiler
-    // so it is responsability of this function to map somewhere the association
-    // between fileid and real file/path name
+	// fileid will then be used each time an error is reported by the compiler
+	// so it is responsability of this function to map somewhere the association
+	// between fileid and real file/path name
 
-    // fileid is not used in this example
-    // xdata not used here but it the xdata field set in the delegate
-    // please note than in this simple example the imported file must be
-    // in the same folder as the main input file
+	// fileid is not used in this example
+	// xdata not used here but it the xdata field set in the delegate
+	// please note than in this simple example the imported file must be
+	// in the same folder as the main input file
 
-    if (!file_exists(file)) return NULL;
-    return file_read(file, size);
+	if (!file_exists(file)) return NULL;
+	return file_read(file, size);
 }
 
 // MARK: - Unit Test -
 
 static void unittest_init (const char *target_file, unittest_data *data) {
-    #pragma unused(target_file)
+    (void) target_file;
     ++data->ncount;
     data->processed = false;
 }
 
 static void unittest_cleanup (const char *target_file, unittest_data *data) {
-    #pragma unused(target_file,data)
+    (void) target_file, (void) data;
 }
 
 static void unittest_callback (gravity_vm *vm, error_type_t error_type, const char *description, const char *notes, gravity_value_t value, int32_t row, int32_t col, void *xdata) {
-    #pragma unused(vm)
+    (void) vm;
     unittest_data *data = (unittest_data *)xdata;
     data->expected_error = error_type;
     data->expected_value = value;
@@ -115,7 +115,7 @@ static void unittest_callback (gravity_vm *vm, error_type_t error_type, const ch
 }
 
 static void unittest_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
-    #pragma unused(vm)
+    (void) vm;
     
     unittest_data *data = (unittest_data *)xdata;
     if (data->processed == true) return; // ignore 2nd error
@@ -151,7 +151,7 @@ static void unittest_error (gravity_vm *vm, error_type_t error_type, const char 
 }
 
 static const char *unittest_read (const char *path, size_t *size, uint32_t *fileid, void *xdata) {
-    #pragma unused(fileid,xdata)
+    (void) fileid, (void) xdata;
     if (file_exists(path)) return file_read(path, size);
     
     // this unittest is able to resolve path only next to main test folder (not in nested folders)
@@ -313,6 +313,7 @@ static op_type parse_args (int argc, const char* argv[]) {
 // MARK: - Special Modes
 
 static void gravity_repl (void) {
+
     printf("REPL not yet implemented.\n");
     exit(0);
 
@@ -336,7 +337,7 @@ static void gravity_repl (void) {
 
     gravity_compiler_free(compiler);
     gravity_vm_free(vm);
-     */
+    */
 }
 
 static void gravity_unittest (void) {
