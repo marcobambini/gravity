@@ -32,7 +32,7 @@ typedef enum  {
     OP_COMPILE,         // just compile source code and exit
     OP_RUN,             // just run an already compiled file
     OP_COMPILE_RUN,     // compile source code and run it
-    OP_INLINE_RUN,      // compile and execure source passed inline
+    OP_INLINE_RUN,      // compile and execute source passed inline
     OP_REPL,            // run a read eval print loop
     OP_UNITTEST         // unit test mode
 } op_type;
@@ -70,7 +70,7 @@ static const char *load_file (const char *file, size_t *size, uint32_t *fileid, 
 	// import "../file2"
 	// import "/full_path_to_file2"
 
-	// it is callback's responsability to resolve file path based on current working directory
+	// it is callback's responsibility to resolve file path based on current working directory
 	// or based on user defined search paths
 	// and returns:
 	// size of file in *size
@@ -78,7 +78,7 @@ static const char *load_file (const char *file, size_t *size, uint32_t *fileid, 
 	// content of file as return value of the function
 
 	// fileid will then be used each time an error is reported by the compiler
-	// so it is responsability of this function to map somewhere the association
+	// so it is responsibility of this function to map somewhere the association
 	// between fileid and real file/path name
 
 	// fileid is not used in this example

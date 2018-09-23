@@ -45,11 +45,11 @@ struct gravity_vm {
 
     // recursion
     gravity_int_t       maxrecursion;                   // maximum recursive depth
-    gravity_int_t       recursioncount;                 // recustion counter
+    gravity_int_t       recursioncount;                 // recursion counter
     
     // anonymous names
     uint32_t            nanon;                          // counter for anonymous classes (used in object_bind)
-    char                temp[64];                       // temprary buffer used for anonymous names generator
+    char                temp[64];                       // temporary buffer used for anonymous names generator
 
     // callbacks
     vm_transfer_cb      transfer;                       // function called each time a gravity_object_t is allocated
@@ -191,7 +191,7 @@ gravity_value_t gravity_vm_keyindex (gravity_vm *vm, uint32_t index) {
 static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber_t *fiber) {
     #pragma unused(vm)
 
-    // check if there are enought slots in the call frame and optionally create new cframes
+    // check if there are enough slots in the call frame and optionally create new cframes
     if (fiber->framesalloc - fiber->nframes < 1) {
         uint32_t new_size = fiber->framesalloc * 2;
         void *ptr = mem_realloc(NULL, fiber->frames, sizeof(gravity_callframe_t) * new_size);
@@ -250,7 +250,7 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
         fiber->frames[i].stackstart += offset;
     }
 
-    // adjust upvalues ptr offeset
+    // adjust upvalues ptr offset
     gravity_upvalue_t* upvalue = fiber->upvalues;
     while (upvalue) {
         upvalue->value += offset;
@@ -268,7 +268,7 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
 
 static gravity_upvalue_t *gravity_capture_upvalue (gravity_vm *vm, gravity_fiber_t *fiber, gravity_value_t *value) {
     // closures and upvalues implementation inspired by Lua and Wren
-     // fiber->upvalues list must be ORDERED by the level of the corrisponding variables in the stack starting from top
+     // fiber->upvalues list must be ORDERED by the level of the corresponding variables in the stack starting from top
 
     // if upvalues is empty then create it
     if (!fiber->upvalues) {
@@ -663,7 +663,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     SETVALUE(r1, VALUE_FROM_BOOL((op == EQ) ? eq_result : !eq_result));
                     DISPATCH();
                 } else if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) {
-                    // INT optimization expecially useful in loops
+                    // INT optimization especially useful in loops
                     if (v2.n == v3.n) SETVALUE(r1, VALUE_FROM_INT(0));
                     else SETVALUE(r1, VALUE_FROM_INT((v2.n > v3.n) ? 1 : -1));
                 } else {

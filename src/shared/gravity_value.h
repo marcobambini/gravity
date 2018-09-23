@@ -17,11 +17,11 @@
 
 // Gravity is a dynamically typed language so a variable (gravity_value_t) can hold a value of any type.
 
-// The representation of values in a dynamicly typed language is very important since it can lead to a big
-// difference in terms of performance. Such representation has several contraints:
+// The representation of values in a dynamically typed language is very important since it can lead to a big
+// difference in terms of performance. Such representation has several constraints:
 // - fast access
 // - must represent several kind of values
-// - be able to cope with the gargabe collector
+// - be able to cope with the garbage collector
 // - low memory overhead (when allocating a lot of small values)
 
 // In modern 64bit processor with OS that always returns aligned allocated memory blocks that means that each ptr is 8 bytes.
@@ -32,8 +32,8 @@
 // Other types like classes, instances, functions, lists, and strings are all reference types. They are stored on the heap and
 // the gravity_value_t just stores a pointer to it.
 
-// So each value is a pointer to a FIXED size block of memory (16 bytes). Having all values of the same size greatly reduce the complexitly
-// of a memory pool and since allocating a large amount of values is very commond is a dynamicly typed language like Gravity.
+// So each value is a pointer to a FIXED size block of memory (16 bytes). Having all values of the same size greatly reduce the complexity
+// of a memory pool and since allocating a large amount of values is very common is a dynamically typed language like Gravity.
 // In a future update I could introduce NaN tagging and squeeze value size to 8 bytes (that would mean nearly double performance).
 
 // Internal settings to set integer and float size.
@@ -75,7 +75,7 @@ extern "C" {
 #endif
 
 #ifndef GRAVITY_ENABLE_INT64
-#define GRAVITY_ENABLE_INT64                1           // if 1 enable gravity_int_t to be a 64bit int (intead of a 32bit int)
+#define GRAVITY_ENABLE_INT64                1           // if 1 enable gravity_int_t to be a 64bit int (instead of a 32bit int)
 #endif
 
 #ifndef GRAVITY_COMPUTED_GOTO
@@ -294,7 +294,7 @@ typedef struct {
     gravity_class_t         *isa;           // to be an object
     gravity_gc_t            gc;             // to be collectable by the garbage collector
 
-    gravity_value_r         array;          // dinamic array of values
+    gravity_value_r         array;          // dynamic array of values
 } gravity_list_t;
 
 typedef struct {
@@ -389,7 +389,7 @@ typedef struct {
     gravity_gc_t            gc;             // to be collectable by the garbage collector
 
     char                    *s;             // pointer to NULL terminated string
-    uint32_t                hash;           // string hash (type to be keeped in sync with gravity_hash_size_t)
+    uint32_t                hash;           // string hash (type to be keept in sync with gravity_hash_size_t)
     uint32_t                len;            // actual string length
     uint32_t                alloc;          // bytes allocated for string
 } gravity_string_t;
