@@ -61,10 +61,10 @@
 // Special note about Null class
 //
 // Every value in gravity is initialized to Null
-// and can partecipate in math operations.
+// and can participate in math operations.
 // This class should be defined in a way to do be
-// less dangerous as possibile and a Null value should
-// be interpreted as a zero number (where possibile).
+// less dangerous as possible and a Null value should
+// be interpreted as a zero number (where possible).
 
 static bool core_inited = false;        // initialize global classes just once
 static uint32_t refcount = 0;           // protect deallocation of global classes
@@ -424,7 +424,7 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
         return VALUE_FROM_CSTRING(vm, buffer);
     }
     
-    // check if class implements the String method (avoiding infinte loop by checking for convert_object_string)
+    // check if class implements the String method (avoiding infinite loop by checking for convert_object_string)
     gravity_closure_t *closure = gravity_vm_fastlookup(vm, gravity_value_getclass(v), GRAVITY_STRING_INDEX);
 
     // sanity check (and break recursion)

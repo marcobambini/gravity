@@ -69,7 +69,7 @@ typedef struct {
     gravity_precode_callback    precode_callback;       // called at parse time in order to give the opportunity to add custom source code
     gravity_loadfile_callback   loadfile_callback;      // callback to give the opportunity to load a file from an import statement
     gravity_filename_callback   filename_callback;      // called while reporting an error in order to be able to convert a fileid to a real filename
-    gravity_optclass_callback   optional_classes;       // optional classes to be exposed to the semantic checher as extern (to be later registered)
+    gravity_optclass_callback   optional_classes;       // optional classes to be exposed to the semantic checker as extern (to be later registered)
 
     // bridge
     gravity_bridge_initinstance bridge_initinstance;    // init class

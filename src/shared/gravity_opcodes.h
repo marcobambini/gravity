@@ -21,7 +21,7 @@
  */
 
 /*
-        Instructions are 32bit in lenght
+        Instructions are 32bit in length
 
         // 2 registers and 1 register/constant
         +------------------------------------+
@@ -63,7 +63,7 @@ typedef enum {
     //      --------        ----------          ------------------------------------        ----------------------------
     //
                                                 //  *** GENERAL COMMANDS (5) ***
-            RET0 = 0,       //  NONE            //  return nothing from a function          MUST BE THE FIRST OPCODE (because an implict 0 is added
+            RET0 = 0,       //  NONE            //  return nothing from a function          MUST BE THE FIRST OPCODE (because an implicit 0 is added
                                                 //                                          as a safeguard at the end of any bytecode
             HALT,           //  NONE            //  stop VM execution
             NOP,            //  NONE            //  NOP                                     http://en.wikipedia.org/wiki/NOP
