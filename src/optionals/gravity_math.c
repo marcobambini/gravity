@@ -614,19 +614,34 @@ static bool math_pow (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
-// returns a random number between 0 and 1
+// returns a random number between 0 and value
 static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(vm, args, nargs)
-
+    #pragma unused(vm, nargs)
+    gravity_value_t value = GET_VALUE(1);
+    
     // only seed once
     static bool already_seeded = false;
     if (!already_seeded) {
         srand((unsigned)time(NULL));
         already_seeded = true;
     }
-
-    int r = rand();
-    RETURN_VALUE(VALUE_FROM_FLOAT((float)r / RAND_MAX), rindex);
+		
+	gravity_int_t computed_value = value.n;
+	
+	if (VALUE_ISA_FLOAT(value)) {
+		computed_value = 100;
+    }
+    
+    if (VALUE_ISA_NULL(value)) {
+        computed_value = 100;
+    }
+	
+	if (computed_value <= 0) {
+		computed_value = 100;
+	}
+	
+	int r = rand()%(computed_value+1);
+    RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
 
 // rounds x to the nearest integer
