@@ -634,6 +634,9 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     else if (!VALUE_ISA_INT(value)) {
         RETURN_ERROR("Input should be integer.");
     }
+    else if (maxvalue <= 0) {
+	RETURN_ERROR("Input should be bigger than 0.");
+    }
 
     int r = rand()%(maxvalue+1);
     RETURN_VALUE(VALUE_FROM_INT(r), rindex);
