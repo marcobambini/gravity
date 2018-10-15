@@ -614,7 +614,6 @@ static bool math_pow (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
-// returns a random number between 0 and value
 static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_value_t value = GET_VALUE(1);
@@ -626,16 +625,17 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
         already_seeded = true;
     }
 		
-	gravity_int_t maxvalue = value.n;
-	
-	if (VALUE_ISA_FLOAT(value) || VALUE_ISA_NULL(value)) {
-		maxvalue = 9;
-	}
-	else if (!VALUE_ISA_INT(value)) {
-		RETURN_ERROR("Input should be integer.");
-	}
-		
-	int r = rand()%(maxvalue+1);
+    gravity_int_t maxvalue = value.n;
+
+    if (VALUE_ISA_FLOAT(value)) {
+        gravity_float_t maxvalue_float = value.f;
+        maxvalue = floor(maxvalue_float);
+    }
+    else if (!VALUE_ISA_INT(value)) {
+        RETURN_ERROR("Input should be integer.");
+    }
+
+    int r = rand()%(maxvalue+1);
     RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
 
