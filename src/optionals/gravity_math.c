@@ -628,20 +628,15 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 		
 	gravity_int_t maxvalue = value.n;
 	
-	if (VALUE_ISA_FLOAT(value)) {
-	maxvalue = 9;
+	if (VALUE_ISA_FLOAT(value) || VALUE_ISA_NULL(value)) {
+		maxvalue = 9;
 	}
-
-	if (VALUE_ISA_NULL(value)) {
-	maxvalue = 9;
+	else if (!VALUE_ISA_INT(value)) {
+		RETURN_ERROR("Input should be integer.");
 	}
-
-	if (computed_value <= 0) {
-	maxvalue = 9;
-	}
-	
+		
 	int r = rand()%(maxvalue+1);
-    	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
 
 // rounds x to the nearest integer
