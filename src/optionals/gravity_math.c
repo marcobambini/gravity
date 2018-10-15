@@ -626,21 +626,21 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
         already_seeded = true;
     }
 		
-	gravity_int_t computed_value = value.n;
+	gravity_int_t maxvalue = value.n;
 	
 	if (VALUE_ISA_FLOAT(value)) {
-	computed_value = 9;
+	maxvalue = 9;
 	}
 
 	if (VALUE_ISA_NULL(value)) {
-	computed_value = 9;
+	maxvalue = 9;
 	}
 
 	if (computed_value <= 0) {
-	computed_value = 9;
+	maxvalue = 9;
 	}
 	
-	int r = rand()%(computed_value+1);
+	int r = rand()%(maxvalue+1);
     	RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
 
