@@ -77,6 +77,10 @@ Strings are an immutable sequence of characters. String literals can be surround
 	n = a[-5...-1]          // n is now "World"
 	n = a[-5...10]          // n is now "World"
 	n = a[-1...-5]          // n is now "dlroW"
+	
+	// replace o with i
+	var str = "momo"
+	str.replace("o", "i") // returns mimi
 ```
 
 ### Bool
