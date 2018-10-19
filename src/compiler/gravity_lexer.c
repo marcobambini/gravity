@@ -647,7 +647,9 @@ void gravity_lexer_debug (gravity_lexer_t *lexer) {
     if (offset == token.position) return;
     offset = token.position;
     
-    printf("(%02d, %02d) %s: ", token.lineno, token.colno, token_name(token.type));
-    printf("%.*s\t(offset: %d)\n", token.bytes, token.value, token.position);
+    printf("(%02d, %02d) %.*s\n", token.lineno, token.colno, token.bytes, token.value);
+    
+    //printf("(%02d, %02d) %s: ", token.lineno, token.colno, token_name(token.type));
+	//printf("%.*s\t(offset: %d)\n", token.bytes, token.value, token.position);
 }
 #endif

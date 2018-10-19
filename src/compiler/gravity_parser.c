@@ -48,7 +48,7 @@ struct gravity_parser_t {
 // http://nshipster.com/swift-operators/
 typedef enum {
     PREC_LOWEST,
-    PREC_ASSIGN      = 90,    // = *= /= %= += -= <<= >>= &= ^= |=      (11 cases)
+    PREC_ASSIGN      = 90,     // = *= /= %= += -= <<= >>= &= ^= |=     (11 cases)
     PREC_TERNARY     = 100,    // ?:                                      (1 case)
     PREC_LOGICAL_OR  = 110,    // ||                                      (1 case)
     PREC_LOGICAL_AND = 120,    // &&                                      (1 case)
@@ -59,7 +59,7 @@ typedef enum {
     PREC_FACTOR      = 150,    // * / % &                                (4 cases)
     PREC_SHIFT       = 160,    // << >>                                  (2 cases)
     PREC_UNARY       = 170,    // + - ! ~                                (4 cases)
-    PREC_CALL        = 200  // . ( [                                     (3 cases)
+    PREC_CALL        = 200     // . ( [                                  (3 cases)
 } prec_level;
 
 typedef gnode_t* (*parse_func) (gravity_parser_t *parser);
@@ -147,6 +147,21 @@ static gravity_hash_t *parser_getmeta (gravity_parser_t *parser, bool consume) {
     gravity_hash_t *htable = parser->meta;
     if (consume) parser->meta = NULL;
     return htable;
+}
+
+static void patch_token_node (gnode_t *node, gtoken_s token) {
+    node->token = token;
+    
+    if (node->tag == NODE_POSTFIX_EXPR) {
+        gnode_postfix_expr_t *expr = (gnode_postfix_expr_t *)node;
+        if (expr->id) expr->id->token = token;
+        
+        size_t count = gnode_array_size(expr->list);
+        for (size_t i=0; i<count; ++i) {
+            gnode_t *subnode = (gnode_t *)gnode_array_get(expr->list, i);
+            if (subnode) subnode->token = token;
+        }
+    }
 }
 
 static void report_error (gravity_parser_t *parser, error_type_t error_type, gtoken_s token, const char *format, ...) {
@@ -825,6 +840,9 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 
                     // add expression to r
                     if (subnode) {
+                        // subnode contains information from a temp lexer so let's fix it
+                        patch_token_node(subnode, token);
+                        
                         if (!r) r = gnode_array_create();
                         if (length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION()));
                         gnode_array_push(r, subnode);
@@ -904,9 +922,21 @@ static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
     // it's OK for a call_expression_list to be empty
     if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) return NULL;
 
+    // https://en.wikipedia.org/wiki/Named_parameter
+    // with the introduction of named parameters there are a lot
+    // of sub-cases to handle here, for example I cannot know in
+    // advance if a call has named parameters or not from the
+    // beginning because we also support mixed calls (both position
+    // and named parameters)
+    // so basically I collect two arrays here
+    // one for names (or positions) and one for values
+    // if the call is not a named call then the useless
+    // array is discarded
+    
     bool arg_expected = true;
     gnode_r *list = gnode_array_create();
 
+    uint32_t index = 0;
     while (1) {
         gtoken_t peek = gravity_lexer_peek(lexer);
 
@@ -947,6 +977,8 @@ static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
             // this fixes syntax errors like System.print("Hello" " World")
             arg_expected = (peek == TOK_OP_COMMA);
         }
+        
+        ++index;
     }
 
     return list;
@@ -2074,8 +2106,9 @@ loop:
     // tokens are then stored inside AST nodes in order to locate errors into source code
     // AST can live a lot longer than both lexer and parser so we need a way to persistent
     // store these chuncks of memory
-    const char *source = parser->delegate->loadfile_callback(module_name, &size, &fileid, parser->delegate->xdata);
-    if (source) newlexer = gravity_lexer_create(source, size, fileid, false);
+    bool is_static = false;
+	const char *source = parser->delegate->loadfile_callback(module_name, &size, &fileid, parser->delegate->xdata, &is_static);
+	if (source) newlexer = gravity_lexer_create(source, size, fileid, is_static);
 
     if (newlexer) {
         // push new lexer into lexer stack

@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION                     "0.5.1"     // git tag 0.5.1
-#define GRAVITY_VERSION_NUMBER              0x000501    // git push --tags
+#define GRAVITY_VERSION						"0.5.4"     // git tag 0.5.4
+#define GRAVITY_VERSION_NUMBER				0x000504    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -257,6 +257,7 @@ typedef struct {
             gravity_value_r pname;          // param names
             uint32_t        ninsts;         // number of instructions in the bytecode
             uint32_t        *bytecode;      // bytecode as array of 32bit values
+            uint32_t        *lineno;            // debug: line number <-> current instruction relation
             float           purity;         // experimental value
             bool            useargs;        // flag set by the compiler to optimize the creation of the arguments array only if needed
         };
@@ -363,7 +364,7 @@ typedef struct gravity_class_s {
     struct gravity_class_s  *superclass;    // reference to the super class
     gravity_hash_t          *htable;        // hash table
     uint32_t                nivars;         // number of instance variables
-    //cstring_r             debug;          // ivar index to name debug info
+	//gravity_value_r			inames;			    // ivar names
     gravity_value_t         *ivars;         // static variables
 } gravity_class_s;
 

@@ -632,6 +632,7 @@ static void gravity_function_bytecode_serialize (gravity_function_t *f, json_t *
         return;
     }
 
+    // bytecode
     uint32_t ninst = f->ninsts;
     uint32_t length = ninst * 2 * sizeof(uint32_t);
     uint8_t *hexchar = (uint8_t*) mem_alloc(NULL, sizeof(uint8_t) * length);
@@ -646,6 +647,25 @@ static void gravity_function_bytecode_serialize (gravity_function_t *f, json_t *
     }
 
     json_add_string(json, GRAVITY_JSON_LABELBYTECODE, (const char *)hexchar, length);
+    mem_free(hexchar);
+    
+    // debug lineno
+    if (!f->lineno) return;
+    
+    ninst = f->ninsts;
+    length = ninst * 2 * sizeof(uint32_t);
+    hexchar = (uint8_t*) mem_alloc(NULL, sizeof(uint8_t) * length);
+    
+    for (uint32_t k=0, i=0; i < ninst; ++i) {
+        uint32_t value = f->lineno[i];
+        
+        for (int32_t j=2*sizeof(value)-1; j>=0; --j) {
+            uint8_t c = "0123456789ABCDEF"[((value >> (j*4)) & 0xF)];
+            hexchar[k++] = c;
+        }
+    }
+    
+    json_add_string(json, GRAVITY_JSON_LABELLINENO, (const char *)hexchar, length);
     mem_free(hexchar);
 }
 
@@ -932,6 +952,11 @@ gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *js
             continue;
         }
 
+        // lineno debug info
+        if (string_casencmp(label, GRAVITY_JSON_LABELLINENO, label_size) == 0) {
+            if (value->type == json_string) f->lineno = gravity_bytecode_deserialize(value->u.string.ptr, value->u.string.length, &f->ninsts);
+        }
+        
         // arguments names
         if (string_casencmp(label, GRAVITY_JSON_LABELPNAMES, label_size) == 0) {
             if (value->type != json_array) goto abort_load;
@@ -1073,6 +1098,7 @@ void gravity_function_free (gravity_vm *vm, gravity_function_t *f) {
     if (f->identifier) mem_free((void *)f->identifier);
     if (f->tag == EXEC_TYPE_NATIVE) {
         if (f->bytecode) mem_free((void *)f->bytecode);
+        if (f->lineno) mem_free((void *)f->lineno);
         
         // FREE EACH DEFAULT value
         size_t n = marray_size(f->pvalue);

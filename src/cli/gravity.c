@@ -60,7 +60,7 @@ static void report_error (gravity_vm *vm, error_type_t error_type, const char *m
 	printf("%s\n", message);
 }
 
-static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata) {
+static const char *load_file (const char *file, size_t *size, uint32_t *fileid, void *xdata, bool *is_static) {
     (void) fileid, (void) xdata;
 
 	// this callback is called each time an import statement is parsed
@@ -86,6 +86,7 @@ static const char *load_file (const char *file, size_t *size, uint32_t *fileid, 
 	// please note than in this simple example the imported file must be
 	// in the same folder as the main input file
 
+    if (is_static) *is_static = false;
 	if (!file_exists(file)) return NULL;
 	return file_read(file, size);
 }
@@ -150,8 +151,10 @@ static void unittest_error (gravity_vm *vm, error_type_t error_type, const char 
     }
 }
 
-static const char *unittest_read (const char *path, size_t *size, uint32_t *fileid, void *xdata) {
+static const char *unittest_read (const char *path, size_t *size, uint32_t *fileid, void *xdata, bool *is_static) {
     (void) fileid, (void) xdata;
+    if (is_static) *is_static = false;
+    
     if (file_exists(path)) return file_read(path, size);
     
     // this unittest is able to resolve path only next to main test folder (not in nested folders)
@@ -212,7 +215,7 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
         };
         
         gravity_compiler_t *compiler = gravity_compiler_create(&delegate);
-        gravity_closure_t *closure = gravity_compiler_run(compiler, source_code, size, 0, false);
+        gravity_closure_t *closure = gravity_compiler_run(compiler, source_code, size, 0, false, false);
         gravity_vm *vm = gravity_vm_new(&delegate);
         gravity_compiler_transfer(compiler, vm);
         gravity_compiler_free(compiler);
@@ -446,7 +449,7 @@ int main (int argc, const char* argv[]) {
         compiler = gravity_compiler_create(&delegate);
 
         // compile source code into a closure
-        closure = gravity_compiler_run(compiler, source_code, size, 0, false);
+        closure = gravity_compiler_run(compiler, source_code, size, 0, false, true);
         if (!closure) goto cleanup;
 
         // check if closure needs to be serialized

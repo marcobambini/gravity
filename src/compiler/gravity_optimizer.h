@@ -12,6 +12,6 @@
 #include "gravity_macros.h"
 #include "gravity_value.h"
 
-gravity_function_t *gravity_optimizer(gravity_function_t *f);
+gravity_function_t *gravity_optimizer(gravity_function_t *f, bool add_debug);
 
 #endif

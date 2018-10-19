@@ -48,11 +48,12 @@ static uint32_t hash_compute (gravity_value_t v) {
     return gravity_hash_compute_int(v.n);
 }
 
-static void finalize_function (gravity_function_t *f) {
+static void finalize_function (gravity_function_t *f, bool add_debug) {
     ircode_t        *code = (ircode_t *)f->bytecode;
     uint32_t        ninst = 0, count = ircode_count(code);
     uint32_t        notpure = 0;
     uint32_t        *bytecode = NULL;
+    uint32_t        *lineno = NULL;
     gravity_hash_t    *labels = gravity_hash_create(0, hash_compute, hash_isequal, NULL, NULL);
 
     // determine how big bytecode buffer must be
@@ -72,6 +73,7 @@ static void finalize_function (gravity_function_t *f) {
     // +1 is just a trick so the VM switch loop terminates with an implicit RET0 instruction (RET0 has opcode 0)
     f->ninsts = ninst;
     bytecode = (uint32_t *)mem_alloc(NULL, (ninst+1) * sizeof(uint32_t));
+    if (add_debug) lineno = (uint32_t *)mem_alloc(NULL, (ninst+1) * sizeof(uint32_t));
     assert(bytecode);
 
     uint32_t j=0;
@@ -200,6 +202,9 @@ static void finalize_function (gravity_function_t *f) {
                 break;
         }
 
+        // add debug information
+        if (add_debug) lineno[j] = inst->lineno;
+        
         // store encoded instruction
         bytecode[j++] = op;
     }
@@ -208,6 +213,7 @@ static void finalize_function (gravity_function_t *f) {
     gravity_hash_free(labels);
 
     f->bytecode = bytecode;
+    f->lineno = lineno;
     f->purity = (notpure == 0) ? 1.0f : ((float)(notpure * 100) / (float)ninst) / 100.0f;
 }
 
@@ -355,10 +361,19 @@ static bool optimize_neg_instruction (ircode_t *code, inst_t *inst, uint32_t i) 
     if (inst1->p1 != inst->p2) return false;
     if (!ircode_register_istemp(code, inst1->p1)) return false;
 
-    uint64_t n = inst1->n;
-    if (n>131072) return false;
-    inst1->p1 = inst->p2;
-    inst1->n = -(int64_t)n;
+    if (inst1->tag == INT_TAG) {
+        uint64_t n = inst1->n;
+        if (n>131072) return false;
+        inst1->p1 = inst->p2;
+        inst1->n = -(int64_t)n;
+    } else if (inst1->tag == DOUBLE_TAG) {
+        double d = inst1->d;
+        inst1->p1 = inst->p2;
+        inst1->d = -d;
+    } else {
+        return false;
+    }
+	
     inst_setskip(inst);
     return true;
 }
@@ -471,7 +486,7 @@ static bool optimize_num_instruction (inst_t *inst, gravity_function_t *f) {
 
 // MARK: -
 
-gravity_function_t *gravity_optimizer(gravity_function_t *f) {
+gravity_function_t *gravity_optimizer(gravity_function_t *f, bool add_debug) {
     if (f->bytecode == NULL) return f;
 
     ircode_t    *code = (ircode_t *)f->bytecode;
@@ -529,7 +544,7 @@ gravity_function_t *gravity_optimizer(gravity_function_t *f) {
     #endif
 
     // finalize function
-    finalize_function(f);
+	finalize_function(f, add_debug);
 
     return f;
 }

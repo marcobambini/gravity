@@ -55,72 +55,72 @@
 #endif
 
 #if GRAVITY_PARSER_DEBUG
-#define DEBUG_PARSER(...)           PRINT_LINE(__VA_ARGS__)
+#define DEBUG_PARSER(...)               PRINT_LINE(__VA_ARGS__)
 #else
 #define gravity_parser_debug(p)
 #define DEBUG_PARSER(...)
 #endif
 
 #if GRAVITY_SEMA1_DEBUG
-#define DEBUG_SEMA1(...)            PRINT_LINE(__VA_ARGS__)
+#define DEBUG_SEMA1(...)                PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_SEMA1(...)
 #endif
 
 #if GRAVITY_SEMA2_DEBUG
-#define DEBUG_SEMA2(...)            PRINT_LINE(__VA_ARGS__)
+#define DEBUG_SEMA2(...)                PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_SEMA2(...)
 #endif
 
 #if GRAVITY_LOOKUP_DEBUG
-#define DEBUG_LOOKUP(...)            PRINT_LINE(__VA_ARGS__)
+#define DEBUG_LOOKUP(...)               PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_LOOKUP(...)
 #endif
 
 #if GRAVITY_SYMTABLE_DEBUG
-#define DEBUG_SYMTABLE(...)         printf("%*s",ident*4," ");PRINT_LINE(__VA_ARGS__)
+#define DEBUG_SYMTABLE(...)             printf("%*s",ident*4," ");PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_SYMTABLE(...)
 #endif
 
 #if GRAVITY_CODEGEN_DEBUG
-#define DEBUG_CODEGEN(...)          PRINT_LINE(__VA_ARGS__)
+#define DEBUG_CODEGEN(...)              PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_CODEGEN(...)
 #endif
 
 #if GRAVITY_OPCODE_DEBUG
-#define DEBUG_OPCODE(...)           PRINT_LINE(__VA_ARGS__)
+#define DEBUG_OPCODE(...)               PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_OPCODE(...)
 #endif
 
 #if GRAVITY_BYTECODE_DEBUG
-#define DEBUG_BYTECODE(...)         PRINT_LINE(__VA_ARGS__)
+#define DEBUG_BYTECODE(...)             PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_BYTECODE(...)
 #endif
 
 #if GRAVITY_REGISTER_DEBUG
-#define DEBUG_REGISTER(...)         PRINT_LINE(__VA_ARGS__)
+#define DEBUG_REGISTER(...)             PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_REGISTER(...)
 #endif
 
 #if GRAVITY_FREE_DEBUG
-#define DEBUG_FREE(...)             PRINT_LINE(__VA_ARGS__)
+#define DEBUG_FREE(...)                 PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_FREE(...)
 #endif
 
 #if GRAVITY_DESERIALIZE_DEBUG
-#define DEBUG_DESERIALIZE(...)      PRINT_LINE(__VA_ARGS__)
+#define DEBUG_DESERIALIZE(...)          PRINT_LINE(__VA_ARGS__)
 #else
 #define DEBUG_DESERIALIZE(...)
 #endif
 
-#define DEBUG_ALWAYS(...)           PRINT_LINE(__VA_ARGS__)
+#define DEBUG_ALWAYS(...)               PRINT_LINE(__VA_ARGS__)
 
 #endif

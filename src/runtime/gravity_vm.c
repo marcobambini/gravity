@@ -105,6 +105,34 @@ static void gravity_callframe_dump (gravity_fiber_t *fiber) {
         printf("[%03d]\t%s\t(%s)\n", i, fname, buffer);
     }
 }
+
+static uint32_t gravity_vm_lineno (gravity_vm *vm) {
+    // get current fiber
+    gravity_fiber_t *fiber = vm->fiber;
+    
+    // get current call frame
+    gravity_callframe_t *frame = (fiber->nframes) ? &fiber->frames[fiber->nframes-1] : NULL;
+    if (!frame) return 0;
+    
+    // get current executing function
+    gravity_function_t *func = (frame->closure) ? frame->closure->f : NULL;
+    if (!func) return 0;
+    
+    // sanity check about function type and included debug information
+    if (func->tag == EXEC_TYPE_NATIVE && func->lineno) {
+        uint32_t nindex = 0;
+        if (frame->ip > func->bytecode) {
+            // -1 because frame->ip points to the next instruction to execute
+            nindex = (uint32_t)(frame->ip - func->bytecode) - 1;
+        }
+        
+        return func->lineno[nindex];
+    }
+    
+    return 0;
+}
+
+
 #pragma clang diagnostic pop
 
 // MARK: -
@@ -124,8 +152,10 @@ static void report_runtime_error (gravity_vm *vm, error_type_t error_type, const
 
     gravity_error_callback error_cb = ((gravity_delegate_t *)vm->delegate)->error_callback;
     if (error_cb) {
+        uint32_t lineno = gravity_vm_lineno(vm);
+        error_desc_t edesc = (error_desc_t){lineno, 0, 0, 0, NULL};
         void *data = ((gravity_delegate_t *)vm->delegate)->xdata;
-        error_cb(vm, error_type, buffer, ERROR_DESC_NONE, data);
+		error_cb(vm, error_type, buffer, edesc, data);
     } else {
         printf("%s\n", buffer);
         fflush(stdout);

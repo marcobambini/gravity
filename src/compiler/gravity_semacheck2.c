@@ -793,6 +793,20 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
         // variable with a initial value (or with a getter/setter)
         if (p->expr) visit(p->expr);
 
+//        // check for manifest type
+//        if (p->annotation_type) {
+//            // struct gnode_var_t was modified with
+//            // // untagged union, if no type is declared then this union is NULL otherwise
+//            // union {
+//            //     const char          *annotation_type;   // optional annotation type
+//            //     gnode_class_decl_t  *class_type;        // class type (set in semacheck2 if annotation_type is not NULL)
+//            // };
+//            gnode_t *class_type = lookup_identifier(self, p->annotation_type, NULL);
+//            if (!class_type) {REPORT_WARNING(p, "Unable to find type %s.", p->annotation_type);}
+//        //     if (!NODE_ISA(class_type, NODE_CLASS_DECL)) {REPORT_ERROR(p, "Unable to set non class type %s.", p->annotation_type); continue;}
+//        //     p->class_type = (gnode_class_decl_t *)class_type;
+//        }
+        
         if (env_is_function) {
             // local variable defined inside a function
             if (!symboltable_insert(symtable, p->identifier, (void *)p)) {
@@ -1172,7 +1186,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 // MARK: -
 
 bool gravity_semacheck2 (gnode_t *node, gravity_delegate_t *delegate) {
-    semacheck_t    data = {.declarations = gnode_array_create(), .lasterror = 0};
+    semacheck_t data = {.declarations = gnode_array_create(), .lasterror = 0};
     marray_init(data.statements);
 
     gvisitor_t visitor = {

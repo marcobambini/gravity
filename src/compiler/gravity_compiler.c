@@ -140,7 +140,7 @@ void gravity_compiler_transfer(gravity_compiler_t *compiler, gravity_vm *vm) {
 
 // MARK: -
 
-gravity_closure_t *gravity_compiler_run (gravity_compiler_t *compiler, const char *source, size_t len, uint32_t fileid, bool is_static) {
+gravity_closure_t *gravity_compiler_run (gravity_compiler_t *compiler, const char *source, size_t len, uint32_t fileid, bool is_static, bool add_debug) {
     if ((source == NULL) || (len == 0)) return NULL;
 
     // CHECK cleanup first
@@ -172,11 +172,11 @@ gravity_closure_t *gravity_compiler_run (gravity_compiler_t *compiler, const cha
     if (!b2) goto abort_compilation;
 
     // STEP 3: INTERMEDIATE CODE GENERATION (stack based VM)
-    gravity_function_t *f = gravity_codegen(compiler->ast, compiler->delegate, compiler->vm);
+	gravity_function_t *f = gravity_codegen(compiler->ast, compiler->delegate, compiler->vm, add_debug);
     if (!f) goto abort_compilation;
 
     // STEP 4: CODE GENERATION (register based VM)
-    f = gravity_optimizer(f);
+	f = gravity_optimizer(f, add_debug);
     if (f) return gravity_closure_new(compiler->vm, f);
 
 abort_compilation:

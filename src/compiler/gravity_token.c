@@ -189,6 +189,7 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
             if (string_casencmp(buffer, "enum", len) == 0) return TOK_KEY_ENUM;
             if (string_casencmp(buffer, "case", len) == 0) return TOK_KEY_CASE;
             if (string_casencmp(buffer, "null", len) == 0) return TOK_KEY_NULL;
+            if (string_casencmp(buffer, "NULL", len) == 0) return TOK_KEY_NULL;
             if (string_casencmp(buffer, "file", len) == 0) return TOK_KEY_FILE;
             if (string_casencmp(buffer, "lazy", len) == 0) return TOK_KEY_LAZY;
             break;

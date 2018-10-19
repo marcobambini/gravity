@@ -92,7 +92,7 @@ bool ircode_iserror (ircode_t *code) {
 }
 // MARK: -
 
-static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, int64_t n, double d) {
+static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, int64_t n, double d, uint32_t lineno) {
 
     // debug code
     #if GRAVITY_OPCODE_DEBUG
@@ -127,6 +127,7 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
     inst->p1 = p1;
     inst->p2 = p2;
     inst->p3 = p3;
+    inst->lineno = lineno;
 
     if (tag == DOUBLE_TAG) inst->d = d;
     else if (tag == INT_TAG) inst->n = n;
@@ -148,18 +149,18 @@ void ircode_patch_init (ircode_t *code, uint16_t index) {
 
     // load constant
     uint32_t dest = ircode_register_push_temp(code);
-    inst_t *inst1 = inst_new(LOADK, dest, index, 0, NO_TAG, 0, 0.0);
+	inst_t *inst1 = inst_new(LOADK, dest, index, 0, NO_TAG, 0, 0.0, 0);
 
     // load from lookup
-    inst_t *inst2 = inst_new(LOAD, dest, 0, dest, NO_TAG, 0, 0.0);
+	inst_t *inst2 = inst_new(LOAD, dest, 0, dest, NO_TAG, 0, 0.0, 0);
 
     // prepare parameter
     uint32_t dest2 = ircode_register_push_temp(code);
-    inst_t *inst3 = inst_new(MOVE, dest2, 0, 0, NO_TAG, 0, 0.0);
+	inst_t *inst3 = inst_new(MOVE, dest2, 0, 0, NO_TAG, 0, 0.0, 0);
     ircode_register_pop(code);
 
     // execute call
-    inst_t *inst4 = inst_new(CALL, dest, dest, 1, NO_TAG, 0, 0.0);
+	inst_t *inst4 = inst_new(CALL, dest, dest, 1, NO_TAG, 0, 0.0, 0);
 
     // pop temps used
     ircode_register_pop(code);
@@ -347,14 +348,14 @@ uint32_t ircode_getlabel_false (ircode_t *code) {
     return v;
 }
 
-void ircode_marklabel (ircode_t *code, uint32_t nlabel) {
-    inst_t *inst = inst_new(0, nlabel, 0, 0, LABEL_TAG, 0, 0.0);
+void ircode_marklabel (ircode_t *code, uint32_t nlabel, uint32_t lineno) {
+	inst_t *inst = inst_new(0, nlabel, 0, 0, LABEL_TAG, 0, 0.0, lineno);
     marray_push(inst_t*, *code->list, inst);
 }
 
 // MARK: -
-void ircode_pragma (ircode_t *code, optag_t tag, uint32_t value) {
-    ircode_add_tag(code, 0, value, 0, 0, tag);
+void ircode_pragma (ircode_t *code, optag_t tag, uint32_t value, uint32_t lineno) {
+	ircode_add_tag(code, 0, value, 0, 0, tag, lineno);
 }
 
 // MARK: -
@@ -368,35 +369,35 @@ void ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1,
     inst->tag = NO_TAG;
 }
 
-void ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3) {
-    ircode_add_tag(code, op, p1, p2, p3, 0);
+void ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t lineno) {
+	ircode_add_tag(code, op, p1, p2, p3, 0, lineno);
 }
 
-void ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag) {
-    inst_t *inst = inst_new(op, p1, p2, p3, tag, 0, 0.0);
+void ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, uint32_t lineno) {
+	inst_t *inst = inst_new(op, p1, p2, p3, tag, 0, 0.0, lineno);
     marray_push(inst_t*, *code->list, inst);
 }
 
-void ircode_add_double (ircode_t *code, double d) {
+void ircode_add_double (ircode_t *code, double d, uint32_t lineno) {
     uint32_t regnum = ircode_register_push_temp(code);
-    inst_t *inst = inst_new(LOADI, regnum, 0, 0, DOUBLE_TAG, 0, d);
+	inst_t *inst = inst_new(LOADI, regnum, 0, 0, DOUBLE_TAG, 0, d, lineno);
     marray_push(inst_t*, *code->list, inst);
 }
 
-void ircode_add_constant (ircode_t *code, uint32_t index) {
+void ircode_add_constant (ircode_t *code, uint32_t index, uint32_t lineno) {
     uint32_t regnum = ircode_register_push_temp(code);
-    inst_t *inst = inst_new(LOADK, regnum, index, 0, NO_TAG, 0, 0);
+	inst_t *inst = inst_new(LOADK, regnum, index, 0, NO_TAG, 0, 0, lineno);
     marray_push(inst_t*, *code->list, inst);
 }
 
-void ircode_add_int (ircode_t *code, int64_t n) {
+void ircode_add_int (ircode_t *code, int64_t n, uint32_t lineno) {
     uint32_t regnum = ircode_register_push_temp(code);
-    inst_t *inst = inst_new(LOADI, regnum, 0, 0, INT_TAG, n, 0);
+	inst_t *inst = inst_new(LOADI, regnum, 0, 0, INT_TAG, n, 0, lineno);
     marray_push(inst_t*, *code->list, inst);
 }
 
-void ircode_add_skip (ircode_t *code) {
-    inst_t *inst = inst_new(0, 0, 0, 0, NO_TAG, 0, 0);
+void ircode_add_skip (ircode_t *code, uint32_t lineno) {
+	inst_t *inst = inst_new(0, 0, 0, 0, NO_TAG, 0, 0, lineno);
     inst_setskip(inst);
     marray_push(inst_t*, *code->list, inst);
 }

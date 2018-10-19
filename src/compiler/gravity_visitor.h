@@ -14,9 +14,10 @@
 #define visit(node) gvisit(self, node)
 
 typedef struct gvisitor {
-    uint32_t    nerr;            // to store err counter state
-    void        *data;            // to store a ptr state
-    void        *delegate;        // delegate callback
+    uint32_t    nerr;           // to store err counter state
+    void        *data;          // to store a ptr state
+    bool        bflag;          // to store a bool flag
+    void        *delegate;      // delegate callback
 
     // COMMON
     void (* visit_pre)(struct gvisitor *self, gnode_t *node);

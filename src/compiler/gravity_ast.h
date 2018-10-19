@@ -312,7 +312,7 @@ void    *meta_from_node (gnode_t *node);
 #define gnode_array_free(r)                 do {marray_destroy(*r); mem_free((void*)r);} while (0)
 #define gtype_array_each(r, block, type)    {   size_t _len = gnode_array_size(r);                \
                                                 for (size_t _i=0; _i<_len; ++_i) {                \
-                                                    type val = (type)gnode_array_get(r, _i);    \
+                                                    type val = (type)gnode_array_get(r, _i);      \
                                                     block;} \
                                             }
 #define gnode_array_each(r, block)          gtype_array_each(r, block, gnode_t*)

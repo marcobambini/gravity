@@ -785,6 +785,13 @@ static bool object_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     RETURN_ERROR("Forbidden Object execution.");
 }
 
+//static bool object_methods (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+//    #pragma unused(vm, nargs)
+//    gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+//    
+//    
+//}
+
 // MARK: - List Class -
 
 static bool list_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2671,12 +2678,23 @@ static bool operator_null_silent (gravity_vm *vm, gravity_value_t *args, uint16_
         if (obj) RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
     }
     
+    gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+    if (delegate->report_null_errors) {
+        RETURN_ERROR("Unable to find %s into null object", VALUE_ISA_STRING(key) ? VALUE_AS_CSTRING(key) : "N/A");
+    }
+    
     // every operation on NULL returns NULL
     RETURN_VALUE(VALUE_FROM_NULL, rindex);
 }
 
 static bool operator_store_null_silent (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm,args,nargs,rindex)
+    gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+    if (delegate->report_null_errors) {
+        gravity_value_t key = GET_VALUE(1);
+        RETURN_ERROR("Unable to find %s into null object", VALUE_ISA_STRING(key) ? VALUE_AS_CSTRING(key) : "N/A");
+    }
+        
     // do not touch any register, a store op on NULL is a NOP operation
     return true;
 }

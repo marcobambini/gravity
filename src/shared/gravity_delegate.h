@@ -39,7 +39,7 @@ typedef void                (*gravity_unittest_callback) (gravity_vm *vm, error_
 typedef void                (*gravity_parser_callback) (void *token, void *xdata);
 typedef void                (*gravity_type_callback) (void *token, const char *type, void *xdata);
 typedef const char*         (*gravity_precode_callback) (void *xdata);
-typedef const char*         (*gravity_loadfile_callback) (const char *file, size_t *size, uint32_t *fileid, void *xdata);
+typedef const char*			(*gravity_loadfile_callback) (const char *file, size_t *size, uint32_t *fileid, void *xdata, bool *is_static);
 typedef const char*         (*gravity_filename_callback) (uint32_t fileid, void *xdata);
 typedef const char**        (*gravity_optclass_callback) (void);
 
@@ -58,6 +58,7 @@ typedef void                (*gravity_bridge_free) (gravity_vm *vm, gravity_obje
 typedef struct {
     // user data
     void                        *xdata;                 // optional user data transparently passed between callbacks
+    bool                        report_null_errors;     // by default messages sent to null objects are silently ignored (if this flag is false)
 
     // callbacks
     gravity_log_callback        log_callback;           // log reporting callback

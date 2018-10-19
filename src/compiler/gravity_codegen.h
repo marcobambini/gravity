@@ -13,6 +13,6 @@
 #include "gravity_value.h"
 #include "gravity_delegate.h"
 
-gravity_function_t *gravity_codegen(gnode_t *node, gravity_delegate_t *delegate, gravity_vm *vm);
+gravity_function_t *gravity_codegen(gnode_t *node, gravity_delegate_t *delegate, gravity_vm *vm, bool add_debug);
 
 #endif

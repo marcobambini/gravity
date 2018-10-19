@@ -9,7 +9,7 @@
 #ifndef __GRAVITY_MACROS__
 #define __GRAVITY_MACROS__
 
-#define AUTOLENGTH                            UINT32_MAX
+#define AUTOLENGTH                          UINT32_MAX
 
 // MARK: -
 // pragma unused is not recognized by VC
@@ -115,6 +115,7 @@
 #define GRAVITY_JSON_LABELPNAMES            "pnames"
 #define GRAVITY_JSON_LABELMETA              "meta"
 #define GRAVITY_JSON_LABELBYTECODE          "bytecode"
+#define GRAVITY_JSON_LABELLINENO            "lineno"
 #define GRAVITY_JSON_LABELNPARAM            "nparam"
 #define GRAVITY_JSON_LABELNLOCAL            "nlocal"
 #define GRAVITY_JSON_LABELNTEMP             "ntemp"
