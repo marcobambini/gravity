@@ -73,7 +73,8 @@ The Math class also contains several Trigonometric Functions. All values that re
 
 ### Random Number
 ```swift
-	Math.random() // Returns a random number between 0 and 1
+        var number = 5
+	Math.random(number) // Returns a random number between 0 and 5
 ```
 
 ### GCF and LCM
