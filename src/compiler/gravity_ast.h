@@ -48,7 +48,6 @@ typedef struct {
     uint32_t    refcount;                   // reference count to manage duplicated nodes
     gtoken_s    token;                      // token type and location
     bool        is_assignment;              // flag to check if it is an assignment node
-    void        *meta;                      // meta decoration (used only in decl nodes in this version but added here in order to prepare for a more complete solution)
     void        *decl;                      // enclosing declaration node
 } gnode_t;
 
@@ -261,13 +260,13 @@ gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, g
 gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, gnode_t *decl);
 gnode_t *gnode_empty_stat_create (gtoken_s token, gnode_t *decl);
 
-gnode_t *gnode_enum_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, symboltable_t *symtable, void *meta, gnode_t *decl);
-gnode_t *gnode_class_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_t *superclass, gnode_r *protocols, gnode_r *declarations, bool is_struct, void *meta, gnode_t *decl);
-gnode_t *gnode_module_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, void *meta, gnode_t *decl);
-gnode_t *gnode_variable_decl_create (gtoken_s token, gtoken_t type, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, void *meta, gnode_t *decl);
+gnode_t *gnode_enum_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, symboltable_t *symtable, gnode_t *decl);
+gnode_t *gnode_class_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_t *superclass, gnode_r *protocols, gnode_r *declarations, bool is_struct, gnode_t *decl);
+gnode_t *gnode_module_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, gnode_t *decl);
+gnode_t *gnode_variable_decl_create (gtoken_s token, gtoken_t type, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, gnode_t *decl);
 gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const char *annotation_type, gtoken_t storage_specifier, gnode_t *expr, gnode_t *decl);
 
-gnode_t *gnode_function_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *params, gnode_compound_stmt_t *block, void *meta, gnode_t *decl);
+gnode_t *gnode_function_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *params, gnode_compound_stmt_t *block, gnode_t *decl);
 
 gnode_t *gnode_binary_expr_create (gtoken_t op, gnode_t *left, gnode_t *right, gnode_t *decl);
 gnode_t *gnode_unary_expr_create (gtoken_t op, gnode_t *expr, gnode_t *decl);
@@ -299,8 +298,6 @@ bool    gnode_is_literal_number (gnode_t *node);
 bool    gnode_is_literal_string (gnode_t *node);
 void    gnode_literal_dump (gnode_literal_expr_t *node, char *buffer, int buffersize);
 void    gnode_free (gnode_t *node);
-
-void    *meta_from_node (gnode_t *node);
 
 // MARK: -
 

@@ -25,7 +25,6 @@ struct gravity_parser_t {
     gnode_r                             *declarations;      // used to keep track of nodes hierarchy
     gnode_r                             *statements;        // used to build AST
     gravity_delegate_t                  *delegate;          // compiler delegate
-    gravity_hash_t                      *meta;              // current node meta (if any)
     uint16_r                            vdecl;              // to keep track of func expression in variable declaration nondes
 
     double                              time;
@@ -138,17 +137,6 @@ static gnode_t *get_enclosing (gravity_parser_t *parser, gnode_n tag) {
     return NULL;
 }
 
-static void parser_setmeta (gravity_parser_t *parser, gravity_hash_t *htable, bool free_old) {
-    if (free_old && parser->meta) gravity_hash_free(parser->meta);
-    parser->meta = htable;
-}
-
-static gravity_hash_t *parser_getmeta (gravity_parser_t *parser, bool consume) {
-    gravity_hash_t *htable = parser->meta;
-    if (consume) parser->meta = NULL;
-    return htable;
-}
-
 static void patch_token_node (gnode_t *node, gtoken_s token) {
     node->token = token;
     
@@ -165,7 +153,7 @@ static void patch_token_node (gnode_t *node, gtoken_s token) {
 }
 
 static void report_error (gravity_parser_t *parser, error_type_t error_type, gtoken_s token, const char *format, ...) {
-    // consider just one error for each line;
+    // just one error for each line
     if (parser->last_error_lineno == token.lineno) return;
     parser->last_error_lineno = token.lineno;
 
@@ -185,19 +173,12 @@ static void report_error (gravity_parser_t *parser, error_type_t error_type, gto
         va_end (arg);
     }
 
-    void *meta = parser_getmeta(parser, false);
-    if (!meta) {
-        gnode_t *node = LAST_DECLARATION();
-        if (node) meta = meta_from_node(node);
-    }
-
     // setup error struct
     error_desc_t error_desc = {
         .lineno = token.lineno,
         .colno = token.colno,
         .fileid = token.fileid,
-        .offset = token.position,
-        .meta = meta
+        .offset = token.position
     };
 
     // finally call error callback
@@ -278,9 +259,6 @@ static bool parse_semicolon (gravity_parser_t *parser) {
 gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier) {
     DECLARE_LEXER;
 
-    // consume optional meta
-    gravity_hash_t *meta = (is_declaration) ? parser_getmeta(parser, true): NULL;
-
     // access_specifier? storage_specifier? already parsed
     // 'function' IDENTIFIER '(' parameter_declaration_clause? ')' compound_statement
 
@@ -305,7 +283,7 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
     }
 
     // create func declaration node
-    gnode_function_decl_t *func = (gnode_function_decl_t *) gnode_function_decl_create(token, identifier, access_specifier, storage_specifier, NULL, NULL, meta,LAST_DECLARATION());
+    gnode_function_decl_t *func = (gnode_function_decl_t *) gnode_function_decl_create(token, identifier, access_specifier, storage_specifier, NULL, NULL, LAST_DECLARATION());
 
     // check and consume TOK_OP_OPEN_PARENTHESIS
     if (!is_implicit) parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
@@ -351,7 +329,7 @@ static gnode_t *local_store_declaration (gravity_parser_t *parser, const char *i
     gnode_r *decls = gnode_array_create();
     gnode_t *decl = gnode_variable_create(declaration->token, identifier ? string_dup(identifier) : NULL, NULL, access_specifier, declaration, LAST_DECLARATION());
     gnode_array_push(decls, decl);
-    return gnode_variable_decl_create(declaration->token, TOK_KEY_VAR, access_specifier, storage_specifier, decls, NULL, LAST_DECLARATION());
+    return gnode_variable_decl_create(declaration->token, TOK_KEY_VAR, access_specifier, storage_specifier, decls, LAST_DECLARATION());
 }
 
 static gnode_t *decl_check_access_specifier (gnode_t *node) {
@@ -1253,7 +1231,7 @@ static void init_grammer_rules (void) {
 
 // MARK: - Declarations -
 
-static gnode_t *parse_getter_setter (gravity_parser_t *parser, gravity_hash_t *meta) {
+static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
     DEBUG_PARSER("parse_getter_setter");
     DECLARE_LEXER;
 
@@ -1267,7 +1245,7 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser, gravity_hash_t *m
 
         bool        is_getter = false;
         gtoken_s    token = gravity_lexer_token(lexer);
-        gnode_r        *params = NULL;
+        gnode_r     *params = NULL;
 
         // getter case: does not have explicit parameters (only implicit self)
         if (strcmp(identifier, GETTER_FUNCTION_NAME) == 0) {
@@ -1293,7 +1271,7 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser, gravity_hash_t *m
         mem_free(identifier);
 
         // create getter/setter func declaration
-        gnode_t *f = gnode_function_decl_create(token, NULL, 0, 0, params, NULL, meta, LAST_DECLARATION());
+        gnode_t *f = gnode_function_decl_create(token, NULL, 0, 0, params, NULL, LAST_DECLARATION());
         // set storage to var so I can identify f as a special getter/setter function
         ((gnode_function_decl_t *)f)->storage = TOK_KEY_VAR;
 
@@ -1347,11 +1325,8 @@ static gnode_t *parse_variable_declaration (gravity_parser_t *parser, bool issta
     }
     token = gravity_lexer_token(lexer);
 
-    // consume optional meta
-    gravity_hash_t *meta = parser_getmeta(parser, true);
-
     // create node variable declaration
-    gnode_variable_decl_t *node = (gnode_variable_decl_t *) gnode_variable_decl_create(token, type, access_specifier, storage_specifier, NULL, meta, LAST_DECLARATION());
+    gnode_variable_decl_t *node = (gnode_variable_decl_t *) gnode_variable_decl_create(token, type, access_specifier, storage_specifier, NULL, LAST_DECLARATION());
 
     // initialize node array
     decls = gnode_array_create();
@@ -1379,7 +1354,7 @@ loop:
         marray_pop(parser->vdecl);
     } else if (peek == TOK_OP_OPEN_CURLYBRACE) {
         gravity_lexer_next(lexer); // consume TOK_OP_OPEN_CURLYBRACE
-        expr = parse_getter_setter(parser, meta);
+        expr = parse_getter_setter(parser);
         parse_required(parser, TOK_OP_CLOSED_CURLYBRACE);
         is_computed = true;
     }
@@ -1450,16 +1425,13 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
     // check and consume TOK_OP_OPEN_CURLYBRACE
     parse_required(parser, TOK_OP_OPEN_CURLYBRACE);
 
-    symboltable_t    *symtable = symboltable_create(SYMTABLE_TAG_ENUM);    // enum symbol table (symtable is OK because order is not important inside an enum)
-    int64_t            enum_autoint = 0;                        // autoincrement value (in case of INT enum)
-    uint32_t        enum_counter = 0;                        // enum internal counter (first value (if any) determines enum type)
-    gliteral_t        enum_type = LITERAL_INT;                // enum type (default to int)
-
-    // consume optional annotation
-    gravity_hash_t *meta = parser_getmeta(parser, true);
+    symboltable_t   *symtable = symboltable_create(SYMTABLE_TAG_ENUM);  // enum symbol table (symtable is OK because order is not important inside an enum)
+    int64_t     enum_autoint = 0;           // autoincrement value (in case of INT enum)
+    uint32_t    enum_counter = 0;           // enum internal counter (first value (if any) determines enum type)
+    gliteral_t  enum_type = LITERAL_INT;    // enum type (default to int)
 
     // create enum node
-    gnode_enum_decl_t *node = (gnode_enum_decl_t *)gnode_enum_decl_create(token, identifier, access_specifier, storage_specifier, symtable, meta, LAST_DECLARATION());
+    gnode_enum_decl_t *node = (gnode_enum_decl_t *)gnode_enum_decl_create(token, identifier, access_specifier, storage_specifier, symtable, LAST_DECLARATION());
 
     while (1) {
         // check for empty enum
@@ -1610,10 +1582,6 @@ static gnode_t *parse_module_declaration (gravity_parser_t *parser, gtoken_t acc
     // parse optional curly brace
     bool curly_brace = parse_optional(parser, TOK_OP_OPEN_CURLYBRACE);
 
-    // parse optional meta
-    gravity_hash_t *meta = parser_getmeta(parser, true);
-    #pragma unused(meta)
-
     // create array of declarations nodes
     gnode_r *declarations = gnode_array_create();
 
@@ -1736,9 +1704,6 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
     DEBUG_PARSER("parse_class_declaration");
     DECLARE_LEXER;
 
-    // consume optional meta
-    gravity_hash_t *meta = parser_getmeta(parser, true);
-
     // access_specifier? storage_specifier? 'class' IDENTIFIER class_superclass? class_protocols? '{' declaration_statement* '}' ';'
     // class_superclass: (':') id
     // class_protocols: '<' (id) (',' id)* '>'
@@ -1779,12 +1744,12 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
         gnode_t *outer_var = gnode_variable_create(NO_TOKEN, string_dup(OUTER_IVAR_NAME), NULL, 0, NULL, LAST_DECLARATION());
         gnode_array_push(decls, outer_var);
 
-        gnode_t *outer_decl = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, TOK_KEY_PRIVATE, 0, decls, NULL, LAST_DECLARATION());
+        gnode_t *outer_decl = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, TOK_KEY_PRIVATE, 0, decls, LAST_DECLARATION());
         gnode_array_push(declarations, outer_decl);
     }
 
     // create class declaration node
-    gnode_class_decl_t *node = (gnode_class_decl_t*) gnode_class_decl_create(token, identifier, access_specifier, storage_specifier, super, protocols, NULL, is_struct, meta, LAST_DECLARATION());
+    gnode_class_decl_t *node = (gnode_class_decl_t*) gnode_class_decl_create(token, identifier, access_specifier, storage_specifier, super, protocols, NULL, is_struct, LAST_DECLARATION());
 
     if (storage_specifier != TOK_KEY_EXTERN) {
         PUSH_DECLARATION(node);
@@ -2132,65 +2097,6 @@ loop:
     return NULL;
 }
 
-static gnode_t *parse_meta_macro (gravity_parser_t *parser) {
-    DEBUG_PARSER("parse_meta_macro");
-    DECLARE_LEXER;
-
-    gravity_hash_t *htable = parser_getmeta(parser, false);
-    bool is_local = !htable;
-    if (!htable) htable = gravity_hash_create(0, gravity_value_hash, gravity_value_equals, gravity_hash_keyvaluefree, NULL);
-
-    parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
-    while (gravity_lexer_peek(lexer) != TOK_OP_CLOSED_PARENTHESIS) {
-        const char *id = parse_identifier(parser);
-        if (id == NULL) goto handle_error;
-
-        parse_required(parser, TOK_OP_COLON);
-
-        gnode_literal_expr_t *node_value= (gnode_literal_expr_t *)parse_literal_expression(parser);
-        if (node_value == NULL) goto handle_error;
-
-        gtoken_t peek = gravity_lexer_peek(lexer);
-        if (peek == TOK_EOF) break;
-        if (peek == TOK_OP_COMMA) gravity_lexer_next(lexer);
-
-        gravity_value_t key;
-        gravity_value_t value;
-
-        // convert node key
-        key = VALUE_FROM_OBJECT(gravity_string_new(NULL, (char *)id, (uint32_t)strlen(id), 0));
-
-        // convert node value
-        if (node_value->type == LITERAL_STRING)
-            value = VALUE_FROM_CSTRING(NULL, node_value->value.str);
-        else if (node_value->type == LITERAL_INT)
-            value = VALUE_FROM_INT((gravity_int_t)node_value->value.n64);
-        else if (node_value->type == LITERAL_FLOAT)
-            value = VALUE_FROM_FLOAT((gravity_float_t)node_value->value.d);
-        else // if (node_value->type == LITERAL_BOOL)
-            value = (node_value->value.n64) ? VALUE_FROM_TRUE : VALUE_FROM_FALSE;
-
-        gravity_hash_insert(htable, key, value);
-
-        gnode_free((gnode_t*)node_value);
-    }
-    parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
-
-    // parse semicolon
-    parse_semicolon(parser);
-
-    // set parser meta
-    is_local = false;
-    parser_setmeta(parser, htable, false);
-
-    return NULL;
-
-handle_error:
-    if (is_local) gravity_hash_free(htable);
-    else parser_setmeta(parser, NULL, true);
-    return NULL;
-}
-
 // MARK: - Statements -
 
 static gnode_t *parse_label_statement (gravity_parser_t *parser) {
@@ -2452,8 +2358,7 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
         MACRO_UNITEST = 1,
         MACRO_INCLUDE = 2,
         MACRO_PUSH = 3,
-        MACRO_POP = 4,
-        MACRO_META = 5
+        MACRO_POP = 4
     } builtin_macro;
 
     DEBUG_PARSER("parse_macro_statement");
@@ -2483,7 +2388,6 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
     builtin_macro macro_type = MACRO_UNKNOWN;
     if (string_cmp(macroid, "unittest") == 0) macro_type = MACRO_UNITEST;
     else if (string_cmp(macroid, "include") == 0) macro_type = MACRO_INCLUDE;
-    else if (string_cmp(macroid, "meta") == 0) macro_type = MACRO_META;
     else if (string_cmp(macroid, "push") == 0) macro_type = MACRO_PUSH;
     else if (string_cmp(macroid, "pop") == 0) macro_type = MACRO_POP;
     mem_free(macroid);
@@ -2499,10 +2403,6 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser) {
 
         case MACRO_INCLUDE:
             return parse_include_macro(parser);
-            break;
-
-        case MACRO_META:
-            return parse_meta_macro(parser);
             break;
 
         case MACRO_PUSH:
@@ -2594,7 +2494,7 @@ static void parser_register_core_classes (gravity_parser_t *parser) {
     }
 
     // register a variable declaration node in global statements
-    gnode_t *node = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, 0, TOK_KEY_EXTERN, decls, NULL, LAST_DECLARATION());;
+    gnode_t *node = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, 0, TOK_KEY_EXTERN, decls, LAST_DECLARATION());;
     gnode_array_push(parser->statements, (gnode_t *)node);
 }
 
@@ -2620,7 +2520,7 @@ static void parser_register_optional_classes (gravity_parser_t *parser) {
     }
     
     // register a variable declaration node in global statements
-    gnode_t *node = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, 0, TOK_KEY_EXTERN, decls, NULL, LAST_DECLARATION());;
+    gnode_t *node = gnode_variable_decl_create(NO_TOKEN, TOK_KEY_VAR, 0, TOK_KEY_EXTERN, decls, LAST_DECLARATION());;
     gnode_array_push(parser->statements, (gnode_t *)node);
 }
 

@@ -82,8 +82,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
         .lineno = (node) ? node->token.lineno : 0,
         .colno = (node) ? node->token.colno : 0,
         .fileid = (node) ? node->token.fileid : 0,
-        .offset = (node) ? node->token.position : 0,
-        .meta = meta_from_node(node)
+        .offset = (node) ? node->token.position : 0
     };
 
     // finally call error callback

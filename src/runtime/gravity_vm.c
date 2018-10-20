@@ -153,7 +153,7 @@ static void report_runtime_error (gravity_vm *vm, error_type_t error_type, const
     gravity_error_callback error_cb = ((gravity_delegate_t *)vm->delegate)->error_callback;
     if (error_cb) {
         uint32_t lineno = gravity_vm_lineno(vm);
-        error_desc_t edesc = (error_desc_t){lineno, 0, 0, 0, NULL};
+        error_desc_t edesc = (error_desc_t){lineno, 0, 0, 0};
         void *data = ((gravity_delegate_t *)vm->delegate)->xdata;
 		error_cb(vm, error_type, buffer, edesc, data);
     } else {

@@ -27,7 +27,6 @@ typedef struct {
     uint32_t        colno;
     uint32_t        fileid;
     uint32_t        offset;
-    void            *meta;
 } error_desc_t;
 
 #define ERROR_DESC_NONE     (error_desc_t){0,0,0,0,NULL}

@@ -54,8 +54,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
         .lineno = node->token.lineno,
         .colno = node->token.colno,
         .fileid = node->token.fileid,
-        .offset = node->token.position,
-        .meta = meta_from_node(node)
+        .offset = node->token.position
     };
 
     // finally call error callback
