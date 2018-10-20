@@ -19,6 +19,7 @@ typedef marray_t(gnode_class_decl_t *)  gnode_class_r;
 struct codegen_t {
     gravity_object_r    context;
     gnode_class_r       superfix;
+    uint32_t            lasterror;
     gravity_vm          *vm;
 };
 typedef struct codegen_t codegen_t;
@@ -63,6 +64,11 @@ typedef struct codegen_t codegen_t;
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
     // increment internal error counter
     ++self->nerr;
+    
+    // check last error line in order to prevent to emit multiple errors for the same row
+    codegen_t *current = (codegen_t *)self->data;
+    if (!node || node->token.lineno == current->lasterror) return;
+    current->lasterror = node->token.lineno;
 
     // get error callback (if any)
     void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
@@ -1914,8 +1920,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 // MARK: -
 
 gravity_function_t *gravity_codegen(gnode_t *node, gravity_delegate_t *delegate, gravity_vm *vm, bool add_debug) {
-    codegen_t data;
-    data.vm = vm;
+    codegen_t data = {.vm = vm, .lasterror = 0};
     marray_init(data.context);
     marray_init(data.superfix);
 
@@ -1924,10 +1929,10 @@ gravity_function_t *gravity_codegen(gnode_t *node, gravity_delegate_t *delegate,
     marray_push(gravity_object_t*, data.context, (gravity_object_t *)f);
 
     gvisitor_t visitor = {
-        .nerr = 0,                        // used for internal codegen errors
-        .data = &data,                    // used to store a pointer to codegen struct
+        .nerr = 0,                      // used for internal codegen errors
+        .data = &data,                  // used to store a pointer to codegen struct
         .bflag = add_debug,             // flag used to decide if bytecode must include debug info
-        .delegate = (void *)delegate,    // compiler delegate to report errors
+        .delegate = (void *)delegate,   // compiler delegate to report errors
 
         // COMMON
         .visit_pre = NULL,
