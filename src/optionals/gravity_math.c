@@ -14,6 +14,7 @@
 #include "gravity_math.h"
 #include "gravity_core.h"
 #include "gravity_hash.h"
+#include "gravity_utils.h"
 #include "gravity_macros.h"
 #include "gravity_vmmacros.h"
 
@@ -614,21 +615,6 @@ static bool math_pow (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
 
-// returns a random number between 0 and 1
-static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(vm, args, nargs)
-
-    // only seed once
-    static bool already_seeded = false;
-    if (!already_seeded) {
-        srand((unsigned)time(NULL));
-        already_seeded = true;
-    }
-
-    int r = rand();
-    RETURN_VALUE(VALUE_FROM_FLOAT((float)r / RAND_MAX), rindex);
-}
-
 // rounds x to the nearest integer
 static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -760,6 +746,140 @@ static bool math_SQRT2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 static bool math_SQRT1_2 (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, args, nargs)
     RETURN_VALUE(VALUE_FROM_FLOAT(0.7071067811865476), rindex);
+}
+
+// MARK: - Random -
+
+#if GRAVITY_ENABLE_INT64
+// https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+
+/*
+ 64-bits Random number generator U[0,1): lfsr258
+ Author: Pierre L'Ecuyer,
+ Source: http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme2.ps
+ ---------------------------------------------------------
+ */
+
+/**** VERY IMPORTANT **** :
+ The initial seeds y1, y2, y3, y4, y5  MUST be larger than
+ 1, 511, 4095, 131071 and 8388607 respectively.
+ ****/
+
+#define LFSR_GERME 123456789123456789ULL
+
+static uint64_t lfsr258_y1 = LFSR_GERME, lfsr258_y2 = LFSR_GERME, lfsr258_y3 = LFSR_GERME, lfsr258_y4 = LFSR_GERME, lfsr258_y5 = LFSR_GERME;
+
+static void lfsr258_init (uint64_t n) {
+    static int lfsr258_inited = 0;
+    if (lfsr258_inited) return;
+    lfsr258_inited = 1;
+    if (n == 0) n = LFSR_GERME;
+    
+    lfsr258_y1 = n; lfsr258_y2 = n; lfsr258_y3 = n; lfsr258_y4 = n; lfsr258_y5 = n;
+}
+
+static double lfsr258 (void) {
+    uint64_t b;
+    
+    b = ((lfsr258_y1 << 1) ^ lfsr258_y1) >> 53;
+    lfsr258_y1 = ((lfsr258_y1 & 18446744073709551614UL) << 10) ^ b;
+    b = ((lfsr258_y2 << 24) ^ lfsr258_y2) >> 50;
+    lfsr258_y2 = ((lfsr258_y2 & 18446744073709551104UL) << 5) ^ b;
+    b = ((lfsr258_y3 << 3) ^ lfsr258_y3) >> 23;
+    lfsr258_y3 = ((lfsr258_y3 & 18446744073709547520UL) << 29) ^ b;
+    b = ((lfsr258_y4 << 5) ^ lfsr258_y4) >> 24;
+    lfsr258_y4 = ((lfsr258_y4 & 18446744073709420544UL) << 23) ^ b;
+    b = ((lfsr258_y5 << 3) ^ lfsr258_y5) >> 33;
+    lfsr258_y5 = ((lfsr258_y5 & 18446744073701163008UL) << 8) ^ b;
+    return (lfsr258_y1 ^ lfsr258_y2 ^ lfsr258_y3 ^ lfsr258_y4 ^ lfsr258_y5) * 5.421010862427522170037264e-20;
+}
+#else
+
+#define LFSR_SEED 987654321
+
+static uint32_t lfsr113_z1 = LFSR_SEED, lfsr113_z2 = LFSR_SEED, lfsr113_z3 = LFSR_SEED, lfsr113_z4 = LFSR_SEED;
+
+static void lfsr113_init (uint32_t n) {
+    static int lfsr113_inited = 0;
+    if (lfsr113_inited) return;
+    lfsr113_inited = 1;
+    if (n == 0) n = LFSR_SEED;
+    
+    lfsr113_z1 = n; lfsr113_z2 = n; lfsr113_z3 = n; lfsr113_z4 = n;
+}
+
+static double lfsr113 (void) {
+    uint32_t b;
+    b  = ((lfsr113_z1 << 6) ^ lfsr113_z1) >> 13;
+    lfsr113_z1 = ((lfsr113_z1 & 4294967294U) << 18) ^ b;
+    b  = ((lfsr113_z2 << 2) ^ lfsr113_z2) >> 27;
+    lfsr113_z2 = ((lfsr113_z2 & 4294967288U) << 2) ^ b;
+    b  = ((lfsr113_z3 << 13) ^ lfsr113_z3) >> 21;
+    lfsr113_z3 = ((lfsr113_z3 & 4294967280U) << 7) ^ b;
+    b  = ((lfsr113_z4 << 3) ^ lfsr113_z4) >> 12;
+    lfsr113_z4 = ((lfsr113_z4 & 4294967168U) << 13) ^ b;
+    return (lfsr113_z1 ^ lfsr113_z2 ^ lfsr113_z3 ^ lfsr113_z4) * 2.3283064365386963e-10;
+}
+#endif
+
+// returns a random number between 0 and 1
+static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm)
+    
+    // generate a random number between 0.0 and 1.0
+    // and automatically call seed (if not already called)
+    #if GRAVITY_ENABLE_INT64
+    lfsr258_init(nanotime());
+    gravity_float_t rnd = lfsr258();
+    #else
+    lfsr113_init((uint32_t)time(NULL));
+    gravity_float_t rnd = lfsr113();
+    #endif
+    
+    // if at least one parameter is passed
+    if (nargs > 1) {
+        gravity_value_t value1 = VALUE_FROM_UNDEFINED;
+        gravity_value_t value2 = VALUE_FROM_UNDEFINED;
+        
+        // if one parameter is passed it must be Int or Float and a number between 0 and the parameter will be returned
+        if (nargs == 2) {
+            value2 = GET_VALUE(1);
+            if (VALUE_ISA_INT(value2)) value1 = VALUE_FROM_INT(0);
+            if (VALUE_ISA_FLOAT(value2)) value1 = VALUE_FROM_FLOAT(0.0);
+        }
+        
+        // if two parameters are passed they must be both Int or Float and a number between parameter1 and parameter2 will be returned
+        if (nargs == 3) {
+            value1 = GET_VALUE(1);
+            value2 = GET_VALUE(2);
+        }
+        
+        // at this point I should have 2 values of the same type, if not continue with the default case (and ignore any extra parameter)
+        if ((value1.isa == value2.isa) && (VALUE_ISA_INT(value1))) {
+            gravity_int_t n1 = VALUE_AS_INT(value1); // min
+            gravity_int_t n2 = VALUE_AS_INT(value2); // max
+            if (n1 == n2) RETURN_VALUE(VALUE_FROM_INT(n1), rindex);
+            
+            gravity_int_t n0 = rnd * GRAVITY_INT_MAX;
+            if (n1 > n2) {gravity_int_t temp = n1; n1 = n2; n2 = temp;} // swap numbers if min > max
+            gravity_int_t n = (gravity_int_t)(n0 % (n2 + 1 - n1) + n1);
+            RETURN_VALUE(VALUE_FROM_INT(n), rindex);
+        }
+        
+        if ((value1.isa == value2.isa) && (VALUE_ISA_FLOAT(value1))) {
+            gravity_float_t n1 = VALUE_AS_FLOAT(value1); // min
+            gravity_float_t n2 = VALUE_AS_FLOAT(value2); // max
+            if (n1 == n2) RETURN_VALUE(VALUE_FROM_FLOAT(n1), rindex);
+            
+            if (n1 > n2) {gravity_float_t temp = n1; n1 = n2; n2 = temp;}  // swap numbers if min > max
+            gravity_float_t diff = n2 - n1;
+            gravity_float_t r = rnd * diff;
+            RETURN_VALUE(VALUE_FROM_FLOAT(r + n1), rindex);
+        }
+    }
+    
+    // default case is to return a float number between 0.0 and 1.0
+    RETURN_VALUE(VALUE_FROM_FLOAT(rnd), rindex);
 }
 
 // MARK: - Internals -

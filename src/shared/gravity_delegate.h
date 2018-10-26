@@ -29,7 +29,7 @@ typedef struct {
     uint32_t        offset;
 } error_desc_t;
 
-#define ERROR_DESC_NONE     (error_desc_t){0,0,0,0,NULL}
+#define ERROR_DESC_NONE     (error_desc_t){0,0,0,0}
 
 typedef void                (*gravity_log_callback)    (gravity_vm *vm, const char *message, void *xdata);
 typedef void                (*gravity_log_clear) (gravity_vm *vm, void *xdata);
