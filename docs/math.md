@@ -73,7 +73,9 @@ The Math class also contains several Trigonometric Functions. All values that re
 
 ### Random Number
 ```swift
-	Math.random() // Returns a random number between 0 and 1
+	Math.random()      // Returns a random number between 0.0 and 1.0
+	Math.random(N)     // Returns a random number between 0 and N (or between 0.0 and N.0 if N is Float)
+	Math.random(N1,N2) // Returns a random number between N1 and N2 (they must be both Int or Float)
 ```
 
 ### GCF and LCM
