@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.5.4"     // git tag 0.5.4
-#define GRAVITY_VERSION_NUMBER				0x000504    // git push --tags
+#define GRAVITY_VERSION						"0.5.5"     // git tag 0.5.4
+#define GRAVITY_VERSION_NUMBER				0x000505    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -158,15 +158,18 @@ extern "C" {
 
 // MARK: - STRUCT -
 
+// FLOAT_MAX_DECIMALS FROM https://stackoverflow.com/questions/13542944/how-many-significant-digits-have-floats-and-doubles-in-java
 #if GRAVITY_ENABLE_DOUBLE
 typedef double                              gravity_float_t;
 #define FLOAT_MAX                           DBL_MAX
 #define FLOAT_MIN                           DBL_MIN
+#define FLOAT_MAX_DECIMALS                  16
 #define FLOAT_EPSILON                       0.00001
 #else
 typedef float                               gravity_float_t;
 #define FLOAT_MAX                           FLT_MAX
 #define FLOAT_MIN                           FLT_MIN
+#define FLOAT_MAX_DECIMALS                  7
 #define FLOAT_EPSILON                       0.00001
 #endif
 

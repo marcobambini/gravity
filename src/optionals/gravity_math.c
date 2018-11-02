@@ -630,6 +630,43 @@ static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     }
 
     if (VALUE_ISA_FLOAT(value)) {
+        // check for extra parameter
+        gravity_int_t ndigits = 0;
+        if (nargs == 3 && VALUE_ISA_INT(GET_VALUE(2))) {
+            gravity_value_t extra = GET_VALUE(2);
+            if (VALUE_AS_INT(extra) > 0) ndigits = VALUE_AS_INT(extra);
+            if (ndigits > FLOAT_MAX_DECIMALS) ndigits = FLOAT_MAX_DECIMALS;
+        }
+        
+        if (ndigits) {
+            double d = pow(10.0, (double)ndigits);
+            gravity_float_t f = (gravity_float_t)(ROUND((gravity_float_t)value.f * (gravity_float_t)d)) / (gravity_float_t)d;
+            
+            // convert f to string
+            char buffer[512];
+            snprintf(buffer, sizeof(buffer), "%f", f);
+            
+            // trunc c string to the requested ndigits
+            char *p = buffer;
+            while (p) {
+                if (p[0] == '.') {
+                    ++p;
+                    gravity_int_t n = 0;
+                    while (p && n < ndigits) {
+                        ++p;
+                        ++n;
+                    }
+                    if (p) p[0] = 0;
+                    break;
+                }
+                ++p;
+            }
+            
+            // re-convert string to float
+            RETURN_VALUE(VALUE_FROM_FLOAT(strtod(buffer, NULL)), rindex);
+        }
+        
+        // simpler round case
         gravity_float_t computed_value = (gravity_float_t)ROUND((gravity_float_t)value.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
