@@ -34,12 +34,19 @@ The Math class also contains several Trigonometric Functions. All values that re
 	Math.tan(Math.PI/4);   // returns 1
 ```
 
-### Ceiling, Floor, and Rounding
+### Ceiling, Floor
 ```swift
 	Math.ceil(4.1)  // returns 5
 	Math.floor(4.1) // returns 4
+```
+### Rounding
+Return number rounded to ndigits precision after the decimal point. If ndigits is omitted, it returns the nearest integer to its input. For Float values are rounded to the closest multiple of 10 to the power minus ndigits.
+```swift
 	Math.round(4.1) // returns 4
 	Math.round(4.5) // returns 5
+	Math.round(65.34634) // returns 65.0
+	Math.round(65.34634,1) // returns 65.3
+	Math.round(65.34634,2) // returns 65.35
 ```
 
 ### Exponents and Radicals
