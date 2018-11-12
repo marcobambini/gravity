@@ -224,27 +224,28 @@ static bool math_xrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     if (VALUE_ISA_NULL(value) || VALUE_ISA_NULL(base)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
-
-    if (VALUE_ISA_INT(value) && VALUE_ISA_INT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.n, 1.0/base.n);
-        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
-    }
-
-    if (VALUE_ISA_INT(value) && VALUE_ISA_FLOAT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.n, 1.0/base.f);
-        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
-    }
-
-    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.f, 1.0/base.n);
-        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
-    }
-
-    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.f, 1.0/base.f);
-        RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
-    }
-
+    
+    gravity_float_t n1;
+    gravity_float_t n2;
+    
+    if (VALUE_ISA_INT(value)) {
+        n1 = (gravity_float_t)value.n;
+    } else if (VALUE_ISA_FLOAT(value)) {
+        n1 = value.f;
+    } else goto report_error;
+    
+    if (VALUE_ISA_INT(base)) {
+        n2 = (gravity_float_t)base.n;
+    } else if (VALUE_ISA_FLOAT(base)) {
+        n2 = base.f;
+    } else goto report_error;
+    
+    if (n2 == 0.0) goto report_error;
+    
+    gravity_float_t computed_value = (gravity_float_t)POW(n1, 1.0/n2);
+    RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
+    
+report_error:
     // should be NaN
     RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 }
