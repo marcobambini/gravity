@@ -1241,7 +1241,6 @@ uint32_t gravity_upvalue_size (gravity_vm *vm, gravity_upvalue_t *upvalue) {
 }
 
 void gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue) {
-    #pragma unused(vm)
     gravity_vm_memupdate(vm, gravity_upvalue_size(vm, upvalue));
     gravity_gray_value(vm, upvalue->closed);
 }
@@ -1858,7 +1857,14 @@ bool gravity_value_isobject (gravity_value_t v) {
 
     if ((v.isa == NULL) || (v.isa == gravity_class_int) || (v.isa == gravity_class_float) ||
         (v.isa == gravity_class_bool) || (v.isa == gravity_class_null) || (v.p == NULL)) return false;
-    return true;
+    
+    // extra check to allow ONLY known objects
+    if ((v.isa == gravity_class_string) || (v.isa == gravity_class_object) || (v.isa == gravity_class_function) ||
+        (v.isa == gravity_class_closure) || (v.isa == gravity_class_fiber) || (v.isa == gravity_class_class) ||
+        (v.isa == gravity_class_instance) || (v.isa == gravity_class_module) || (v.isa == gravity_class_list) ||
+        (v.isa == gravity_class_map) || (v.isa == gravity_class_range) || (v.isa == gravity_class_upvalue)) return true;
+    
+    return false;
 }
 
 uint32_t gravity_value_size (gravity_vm *vm, gravity_value_t v) {
@@ -1921,6 +1927,12 @@ void gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16
         value = VALUE_AS_FUNCTION(v)->identifier;
         snprintf(buffer, len, "(%s) %s (%p)", type, value, VALUE_AS_FUNCTION(v));
         value = buffer;
+    } else if (v.isa == gravity_class_closure) {
+        type = "CLOSURE";
+        gravity_function_t *f = VALUE_AS_CLOSURE(v)->f;
+        value = (f->identifier) ? (f->identifier) : "anon";
+        snprintf(buffer, len, "(%s) %s (%p)", type, value, VALUE_AS_CLOSURE(v));
+        value = buffer;
     } else if (v.isa == gravity_class_class) {
         type = "CLASS";
         value = VALUE_AS_CLASS(v)->identifier;
@@ -1932,7 +1944,7 @@ void gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16
         snprintf(buffer, len, "(%s) %.*s (%p)", type, s->len, s->s, s);
         value = buffer;
     } else if (v.isa == gravity_class_instance) {
-        type = "INSTANCE OF CLASS";
+        type = "INSTANCE";
         gravity_instance_t *i = VALUE_AS_INSTANCE(v);
         gravity_class_t *c = i->objclass;
         value = c->identifier;
