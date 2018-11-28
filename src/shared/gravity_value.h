@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.5.5"     // git tag 0.5.5
-#define GRAVITY_VERSION_NUMBER				0x000505    // git push --tags
+#define GRAVITY_VERSION						"0.5.6"     // git tag 0.5.6
+#define GRAVITY_VERSION_NUMBER				0x000506    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -149,7 +149,7 @@ extern "C" {
 #define GRAVITY_BRIDGE_INDEX                UINT16_MAX
 #define GRAVITY_COMPUTED_INDEX              UINT16_MAX-1
 
-//DLL export/import support for Windows.
+//DLL export/import support for Windows
 #if !defined(GRAVITY_API) && defined(_WIN32) && defined(BUILD_GRAVITY_API)
   #define GRAVITY_API __declspec(dllexport)
 #else
