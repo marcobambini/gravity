@@ -57,12 +57,13 @@ struct gravity_vm {
     vm_filter_cb        filter;                         // function called to filter objects in the cleanup process
 
     // garbage collector
-    bool                gcenabled;                      // flag to enable/disable garbage collector
+    int32_t             gcenabled;                      // flag to enable/disable garbage collector (was bool but it is now reference counted)
     gravity_int_t       memallocated;                   // total number of allocated memory
     gravity_int_t       maxmemblock;                    // maximum block memory size allowed to allocate
     gravity_object_t    *gchead;                        // head of garbage collected objects
     gravity_int_t       gcminthreshold;                 // minimum GC threshold size to avoid spending too much time in GC
     gravity_int_t       gcthreshold;                    // memory required to trigger a GC
+    gravity_int_t       gcthreshold_original;           // gcthreshold is dynamically re-computed so I msut save the original value somewhere
     gravity_float_t     gcratio;                        // ratio used in automatic recomputation of the new gcthreshold value
     gravity_int_t       gccount;                        // number of objects into GC
     gravity_object_r    graylist;                       // array of collected objects while GC is in process (gray list)
@@ -1038,10 +1039,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DEFINE_STACK_VARIABLE(v1, r1);
 
                 // common NULL/UNDEFINED/BOOL/INT/FLOAT/STRING cases
-                // NULL/UNDEFINED    =>    no check
-                // BOOL/INT            =>    check n
+                // NULL/UNDEFINED   =>    no check
+                // BOOL/INT         =>    check n
                 // FLOAT            =>    check f
-                // STRING            =>    check len
+                // STRING           =>    check len
                 if (VALUE_ISA_NULL(v1) || (VALUE_ISA_UNDEFINED(v1))) {ip = COMPUTE_JUMP(value);}
                 else if (VALUE_ISA_BOOL(v1) || (VALUE_ISA_INT(v1))) {if (GETVALUE_INT(v1) == 0) ip = COMPUTE_JUMP(value);}
                 else if (VALUE_ISA_FLOAT(v1)) {if (GETVALUE_FLOAT(v1) == 0.0) ip = COMPUTE_JUMP(value);}
@@ -1422,10 +1423,8 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
     vm->context = gravity_hash_create(DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
 
     // garbage collector
-    vm->gcenabled = true;
-    vm->gcminthreshold = DEFAULT_CG_MINTHRESHOLD;
-    vm->gcthreshold = DEFAULT_CG_THRESHOLD;
-    vm->gcratio = DEFAULT_CG_RATIO;
+    gravity_gc_setenabled(vm, true);
+    gravity_gc_setvalues(vm, DEFAULT_CG_THRESHOLD, DEFAULT_CG_MINTHRESHOLD, DEFAULT_CG_RATIO);
     vm->memallocated = 0;
     vm->maxmemblock = MAX_MEMORY_BLOCK;
     marray_init(vm->graylist);
@@ -1768,7 +1767,7 @@ gravity_int_t gravity_vm_maxmemblock (gravity_vm *vm) {
 
 gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
     if (key) {
-        if (strcmp(key, GRAVITY_VM_GCENABLED) == 0) return VALUE_FROM_BOOL(vm->gcenabled);
+        if (strcmp(key, GRAVITY_VM_GCENABLED) == 0) return VALUE_FROM_INT(vm->gcenabled);
         if (strcmp(key, GRAVITY_VM_GCMINTHRESHOLD) == 0) return VALUE_FROM_INT(vm->gcminthreshold);
         if (strcmp(key, GRAVITY_VM_GCTHRESHOLD) == 0) return VALUE_FROM_INT(vm->gcthreshold);
         if (strcmp(key, GRAVITY_VM_GCRATIO) == 0) return VALUE_FROM_FLOAT(vm->gcratio);
@@ -1781,7 +1780,7 @@ gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
 
 bool gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value) {
     if (key) {
-        if ((strcmp(key, GRAVITY_VM_GCENABLED) == 0) && VALUE_ISA_BOOL(value)) {vm->gcenabled = VALUE_AS_BOOL(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_GCENABLED) == 0) && VALUE_ISA_BOOL(value)) {VALUE_AS_BOOL(value) ? ++vm->gcenabled : --vm->gcenabled ; return true;}
         if ((strcmp(key, GRAVITY_VM_GCMINTHRESHOLD) == 0) && VALUE_ISA_INT(value)) {vm->gcminthreshold = VALUE_AS_INT(value); return true;}
         if ((strcmp(key, GRAVITY_VM_GCTHRESHOLD) == 0) && VALUE_ISA_INT(value)) {vm->gcthreshold = VALUE_AS_INT(value); return true;}
         if ((strcmp(key, GRAVITY_VM_GCRATIO) == 0) && VALUE_ISA_FLOAT(value)) {vm->gcratio = VALUE_AS_FLOAT(value); return true;}
@@ -2025,6 +2024,13 @@ static void gravity_gray_hash (gravity_hash_t *hashtable, gravity_value_t key, g
 
 // MARK: -
 
+void gravity_gc_setvalues (gravity_vm *vm, gravity_int_t threshold, gravity_int_t minthreshold, gravity_float_t ratio) {
+    vm->gcminthreshold = (minthreshold) ? minthreshold : DEFAULT_CG_MINTHRESHOLD;
+    vm->gcthreshold = (threshold) ? threshold : DEFAULT_CG_THRESHOLD;
+    vm->gcratio = (ratio) ? ratio : DEFAULT_CG_RATIO;
+    vm->gcthreshold_original = vm->gcthreshold;
+}
+
 static void gravity_gc_transform (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t *value, void *data) {
     #pragma unused (hashtable)
 
@@ -2087,7 +2093,7 @@ static void gravity_gc_transfer_object (gravity_vm *vm, gravity_object_t *obj) {
 }
 
 static void gravity_gc_transfer (gravity_vm *vm, gravity_object_t *obj) {
-    if (vm->gcenabled) {
+    if (vm->gcenabled > 0) {
         #if GRAVITY_GC_STRESSTEST
         // check if ptr is already in the list
         gravity_object_t **ptr = &vm->gchead;
@@ -2105,6 +2111,7 @@ static void gravity_gc_transfer (gravity_vm *vm, gravity_object_t *obj) {
     }
 
     gravity_gc_transfer_object(vm, obj);
+    gravity_vm_memupdate(vm, gravity_object_size(vm, obj));
 }
 
 static void gravity_gc_sweep (gravity_vm *vm) {
@@ -2159,11 +2166,14 @@ void gravity_gc_start (gravity_vm *vm) {
     // dynamically update gcthreshold
     vm->gcthreshold = (gravity_int_t)(vm->memallocated + (vm->memallocated * vm->gcratio / 100));
     if (vm->gcthreshold < vm->gcminthreshold) vm->gcthreshold = vm->gcminthreshold;
-
+    
+    // this line prevents GC to run more than needed
+    if (vm->gcthreshold < vm->gcthreshold_original) vm->gcthreshold = vm->gcthreshold_original;
+    
     #if GRAVITY_GC_STATS
     nanotime_t tend = nanotime();
     double gctime = millitime(tstart, tend);
-    printf("GC %lu before, %lu after (%lu collected - %lu objects), next at %lu. Took %.3fs.\n",
+    printf("GC %lu before, %lu after (%lu collected - %lu objects), next at %lu. Took %.2fms.\n",
            (unsigned long)membefore,
            (unsigned long)vm->memallocated,
            (membefore > vm->memallocated) ? (unsigned long)(membefore - vm->memallocated) : 0,
@@ -2231,7 +2241,7 @@ static void gravity_gc_cleanup (gravity_vm *vm) {
 }
 
 void gravity_gc_setenabled (gravity_vm *vm, bool enabled) {
-    vm->gcenabled = enabled;
+    (enabled) ? ++vm->gcenabled : --vm->gcenabled ;
 }
 
 void gravity_gc_push (gravity_vm *vm, gravity_object_t *obj) {
