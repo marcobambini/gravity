@@ -160,7 +160,7 @@ static void table_dump (gravity_hash_t *hashtable, gravity_value_t key, gravity_
 
 gravity_hash_t *gravity_hash_create (uint32_t size, gravity_hash_compute_fn compute, gravity_hash_isequal_fn isequal, gravity_hash_iterate_fn free_fn, void *data) {
     if ((!compute) || (!isequal)) return NULL;
-    if (size == 0) size = GRAVITYHASH_DEFAULT_SIZE;
+    if (size < GRAVITYHASH_DEFAULT_SIZE) size = GRAVITYHASH_DEFAULT_SIZE;
 
     gravity_hash_t *hashtable = (gravity_hash_t *)mem_alloc(NULL, sizeof(gravity_hash_t));
     if (!hashtable) return NULL;
@@ -204,7 +204,7 @@ bool gravity_hash_isempty (gravity_hash_t *hashtable) {
 }
 
 static inline int gravity_hash_resize (gravity_hash_t *hashtable) {
-    uint32_t size = (hashtable->size * 2) + 1;
+    uint32_t size = (hashtable->size * 2);
     gravity_hash_t newtbl = {
         .size = size,
         .count = 0,
@@ -261,6 +261,8 @@ bool gravity_hash_remove (gravity_hash_t *hashtable, gravity_value_t key) {
 }
 
 bool gravity_hash_insert (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value) {
+    if (hashtable->count >= GRAVITYHASH_MAXENTRIES) return false;
+    
     register uint32_t hash = hashtable->compute_fn(key);
     register uint32_t position = hash % hashtable->size;
 
@@ -279,13 +281,13 @@ bool gravity_hash_insert (gravity_hash_t *hashtable, gravity_value_t key, gravit
     // resize table if the threshold is exceeded
     // default threshold is: <table size> * <load factor GRAVITYHASH_THRESHOLD>
     if (hashtable->count >= hashtable->size * GRAVITYHASH_THRESHOLD) {
-        if (gravity_hash_resize(hashtable) == -1) return -1;
+        if (gravity_hash_resize(hashtable) == -1) return false;
         // recompute position here because hashtable->size has changed!
         position = hash % hashtable->size;
     }
 
     // allocate new entry and set new data
-    if (!(node = mem_alloc(NULL, sizeof(hash_node_t)))) return -1;
+    if (!(node = mem_alloc(NULL, sizeof(hash_node_t)))) return false;
     node->key = key;
     node->hash = hash;
     node->value = value;

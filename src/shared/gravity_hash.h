@@ -18,6 +18,7 @@
 #define GRAVITYHASH_ENABLE_STATS    1               // if 0 then stats are not enabled
 #define GRAVITYHASH_DEFAULT_SIZE    32              // default hash table size (used if 0 is passed in gravity_hash_create)
 #define GRAVITYHASH_THRESHOLD       0.75            // threshold used to decide when re-hash the table
+#define GRAVITYHASH_MAXENTRIES      1073741824      // please don't put more than 1 billion values in my hash table (2^30)
 
 #ifndef GRAVITY_HASH_DEFINED
 #define GRAVITY_HASH_DEFINED
