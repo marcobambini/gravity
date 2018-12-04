@@ -174,7 +174,7 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
 
     // get keys list
     uint32_t count = gravity_hash_count(map->hash);
-    gravity_list_t *list = gravity_list_new(vm, count);
+    gravity_list_t *list = gravity_list_new(NULL, count);
     gravity_hash_iterate(map->hash, map_keys_array, (void *)list);
 
     count = (uint32_t) marray_size(list->array);
@@ -182,18 +182,25 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
         gravity_value_t key = marray_get(list->array, i);
         gravity_value_t *v = gravity_hash_lookup(map->hash, key);
         gravity_value_t value = (v) ? *v : VALUE_FROM_NULL;
+        gravity_value_t value_converted = VALUE_FROM_NULL;
 
         gravity_string_t *svalue;
         gravity_string_t *skey;
-
-        if (!VALUE_ISA_STRING(key)) key = convert_value2string(vm, key);
+        bool key_to_free = false;
+        bool value_to_free = false;
+        
+        if (!VALUE_ISA_STRING(key)) {
+            key = convert_value2string(NULL, key);
+            key_to_free = true;
+        }
         skey = (VALUE_ISA_STRING(key)) ? VALUE_AS_STRING(key) : NULL;
 
         if (VALUE_ISA_MAP(value) && (VALUE_AS_MAP(value) == map)) {
             svalue = NULL;
         } else {
-            gravity_value_t value2 = convert_value2string(vm, value);
-            svalue = VALUE_ISA_VALID(value2) ? VALUE_AS_STRING(value2) : NULL;
+            value_converted = convert_value2string(NULL, value);
+            value_to_free = true;
+            svalue = VALUE_ISA_VALID(value_converted) ? VALUE_AS_STRING(value_converted) : NULL;
         }
 
         // KEY
@@ -227,12 +234,16 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
             memcpy(buffer+pos, ",", 1);
             pos += 1;
         }
+        
+        if (key_to_free && skey) gravity_value_free(NULL, key);
+        if (value_to_free && svalue) gravity_value_free(NULL, value_converted);
     }
 
     // Write latest ] character
     memcpy(buffer+pos, "]", 1);
     buffer[++pos] = 0;
 
+    gravity_list_free(NULL, list);
     gravity_value_t result = VALUE_FROM_STRING(vm, buffer, pos);
     mem_free(buffer);
     return result;
@@ -989,61 +1000,62 @@ static bool list_reverse (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 }
 
 static bool list_reversed (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs > 1) RETURN_ERROR("Incorrect number of arguments.");
-  gravity_value_t value = GET_VALUE(0);                            // self parameter
-  gravity_list_t *list = VALUE_AS_LIST(value);
+    if (nargs > 1) RETURN_ERROR("Incorrect number of arguments.");
+    
+    // self parameter
+    gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
     gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)list->array.n);
-  uint32_t count = (uint32_t)marray_size(list->array);
-  gravity_int_t i = 0;
+    uint32_t count = (uint32_t)marray_size(list->array);
+    gravity_int_t i = 0;
 
-  while (i < count) {
-    marray_push(gravity_value_t, newlist->array, marray_get(list->array, count-i-1));
-    i++;
-  }
+    while (i < count) {
+        marray_push(gravity_value_t, newlist->array, marray_get(list->array, count-i-1));
+        ++i;
+    }
 
-  RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
+    RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
 static bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t val1, gravity_value_t val2, gravity_closure_t *predicate) {
-  gravity_value_t params[2] = {val1, val2};
-  if (!gravity_vm_runclosure(vm, predicate, selfvalue, params, 2)) return false;
-  gravity_value_t result = gravity_vm_result(vm);
-
-  //the conversion will make sure that the comparison function only returns a
-  //truthy value that can be interpreted as the result of a comparison
-  //(i.e. only integer, bool, float, null, undefined, or string)
-  gravity_value_t truthy_value = convert_value2bool(vm, result);
-  return truthy_value.n;
+    gravity_value_t params[2] = {val1, val2};
+    if (!gravity_vm_runclosure(vm, predicate, selfvalue, params, 2)) return false;
+    gravity_value_t result = gravity_vm_result(vm);
+    
+    //the conversion will make sure that the comparison function only returns a
+    //truthy value that can be interpreted as the result of a comparison
+    //(i.e. only integer, bool, float, null, undefined, or string)
+    gravity_value_t truthy_value = convert_value2bool(vm, result);
+    return truthy_value.n;
 }
 
 static uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
-  gravity_value_t pivot = array[high];
-  int32_t i = low - 1;
-
-  for (int32_t j = low; j <= high - 1; j++) {
-    if (!compare_values(vm, selfvalue, array[j], pivot, predicate)) {
-      i++;
-      gravity_value_t temp = array[i]; //swap a[i], a[j]
-      array[i] = array[j];
-      array[j] = temp;
+    gravity_value_t pivot = array[high];
+    int32_t i = low - 1;
+    
+    for (int32_t j = low; j <= high - 1; j++) {
+        if (!compare_values(vm, selfvalue, array[j], pivot, predicate)) {
+            ++i;
+            gravity_value_t temp = array[i]; //swap a[i], a[j]
+            array[i] = array[j];
+            array[j] = temp;
+        }
     }
-  }
-
-  gravity_value_t temp = array[i + 1];
-  array[i + 1] = array[high];
-  array[high] = temp;
-
-  return i + 1;
+    
+    gravity_value_t temp = array[i + 1];
+    array[i + 1] = array[high];
+    array[high] = temp;
+    
+    return i + 1;
 }
 
 static void quicksort(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
     if (gravity_vm_isaborted(vm)) return;
     
-  if (low < high) {
-    int32_t pi = partition(vm, array, low, high, selfvalue, predicate);
-    quicksort(vm, array, low, pi - 1, selfvalue, predicate);
-    quicksort(vm, array, pi + 1, high, selfvalue, predicate);
-  }
+    if (low < high) {
+        int32_t pi = partition(vm, array, low, high, selfvalue, predicate);
+        quicksort(vm, array, low, pi - 1, selfvalue, predicate);
+        quicksort(vm, array, pi + 1, high, selfvalue, predicate);
+    }
 }
 
 static bool list_sort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1061,62 +1073,76 @@ static bool list_sort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 }
 
 static bool list_sorted (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 2) RETURN_ERROR("One argument is needed by the sort function.");
-  if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
-  gravity_value_t selfvalue = GET_VALUE(0);                            // self parameter
+    if (nargs != 2) RETURN_ERROR("One argument is needed by the sort function.");
+    if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
+    gravity_value_t selfvalue = GET_VALUE(0);   // self parameter
 
-  //the predicate is the comparison function, passed to list.sort()
-  gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
-  gravity_list_t *list = VALUE_AS_LIST(selfvalue);
+    // the predicate is the comparison function, passed to list.sort()
+    gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
+    gravity_list_t *list = VALUE_AS_LIST(selfvalue);
     size_t count = marray_size(list->array);
-    gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)count);
+    
+    // do not transfer newlist to GC because it could be freed during predicate closure execution
+    // (because newlist is not yet in any stack)
+    gravity_list_t *newlist = gravity_list_new(NULL, (uint32_t)count);
 
-  //memcpy should be faster than pushing element by element
-  memcpy(newlist->array.p, list->array.p, sizeof(gravity_value_t)*count);
-  newlist->array.m = list->array.m;
-  newlist->array.n = list->array.n;
+    //memcpy should be faster than pushing element by element
+    memcpy(newlist->array.p, list->array.p, sizeof(gravity_value_t)*count);
+    newlist->array.m = list->array.m;
+    newlist->array.n = list->array.n;
     quicksort(vm, newlist->array.p, 0, (int32_t)count-1, selfvalue, predicate);
 
-  RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
+    gravity_vm_transfer(vm, (gravity_object_t*) newlist);
+    RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
 static bool list_map (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 2) RETURN_ERROR("One argument is needed by the map function.");
-  if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
-  gravity_value_t selfvalue = GET_VALUE(0);    // self parameter
-  gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
-  gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-  size_t count = marray_size(list->array);
-  gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)count);
-  newlist->array.m = list->array.m;
-  newlist->array.n = list->array.n;
-  for (uint32_t i = 0; i < count; i++) {
-    gravity_value_t *value = &marray_get(list->array, i);
-    if (!gravity_vm_runclosure(vm, predicate, selfvalue, value, 1)) return false;
-    gravity_value_t result = gravity_vm_result(vm);
-    marray_set(newlist->array, i, result);
-  }
-  RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
+    if (nargs != 2) RETURN_ERROR("One argument is needed by the map function.");
+    if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
+    
+    gravity_value_t selfvalue = GET_VALUE(0);    // self parameter
+    gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
+    gravity_list_t *list = VALUE_AS_LIST(selfvalue);
+    size_t count = marray_size(list->array);
+    
+    // do not transfer newlist to GC because it could be freed during predicate closure execution
+    gravity_list_t *newlist = gravity_list_new(NULL, (uint32_t)count);
+    newlist->array.m = list->array.m;
+    newlist->array.n = list->array.n;
+    for (uint32_t i = 0; i < count; i++) {
+        gravity_value_t *value = &marray_get(list->array, i);
+        if (!gravity_vm_runclosure(vm, predicate, selfvalue, value, 1)) return false;
+        gravity_value_t result = gravity_vm_result(vm);
+        marray_set(newlist->array, i, result);
+    }
+    
+    gravity_vm_transfer(vm, (gravity_object_t*) newlist);
+    RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
 static bool list_filter(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 2) RETURN_ERROR("One argument is needed by the filter function.");
-  if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
-  gravity_value_t selfvalue = GET_VALUE(0);    // self parameter
-  gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
-  gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-  size_t count = marray_size(list->array);
-  gravity_list_t *newlist = gravity_list_new(vm, (uint32_t)count);
-  for (uint32_t i = 0; i < count; i++) {
-    gravity_value_t *value = &marray_get(list->array, i);
-    if (!gravity_vm_runclosure(vm, predicate, selfvalue, value, 1)) return false;
-    gravity_value_t result = gravity_vm_result(vm);
-    gravity_value_t truthy_value = convert_value2bool(vm, result);
-    if (truthy_value.n) {
-      marray_push(gravity_value_t, newlist->array, *value);
+    if (nargs != 2) RETURN_ERROR("One argument is needed by the filter function.");
+    if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
+    
+    gravity_value_t selfvalue = GET_VALUE(0);    // self parameter
+    gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
+    gravity_list_t *list = VALUE_AS_LIST(selfvalue);
+    size_t count = marray_size(list->array);
+    
+    // do not transfer newlist to GC because it could be freed during predicate closure execution
+    gravity_list_t *newlist = gravity_list_new(NULL, (uint32_t)count);
+    for (uint32_t i = 0; i < count; i++) {
+        gravity_value_t *value = &marray_get(list->array, i);
+        if (!gravity_vm_runclosure(vm, predicate, selfvalue, value, 1)) return false;
+        gravity_value_t result = gravity_vm_result(vm);
+        gravity_value_t truthy_value = convert_value2bool(vm, result);
+        if (truthy_value.n) {
+            marray_push(gravity_value_t, newlist->array, *value);
+        }
     }
-  }
-  RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
+    
+    gravity_vm_transfer(vm, (gravity_object_t*) newlist);
+    RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
 static bool list_reduce(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1197,13 +1223,15 @@ static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 }
 
 static bool list_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    if ((nargs != 2) || (!VALUE_ISA_INT(GET_VALUE(1)))) RETURN_ERROR("An Int value is expected as argument of List allocate.");
+    if ((nargs != 2) || (!VALUE_ISA_INT(GET_VALUE(1)))) RETURN_ERROR("An Int value is expected as argument of list_exec.");
 
     uint32_t n = (uint32_t)VALUE_AS_INT(GET_VALUE(1));
     gravity_list_t *list = gravity_list_new(vm, n);
     if (!list) RETURN_ERROR("Maximum List allocation size reached (%d).", MAX_ALLOCATION);
 
-    for (uint32_t i=0; i<n; ++i) marray_push(gravity_value_t, list->array, VALUE_FROM_NULL);
+    for (uint32_t i=0; i<n; ++i) {
+        marray_push(gravity_value_t, list->array, VALUE_FROM_NULL);
+    }
 
     RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
@@ -1217,7 +1245,7 @@ static bool map_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 }
 
 static bool map_keys (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(vm, nargs)
+    #pragma unused(nargs)
     gravity_map_t *map = VALUE_AS_MAP(GET_VALUE(0));
     uint32_t count = gravity_hash_count(map->hash);
 
@@ -1321,7 +1349,8 @@ static bool map_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     register gravity_int_t i = 0;
 
     // build keys array
-    gravity_list_t *list = gravity_list_new(vm, (uint32_t)n);
+    // do not transfer newlist to GC because it could be freed during closure execution
+    gravity_list_t *list = gravity_list_new(NULL, (uint32_t)n);
     gravity_hash_iterate(map->hash, map_keys_array, (void *)list);
 
     nanotime_t t1 = nanotime();
@@ -1330,6 +1359,8 @@ static bool map_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
         ++i;
     }
     nanotime_t t2 = nanotime();
+    
+    gravity_vm_transfer(vm, (gravity_object_t*) list);
     RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
 }
 
@@ -1455,6 +1486,7 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     gravity_class_t *c = (gravity_class_t *)GET_VALUE(0).p;
 
     // perform alloc (then check for init)
+    gravity_gc_setenabled(vm, false);
     gravity_instance_t *instance = gravity_instance_new(vm, c);
 
     // if is inner class then ivar 0 is reserved for a reference to its outer class
@@ -1467,7 +1499,10 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     args[0] = VALUE_FROM_OBJECT(instance);
 
     // if constructor found in this class then executes it
-    if (closure) RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
+    if (closure) {
+        gravity_gc_setenabled(vm, true);
+        RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
+    }
 
     // no closure found (means no constructor found in this class)
     gravity_delegate_t *delegate = gravity_vm_delegate(vm);
@@ -1476,7 +1511,8 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         if (nargs != 1) RETURN_ERROR("No init with %d parameters found in class %s", nargs-1, c->identifier);
         delegate->bridge_initinstance(vm, c->xdata, args[0], instance, args, nargs);
     }
-
+    
+    gravity_gc_setenabled(vm, true);
     // in any case set destination register to newly allocated instance
     RETURN_VALUE(VALUE_FROM_OBJECT(instance), rindex);
 }
@@ -2348,6 +2384,16 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     gravity_string_t *substr = VALUE_AS_STRING(GET_VALUE(1));
     const char *sep = substr->s;
     uint32_t seplen = substr->len;
+    
+    // this is a quite complex situation
+    // list should not be trasferred to GC bacause it could be freed by VALUE_FROM_STRING
+    // and the same applied to each VALUE_FROM_STRING
+    // but in order to use NULL as vm parameter I should keep track of each individual allocation here
+    // and then transfer all of them to the VM at the end of the loop (in order to be able to have them
+    // freed by the GC)
+    // I think it is too much work, the easier solution is just to disable GC during execution loop
+    
+    gravity_gc_setenabled(vm, false);
 
     // initialize the list to have a size of 0
     gravity_list_t *list = gravity_list_new(vm, 0);
@@ -2361,6 +2407,7 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
             marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, 1));
             original += 1;
         }
+        gravity_gc_setenabled(vm, true);
         RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
     }
 
@@ -2379,6 +2426,7 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
         slen -= vlen + seplen;
     }
     
+    gravity_gc_setenabled(vm, true);
     RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
 }
 
@@ -2779,9 +2827,11 @@ static bool system_exit (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 // MARK: - CORE -
 
 gravity_closure_t *computed_property_create (gravity_vm *vm, gravity_function_t *getter_func, gravity_function_t *setter_func) {
+    gravity_gc_setenabled(vm, false);
     gravity_closure_t *getter_closure = (getter_func) ? gravity_closure_new(vm, getter_func) : NULL;
     gravity_closure_t *setter_closure = (setter_func) ? gravity_closure_new(vm, setter_func) : NULL;
     gravity_function_t *f = gravity_function_new_special(vm, NULL, GRAVITY_COMPUTED_INDEX, getter_closure, setter_closure);
+    gravity_gc_setenabled(vm, true);
     return gravity_closure_new(vm, f);
 }
 

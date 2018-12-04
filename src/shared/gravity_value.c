@@ -16,6 +16,11 @@
 #include "gravity_opcodes.h"
 #include "gravity_vmmacros.h"
 
+                                                // mark object visited to avoid infinite loop
+#define SET_OBJECT_VISITED_FLAG(_obj, _flag)    (((gravity_object_t *)_obj)->gc.visited = _flag)
+
+// MARK: -
+
 static void gravity_function_special_serialize (gravity_function_t *f, const char *key, json_t *json);
 static gravity_map_t *gravity_map_deserialize (gravity_vm *vm, json_value *json);
 
@@ -100,7 +105,7 @@ gravity_module_t *gravity_module_new (gravity_vm *vm, const char *identifier) {
     m->identifier = string_dup(identifier);
     m->htable = gravity_hash_create(0, gravity_value_hash, gravity_value_equals, gravity_hash_keyvaluefree, (void*)vm);
 
-    gravity_vm_transfer(vm, (gravity_object_t*)m);
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*)m);
     return m;
 }
 
@@ -113,9 +118,14 @@ void gravity_module_free (gravity_vm *vm, gravity_module_t *m) {
 }
 
 uint32_t gravity_module_size (gravity_vm *vm, gravity_module_t *m) {
+    SET_OBJECT_VISITED_FLAG(m, true);
+    
     uint32_t hash_size = 0;
     gravity_hash_iterate2(m->htable, gravity_hash_internalsize, (void*)&hash_size, (void*)vm);
-    return (sizeof(gravity_module_t)) + string_size(m->identifier) + hash_size + gravity_hash_memsize(m->htable);
+    uint32_t module_size = (sizeof(gravity_module_t)) + string_size(m->identifier) + hash_size + gravity_hash_memsize(m->htable);
+    
+    SET_OBJECT_VISITED_FLAG(m, false);
+    return module_size;
 }
 
 void gravity_module_blacken (gravity_vm *vm, gravity_module_t *m) {
@@ -439,6 +449,8 @@ inline gravity_closure_t *gravity_class_lookup_constructor (gravity_class_t *c, 
 }
 
 uint32_t gravity_class_size (gravity_vm *vm, gravity_class_t *c) {
+    SET_OBJECT_VISITED_FLAG(c, true);
+    
     uint32_t class_size = sizeof(gravity_class_t) + (c->nivars * sizeof(gravity_value_t)) + string_size(c->identifier);
 
     uint32_t hash_size = 0;
@@ -449,6 +461,7 @@ uint32_t gravity_class_size (gravity_vm *vm, gravity_class_t *c) {
     if (c->xdata && delegate->bridge_size)
         class_size += delegate->bridge_size(vm, c->xdata);
 
+    SET_OBJECT_VISITED_FLAG(c, false);
     return class_size;
 }
 
@@ -485,11 +498,14 @@ gravity_function_t *gravity_function_new (gravity_vm *vm, const char *identifier
     f->nupvalues = 0;
 
     // only available in EXEC_TYPE_NATIVE case
-    f->useargs = false;
-    f->bytecode = (uint32_t *)code;
-    marray_init(f->cpool);
-    marray_init(f->pvalue);
-    marray_init(f->pname);
+    // code is != NULL when EXEC_TYPE_NATIVE
+    if (code != NULL) {
+        f->useargs = false;
+        f->bytecode = (uint32_t *)code;
+        marray_init(f->cpool);
+        marray_init(f->pvalue);
+        marray_init(f->pname);
+    }
 
     if (vm) gravity_vm_transfer(vm, (gravity_object_t*)f);
     return f;
@@ -502,7 +518,7 @@ gravity_function_t *gravity_function_new_internal (gravity_vm *vm, const char *i
     return f;
 }
 
-gravity_function_t    *gravity_function_new_special (gravity_vm *vm, const char *identifier, uint16_t index, void *getter, void *setter) {
+gravity_function_t *gravity_function_new_special (gravity_vm *vm, const char *identifier, uint16_t index, void *getter, void *setter) {
     gravity_function_t *f = gravity_function_new(vm, identifier, 0, 0, 0, NULL);
     f->tag = EXEC_TYPE_SPECIAL;
     f->index = index;
@@ -511,7 +527,7 @@ gravity_function_t    *gravity_function_new_special (gravity_vm *vm, const char 
     return f;
 }
 
-gravity_function_t    *gravity_function_new_bridged (gravity_vm *vm, const char *identifier, void *xdata) {
+gravity_function_t *gravity_function_new_bridged (gravity_vm *vm, const char *identifier, void *xdata) {
     gravity_function_t *f = gravity_function_new(vm, identifier, 0, 0, 0, NULL);
     f->tag = EXEC_TYPE_BRIDGED;
     f->xdata = xdata;
@@ -1123,6 +1139,8 @@ void gravity_function_free (gravity_vm *vm, gravity_function_t *f) {
 }
 
 uint32_t gravity_function_size (gravity_vm *vm, gravity_function_t *f) {
+    SET_OBJECT_VISITED_FLAG(f, true);
+    
     uint32_t func_size = sizeof(gravity_function_t) + string_size(f->identifier);
 
     if (f->tag == EXEC_TYPE_NATIVE) {
@@ -1142,6 +1160,7 @@ uint32_t gravity_function_size (gravity_vm *vm, gravity_function_t *f) {
             func_size += delegate->bridge_size(vm, f->xdata);
     }
 
+    SET_OBJECT_VISITED_FLAG(f, false);
     return func_size;
 }
 
@@ -1166,8 +1185,6 @@ void gravity_function_blacken (gravity_vm *vm, gravity_function_t *f) {
 // MARK: -
 
 gravity_closure_t *gravity_closure_new (gravity_vm *vm, gravity_function_t *f) {
-    #pragma unused(vm)
-
     gravity_closure_t *closure = (gravity_closure_t *)mem_alloc(NULL, sizeof(gravity_closure_t));
     assert(closure);
 
@@ -1193,13 +1210,16 @@ void gravity_closure_free (gravity_vm *vm, gravity_closure_t *closure) {
 
 uint32_t gravity_closure_size (gravity_vm *vm, gravity_closure_t *closure) {
     #pragma unused(vm)
+    SET_OBJECT_VISITED_FLAG(closure, true);
 
     uint32_t closure_size = sizeof(gravity_closure_t);
     gravity_upvalue_t **upvalue = closure->upvalue;
-    while (upvalue) {
+    while (upvalue && upvalue[0]) {
         closure_size += sizeof(gravity_upvalue_t*);
         ++upvalue;
     }
+    
+    SET_OBJECT_VISITED_FLAG(closure, false);
     return closure_size;
 }
 
@@ -1211,7 +1231,7 @@ void gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure) {
 
     // mark each upvalue
     gravity_upvalue_t **upvalue = closure->upvalue;
-    while (upvalue) {
+    while (upvalue && upvalue[0]) {
         gravity_gray_object(vm, (gravity_object_t*)upvalue[0]);
         ++upvalue;
     }
@@ -1223,7 +1243,6 @@ void gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure) {
 // MARK: -
 
 gravity_upvalue_t *gravity_upvalue_new (gravity_vm *vm, gravity_value_t *value) {
-    #pragma unused(vm)
     gravity_upvalue_t *upvalue = (gravity_upvalue_t *)mem_alloc(NULL, sizeof(gravity_upvalue_t));
 
     upvalue->isa = gravity_class_upvalue;
@@ -1231,25 +1250,32 @@ gravity_upvalue_t *gravity_upvalue_new (gravity_vm *vm, gravity_value_t *value) 
     upvalue->closed = VALUE_FROM_NULL;
     upvalue->next = NULL;
 
-    if (vm) gravity_vm_transfer(vm, (gravity_object_t*)upvalue);
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) upvalue);
     return upvalue;
-}
-
-uint32_t gravity_upvalue_size (gravity_vm *vm, gravity_upvalue_t *upvalue) {
-    #pragma unused(vm, upvalue)
-    return sizeof(gravity_upvalue_t);
-}
-
-void gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue) {
-    gravity_vm_memupdate(vm, gravity_upvalue_size(vm, upvalue));
-    gravity_gray_value(vm, upvalue->closed);
 }
 
 void gravity_upvalue_free(gravity_vm *vm, gravity_upvalue_t *upvalue) {
     #pragma unused(vm)
-
+    
     DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)upvalue, true));
     mem_free(upvalue);
+}
+
+uint32_t gravity_upvalue_size (gravity_vm *vm, gravity_upvalue_t *upvalue) {
+    #pragma unused(vm, upvalue)
+    
+    SET_OBJECT_VISITED_FLAG(upvalue, true);
+    uint32_t upvalue_size = sizeof(gravity_upvalue_t);
+    SET_OBJECT_VISITED_FLAG(upvalue, false);
+    
+    return upvalue_size;
+}
+
+void gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue) {
+    gravity_vm_memupdate(vm, gravity_upvalue_size(vm, upvalue));
+    // gray both closed and still opened values
+    gravity_gray_value(vm, *upvalue->value);
+    gravity_gray_value(vm, upvalue->closed);
 }
 
 // MARK: -
@@ -1285,7 +1311,7 @@ gravity_fiber_t *gravity_fiber_new (gravity_vm *vm, gravity_closure_t *closure, 
     // replace self with fiber instance
     frame->stackstart[0] = VALUE_FROM_OBJECT(fiber);
     
-    gravity_vm_transfer(vm, (gravity_object_t*) fiber);
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) fiber);
     return fiber;
 }
 
@@ -1296,6 +1322,18 @@ void gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber) {
     if (fiber->error) mem_free(fiber->error);
     mem_free(fiber->stack);
     mem_free(fiber->frames);
+    
+    // free upvalues
+    if (fiber->upvalues) {
+        gravity_upvalue_t *upvalue = fiber->upvalues;
+        gravity_upvalue_t *tempvalue;
+        while (upvalue) {
+            tempvalue = upvalue;
+            upvalue = upvalue->next;
+            gravity_upvalue_free(vm, tempvalue);
+        }
+    }
+    
     mem_free(fiber);
 }
 
@@ -1320,6 +1358,8 @@ void gravity_fiber_seterror (gravity_fiber_t *fiber, const char *error) {
 }
 
 uint32_t gravity_fiber_size (gravity_vm *vm, gravity_fiber_t *fiber) {
+    SET_OBJECT_VISITED_FLAG(fiber, true);
+    
     // internal size
     uint32_t fiber_size = sizeof(gravity_fiber_t);
     fiber_size += fiber->stackalloc * sizeof(gravity_value_t);
@@ -1333,24 +1373,25 @@ uint32_t gravity_fiber_size (gravity_vm *vm, gravity_fiber_t *fiber) {
     fiber_size += string_size(fiber->error);
     fiber_size += gravity_object_size(vm, (gravity_object_t *)fiber->caller);
 
+    SET_OBJECT_VISITED_FLAG(fiber, false);
     return fiber_size;
 }
 
 void gravity_fiber_blacken (gravity_vm *vm, gravity_fiber_t *fiber) {
     gravity_vm_memupdate(vm, gravity_fiber_size(vm, fiber));
-
+    
     // gray call frame functions
     for (uint32_t i=0; i < fiber->nframes; ++i) {
         gravity_gray_object(vm, (gravity_object_t *)fiber->frames[i].closure);
     }
 
     // gray stack variables
-    for (gravity_value_t* slot = fiber->stack; slot < fiber->stacktop; ++slot) {
+    for (gravity_value_t *slot = fiber->stack; slot < fiber->stacktop; ++slot) {
         gravity_gray_value(vm, *slot);
     }
 
     // gray upvalues
-    gravity_upvalue_t* upvalue = fiber->upvalues;
+    gravity_upvalue_t *upvalue = fiber->upvalues;
     while (upvalue) {
         gravity_gray_object(vm, (gravity_object_t *)upvalue);
         upvalue = upvalue->next;
@@ -1499,7 +1540,10 @@ void gravity_object_free (gravity_vm *vm, gravity_object_t *obj) {
 
 uint32_t gravity_object_size (gravity_vm *vm, gravity_object_t *obj) {
     if ((!obj) || (!OBJECT_IS_VALID(obj))) return 0;
-
+    
+    // check if object has already been visited (to avoid infinite loop)
+    if (obj->gc.visited) return 0;
+    
     if (OBJECT_ISA_CLASS(obj)) return gravity_class_size(vm, (gravity_class_t *)obj);
     else if (OBJECT_ISA_FUNCTION(obj)) return gravity_function_size(vm, (gravity_function_t *)obj);
     else if (OBJECT_ISA_CLOSURE(obj)) return gravity_closure_size(vm, (gravity_closure_t *)obj);
@@ -1528,7 +1572,7 @@ void gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj) {
     else if (OBJECT_ISA_MODULE(obj)) gravity_module_blacken(vm, (gravity_module_t *)obj);
     else if (OBJECT_ISA_STRING(obj)) gravity_string_blacken(vm, (gravity_string_t *)obj);
     else if (OBJECT_ISA_UPVALUE(obj)) gravity_upvalue_blacken(vm, (gravity_upvalue_t *)obj);
-    else assert(0); // should never reach this point
+    //else assert(0); // should never reach this point
 }
 
 // MARK: -
@@ -1600,12 +1644,15 @@ gravity_closure_t *gravity_instance_lookup_event (gravity_instance_t *i, const c
 }
 
 uint32_t gravity_instance_size (gravity_vm *vm, gravity_instance_t *i) {
+    SET_OBJECT_VISITED_FLAG(i, true);
+    
     uint32_t instance_size = sizeof(gravity_instance_t) + (i->objclass->nivars * sizeof(gravity_value_t));
 
     gravity_delegate_t *delegate = gravity_vm_delegate(vm);
     if (i->xdata && delegate->bridge_size)
         instance_size += delegate->bridge_size(vm, i->xdata);
 
+    SET_OBJECT_VISITED_FLAG(i, false);
     return instance_size;
 }
 
@@ -1721,11 +1768,7 @@ inline gravity_class_t *gravity_value_getsuper (gravity_value_t v) {
 }
 
 void gravity_value_free (gravity_vm *vm, gravity_value_t v) {
-    if (v.isa == gravity_class_int) return;
-    if (v.isa == gravity_class_float) return;
-    if (v.isa == gravity_class_bool) return;
-    if (v.isa == gravity_class_null) return;
-
+    if (!gravity_value_isobject(v)) return;
     gravity_object_free(vm, VALUE_AS_OBJECT(v));
 }
 
@@ -2009,13 +2052,12 @@ gravity_list_t *gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_val
     // and could be reused by other successive operations
     for (size_t i=0; i<n; ++i) marray_push(gravity_value_t, list->array, p[i]);
 
-    gravity_vm_transfer(vm, (gravity_object_t*) list);
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) list);
     return list;
 }
 
 void gravity_list_free (gravity_vm *vm, gravity_list_t *list) {
     #pragma unused(vm)
-
     DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)list, true));
     marray_destroy(list->array);
     mem_free((void *)list);
@@ -2031,12 +2073,17 @@ void gravity_list_append_list (gravity_vm *vm, gravity_list_t *list1, gravity_li
 }
 
 uint32_t gravity_list_size (gravity_vm *vm, gravity_list_t *list) {
+    SET_OBJECT_VISITED_FLAG(list, true);
+    
     uint32_t internal_size = 0;
     size_t count = marray_size(list->array);
     for (size_t i=0; i<count; ++i) {
         internal_size += gravity_value_size(vm, marray_get(list->array, i));
     }
-    return sizeof(gravity_list_t) + internal_size;
+    internal_size += sizeof(gravity_list_t);
+    
+    SET_OBJECT_VISITED_FLAG(list, false);
+    return internal_size;
 }
 
 void gravity_list_blacken (gravity_vm *vm, gravity_list_t *list) {
@@ -2055,7 +2102,7 @@ gravity_map_t *gravity_map_new (gravity_vm *vm, uint32_t n) {
     map->isa = gravity_class_map;
     map->hash = gravity_hash_create(n, gravity_value_hash, gravity_value_equals, NULL, NULL);
 
-    gravity_vm_transfer(vm, (gravity_object_t*) map);
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) map);
     return map;
 }
 
@@ -2109,10 +2156,15 @@ abort_load:
 }
 
 uint32_t gravity_map_size (gravity_vm *vm, gravity_map_t *map) {
+    SET_OBJECT_VISITED_FLAG(map, true);
+    
     uint32_t hash_size = 0;
     gravity_hash_iterate2(map->hash, gravity_hash_internalsize, (void *)&hash_size, (void *)vm);
     hash_size += gravity_hash_memsize(map->hash);
-    return sizeof(gravity_map_t) + hash_size;
+    hash_size += sizeof(gravity_map_t);
+    
+    SET_OBJECT_VISITED_FLAG(map, false);
+    return hash_size;
 }
 
 void gravity_map_blacken (gravity_vm *vm, gravity_map_t *map) {
@@ -2129,7 +2181,7 @@ gravity_range_t *gravity_range_new (gravity_vm *vm, gravity_int_t from_range, gr
     range->from = from_range;
     range->to = (inclusive) ? to_range : --to_range;
 
-    gravity_vm_transfer(vm, (gravity_object_t*) range);
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) range);
     return range;
 }
 
@@ -2142,7 +2194,12 @@ void gravity_range_free (gravity_vm *vm, gravity_range_t *range) {
 
 uint32_t gravity_range_size (gravity_vm *vm, gravity_range_t *range) {
     #pragma unused(vm, range)
-    return sizeof(gravity_range_t);
+    
+    SET_OBJECT_VISITED_FLAG(range, true);
+    uint32_t range_size = sizeof(gravity_range_t);
+    SET_OBJECT_VISITED_FLAG(range, false);
+    
+    return range_size;
 }
 
 void gravity_range_blacken (gravity_vm *vm, gravity_range_t *range) {
@@ -2202,7 +2259,11 @@ inline void gravity_string_free (gravity_vm *vm, gravity_string_t *value) {
 
 uint32_t gravity_string_size (gravity_vm *vm, gravity_string_t *string) {
     #pragma unused(vm)
-    return (sizeof(gravity_string_t)) + string->alloc;
+    SET_OBJECT_VISITED_FLAG(string, true);
+    uint32_t string_size = (sizeof(gravity_string_t)) + string->alloc;
+    SET_OBJECT_VISITED_FLAG(string, false);
+    
+    return string_size;
 }
 
 void gravity_string_blacken (gravity_vm *vm, gravity_string_t *string) {

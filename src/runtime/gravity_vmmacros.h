@@ -34,12 +34,15 @@
 #define OPCODE_GET_FOUR8bit(op,r1,r2,r3,r4)             r1 = (op >> 24) & 0xFF; r2 = (op >> 16) & 0xFF; r3 = (op >> 8) & 0xFF; r4 = (op & 0xFF)
 #define OPCODE_GET_THREE8bit_ONE2bit(op,r1,r2,r3,r4)    r1 = (op >> 18) & 0xFF; r2 = (op >> 10) & 0xFF; r3 = (op >> 2) & 0xFF; r4 = (op & 0x03)
 
-#define GRAVITY_VM_DEGUB                0
-#define GRAVITY_VM_STATS                0
-#define GRAVITY_GC_STATS                0
-#define GRAVITY_GC_STRESSTEST           0
-#define GRAVITY_GC_DEBUG                0
-#define GRAVITY_STACK_DEBUG             0
+#define GRAVITY_VM_DEGUB                0               // print each VM instruction
+#define GRAVITY_VM_STATS                0               // print VM related stats after each execution
+#define GRAVITY_GC_STATS                0               // print useful stats each time GC runs
+#define GRAVITY_GC_STRESSTEST           0               // basically force a GC run after each memory allocation
+#define GRAVITY_GC_DEBUG                0               // print objects transferred and grayed
+#define GRAVITY_STACK_DEBUG             0               // dump the stack at each CALL and in some other places
+#define GRAVITY_TRUST_USERCODE          0               // set at 1 at your own risk!
+                                                        // when 0 each time an internal or a bridge function is executed the GC is disabled
+                                                        // in this way user does not have to completely understand how GC works under the hood
 
 #if GRAVITY_STACK_DEBUG
 #define DEBUG_STACK()                   gravity_stack_dump(fiber)
@@ -63,6 +66,14 @@
 #define DEBUG_VM_NOCR(...)
 #define DEBUG_VM_RAW(...)
 #define INC_PC
+#endif
+
+#if GRAVITY_TRUST_USERCODE
+#define BEGIN_TRUST_USERCODE(_vm)
+#define END_TRUST_USERCODE(_vm)
+#else
+#define BEGIN_TRUST_USERCODE(_vm)       gravity_gc_setenabled(_vm, false)
+#define END_TRUST_USERCODE(_vm)         gravity_gc_setenabled(_vm, true)
 #endif
 
 #if GRAVITY_VM_STATS
@@ -157,10 +168,12 @@
                                     cframe->outloop = false;                                                        \
                                     cframe->args = (USE_ARGS(_c)) ? gravity_list_from_array(vm, _n-1, _s+1) : NULL
 
-#define SYNC_STACKTOP(_fiber,_n)    if (_fiber) _fiber->stacktop -= _n
-#define SETFRAME_OUTLOOP(cframe)    (cframe)->outloop = true
+// SYNC_STACKTOP has been modified in version 0.5.8 (December 4th 2018)
+// stack must be trashed ONLY in the fiber remains the same otherwise GC will collect stack values from a still active Fiber
+#define SYNC_STACKTOP(_fiber_saved, _fiber,_n)      if (_fiber_saved && (_fiber_saved == _fiber)) _fiber_saved->stacktop -= _n
+#define SETFRAME_OUTLOOP(cframe)                    (cframe)->outloop = true
 
-#define COMPUTE_JUMP(value)         (func->bytecode + (value))
+#define COMPUTE_JUMP(value)                         (func->bytecode + (value))
 
 // FAST MATH MACROS
 #define FMATH_BIN_INT(_r1,_v2,_v3,_OP)              do {SETVALUE(_r1, VALUE_FROM_INT(_v2 _OP _v3)); DISPATCH();} while(0)
@@ -247,7 +260,10 @@
                                                         PUSH_FRAME(_c, &stackstart[rwin], r1, nargs);                   \
                                                     } break;                                                            \
                                                     case EXEC_TYPE_INTERNAL: {                                          \
-                                                        if (!_c->f->internal(vm, &stackstart[rwin], nargs, r1)) {       \
+                                                        BEGIN_TRUST_USERCODE(vm);                                       \
+                                                        bool result = _c->f->internal(vm, &stackstart[rwin], nargs, r1);\
+                                                        END_TRUST_USERCODE(vm);                                         \
+                                                        if (!result) {       \
                                                             if (vm->aborted) return false;                              \
                                                             if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {                     \
                                                                 closure = VALUE_AS_CLOSURE(STACK_GET(r1));              \
@@ -261,7 +277,10 @@
                                                     } break;                                                            \
                                                     case EXEC_TYPE_BRIDGED:    {                                        \
                                                         DEBUG_ASSERT(delegate->bridge_execute, "bridge_execute delegate callback is mandatory");        \
-                                                        if (!delegate->bridge_execute(vm, _c->f->xdata, STACK_GET(0), &stackstart[rwin], nargs, r1)) {  \
+                                                        BEGIN_TRUST_USERCODE(vm);                                       \
+                                                        bool result = delegate->bridge_execute(vm, _c->f->xdata, STACK_GET(0), &stackstart[rwin], nargs, r1); \
+                                                        END_TRUST_USERCODE(vm);                                         \
+                                                        if (!result) {                                                  \
                                                             if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);        \
                                                         }                                                               \
                                                     } break;                                                            \
@@ -270,7 +289,7 @@
                                                         break;                                                          \
                                                     }                                                                   \
                                                     LOAD_FRAME();                                                       \
-                                                    SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin))
+                                                    SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin))
 
 // MACROS used in core and optionals
 #define SETMETA_INITED(c)                           gravity_class_get_meta(c)->is_inited = true

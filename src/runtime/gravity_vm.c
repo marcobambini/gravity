@@ -67,7 +67,7 @@ struct gravity_vm {
     gravity_float_t     gcratio;                        // ratio used in automatic recomputation of the new gcthreshold value
     gravity_int_t       gccount;                        // number of objects into GC
     gravity_object_r    graylist;                       // array of collected objects while GC is in process (gray list)
-    gravity_object_r    gcsave;                         // array of temp objects that need to be saved from GC
+    gravity_object_r    gctemp;                         // array of temp objects that need to be saved from GC
 
     // internal stats fields
     #if GRAVITY_VM_STATS
@@ -282,7 +282,7 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
     }
 
     // adjust upvalues ptr offset
-    gravity_upvalue_t* upvalue = fiber->upvalues;
+    gravity_upvalue_t *upvalue = fiber->upvalues;
     while (upvalue) {
         upvalue->value += offset;
         upvalue = upvalue->next;
@@ -325,6 +325,7 @@ static gravity_upvalue_t *gravity_capture_upvalue (gravity_vm *vm, gravity_fiber
 
     // returns newly created upvalue
     newvalue->next = upvalue;
+    
     return newvalue;
 }
 
@@ -367,14 +368,14 @@ bool gravity_isopt_class (gravity_class_t *c) {
 static bool gravity_vm_exec (gravity_vm *vm) {
     DECLARE_DISPATCH_TABLE;
 
-    gravity_fiber_t                *fiber = vm->fiber;            // current fiber
-    gravity_delegate_t            *delegate = vm->delegate;    // current delegate
-    gravity_callframe_t            *frame;                        // current executing frame
-    gravity_function_t            *func;                        // current executing function
-    gravity_value_t                *stackstart;                // SP => stack pointer
-    register uint32_t            *ip;                        // IP => instruction pointer
-    register uint32_t            inst;                        // IR => instruction register
-    register opcode_t            op;                            // OP => opcode register
+    gravity_fiber_t         *fiber = vm->fiber;         // current fiber
+    gravity_delegate_t      *delegate = vm->delegate;   // current delegate
+    gravity_callframe_t     *frame;                     // current executing frame
+    gravity_function_t      *func;                      // current executing function
+    gravity_value_t         *stackstart;                // SP => stack pointer
+    register uint32_t       *ip;                        // IP => instruction pointer
+    register uint32_t       inst;                       // IR => instruction register
+    register opcode_t       op;                         // OP => opcode register
 
     // load current callframe
     LOAD_FRAME();
@@ -439,7 +440,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     case EXEC_TYPE_INTERNAL: {
                         // backup register r1 because it can be overwrite to return a closure
                         gravity_value_t r1copy = STACK_GET(r1);
-                        if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
+                        BEGIN_TRUST_USERCODE(vm);
+                        bool result = closure->f->internal(vm, &stackstart[rwin], 2, r1);
+                        END_TRUST_USERCODE(vm);
+                        if (!result) {
                             if (vm->aborted) return false;
 
                             // check for special getter trick
@@ -458,7 +462,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 
                     case EXEC_TYPE_BRIDGED: {
                         DEBUG_ASSERT(delegate->bridge_getvalue, "bridge_getvalue delegate callback is mandatory");
-                        if (!delegate->bridge_getvalue(vm, closure->f->xdata, v2, VALUE_AS_CSTRING(v3), r1)) {
+                        BEGIN_TRUST_USERCODE(vm);
+                        bool result = delegate->bridge_getvalue(vm, closure->f->xdata, v2, VALUE_AS_CSTRING(v3), r1);
+                        END_TRUST_USERCODE(vm);
+                        if (!result) {
                             if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
                         }
                     } break;
@@ -470,7 +477,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     } break;
                 }
                 LOAD_FRAME();
-                SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin));
 
                 // continue execution
                 DISPATCH();
@@ -573,7 +580,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     case EXEC_TYPE_INTERNAL: {
                         // backup register r1 because it can be overwrite to return a closure
                         gravity_value_t r1copy = STACK_GET(r1);
-                        if (!closure->f->internal(vm, &stackstart[rwin], 2, r1)) {
+                        BEGIN_TRUST_USERCODE(vm);
+                        bool result = closure->f->internal(vm, &stackstart[rwin], 2, r1);
+                        END_TRUST_USERCODE(vm);
+                        if (!result) {
                             if (vm->aborted) return false;
 
                             // check for special getter trick
@@ -592,7 +602,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 
                     case EXEC_TYPE_BRIDGED: {
                         DEBUG_ASSERT(delegate->bridge_setvalue, "bridge_setvalue delegate callback is mandatory");
-                        if (!delegate->bridge_setvalue(vm, closure->f->xdata, v2, VALUE_AS_CSTRING(v3), v1)) {
+                        BEGIN_TRUST_USERCODE(vm);
+                        bool result = delegate->bridge_setvalue(vm, closure->f->xdata, v2, VALUE_AS_CSTRING(v3), v1);
+                        END_TRUST_USERCODE(vm);
+                        if (!result) {
                             if (fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
                         }
                     } break;
@@ -604,7 +617,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     } break;
                 }
                 LOAD_FRAME();
-                SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin));
 
                 // continue execution
                 DISPATCH();
@@ -1159,7 +1172,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     case EXEC_TYPE_INTERNAL: {
                         // backup register r1 because it can be overwrite to return a closure
                         gravity_value_t r1copy = STACK_GET(r1);
-                        if (!closure->f->internal(vm, &stackstart[rwin], r3, r1)) {
+                        BEGIN_TRUST_USERCODE(vm);
+                        bool result = closure->f->internal(vm, &stackstart[rwin], r3, r1);
+                        END_TRUST_USERCODE(vm);
+                        if (!result) {
                             if (vm->aborted) return false;
 
                             // check for special getter trick
@@ -1180,6 +1196,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 
                     case EXEC_TYPE_BRIDGED: {
                         bool result;
+                        BEGIN_TRUST_USERCODE(vm);
                         if (VALUE_ISA_CLASS(v)) {
                             DEBUG_ASSERT(delegate->bridge_initinstance, "bridge_initinstance delegate callback is mandatory");
                             gravity_instance_t *instance = (gravity_instance_t *)VALUE_AS_OBJECT(stackstart[rwin]);
@@ -1190,6 +1207,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                             // starting from version 0.4.4 we pass context object to execute in order to give the opportunity to pass it as self parameter to closures
                             result = delegate->bridge_execute(vm, closure->f->xdata, STACK_GET(0), &stackstart[rwin], r3, r1);
                         }
+                        END_TRUST_USERCODE(vm);
                         if (!result && fiber->error) RUNTIME_FIBER_ERROR(fiber->error);
                     } break;
 
@@ -1199,7 +1217,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 }
                 
                 LOAD_FRAME();
-                SYNC_STACKTOP(current_fiber, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin));
 
                 DISPATCH();
             }
@@ -1280,7 +1298,6 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DEBUG_VM("LISTNEW %d %d", r1, n);
 
                 gravity_list_t *list = gravity_list_new(vm, n);
-                if (!list) RUNTIME_ERROR("Unable allocate a List");
                 SETVALUE(r1, VALUE_FROM_OBJECT(list));
                 DISPATCH();
             }
@@ -1352,8 +1369,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 gravity_value_t v = gravity_function_cpool_get(func, index);
                 if (!VALUE_ISA_FUNCTION(v)) RUNTIME_ERROR("Unable to create a closure from a non function object.");
                 gravity_function_t *f = VALUE_AS_FUNCTION(v);
-
-                // create closure
+                
+                gravity_gc_setenabled(vm, false);
+                
+                // create closure (outside GC)
                 gravity_closure_t *closure = gravity_closure_new(vm, f);
 
                 // save current context (if any)
@@ -1370,7 +1389,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     if (op != MOVE) RUNTIME_ERROR("Wrong OPCODE in CLOSURE statement");
                     closure->upvalue[i] = (p2) ? gravity_capture_upvalue (vm, fiber, &stackstart[p1]) : frame->closure->upvalue[p1];
                 }
-
+                
+                // re-start GC
+                gravity_gc_setenabled(vm, true);
                 SETVALUE(r1, VALUE_FROM_OBJECT(closure));
                 DISPATCH();
             }
@@ -1428,7 +1449,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
     vm->memallocated = 0;
     vm->maxmemblock = MAX_MEMORY_BLOCK;
     marray_init(vm->graylist);
-    marray_init(vm->gcsave);
+    marray_init(vm->gctemp);
 
     // init base and core
     gravity_core_register(vm);
@@ -1449,7 +1470,7 @@ void gravity_vm_free (gravity_vm *vm) {
     if (vm->context) gravity_cache_free();
     gravity_vm_cleanup(vm);
     if (vm->context) gravity_hash_free(vm->context);
-    marray_destroy(vm->gcsave);
+    marray_destroy(vm->gctemp);
     marray_destroy(vm->graylist);
     mem_free(vm);
 }
@@ -1564,8 +1585,8 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
     if ((f->tag == EXEC_TYPE_NATIVE) && ((!f->bytecode) || (f->ninsts == 0))) return true;
 
     // current execution fiber
-    gravity_fiber_t        *fiber = vm->fiber;
-    gravity_value_t        *stackstart = NULL;
+    gravity_fiber_t     *fiber = vm->fiber;
+    gravity_value_t     *stackstart = NULL;
     uint32_t            rwin = 0;
 
     DEBUG_STACK();
@@ -1642,12 +1663,17 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
             break;
 
         case EXEC_TYPE_INTERNAL:
+            BEGIN_TRUST_USERCODE(vm);
             result = f->internal(vm, &stackstart[rwin], nparams, GRAVITY_FIBER_REGISTER);
+            END_TRUST_USERCODE(vm);
             break;
 
         case EXEC_TYPE_BRIDGED:
-            if (vm->delegate->bridge_execute)
+            if (vm->delegate->bridge_execute) {
+                BEGIN_TRUST_USERCODE(vm);
                 result = vm->delegate->bridge_execute(vm, f->xdata, selfvalue, &stackstart[rwin], nparams, GRAVITY_FIBER_REGISTER);
+                END_TRUST_USERCODE(vm);
+            }
             break;
 
         case EXEC_TYPE_SPECIAL:
@@ -1725,15 +1751,15 @@ void gravity_vm_set_callbacks (gravity_vm *vm, vm_transfer_cb vm_transfer, vm_cl
     vm->cleanup = vm_cleanup;
 }
 
-void gravity_vm_transfer (gravity_vm* vm, gravity_object_t *obj) {
+void gravity_vm_transfer (gravity_vm *vm, gravity_object_t *obj) {
     if (vm->transfer) vm->transfer(vm, obj);
 }
 
-void gravity_vm_cleanup (gravity_vm* vm) {
+void gravity_vm_cleanup (gravity_vm *vm) {
     if (vm->cleanup) vm->cleanup(vm);
 }
 
-void gravity_vm_filter (gravity_vm* vm, vm_filter_cb cleanup_filter) {
+void gravity_vm_filter (gravity_vm *vm, vm_filter_cb cleanup_filter) {
     vm->filter = cleanup_filter;
 }
 
@@ -2001,7 +2027,6 @@ void gravity_gray_object (gravity_vm *vm, gravity_object_t *obj) {
 
     // avoid recursion if object has already been visited
     if (obj->gc.isdark) return;
-
     DEBUG_GC("GRAY %s", gravity_object_debug(obj, false));
 
     // object has been reached
@@ -2142,9 +2167,9 @@ void gravity_gc_start (gravity_vm *vm) {
     // reset memory counter
     vm->memallocated = 0;
 
-    // mark GC saved temp object
-    for (uint32_t i=0; i<marray_size(vm->gcsave); ++i) {
-        gravity_object_t *obj = marray_get(vm->gcsave, i);
+    // mark GC saved temp objects
+    for (uint32_t i=0; i<marray_size(vm->gctemp); ++i) {
+        gravity_object_t *obj = marray_get(vm->gctemp, i);
         gravity_gray_object(vm, obj);
     }
 
@@ -2234,20 +2259,21 @@ static void gravity_gc_cleanup (gravity_vm *vm) {
     vm->gchead = NULL;
 
     // free all temporary allocated objects
-    while (marray_size(vm->gcsave)) {
-        gravity_object_t *tobj = marray_pop(vm->gcsave);
+    while (marray_size(vm->gctemp)) {
+        gravity_object_t *tobj = marray_pop(vm->gctemp);
         gravity_object_free(vm, tobj);
     }
 }
 
 void gravity_gc_setenabled (gravity_vm *vm, bool enabled) {
+    if (!vm) return;
     (enabled) ? ++vm->gcenabled : --vm->gcenabled ;
 }
 
-void gravity_gc_push (gravity_vm *vm, gravity_object_t *obj) {
-    marray_push(gravity_object_t *, vm->gcsave, obj);
+void gravity_gc_temppush (gravity_vm *vm, gravity_object_t *obj) {
+    marray_push(gravity_object_t *, vm->gctemp, obj);
 }
 
-void gravity_gc_pop (gravity_vm *vm) {
-    marray_pop(vm->gcsave);
+void gravity_gc_temppop (gravity_vm *vm) {
+    marray_pop(vm->gctemp);
 }

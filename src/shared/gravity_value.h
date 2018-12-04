@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.5.6"     // git tag 0.5.6
-#define GRAVITY_VERSION_NUMBER				0x000506    // git push --tags
+#define GRAVITY_VERSION						"0.5.8"     // git tag 0.5.8
+#define GRAVITY_VERSION_NUMBER				0x000508    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -242,6 +242,7 @@ typedef enum {
 
 typedef struct {
     bool                    isdark;         // flag to check if object is reachable
+    bool                    visited;        // flag to check if object has already been counted in memory size
     gravity_object_t        *next;          // to track next object in the linked list
 } gravity_gc_t;
 
@@ -445,7 +446,7 @@ GRAVITY_API uint32_t            gravity_closure_size (gravity_vm *vm, gravity_cl
 GRAVITY_API void                gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure);
 
 // MARK: - UPVALUE -
-GRAVITY_API gravity_upvalue_t    *gravity_upvalue_new (gravity_vm *vm, gravity_value_t *value);
+GRAVITY_API gravity_upvalue_t   *gravity_upvalue_new (gravity_vm *vm, gravity_value_t *value);
 GRAVITY_API uint32_t            gravity_upvalue_size (gravity_vm *vm, gravity_upvalue_t *upvalue);
 GRAVITY_API void                gravity_upvalue_blacken (gravity_vm *vm, gravity_upvalue_t *upvalue);
 GRAVITY_API void                gravity_upvalue_free(gravity_vm *vm, gravity_upvalue_t *upvalue);
