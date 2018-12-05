@@ -1352,6 +1352,14 @@ void gravity_fiber_reassign (gravity_fiber_t *fiber, gravity_closure_t *closure,
     fiber->stacktop += FN_COUNTREG(closure->f, nargs);
 }
 
+void gravity_fiber_reset (gravity_fiber_t *fiber) {
+    fiber->caller = NULL;
+    fiber->result = VALUE_FROM_NULL;
+    fiber->nframes = 0;
+    fiber->upvalues = NULL;
+    fiber->stacktop = fiber->stack;
+}
+
 void gravity_fiber_seterror (gravity_fiber_t *fiber, const char *error) {
     if (fiber->error) mem_free(fiber->error);
     fiber->error = (char *)string_dup(error);
@@ -1665,6 +1673,12 @@ void gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i) {
     // ivars
     for (uint32_t j=0; j<i->objclass->nivars; ++j) {
         gravity_gray_value(vm, i->ivars[j]);
+    }
+    
+    // xdata
+    if (i->xdata) {
+        gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+        if (delegate->bridge_blacken) delegate->bridge_blacken(vm, i->xdata);
     }
 }
 

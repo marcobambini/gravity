@@ -53,6 +53,7 @@ typedef const char*         (*gravity_bridge_string) (gravity_vm *vm, void *xdat
 typedef void*               (*gravity_bridge_clone)  (gravity_vm *vm, void *xdata);
 typedef uint32_t            (*gravity_bridge_size) (gravity_vm *vm, gravity_object_t *obj);
 typedef void                (*gravity_bridge_free) (gravity_vm *vm, gravity_object_t *obj);
+typedef void                (*gravity_bridge_blacken) (gravity_vm *vm, void *xdata);
 
 typedef struct {
     // user data
@@ -78,6 +79,7 @@ typedef struct {
     gravity_bridge_setundef     bridge_setundef;        // setter not found
     gravity_bridge_getundef     bridge_getundef;        // getter not found
     gravity_bridge_execute      bridge_execute;         // execute a method/function
+    gravity_bridge_blacken      bridge_blacken;         // blacken obj to be GC friend
     gravity_bridge_string       bridge_string;          // instance string conversion
     gravity_bridge_equals       bridge_equals;          // check if two objects are equals
     gravity_bridge_clone        bridge_clone;           // clone

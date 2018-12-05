@@ -1712,11 +1712,17 @@ bool gravity_vm_runmain (gravity_vm *vm, gravity_closure_t *closure) {
     return result;
 }
 
+void gravity_vm_reset (gravity_vm *vm) {
+    if (!vm || !vm->fiber) return;
+    gravity_fiber_reset(vm->fiber);
+}
+
 // MARK: - User -
 
 gravity_closure_t *gravity_vm_getclosure (gravity_vm *vm) {
-    if (!vm->fiber) return NULL;
+    if (!vm || !vm->fiber) return NULL;
     if (!vm->fiber->nframes) return NULL;
+    if (vm->aborted) return NULL;
 
     gravity_callframe_t *frame = &(vm->fiber->frames[vm->fiber->nframes-1]);
     return frame->closure;
@@ -2120,6 +2126,7 @@ static void gravity_gc_transfer_object (gravity_vm *vm, gravity_object_t *obj) {
 static void gravity_gc_transfer (gravity_vm *vm, gravity_object_t *obj) {
     if (vm->gcenabled > 0) {
         #if GRAVITY_GC_STRESSTEST
+        #if 0
         // check if ptr is already in the list
         gravity_object_t **ptr = &vm->gchead;
         while (*ptr) {
@@ -2129,6 +2136,7 @@ static void gravity_gc_transfer (gravity_vm *vm, gravity_object_t *obj) {
             }
             ptr = &(*ptr)->gc.next;
         }
+        #endif
         gravity_gc_start(vm);
         #else
         if (vm->memallocated >= vm->gcthreshold) gravity_gc_start(vm);

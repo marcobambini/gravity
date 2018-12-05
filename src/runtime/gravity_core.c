@@ -174,42 +174,38 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
 
     // get keys list
     uint32_t count = gravity_hash_count(map->hash);
-    gravity_list_t *list = gravity_list_new(NULL, count);
+    gravity_list_t *list = gravity_list_new(vm, count);
     gravity_hash_iterate(map->hash, map_keys_array, (void *)list);
 
     count = (uint32_t) marray_size(list->array);
     for (uint32_t i=0; i<count; ++i) {
         gravity_value_t key = marray_get(list->array, i);
-        gravity_value_t *v = gravity_hash_lookup(map->hash, key);
-        gravity_value_t value = (v) ? *v : VALUE_FROM_NULL;
-        gravity_value_t value_converted = VALUE_FROM_NULL;
-
-        gravity_string_t *svalue;
-        gravity_string_t *skey;
-        bool key_to_free = false;
-        bool value_to_free = false;
+        gravity_value_t *valueptr = gravity_hash_lookup(map->hash, key);
+        gravity_value_t value = (valueptr) ? *valueptr : VALUE_FROM_NULL;
         
+        // key conversion
         if (!VALUE_ISA_STRING(key)) {
-            key = convert_value2string(NULL, key);
-            key_to_free = true;
+            key = convert_value2string(vm, key);
         }
-        skey = (VALUE_ISA_STRING(key)) ? VALUE_AS_STRING(key) : NULL;
-
+        gravity_string_t *key_string = (VALUE_ISA_STRING(key)) ? VALUE_AS_STRING(key) : NULL;
+        
+        // value conversion
         if (VALUE_ISA_MAP(value) && (VALUE_AS_MAP(value) == map)) {
-            svalue = NULL;
-        } else {
-            value_converted = convert_value2string(NULL, value);
-            value_to_free = true;
-            svalue = VALUE_ISA_VALID(value_converted) ? VALUE_AS_STRING(value_converted) : NULL;
+            // to avoid infinite loop
+            value = VALUE_FROM_NULL;
         }
-
+        if (!VALUE_ISA_STRING(value)) {
+            value = convert_value2string(vm, value);
+        }
+        gravity_string_t *value_string = (VALUE_ISA_STRING(value)) ? VALUE_AS_STRING(value) : NULL;
+        
         // KEY
-        char *s1 = (skey) ? skey->s : "N/A";
-        uint32_t len1 = (skey) ? skey->len : 3;
+        char *s1 = (key_string) ? key_string->s : "N/A";
+        uint32_t len1 = (key_string) ? key_string->len : 3;
 
         // VALUE
-        char *s2 = (svalue) ? svalue->s : "N/A";
-        uint32_t len2 = (svalue) ? svalue->len : 3;
+        char *s2 = (value_string) ? value_string->s : "N/A";
+        uint32_t len2 = (value_string) ? value_string->len : 3;
 
         // check if buffer needs to be reallocated
         if (len1 + len2 + pos + 4 > len) {
@@ -234,16 +230,12 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
             memcpy(buffer+pos, ",", 1);
             pos += 1;
         }
-        
-        if (key_to_free && skey) gravity_value_free(NULL, key);
-        if (value_to_free && svalue) gravity_value_free(NULL, value_converted);
     }
 
     // Write latest ] character
     memcpy(buffer+pos, "]", 1);
     buffer[++pos] = 0;
 
-    gravity_list_free(NULL, list);
     gravity_value_t result = VALUE_FROM_STRING(vm, buffer, pos);
     mem_free(buffer);
     return result;
