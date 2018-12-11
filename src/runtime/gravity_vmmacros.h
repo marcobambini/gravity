@@ -37,7 +37,7 @@
 #define GRAVITY_VM_DEGUB                0               // print each VM instruction
 #define GRAVITY_VM_STATS                0               // print VM related stats after each execution
 #define GRAVITY_GC_STATS                0               // print useful stats each time GC runs
-#define GRAVITY_GC_STRESSTEST           0               // basically force a GC run after each memory allocation
+#define GRAVITY_GC_STRESSTEST           0               // force a GC run after each memory allocation
 #define GRAVITY_GC_DEBUG                0               // print objects transferred and grayed
 #define GRAVITY_STACK_DEBUG             0               // dump the stack at each CALL and in some other places
 #define GRAVITY_TRUST_USERCODE          0               // set at 1 at your own risk!
@@ -232,9 +232,10 @@
 
 #define PREPARE_FUNC_CALLN(_c,_i,_w,_N)             gravity_closure_t *_c = (gravity_closure_t *)gravity_class_lookup_closure(gravity_value_getclass(v2), cache[_i]); \
                                                     if (!_c || !_c->f) RUNTIME_ERROR("Unable to perform operator %s on object", opcode_name(op));   \
-                                                    uint32_t _w = FN_COUNTREG(func, frame->nargs);                                                  \
-                                                    uint32_t _rneed = FN_COUNTREG(_c->f, _N);                                                       \
-                                                    if (!gravity_check_stack(vm, fiber, MAXNUM(_rneed,_w), &stackstart)) return false;              \
+                                                    uint32_t _w = FN_COUNTREG(func, frame->nargs); \
+                                                    uint32_t _rneed = FN_COUNTREG(_c->f, _N);      \
+													uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + _w + _rneed - fiber->stacktop, 0); \
+                                                    if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;              \
                                                     if (vm->aborted) return false
 
 #define PREPARE_FUNC_CALL1(_c,_v1,_i,_w)            PREPARE_FUNC_CALLN(_c,_i,_w,1);         \
@@ -289,7 +290,7 @@
                                                         break;                                                          \
                                                     }                                                                   \
                                                     LOAD_FRAME();                                                       \
-                                                    SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin))
+                                                    SYNC_STACKTOP(current_fiber, fiber, stacktopdelta)
 
 // MACROS used in core and optionals
 #define SETMETA_INITED(c)                           gravity_class_get_meta(c)->is_inited = true

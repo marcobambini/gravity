@@ -1,0 +1,35 @@
+#unittest {
+    name: "Super class test";
+    result: 2100
+};
+
+class c1 {
+    var v1;
+}
+
+class c2 : c1 {
+    var v2;
+    var v3;
+}
+
+class c3 : c2 {
+    var v4;
+    var v5;
+    var v6;
+    
+    func sum() {
+        return v1+v2+v3+v4+v5+v6;
+    }
+}
+
+func main() {
+    var c = c3();
+    c.v1 = 100;
+    c.v2 = 200;
+    c.v3 = 300;
+    c.v4 = 400;
+    c.v5 = 500;
+    c.v6 = 600;
+    
+    return c.sum();
+}

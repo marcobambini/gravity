@@ -9,6 +9,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>

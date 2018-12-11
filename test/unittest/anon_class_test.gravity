@@ -1,0 +1,40 @@
+#unittest {
+    name: "Anonimous class test";
+    result: 666
+};
+
+var Window1;
+
+class _Window1 {
+    var button;
+    
+    class _Button1 {
+        func test() {
+            return 777;
+        }
+    }
+    
+    func setup() {
+        button = _Button1();
+        button.bind("action", {var a = Window1.action(); return a;})
+    }
+    
+    func action() {
+        return 666;
+    }
+}
+
+func main() {
+    Window1 = _Window1();
+    Window1.setup();
+    
+    var test = Window1.action();    
+    var button = Window1.button;
+    button.test();
+    var temp = button.action();
+    
+    // force GC to run
+    var l = [1,2,3];
+    
+    return temp;
+}

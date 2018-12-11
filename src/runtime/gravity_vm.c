@@ -243,15 +243,16 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
     return &fiber->frames[fiber->nframes - 1];
 }
 
-static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t rneeds, gravity_value_t **stackstart) {
+static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t stacktopdelta, gravity_value_t **stackstart) {
     #pragma unused(vm)
-
+	if (stacktopdelta == 0) return true;
+	
     // update stacktop pointer before a call
-    fiber->stacktop += rneeds;
-
+    fiber->stacktop += stacktopdelta;
+	
     // check stack size
-    uint32_t stack_size = (uint32_t)(fiber->stacktop - fiber->stack);
-    uint32_t stack_needed = MAXNUM(stack_size + rneeds, DEFAULT_MINSTACK_SIZE);
+	uint32_t stack_size = (uint32_t)(fiber->stacktop - fiber->stack);
+    uint32_t stack_needed = MAXNUM(stack_size, DEFAULT_MINSTACK_SIZE);
     if (fiber->stackalloc >= stack_needed) return true;
     gravity_value_t *old_stack = fiber->stack;
 
@@ -261,7 +262,7 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
     void *ptr = (size_condition) ? mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
     if (!ptr) {
         // restore stacktop to previous state
-        fiber->stacktop -= rneeds;
+        fiber->stacktop -= stacktopdelta;
 
         // stack reallocation failed means that there is a very high probability to be into an infinite loop
         RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
@@ -477,7 +478,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     } break;
                 }
                 LOAD_FRAME();
-                SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, fiber, stacktopdelta);
 
                 // continue execution
                 DISPATCH();
@@ -617,7 +618,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     } break;
                 }
                 LOAD_FRAME();
-                SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, fiber, stacktopdelta);
 
                 // continue execution
                 DISPATCH();
@@ -1069,7 +1070,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                         // prepare func call
                         uint32_t rwin = FN_COUNTREG(func, frame->nargs);
                         uint32_t _rneed = FN_COUNTREG(closure->f, 1);
-                        if (!gravity_check_stack(vm, fiber, MAXNUM(_rneed, rwin), &stackstart)) return false;
+						uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
+                        if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;
                         SETVALUE(rwin, v1);
 
                         // call func and check result
@@ -1104,7 +1106,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // r2 is the register which contains the callable object
                 // r3 is the number of arguments (nparams)
 
-                // register window
+                // sliding register window as in:
+                // https://the-ravi-programming-language.readthedocs.io/en/latest/lua-parser.html#sliding-register-window-by-mike-pall
                 const uint32_t rwin = r2 + 1;
 
                 // object to call
@@ -1125,7 +1128,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 
                 // check stack size
                 uint32_t _rneed = FN_COUNTREG(closure->f, r3);
-                if (!gravity_check_stack(vm, fiber, MAXNUM(_rneed, rwin), &stackstart)) return false;
+				uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
+                if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;
 
                 // if less arguments are passed then fill the holes with UNDEFINED values
                 while (r3 < closure->f->nparams) {
@@ -1217,7 +1221,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 }
                 
                 LOAD_FRAME();
-                SYNC_STACKTOP(current_fiber, fiber, MAXNUM(_rneed, rwin));
+                SYNC_STACKTOP(current_fiber, fiber, stacktopdelta);
 
                 DISPATCH();
             }
@@ -1246,7 +1250,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // close open upvalues (if any)
                 gravity_close_upvalues(fiber, stackstart);
 
-                // check if it was a gravity_vm_runfunc execution
+                // check if it was a gravity_vm_runclosure execution
                 if (frame->outloop) {
                     fiber->result = result;
                     return true;
@@ -1259,7 +1263,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     fiber = fiber->caller;
                     vm->fiber = fiber;
                 } else {
-                    fiber->stacktop = frame->stackstart;
+                    // recompute stacktop based on last executed frame
+					gravity_callframe_t *lastframe = &fiber->frames[fiber->nframes-1];
+                    fiber->stacktop = lastframe->stackstart + FN_COUNTREG(lastframe->closure->f, lastframe->nargs);
                 }
 
                 LOAD_FRAME();
@@ -1588,7 +1594,8 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
     gravity_fiber_t     *fiber = vm->fiber;
     gravity_value_t     *stackstart = NULL;
     uint32_t            rwin = 0;
-
+	uint32_t			stacktopdelta = 0;
+	
     DEBUG_STACK();
 
     // self value is default to the context where the closure has been created (or set by the user)
@@ -1618,8 +1625,9 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 
         // check stack size
         uint32_t _rneed = FN_COUNTREG(f,nparams+1);
-        if (!gravity_check_stack(vm, vm->fiber, MAXNUM(_rneed, rwin), &stackstart)) return false;
-
+		stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - vm->fiber->stacktop, 0);
+        if (!gravity_check_stack(vm, vm->fiber, stacktopdelta, &stackstart)) return false;
+		
         // setup params (first param is self)
         SETVALUE(rwin, selfvalue);
         for (uint16_t i=0; i<nparams; ++i) {
@@ -1633,7 +1641,8 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
         // there are no execution frames when called outside main function
         gravity_fiber_reassign(vm->fiber, closure, nparams+1);
         stackstart = vm->fiber->stack;
-
+		stacktopdelta = FN_COUNTREG(closure->f, nparams+1);
+		
         // setup params (first param is self)
         SETVALUE(rwin, selfvalue);
         for (uint16_t i=0; i<nparams; ++i) {
@@ -1680,8 +1689,13 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
             result = false;
             break;
     }
-    if (f->tag != EXEC_TYPE_NATIVE) --fiber->nframes;
-
+    
+    if (fiber == vm->fiber) {
+        // fix pointers ONLY if fiber remains the same
+        if (f->tag != EXEC_TYPE_NATIVE) --fiber->nframes;
+        fiber->stacktop -= stacktopdelta;
+    }
+	
     DEBUG_STACK();
     return result;
 }

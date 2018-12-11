@@ -197,19 +197,16 @@ gravity_class_t *gravity_class_new_pair (gravity_vm *vm, const char *identifier,
 
     char buffer[512];
     snprintf(buffer, sizeof(buffer), "%s meta", identifier);
-
-    gravity_class_t *supermeta = (superclass) ? gravity_class_get_meta(superclass) : NULL;
-    uint32_t n1 = (supermeta) ? supermeta->nivars : 0;
-
-    gravity_class_t *meta = gravity_class_new_single(vm, buffer, nsvar + n1);
+    
+    // ivar count/grow is managed by gravity_class_setsuper
+    gravity_class_t *meta = gravity_class_new_single(vm, buffer, nsvar);
     meta->objclass = gravity_class_object;
     gravity_class_setsuper(meta, gravity_class_class);
 
-    uint32_t n2 = (superclass) ? superclass->nivars : 0;
-    gravity_class_t *c = gravity_class_new_single(vm, identifier, nivar + n2);
+    gravity_class_t *c = gravity_class_new_single(vm, identifier, nivar);
     c->objclass = meta;
 
-    // a class without a superclass in a subclass of Object.
+    // a class without a superclass in a subclass of Object
     gravity_class_setsuper(c, (superclass) ? superclass : gravity_class_object);
 
     return c;
@@ -1391,6 +1388,7 @@ void gravity_fiber_blacken (gravity_vm *vm, gravity_fiber_t *fiber) {
     // gray call frame functions
     for (uint32_t i=0; i < fiber->nframes; ++i) {
         gravity_gray_object(vm, (gravity_object_t *)fiber->frames[i].closure);
+		gravity_gray_object(vm, (gravity_object_t *)fiber->frames[i].args);
     }
 
     // gray stack variables

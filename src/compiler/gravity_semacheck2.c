@@ -123,12 +123,12 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
     char buffer[512];
 
     // get first node (the latest in the decls stack)
-    gnode_t    *base_node = gnode_array_get(decls, len-1);
+    gnode_t *base_node = gnode_array_get(decls, len-1);
     bool base_is_class = ISA(base_node, NODE_CLASS_DECL);
     bool base_is_static_function = (ISA(base_node, NODE_FUNCTION_DECL) && ((gnode_function_decl_t*)base_node)->storage == TOK_KEY_STATIC);
 
     for (int i=(int)len-1; i>=0; --i) {
-        gnode_t    *target = gnode_array_get(decls, i);
+        gnode_t *target = gnode_array_get(decls, i);
 
         // identify target type
         bool target_is_global = ISA(target, NODE_LIST_STAT);
@@ -150,7 +150,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
         }
         
         // lookup identifier is current target (obtained traversing the declaration stack)
-        gnode_t    *symbol = lookup_node(target, id);
+        gnode_t *symbol = lookup_node(target, id);
 
         // sanity check: if base_node is a class and symbol was found inside a func then report an error
         if (symbol && target_is_function && base_is_class) {
@@ -822,14 +822,14 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
 
             // compute new ivar index
             (node->storage == TOK_KEY_STATIC) ? ++c->nsvar : ++c->nivar;
-            uint32_t n2 = 0;
 
             // super class is a static information so I can solve the fragile class problem at compilation time
             gnode_class_decl_t *super = (gnode_class_decl_t *)c->superclass;
             if (super && !NODE_ISA(super, NODE_CLASS_DECL)) return;
-
+            
+            uint32_t n2 = 0;
             while (super) {
-                n2 = (node->storage == TOK_KEY_STATIC) ? super->nsvar : super->nivar;
+                n2 += (node->storage == TOK_KEY_STATIC) ? super->nsvar : super->nivar;
                 super = (gnode_class_decl_t *)super->superclass;
             }
 

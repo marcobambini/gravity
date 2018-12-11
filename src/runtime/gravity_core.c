@@ -432,17 +432,17 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 
     // sanity check (and break recursion)
     if ((!closure) || ((closure->f->tag == EXEC_TYPE_INTERNAL) && (closure->f->internal == convert_object_string)) || gravity_vm_getclosure(vm) == closure) {
-        if (VALUE_ISA_INSTANCE(v)) {
-            gravity_instance_t *instance = VALUE_AS_INSTANCE(v);
-            if (instance->xdata) {
-                gravity_delegate_t *delegate = gravity_vm_delegate(vm);
-                if (delegate->bridge_string) {
-                    uint32_t len = 0;
-                    const char *s = delegate->bridge_string(vm, instance->xdata, &len);
-                    if (s) return VALUE_FROM_STRING(vm, s, len);
-                }
-            } else {
-                char buffer[512];
+		if (VALUE_ISA_INSTANCE(v)) {
+			gravity_instance_t *instance = VALUE_AS_INSTANCE(v);
+			if (vm && instance->xdata) {
+				gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+				if (delegate->bridge_string) {
+					uint32_t len = 0;
+					const char *s = delegate->bridge_string(vm, instance->xdata, &len);
+					if (s) return VALUE_FROM_STRING(vm, s, len);
+				}
+			} else {
+				char buffer[512];
                 const char *identifier = (instance->objclass->identifier);
                 if (!identifier) identifier = "anonymous class";
                 snprintf(buffer, sizeof(buffer), "instance of %s (%p)", identifier, instance);
@@ -1354,6 +1354,17 @@ static bool map_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     
     gravity_vm_transfer(vm, (gravity_object_t*) list);
     RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
+}
+
+static bool map_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    // fix for a bug encountered in the following code
+    // var r = ["k1": 123, "k2": 142];
+    // for (var data in r) {}
+    // the for loop will result in an infinite loop
+    // because the special ITERATOR_INIT_FUNCTION key
+    // will result in a NULL value (not FALSE)
+    RETURN_VALUE(VALUE_FROM_FALSE, rindex);
 }
 
 // MARK: - Range Class -
@@ -2993,6 +3004,7 @@ static void gravity_core_init (void) {
     gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(map_loadat));
     gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(map_storeat));
     gravity_class_bind(gravity_class_map, "hasKey", NEW_CLOSURE_VALUE(map_haskey));
+    gravity_class_bind(gravity_class_map, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(map_iterator));
     #if GRAVITY_MAP_DOTSUGAR
     gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_LOAD_NAME, NEW_CLOSURE_VALUE(map_load));
     gravity_class_bind(gravity_class_map, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(map_storeat));
@@ -3096,8 +3108,8 @@ static void gravity_core_init (void) {
     gravity_class_bind(gravity_class_string, "lower", NEW_CLOSURE_VALUE(string_lower));
     gravity_class_bind(gravity_class_string, "split", NEW_CLOSURE_VALUE(string_split));
     gravity_class_bind(gravity_class_string, "loop", NEW_CLOSURE_VALUE(string_loop));
-    gravity_class_bind(gravity_class_string, "iterate", NEW_CLOSURE_VALUE(string_iterator));
-    gravity_class_bind(gravity_class_string, "next", NEW_CLOSURE_VALUE(string_iterator_next));
+    gravity_class_bind(gravity_class_string, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(string_iterator));
+    gravity_class_bind(gravity_class_string, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(string_iterator_next));
     gravity_class_bind(gravity_class_string, "number", NEW_CLOSURE_VALUE(string_number));
     // Meta
     gravity_class_t *string_meta = gravity_class_get_meta(gravity_class_string);
@@ -3133,7 +3145,7 @@ static void gravity_core_init (void) {
     gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(operator_store_null_silent));
     gravity_class_bind(gravity_class_null, GRAVITY_INTERNAL_NOTFOUND_NAME, NEW_CLOSURE_VALUE(operator_null_silent));
     #endif
-    gravity_class_bind(gravity_class_null, "iterate", NEW_CLOSURE_VALUE(null_iterator));
+    gravity_class_bind(gravity_class_null, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(null_iterator));
 
     // SYSTEM class
     gravity_class_system = gravity_class_new_pair(NULL, GRAVITY_CLASS_SYSTEM_NAME, NULL, 0, 0);
