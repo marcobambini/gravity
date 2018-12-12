@@ -34,3 +34,5 @@ endif()
 
 ADD_EXECUTABLE(gravity ${GRAVITY_SRC} $<TARGET_OBJECTS:libgravity>)
 TARGET_LINK_LIBRARIES(gravity ${LIBS})
+
+install(TARGETS gravity DESTINATION /usr/local/bin)
