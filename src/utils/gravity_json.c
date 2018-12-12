@@ -38,6 +38,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <assert.h>
+#include <unistd.h>
 
 #ifdef _MSC_VER
    #ifndef _CRT_SECURE_NO_WARNINGS

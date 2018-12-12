@@ -1852,7 +1852,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
         size_t k = (n - nprocessed > max_fields) ? max_fields : (n - nprocessed);
         size_t idxstart = nprocessed;
         size_t idxend = nprocessed + k;
-        nprocessed += k;
+        nprocessed += (uint32_t)k;
 
         // check if this chunk can be optimized
         // if (check_literals_list(self, node, ismap, idxstart, idxend, dest)) continue;

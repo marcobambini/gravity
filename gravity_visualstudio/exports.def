@@ -29,8 +29,8 @@ EXPORTS
 	gravity_gray_object
 	gravity_gc_start
 	gravity_gc_setenabled
-	gravity_gc_push
-	gravity_gc_pop
+	gravity_gc_temppush
+	gravity_gc_temppop
 
 	gravity_vm_transfer
 	gravity_vm_cleanup
