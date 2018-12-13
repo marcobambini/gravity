@@ -1319,18 +1319,6 @@ void gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber) {
     if (fiber->error) mem_free(fiber->error);
     mem_free(fiber->stack);
     mem_free(fiber->frames);
-    
-    // free upvalues
-    if (fiber->upvalues) {
-        gravity_upvalue_t *upvalue = fiber->upvalues;
-        gravity_upvalue_t *tempvalue;
-        while (upvalue) {
-            tempvalue = upvalue;
-            upvalue = upvalue->next;
-            gravity_upvalue_free(vm, tempvalue);
-        }
-    }
-    
     mem_free(fiber);
 }
 

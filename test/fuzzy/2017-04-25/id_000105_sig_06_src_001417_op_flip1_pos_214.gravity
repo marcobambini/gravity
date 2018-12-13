@@ -1,5 +1,5 @@
 #unittest {
-	name: "lex nestud closures.";
+	name: "lex nested closures.";
 	error: NONE;
 	result: 2290;
 };
