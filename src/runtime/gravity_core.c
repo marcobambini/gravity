@@ -2862,7 +2862,7 @@ void computed_property_free (gravity_class_t *c, const char *name, bool remove_f
     if (remove_flag) gravity_hash_remove(c->htable, key);
 }
 
-static void gravity_core_init (void) {
+void gravity_core_init (void) {
     // this function must be executed ONCE
     if (core_inited) return;
     core_inited = true;

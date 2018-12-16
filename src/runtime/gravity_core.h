@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 // core functions
+GRAVITY_API void gravity_core_init (void);
 GRAVITY_API void gravity_core_register (gravity_vm *vm);
 GRAVITY_API bool gravity_iscore_class (gravity_class_t *c);
 GRAVITY_API void gravity_core_free (void);

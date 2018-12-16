@@ -1433,6 +1433,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 }
 
 gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
+    gravity_core_init();
+    
     gravity_vm *vm = mem_alloc(NULL, sizeof(gravity_vm));
     if (!vm) return NULL;
 
@@ -1466,6 +1468,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
 }
 
 gravity_vm *gravity_vm_newmini (void) {
+    gravity_core_init();
     gravity_vm *vm = mem_alloc(NULL, sizeof(gravity_vm));
     return vm;
 }
@@ -1588,7 +1591,7 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
 
     // do not waste cycles on empty functions
     gravity_function_t *f = closure->f;
-    if ((f->tag == EXEC_TYPE_NATIVE) && ((!f->bytecode) || (f->ninsts == 0))) return true;
+    if (f && (f->tag == EXEC_TYPE_NATIVE) && ((!f->bytecode) || (f->ninsts == 0))) return true;
 
     // current execution fiber
     gravity_fiber_t     *fiber = vm->fiber;
