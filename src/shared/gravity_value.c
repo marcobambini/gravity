@@ -1319,6 +1319,18 @@ void gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber) {
     if (fiber->error) mem_free(fiber->error);
     mem_free(fiber->stack);
     mem_free(fiber->frames);
+    
+    // free upvalues
+    if (fiber->upvalues) {
+        gravity_upvalue_t *upvalue = fiber->upvalues;
+        gravity_upvalue_t *tempvalue;
+        while (upvalue) {
+            tempvalue = upvalue;
+            upvalue = upvalue->next;
+            gravity_upvalue_free(vm, tempvalue);
+        }
+    }
+    
     mem_free(fiber);
 }
 
@@ -1617,11 +1629,6 @@ void gravity_instance_free (gravity_vm *vm, gravity_instance_t *i) {
     if (i->xdata && vm) {
         gravity_delegate_t *delegate = gravity_vm_delegate(vm);
         if (delegate->bridge_free) delegate->bridge_free(vm, (gravity_object_t *)i);
-        else {
-            // check if closure implements a free method
-            gravity_closure_t *closure = gravity_instance_lookup_event (i, GRAVITY_INTERNAL_FREE_NAME);
-            if (closure) gravity_vm_runclosure(vm, closure, VALUE_FROM_OBJECT(i), NULL, 0);
-        }
     }
 
     if (i->ivars) mem_free(i->ivars);

@@ -433,7 +433,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 execute_load_function:
                 switch(closure->f->tag) {
                     case EXEC_TYPE_NATIVE: {
-                        // invalidate current_fiber because it does not need to be synced in this case
+                        // invalidate current_fiber because it does not need to be in sync in this case
                         current_fiber = NULL;
                         PUSH_FRAME(closure, &stackstart[rwin], r1, 2);
                     } break;
@@ -567,14 +567,21 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // save currently executing fiber (that can change!)
                 gravity_fiber_t *current_fiber = fiber;
                 
+                // in case of computed property what happens is that EXEC_TYPE_INTERNAL returns false
+                // and the initial closure variable is overwritten by the closure to be executed returned
+                // in the r1 registed. The goto execute_store_function take cares of re-executing the code
+                // with the updated closure (that contains the computed property code) but the r1 register
+                // must be re-set with its initial value backed-up in the r1copy variable
+                bool reset_r1 = false;
+                
                 // call function f (do not use a macro here because we want to handle both the bridged and special cases)
                 STORE_FRAME();
                 execute_store_function:
                 switch(closure->f->tag) {
                     case EXEC_TYPE_NATIVE: {
-                        // invalidate current_fiber because it does not need to be synced in this case
+                        // invalidate current_fiber because it does not need to be in sync in this case
                         current_fiber = NULL;
-                        SETVALUE(rwin+1, v1);
+                        if (reset_r1) SETVALUE(rwin+1, v1);
                         PUSH_FRAME(closure, &stackstart[rwin], r1, 2);
                     } break;
 
@@ -591,6 +598,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                             if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
                                 closure = VALUE_AS_CLOSURE(STACK_GET(r1));
                                 SETVALUE(r1, r1copy);
+                                reset_r1 = true;
                                 goto execute_store_function;
                             }
 
@@ -2140,6 +2148,10 @@ static void gravity_gc_transfer_object (gravity_vm *vm, gravity_object_t *obj) {
     vm->gchead = obj;
 }
 
+static void gravity_gc_check (gravity_vm *vm) {
+	if (vm->memallocated >= vm->gcthreshold) gravity_gc_start(vm);
+}
+
 static void gravity_gc_transfer (gravity_vm *vm, gravity_object_t *obj) {
     if (vm->gcenabled > 0) {
         #if GRAVITY_GC_STRESSTEST
@@ -2293,6 +2305,8 @@ static void gravity_gc_cleanup (gravity_vm *vm) {
 void gravity_gc_setenabled (gravity_vm *vm, bool enabled) {
     if (!vm) return;
     (enabled) ? ++vm->gcenabled : --vm->gcenabled ;
+    
+	if (vm->gcenabled > 0 && (!vm->delegate->disable_gccheck_1)) gravity_gc_check(vm);
 }
 
 void gravity_gc_temppush (gravity_vm *vm, gravity_object_t *obj) {

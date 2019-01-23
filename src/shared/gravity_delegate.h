@@ -59,7 +59,8 @@ typedef struct {
     // user data
     void                        *xdata;                 // optional user data transparently passed between callbacks
     bool                        report_null_errors;     // by default messages sent to null objects are silently ignored (if this flag is false)
-
+    bool                        disable_gccheck_1;      // memory allocations are protected so it could be useful to automatically check gc when enabled is restored
+    
     // callbacks
     gravity_log_callback        log_callback;           // log reporting callback
     gravity_log_clear           log_clear;              // log reset callback

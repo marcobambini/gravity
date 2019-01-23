@@ -200,7 +200,6 @@ typedef enum {
 #define GRAVITY_INTERNAL_STOREAT_NAME   "storeat"
 #define GRAVITY_INTERNAL_NOTFOUND_NAME  "notfound"
 #define GRAVITY_INTERNAL_EXEC_NAME      "exec"
-#define GRAVITY_INTERNAL_FREE_NAME      "free"
 #define GRAVITY_INTERNAL_LOOP_NAME      "loop"
 
 #define GRAVITY_CLASS_INT_NAME          "Int"

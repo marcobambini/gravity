@@ -1,0 +1,26 @@
+#unittest {
+	name: "Custom load/store";
+	error: NONE;
+	result: "bar";
+};
+
+class A {
+    private var storage;
+    
+    func init() {
+        storage = [:];
+    }
+    func storeat(key, value) {
+        storage[key] = value;
+    }
+    
+    func loadat(key) {
+        return storage[key];
+    }
+}
+
+func main() {
+    var inst = A();
+    inst["foo"] = "bar";
+    return inst["foo"];
+}
