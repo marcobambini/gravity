@@ -256,9 +256,9 @@ uint8_t opcode_numop (opcode_t op) {
     return 0;
 }
 
-void ircode_dump  (void *_code) {
+void ircode_dump (void *_code) {
     ircode_t    *code = (ircode_t *)_code;
-    code_r        *list = code->list;
+    code_r      *list = code->list;
     uint32_t    count = ircode_count(code);
 
     if (count == 0) {
@@ -267,18 +267,23 @@ void ircode_dump  (void *_code) {
     }
 
     for (uint32_t i=0, line=0; i<count; ++i) {
-        inst_t *inst = marray_get(*list, i);
+        inst_t      *inst = marray_get(*list, i);
         opcode_t    op = inst->op;
-        int32_t        p1 = inst->p1;
-        int32_t        p2 = inst->p2;
-        int32_t        p3 = inst->p3;
+        int32_t     p1 = inst->p1;
+        int32_t     p2 = inst->p2;
+        int32_t     p3 = inst->p3;
         if (inst->tag == SKIP_TAG) continue;
         if (inst->tag == PRAGMA_MOVE_OPTIMIZATION) continue;
         if (inst->tag == LABEL_TAG) {printf("LABEL %d:\n", p1); continue;}
 
         uint8_t n = opcode_numop(op);
         if ((op == SETLIST) && (p2 == 0)) n = 2;
-
+        
+        // set to 1 to debug line number for each instruction
+        #if 0
+        printf("(%d)\t\t", inst->lineno);
+        #endif
+        
         switch (n) {
             case 0: {
                 printf("%05d\t%s\n", line, opcode_name(op));

@@ -265,8 +265,10 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
         fiber->stacktop -= stacktopdelta;
 
         // stack reallocation failed means that there is a very high probability to be into an infinite loop
-        RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+        // so return false and let the calling function (vm_exec) raise a runtime error
+        return false;
     }
+    
     fiber->stack = (gravity_value_t *)ptr;
     fiber->stackalloc = new_size;
     STAT_STACK_REALLOCATED(vm);
@@ -1079,7 +1081,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                         uint32_t rwin = FN_COUNTREG(func, frame->nargs);
                         uint32_t _rneed = FN_COUNTREG(closure->f, 1);
 						uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
-                        if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;
+                        if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) {
+                            RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+                        }
                         SETVALUE(rwin, v1);
 
                         // call func and check result
@@ -1137,7 +1141,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // check stack size
                 uint32_t _rneed = FN_COUNTREG(closure->f, r3);
 				uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
-                if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;
+                if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) {
+                    RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+                }
 
                 // if less arguments are passed then fill the holes with UNDEFINED values
                 while (r3 < closure->f->nparams) {
@@ -1606,6 +1612,10 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
     gravity_value_t     *stackstart = NULL;
     uint32_t            rwin = 0;
 	uint32_t			stacktopdelta = 0;
+    
+    // current frame and current instruction pointer
+    gravity_callframe_t *frame;
+    uint32_t            *ip;
 	
     DEBUG_STACK();
 
@@ -1623,13 +1633,13 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
     // the new activation frame
     if (fiber->nframes) {
         // current call frame
-        gravity_callframe_t *frame = &fiber->frames[fiber->nframes - 1];
+        frame = &fiber->frames[fiber->nframes - 1];
 
         // current top of the stack
         stackstart = frame->stackstart;
 
         // current instruction pointer
-        uint32_t *ip = frame->ip;
+        ip = frame->ip;
 
         // compute register window
         rwin = FN_COUNTREG(frame->closure->f, frame->nargs);
@@ -1637,7 +1647,9 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
         // check stack size
         uint32_t _rneed = FN_COUNTREG(f,nparams+1);
 		stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - vm->fiber->stacktop, 0);
-        if (!gravity_check_stack(vm, vm->fiber, stacktopdelta, &stackstart)) return false;
+        if (!gravity_check_stack(vm, vm->fiber, stacktopdelta, &stackstart)) {
+            RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+        }
 		
         // setup params (first param is self)
         SETVALUE(rwin, selfvalue);
@@ -1661,7 +1673,8 @@ bool gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_
         }
 
         // check if closure uses the special _args instruction
-        gravity_callframe_t *frame = &fiber->frames[0];
+        frame = &fiber->frames[0];
+        ip = frame->ip;
         frame->args = (USE_ARGS(closure)) ? gravity_list_from_array(vm, nparams, &stackstart[rwin]+1) : NULL;
     }
 

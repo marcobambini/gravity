@@ -34,7 +34,7 @@
 #define OPCODE_GET_FOUR8bit(op,r1,r2,r3,r4)             r1 = (op >> 24) & 0xFF; r2 = (op >> 16) & 0xFF; r3 = (op >> 8) & 0xFF; r4 = (op & 0xFF)
 #define OPCODE_GET_THREE8bit_ONE2bit(op,r1,r2,r3,r4)    r1 = (op >> 18) & 0xFF; r2 = (op >> 10) & 0xFF; r3 = (op >> 2) & 0xFF; r4 = (op & 0x03)
 
-#define GRAVITY_VM_DEGUB                0               // print each VM instruction
+#define GRAVITY_VM_DEBUG                0               // print each VM instruction
 #define GRAVITY_VM_STATS                0               // print VM related stats after each execution
 #define GRAVITY_GC_STATS                0               // print useful stats each time GC runs
 #define GRAVITY_GC_STRESSTEST           0               // force a GC run after each memory allocation
@@ -56,7 +56,7 @@
 #define DEBUG_GC(...)
 #endif
 
-#if GRAVITY_VM_DEGUB
+#if GRAVITY_VM_DEBUG
 #define DEBUG_VM(...)                   DEBUG_STACK();printf("%06u\t",vm->pc); printf(__VA_ARGS__);printf("\n");fflush(stdout)
 #define DEBUG_VM_NOCR(...)              DEBUG_STACK();printf("%06u\t",vm->pc); printf(__VA_ARGS__);fflush(stdout)
 #define DEBUG_VM_RAW(...)               printf(__VA_ARGS__);fflush(stdout)
@@ -92,7 +92,12 @@
 #define STAT_STACK_REALLOCATED(_vm)
 #endif
 
+// starting from version 0.6.3 a call to STORE_FRAME macro has been added in order to syncronize current IP
+// for a better line number computation in case of runtime error (as a consequence ip and frame variables
+// has been explicitly exposed in the gravity_vm_runclosure function and the infinite loop error message
+// has been moved outside the gravity_check_stack function)
 #define RUNTIME_ERROR(...)              do {                                                                \
+                                            STORE_FRAME();                                                  \
                                             report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, __VA_ARGS__);   \
                                             return false;                                                   \
                                         } while (0)
