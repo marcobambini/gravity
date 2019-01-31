@@ -1319,20 +1319,6 @@ void gravity_fiber_free (gravity_vm *vm, gravity_fiber_t *fiber) {
     if (fiber->error) mem_free(fiber->error);
     mem_free(fiber->stack);
     mem_free(fiber->frames);
-    
-    // free upvalues
-    /*
-    if (fiber->upvalues) {
-        gravity_upvalue_t *upvalue = fiber->upvalues;
-        gravity_upvalue_t *tempvalue;
-        while (upvalue) {
-            tempvalue = upvalue;
-            upvalue = upvalue->next;
-            gravity_upvalue_free(vm, tempvalue);
-        }
-    }
-     */
-    
     mem_free(fiber);
 }
 
@@ -1603,7 +1589,12 @@ gravity_instance_t *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *
   
     gravity_instance_t *instance = (gravity_instance_t *)mem_alloc(NULL, sizeof(gravity_instance_t));
     instance->isa = gravity_class_instance;
-    instance->objclass = c; // TODO: if gravity_class_is_anon(c) then c must be deeply copied
+    instance->objclass = c;
+    
+    // if c is an anonymous class then it must be deeply copied
+    if (gravity_class_is_anon(c)) {
+        // clone class c and all its closures
+    }
     
     gravity_delegate_t *delegate = gravity_vm_delegate(vm);
 

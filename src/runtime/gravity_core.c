@@ -788,6 +788,20 @@ static bool object_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     RETURN_ERROR("Forbidden Object execution.");
 }
 
+static bool object_clone (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    
+    if (VALUE_ISA_INSTANCE(GET_VALUE(0))) {
+        gravity_instance_t *instance = (gravity_instance_t *)(GET_VALUE(0).p);
+        gravity_instance_t *clone = gravity_instance_clone(vm, instance);
+        RETURN_VALUE(VALUE_FROM_OBJECT(clone), rindex);
+    }
+    
+    // more cases to add in the future
+    RETURN_ERROR("Unable to clone non instance object.");
+}
+
+
 //static bool object_methods (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
 //    #pragma unused(vm, nargs)
 //    gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
@@ -2958,6 +2972,7 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_object, "bind", NEW_CLOSURE_VALUE(object_bind));
     gravity_class_bind(gravity_class_object, "unbind", NEW_CLOSURE_VALUE(object_unbind));
     gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(object_exec));
+    gravity_class_bind(gravity_class_object, "clone", NEW_CLOSURE_VALUE(object_clone));
 
     // NULL CLASS
     // Meta

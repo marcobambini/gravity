@@ -1,0 +1,19 @@
+#unittest {
+	name: "Instance clone.";
+	error: NONE;
+	result: 300;
+};
+
+class Foo {
+    var a;
+}
+
+func main() {
+    var f = Foo();
+    f.a = 100;
+    
+    var f2 = f.clone();
+    f2.a = 200;
+    
+    return f.a + f2.a;
+}
