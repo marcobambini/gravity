@@ -1388,9 +1388,24 @@ static bool map_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
 static bool range_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
+    
     gravity_range_t *range = VALUE_AS_RANGE(GET_VALUE(0));
     gravity_int_t count = (range->to > range->from) ? (range->to - range->from) : (range->from - range->to);
     RETURN_VALUE(VALUE_FROM_INT(count+1), rindex);
+}
+
+static bool range_from (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    
+    gravity_range_t *range = VALUE_AS_RANGE(GET_VALUE(0));
+    RETURN_VALUE(VALUE_FROM_INT(range->from), rindex);
+}
+
+static bool range_to (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    
+    gravity_range_t *range = VALUE_AS_RANGE(GET_VALUE(0));
+    RETURN_VALUE(VALUE_FROM_INT(range->to), rindex);
 }
 
 static bool range_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -3031,6 +3046,10 @@ void gravity_core_init (void) {
     // RANGE CLASS
     closure = computed_property_create(NULL, NEW_FUNCTION(range_count), NULL);
     gravity_class_bind(gravity_class_range, "count", VALUE_FROM_OBJECT(closure));
+    closure = computed_property_create(NULL, NEW_FUNCTION(range_from), NULL);
+    gravity_class_bind(gravity_class_range, "from", VALUE_FROM_OBJECT(closure));
+    closure = computed_property_create(NULL, NEW_FUNCTION(range_to), NULL);
+    gravity_class_bind(gravity_class_range, "to", VALUE_FROM_OBJECT(closure));
     gravity_class_bind(gravity_class_range, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(range_iterator));
     gravity_class_bind(gravity_class_range, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(range_iterator_next));
     gravity_class_bind(gravity_class_range, "contains", NEW_CLOSURE_VALUE(range_contains));

@@ -1,0 +1,10 @@
+#unittest {
+	name: "Range from/to properties.";
+	result: 34;
+};
+
+func main() {
+    var r1 = 1...4
+    var r2 = 10..<20
+    return r1.from + r1.to + r2.from + r2.to;
+}
