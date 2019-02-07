@@ -29,7 +29,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
     LIST(APPEND LIBS "m")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    LIST(APPEND LIBS "m" "rt")
+    LIST(APPEND LIBS "m" "rt" "bsd")
 endif()
 
 ADD_EXECUTABLE(gravity ${GRAVITY_SRC} $<TARGET_OBJECTS:libgravity>)
