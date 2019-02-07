@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "gravity_vm.h"
 #include "gravity_core.h"
