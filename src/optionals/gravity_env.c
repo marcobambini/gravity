@@ -26,13 +26,9 @@
  * 
  * @param 
  */
-bool gravity_env_get(
-    gravity_vm *vm, 
-    gravity_value_t *args, uint16_t nargs, uint32_t rindex
-) {
+bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     if(!VALUE_ISA_STRING(args[1])) {
-        gravity_vm_seterror_string(vm, "Environment variable key must be a string.");
-        return false;
+        RETURN_ERROR("Environment variable key must be a string.");
     }
 
     char* key = VALUE_AS_CSTRING(args[1]);
@@ -41,15 +37,13 @@ bool gravity_env_get(
 
     GRAVITY_DEBUG_PRINT("[ENV::GET args : %i] %s => %s\n", nargs, key, value);
 
-    if (value == NULL)
-    {
+    if (value == NULL) {
         rt = VALUE_FROM_UNDEFINED;
     } else {
         rt = VALUE_FROM_STRING(vm, value, strlen(value));
     }
 
-    gravity_vm_setslot(vm, rt, rindex);
-    return true;
+    RETURN_VALUE(rt, rindex);
 }
 
 /**
@@ -60,39 +54,32 @@ bool gravity_env_get(
  * @param  rindex: Slot-index for the return value to be stored in.
  * @retval  Weather this function was successful or not.
  */
-bool gravity_env_set(
-    gravity_vm *vm,
-    gravity_value_t *args, uint16_t nargs, uint32_t rindex
-) {
+bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     if(!VALUE_ISA_STRING(args[1]) || !VALUE_ISA_STRING(args[2])) {
-        gravity_vm_seterror_string(vm, "Environment variable key and value must both be strings.");
-        return false;
+        RETURN_ERROR("Environment variable key and value must both be strings.");
     }
+
     gravity_string_t *key_var, *value_var;
     key_var = VALUE_AS_STRING(args[1]);
     value_var = VALUE_AS_STRING(args[2]);
 
     uint32_t len = key_var->alloc + value_var->alloc + 1;
     char *buf = (char*)malloc(len);
-    strlcpy(buf, key_var->s, key_var->alloc);
-    strcat(buf, "=");
-    strlcat(buf, value_var->s, value_var->alloc);
+    snprintf(buf, len, "%s=%s", key_var->s, value_var->s);
+    free(buf);
 
     GRAVITY_DEBUG_PRINT(
         "[ENV::SET args : %i] (%.*s) \"%.*s\" => \"%.*s\"\n",
         nargs, (int)len, buf,
         key_var->len, key_var->s,
-        value_var->len, value_var->s);
+        value_var->len, value_var->s
+    );
 
     int rt = putenv(buf);
-    gravity_vm_setslot(vm, VALUE_FROM_INT(rt), rindex);
-    return true;
+    RETURN_VALUE(VALUE_FROM_INT(rt), rindex);
 }
 
-bool gravity_env_keys(
-    gravity_vm *vm,
-    gravity_value_t *args, uint16_t nparams, uint32_t rindex
-) {
+bool gravity_env_keys(gravity_vm *vm, gravity_value_t *args, uint16_t nparams, uint32_t rindex) {
     extern char **environ;
     char *evar = *environ;
     gravity_list_t *keys = gravity_list_new(vm, 1);
@@ -110,8 +97,7 @@ bool gravity_env_keys(
         evar = *(environ + i);
     }
 
-    gravity_vm_setslot(vm, VALUE_FROM_OBJECT(keys), rindex);
-    return true;
+    RETURN_VALUE(VALUE_FROM_OBJECT(keys), rindex);
 }
 
 void gravity_env_register(gravity_vm *vm) {
