@@ -33,7 +33,7 @@ else
 	else
 		# Linux
 		LIBTARGET = libgravity.so
-		LDFLAGS = -lm -lrt -lbsd
+		LDFLAGS = -lm -lrt
 	endif
 endif
 
