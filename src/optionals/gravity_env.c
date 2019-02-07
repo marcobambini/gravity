@@ -66,7 +66,6 @@ bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint
     uint32_t len = key_var->alloc + value_var->alloc + 1;
     char *buf = (char*)malloc(len);
     snprintf(buf, len, "%s=%s", key_var->s, value_var->s);
-    free(buf);
 
     GRAVITY_DEBUG_PRINT(
         "[ENV::SET args : %i] (%.*s) \"%.*s\" => \"%.*s\"\n",
@@ -76,6 +75,8 @@ bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint
     );
 
     int rt = putenv(buf);
+    free(buf);
+
     RETURN_VALUE(VALUE_FROM_INT(rt), rindex);
 }
 
