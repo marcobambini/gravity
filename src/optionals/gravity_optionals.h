@@ -26,4 +26,19 @@
 #define GRAVITY_ISMATH_CLASS(_c)            false
 #endif
 
+#ifndef GRAVITY_INCLUDE_ENV
+#define GRAVITY_INCLUDE_ENV
+#endif
+
+#ifdef GRAVITY_INCLUDE_ENV
+#include "gravity_env.h"
+#define GRAVITY_ENV_REGISTER(_vm) gravity_env_register(_vm)
+#define GRAVITY_ENV_FREE() gravity_math_free()
+#define GRAVITY_ENV_NAME() ENV_CLASS_NAME
+#else
+#define GRAVITY_ENV_REGISTER(_vm)
+#define GRAVITY_ENV_FREE()
+#define GRAVITY_ENV_NAME() NULL
+#endif
+
 #endif
