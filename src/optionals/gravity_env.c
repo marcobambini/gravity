@@ -59,16 +59,16 @@ static bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t narg
 static bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(nargs)
     
-    if(!VALUE_ISA_STRING(args[1]) || !VALUE_ISA_STRING(args[2])) {
+    if(!VALUE_ISA_STRING(args[1]) || (!VALUE_ISA_STRING(args[2]) && !VALUE_ISA_NULL(args[2]))) {
         RETURN_ERROR("Environment variable key and value must both be strings.");
     }
 
     gravity_string_t *key = VALUE_AS_STRING(args[1]);
-    gravity_string_t *value = VALUE_AS_STRING(args[2]);
+    gravity_string_t *value = (VALUE_ISA_STRING(args[2])) ? VALUE_AS_STRING(args[2]) : NULL;
 
     GRAVITY_DEBUG_PRINT("[ENV::SET args : %i] %s => %s\n", nargs, key, value);
 
-    int rt = setenv(key->s, value->s, 1);
+    int rt = (value) ? setenv(key->s, value->s, 1) : unsetenv(key->s);
     RETURN_VALUE(VALUE_FROM_INT(rt), rindex);
 }
 
