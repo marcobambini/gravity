@@ -19,6 +19,12 @@
 
 #include "gravity_env.h"
 
+#if defined(_WIN32)
+#define setenv(_key, _value_, _unused)      _putenv_s(_key, _value_)
+#define unsetenv(_key)                      _putenv_s(_key, "")
+#endif
+
+
 #define ENV_CLASS_NAME "ENV"
 
 static gravity_class_t              *gravity_class_env = NULL;
