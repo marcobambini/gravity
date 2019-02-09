@@ -21,26 +21,28 @@
 
 #define ENV_CLASS_NAME "ENV"
 
+static gravity_class_t              *gravity_class_env = NULL;
+static uint32_t                     refcount = 0;
+
 /**
  * Wraps `getenv()` to be used with Gravity.
- * 
- * @param 
+ *
  */
-bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+static bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    
     if(!VALUE_ISA_STRING(args[1])) {
         RETURN_ERROR("Environment variable key must be a string.");
     }
 
-    char* key = VALUE_AS_CSTRING(args[1]);
-    char* value = getenv(key);
-    gravity_value_t rt;
+    char *key = VALUE_AS_CSTRING(args[1]);
+    char *value = getenv(key);
+    gravity_value_t rt = VALUE_FROM_UNDEFINED;
 
     GRAVITY_DEBUG_PRINT("[ENV::GET args : %i] %s => %s\n", nargs, key, value);
 
-    if (value == NULL) {
-        rt = VALUE_FROM_UNDEFINED;
-    } else {
-        rt = VALUE_FROM_STRING(vm, value, strlen(value));
+    if (value) {
+        rt = VALUE_FROM_STRING(vm, value, (uint32_t)strlen(value));
     }
 
     RETURN_VALUE(rt, rindex);
@@ -48,74 +50,92 @@ bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint
 
 /**
  * @brief  Wraps putenv() into a Gravity callable function
- * @param  *vm: The Gravity Virtual Maschine this function is associated with.
- * @param  *args: List of arguments passed to this function
- * @param  nargs: Number of arguments passed to this function
- * @param  rindex: Slot-index for the return value to be stored in.
+ * @param  vm The Gravity Virtual Maschine this function is associated with.
+ * @param  args List of arguments passed to this function
+ * @param  nargs Number of arguments passed to this function
+ * @param  rindex Slot-index for the return value to be stored in.
  * @retval  Weather this function was successful or not.
  */
-bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+static bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    
     if(!VALUE_ISA_STRING(args[1]) || !VALUE_ISA_STRING(args[2])) {
         RETURN_ERROR("Environment variable key and value must both be strings.");
     }
 
-    gravity_string_t *key_var, *value_var;
-    key_var = VALUE_AS_STRING(args[1]);
-    value_var = VALUE_AS_STRING(args[2]);
+    gravity_string_t *key = VALUE_AS_STRING(args[1]);
+    gravity_string_t *value = VALUE_AS_STRING(args[2]);
 
-    uint32_t len = key_var->alloc + value_var->alloc + 1;
-    char *buf = (char *)mem_alloc(vm, len);
-    snprintf(buf, len, "%s=%s", key_var->s, value_var->s);
+    GRAVITY_DEBUG_PRINT("[ENV::SET args : %i] %s => %s\n", nargs, key, value);
 
-    GRAVITY_DEBUG_PRINT(
-        "[ENV::SET args : %i] (%.*s) \"%.*s\" => \"%.*s\"\n",
-        nargs, (int)len, buf,
-        key_var->len, key_var->s,
-        value_var->len, value_var->s
-    );
-
-    int rt = putenv(buf);
-    mem_free(buf);
-
+    int rt = setenv(key->s, value->s, 1);
     RETURN_VALUE(VALUE_FROM_INT(rt), rindex);
 }
 
-bool gravity_env_keys(gravity_vm *vm, gravity_value_t *args, uint16_t nparams, uint32_t rindex) {
+static bool gravity_env_keys(gravity_vm *vm, gravity_value_t *args, uint16_t nparams, uint32_t rindex) {
+    #pragma unused(args, nparams)
+    
     extern char **environ;
-    char *evar = *environ;
-    gravity_list_t *keys = gravity_list_new(vm, 1);
-
-    for (int i = 1; evar != NULL; i++) {
-        char key[strlen(evar)];
-        uint16_t len;
-        for (len = 0; evar[len] != '='; len++) {
-            key[len] = evar[len];
+    gravity_list_t *keys = gravity_list_new(vm, 16);
+    
+    for (char **env = environ; *env; ++env) {
+        char *entry = *env;
+        
+        // env is in the form key=value
+        uint32_t len = 0;
+        for (uint32_t i=0; entry[len]; ++i, ++len) {
+            if (entry[i] == '=') break;
         }
-        marray_push(
-            gravity_value_t, keys->array,
-            VALUE_FROM_STRING(vm, key, len)
-        );
-        evar = *(environ + i);
+        gravity_value_t key = VALUE_FROM_STRING(vm, entry, len);
+        marray_push(gravity_value_t, keys->array, key);
     }
 
     RETURN_VALUE(VALUE_FROM_OBJECT(keys), rindex);
 }
 
-void gravity_env_register(gravity_vm *vm) {
-    gravity_class_t *c = gravity_class_new_pair(vm, ENV_CLASS_NAME, NULL, 0, 0);
-    gravity_class_t *m = gravity_class_get_meta(c);
+// MARK: - Internals -
 
+static void create_optional_class (void) {
+    gravity_class_env = gravity_class_new_pair(NULL, ENV_CLASS_NAME, NULL, 0, 0);
+    gravity_class_t *meta = gravity_class_get_meta(gravity_class_env);
+    
     // .get(key) and .set(key, value)
-    gravity_class_bind(m, "get", NEW_CLOSURE_VALUE(gravity_env_get));
-    gravity_class_bind(m, "set", NEW_CLOSURE_VALUE(gravity_env_set));
-    gravity_class_bind(m, "keys", NEW_CLOSURE_VALUE(gravity_env_keys));
-
+    gravity_class_bind(meta, "get", NEW_CLOSURE_VALUE(gravity_env_get));
+    gravity_class_bind(meta, "set", NEW_CLOSURE_VALUE(gravity_env_set));
+    gravity_class_bind(meta, "keys", NEW_CLOSURE_VALUE(gravity_env_keys));
+    
     // Allow map-access
-    gravity_class_bind(m, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(gravity_env_get));
-    gravity_class_bind(m, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(gravity_env_set));
+    gravity_class_bind(meta, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(gravity_env_get));
+    gravity_class_bind(meta, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(gravity_env_set));
+    
+    SETMETA_INITED(gravity_class_env);
+}
 
-    // @TODO: add iteration support
+// MARK: - Commons -
 
-    // Install
-    gravity_vm_setvalue(vm, ENV_CLASS_NAME, VALUE_FROM_OBJECT(c));
+void gravity_env_register(gravity_vm *vm) {
+    if (!gravity_class_env) create_optional_class();
+    ++refcount;
+    
+    if (!vm || gravity_vm_ismini(vm)) return;
+    gravity_vm_setvalue(vm, ENV_CLASS_NAME, VALUE_FROM_OBJECT(gravity_class_env));
+}
+
+void gravity_env_free (void) {
+    if (!gravity_class_env) return;
+    if (--refcount) return;
+    
+    gravity_class_t *meta = gravity_class_get_meta(gravity_class_env);
+    gravity_class_free_core(NULL, meta);
+    gravity_class_free_core(NULL, gravity_class_env);
+    
+    gravity_class_env = NULL;
+}
+
+bool gravity_isenv_class (gravity_class_t *c) {
+    return (c == gravity_class_env);
+}
+
+const char *gravity_env_name (void) {
+    return ENV_CLASS_NAME;
 }

@@ -31,14 +31,16 @@
 #endif
 
 #ifdef GRAVITY_INCLUDE_ENV
+#define GRAVITY_ENV_REGISTER(_vm)           gravity_env_register(_vm)
+#define GRAVITY_ENV_FREE()                  gravity_env_free()
+#define GRAVITY_ENV_NAME()                  gravity_env_name()
+#define GRAVITY_ISENV_CLASS(_c)             gravity_isenv_class(_c)
 #include "gravity_env.h"
-#define GRAVITY_ENV_REGISTER(_vm) gravity_env_register(_vm)
-#define GRAVITY_ENV_FREE() gravity_math_free()
-#define GRAVITY_ENV_NAME() ENV_CLASS_NAME
 #else
 #define GRAVITY_ENV_REGISTER(_vm)
 #define GRAVITY_ENV_FREE()
-#define GRAVITY_ENV_NAME() NULL
+#define GRAVITY_ENV_NAME()                  NULL
+#define GRAVITY_ISENV_CLASS(_c)             false
 #endif
 
 #endif

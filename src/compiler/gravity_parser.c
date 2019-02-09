@@ -2506,6 +2506,11 @@ static void parser_register_optional_classes (gravity_parser_t *parser) {
     gnode_t *decl = gnode_variable_create(NO_TOKEN, string_dup(GRAVITY_MATH_NAME()), NULL, 0, NULL, LAST_DECLARATION());
     gnode_array_push(decls, decl);
     #endif
+    
+    #ifdef GRAVITY_INCLUDE_ENV
+    gnode_t *decl2 = gnode_variable_create(NO_TOKEN, string_dup(GRAVITY_ENV_NAME()), NULL, 0, NULL, LAST_DECLARATION());
+    gnode_array_push(decls, decl2);
+    #endif
 
     // check if optional classes callback is registered
     if (parser->delegate && parser->delegate->optional_classes) {
