@@ -264,6 +264,7 @@ static void print_help (void) {
     printf("-x input_file      execute input_file (JSON format expected)\n");
     printf("-i source_code     compile and execute source_code string\n");
     printf("-q                 don't print result and execution time\n");
+    printf("-t                 Run unit tests (file_name is then treated as a folder)\n");
     printf("file_name          compile file_name and executes it\n");
 }
 
