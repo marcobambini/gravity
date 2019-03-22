@@ -1,6 +1,6 @@
 :root {
 	/* General */
-  	--base-font-size							  : 14px;
+  	--base-font-size							  : 16px;
   	--link-color 								  : var(--theme-color);
   	--link-text-decoration 						  : none;
   	--heading-h3-color							  : #7E267E;
