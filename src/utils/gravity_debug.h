@@ -15,10 +15,4 @@ const char *opcode_constname (int n);
 const char *opcode_name (opcode_t op);
 const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const char *bcode, uint32_t blen, bool deserialize);
 
-#ifdef GRAVITY_DEBUG
-#define GRAVITY_DEBUG_PRINT(...) printf(__VA_ARGS__)
-#else
-#define GRAVITY_DEBUG_PRINT(...) ((void)0)
-#endif
-
 #endif
