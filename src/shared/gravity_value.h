@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.6.3"     // git tag 0.6.3
-#define GRAVITY_VERSION_NUMBER				0x000603    // git push --tags
+#define GRAVITY_VERSION						"0.6.4"     // git tag 0.6.4
+#define GRAVITY_VERSION_NUMBER				0x000604    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -240,7 +240,7 @@ typedef enum {
     EXEC_TYPE_SPECIAL           // special execution like getter and setter (can be NATIVE, INTERNAL)
 } gravity_exec_type;
 
-typedef struct {
+typedef struct gravity_gc_s {
     bool                    isdark;         // flag to check if object is reachable
     bool                    visited;        // flag to check if object has already been counted in memory size
     gravity_object_t        *next;          // to track next object in the linked list
@@ -290,7 +290,7 @@ typedef struct upvalue_s {
     struct upvalue_s        *next;          // ptr to the next open upvalue
 } gravity_upvalue_t;
 
-typedef struct {
+typedef struct gravity_closure_s {
     gravity_class_t         *isa;           // to be an object
     gravity_gc_t            gc;             // to be collectable by the garbage collector
 
