@@ -1332,10 +1332,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
     size_t count = gnode_array_size(node->list);
 
     for (size_t i=0; i<count; ++i) {
-        // a subnode can be a CALL_EXPR        => id.()
-        // a NODE_ACCESS_EXPR                => id.id2
+        // a subnode can be a CALL_EXPR     => id.()
+        // a NODE_ACCESS_EXPR               => id.id2
         // a NODE_SUBSCRIPT_EXPR            => id[]
-        // or ANY combination of the them!    => id.id2.id3()[24]().id5()
+        // or ANY combination of the them!  => id.id2.id3()[24]().id5()
         gnode_postfix_subexpr_t *subnode = (gnode_postfix_subexpr_t *)gnode_array_get(node->list, i);
 
         // identify postfix type: NODE_CALL_EXPR, NODE_ACCESS_EXPR, NODE_SUBSCRIPT_EXPR
@@ -1510,7 +1510,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                 report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
                 return;
             }
-			ircode_add(code, (is_assignment) ? STOREAT : LOADAT, dest_register, target_register, index, LINE_NUMBER(node));
+			ircode_add(code, (is_real_assigment) ? STOREAT : LOADAT, dest_register, target_register, index, LINE_NUMBER(node));
             if ((!is_real_assigment) && (i+1<count)) {
                 uint32_t rtemp = ircode_register_pop_context_protect(code, true);
                 if (rtemp == REGISTER_ERROR) {
