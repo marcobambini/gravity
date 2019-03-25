@@ -400,7 +400,7 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
 
     if (VALUE_ISA_CLOSURE(v)) {
         const char *identifier = (VALUE_AS_CLOSURE(v)->f->identifier);
-        if (!identifier) identifier = "anonymous func";
+        if (!identifier) identifier = "anonymous closure";
         return VALUE_FROM_CSTRING(vm, identifier);
     }
 
@@ -2534,7 +2534,7 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 
 static bool string_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-    gravity_string_t    *string = VALUE_AS_STRING(GET_VALUE(0));
+    gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
     register int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
     RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, 1), rindex);
 }
@@ -2545,6 +2545,43 @@ static bool string_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     gravity_value_t v = convert_value2string(vm, GET_VALUE(1));
     if (VALUE_ISA_NOTVALID(v)) RETURN_ERROR("Unable to convert object to String.");
     RETURN_VALUE(v, rindex);
+}
+
+static bool string_trim (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    int32_t direction = 0; // means trim both left and right
+    
+    // optional second parameters to specify trim-left (1) or trim-right(2)
+    // default is trim-both(0)
+    if ((nargs == 2) && (VALUE_ISA_INT(GET_VALUE(1)))) {
+        int32_t v = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+        if (v >= 0 && v <= 2) direction = v;
+    }
+    
+    gravity_string_t *src = VALUE_AS_STRING(GET_VALUE(0));
+    const char *s = src->s;
+    int32_t index_left = 0;
+    int32_t index_right = src->len;
+    
+    // process left
+    if (direction == 0 || direction == 1) {
+        for (int32_t i=0; i<index_right; ++i) {
+            if (isspace(s[i])) ++index_left;
+            else break;
+        }
+    }
+    
+    // process right
+    if (direction == 0 || direction == 2) {
+        for (int32_t i=index_right-1; i>=index_left; --i) {
+            if (isspace(s[i])) --index_right;
+            else break;
+        }
+    }
+    
+    // index_left and index_right now points to the right indexes
+    uint32_t trim_len = (index_left - 0) + (src->len - index_right);
+    gravity_value_t value = VALUE_FROM_STRING(vm, (const char *)&s[index_left], src->len - trim_len);
+    RETURN_VALUE(value, rindex);
 }
 
 // MARK: - Fiber Class -
@@ -3148,6 +3185,7 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_string, ITERATOR_INIT_FUNCTION, NEW_CLOSURE_VALUE(string_iterator));
     gravity_class_bind(gravity_class_string, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(string_iterator_next));
     gravity_class_bind(gravity_class_string, "number", NEW_CLOSURE_VALUE(string_number));
+    gravity_class_bind(gravity_class_string, "trim", NEW_CLOSURE_VALUE(string_trim));
     // Meta
     gravity_class_t *string_meta = gravity_class_get_meta(gravity_class_string);
     gravity_class_bind(string_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(string_exec));
