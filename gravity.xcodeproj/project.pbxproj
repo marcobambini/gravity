@@ -28,6 +28,7 @@
 		A9506D5C1E69AB8D009A0045 /* gravity_debug.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2A1E69AB1E009A0045 /* gravity_debug.c */; };
 		A9506D5D1E69AB8D009A0045 /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2C1E69AB1E009A0045 /* gravity_json.c */; };
 		A9506D5E1E69AB8D009A0045 /* gravity_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2E1E69AB1E009A0045 /* gravity_utils.c */; };
+		A956AADE220EBB8100C361D6 /* gravity_env.c in Sources */ = {isa = PBXBuildFile; fileRef = A956AADC220EBB8100C361D6 /* gravity_env.c */; };
 		A9BB72F01F470832002FD2D6 /* gravity_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A9BB72EC1F470832002FD2D6 /* gravity_math.c */; };
 /* End PBXBuildFile section */
 
@@ -92,6 +93,8 @@
 		A9506D2D1E69AB1E009A0045 /* gravity_json.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_json.h; sourceTree = "<group>"; };
 		A9506D2E1E69AB1E009A0045 /* gravity_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gravity_utils.c; sourceTree = "<group>"; };
 		A9506D2F1E69AB1E009A0045 /* gravity_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_utils.h; sourceTree = "<group>"; };
+		A956AADC220EBB8100C361D6 /* gravity_env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_env.c; sourceTree = "<group>"; };
+		A956AADD220EBB8100C361D6 /* gravity_env.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_env.h; sourceTree = "<group>"; };
 		A9BB72EC1F470832002FD2D6 /* gravity_math.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_math.c; sourceTree = "<group>"; };
 		A9BB72ED1F470832002FD2D6 /* gravity_math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_math.h; sourceTree = "<group>"; };
 		A9BB72EE1F470832002FD2D6 /* gravity_optionals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optionals.h; sourceTree = "<group>"; };
@@ -225,6 +228,8 @@
 			children = (
 				A9BB72EC1F470832002FD2D6 /* gravity_math.c */,
 				A9BB72ED1F470832002FD2D6 /* gravity_math.h */,
+				A956AADC220EBB8100C361D6 /* gravity_env.c */,
+				A956AADD220EBB8100C361D6 /* gravity_env.h */,
 				A9BB72EE1F470832002FD2D6 /* gravity_optionals.h */,
 			);
 			path = optionals;
@@ -293,6 +298,7 @@
 				A9506D571E69AB86009A0045 /* gravity_memory.c in Sources */,
 				A9506D581E69AB86009A0045 /* gravity_value.c in Sources */,
 				A9506D3B1E69AB78009A0045 /* gravity_codegen.c in Sources */,
+				A956AADE220EBB8100C361D6 /* gravity_env.c in Sources */,
 				A9506D5D1E69AB8D009A0045 /* gravity_json.c in Sources */,
 				A9506D531E69AB7E009A0045 /* gravity_vm.c in Sources */,
 				A9506D411E69AB78009A0045 /* gravity_semacheck1.c in Sources */,

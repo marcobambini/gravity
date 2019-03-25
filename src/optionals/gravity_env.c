@@ -45,7 +45,7 @@ static bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t narg
     char *value = getenv(key);
     gravity_value_t rt = VALUE_FROM_UNDEFINED;
 
-    GRAVITY_DEBUG_PRINT("[ENV::GET args : %i] %s => %s\n", nargs, key, value);
+    // GRAVITY_DEBUG_PRINT("[ENV::GET args : %i] %s => %s\n", nargs, key, value);
 
     if (value) {
         rt = VALUE_FROM_STRING(vm, value, (uint32_t)strlen(value));
@@ -72,7 +72,7 @@ static bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t narg
     gravity_string_t *key = VALUE_AS_STRING(args[1]);
     gravity_string_t *value = (VALUE_ISA_STRING(args[2])) ? VALUE_AS_STRING(args[2]) : NULL;
 
-    GRAVITY_DEBUG_PRINT("[ENV::SET args : %i] %s => %s\n", nargs, key, value);
+    // GRAVITY_DEBUG_PRINT("[ENV::SET args : %i] %s => %s\n", nargs, key, value);
 
     int rt = (value) ? setenv(key->s, value->s, 1) : unsetenv(key->s);
     RETURN_VALUE(VALUE_FROM_INT(rt), rindex);
