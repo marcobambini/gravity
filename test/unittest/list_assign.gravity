@@ -1,0 +1,29 @@
+#unittest {
+    name: "List assignment test.";
+    result: 660;
+};
+
+class c {
+    var count;
+    func init(n) {
+        count = n;
+    }
+}
+
+func main() {
+    var c1 = c(10);
+    var c2 = c(20);
+    var c3 = c(30);
+    
+    var r = [c1, c2, c3];
+
+    var tot1 = r[0].count + r[1].count + r[2].count;
+    
+    r[0].count = 100;
+    r[1].count = 200;
+    r[2].count = 300;
+    
+    var tot2 = r[0].count + r[1].count + r[2].count;
+    
+    return tot1 + tot2;
+}

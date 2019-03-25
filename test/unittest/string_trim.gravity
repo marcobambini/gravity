@@ -1,0 +1,12 @@
+#unittest {
+    name: "String trim.";
+    result: "Hello WorldHello WorldHello World";
+};
+
+func main() {
+	var s1 = "  Hello World  ";
+	var s2 = "  Hello World";
+    var s3 = "Hello World  ";
+    
+    return s1.trim() + s2.trim() + s3.trim();
+}
