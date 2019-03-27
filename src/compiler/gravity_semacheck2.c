@@ -1185,6 +1185,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 // MARK: -
 
 bool gravity_semacheck2 (gnode_t *node, gravity_delegate_t *delegate) {
+    // È qui dove toccare per mantenere in memoria le variabili dichiarate in REPL?
     semacheck_t data = {.declarations = gnode_array_create(), .lasterror = 0};
     marray_init(data.statements);
 

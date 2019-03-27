@@ -318,31 +318,36 @@ static op_type parse_args (int argc, const char* argv[]) {
 
 static void gravity_repl (void) {
 
-    printf("REPL not yet implemented.\n");
-    exit(0);
+    /*printf("REPL not yet implemented.\n");
+    exit(0);*/
 
-    /*
+    
     // setup compiler/VM delegate
     gravity_delegate_t delegate = {
         .error_callback = report_error,
     };
 
     gravity_compiler_t    *compiler = gravity_compiler_create(&delegate);
-    gravity_vm    *vm = gravity_vm_new(&delegate);
+    gravity_vm  *vm = gravity_vm_new(&delegate);
     char        *line = NULL;
-    int            length = 0;
-
+    int         length = 0;
+    
     printf("Welcome to Gravity v%s\n", GRAVITY_VERSION);
     while((line = readline("> ", &length)) != NULL) {
-        // to be implemented
-        //    gravity_compiler_eval(compiler, vm, line, length);
-        free(line);
+               
+        gravity_closure_t *closure = NULL;
+        closure = gravity_compiler_run(compiler, line, length, 0, false, true);
+
+        gravity_compiler_transfer(compiler, vm);
+        gravity_vm_loadclosure(vm, closure);
+
+        //free(line);
     }
 
     gravity_compiler_free(compiler);
     gravity_vm_free(vm);
-    */
 }
+
 
 static void gravity_unittest (void) {
     unittest_data data = {
