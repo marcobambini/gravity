@@ -1,0 +1,21 @@
+#unittest {
+    name: "Nested for loops.";
+    result: 20131375;
+};
+
+func main() {
+    var sum = 0;
+    for (var a in 0...10) {
+        for (var b in 10...20) {
+            for (var c in 20...30) {
+                for (var d in 30...40) {
+                    for (var e in 40...50) {
+                        var n = a + b + c + d + e;
+                        sum += n;
+                    }
+                }
+            }
+        }
+    }
+    return sum;
+}

@@ -101,6 +101,7 @@ void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint3
 
 bool        ircode_register_istemp (ircode_t *code, uint32_t n);
 uint32_t    ircode_register_push_temp (ircode_t *code);
+uint32_t    ircode_register_push_temp_protected (ircode_t *code);
 uint32_t    ircode_register_push (ircode_t *code, uint32_t nreg);
 uint32_t    ircode_register_pop (ircode_t *code);
 uint32_t    ircode_register_first_temp_available (ircode_t *code);
@@ -113,8 +114,8 @@ void        ircode_register_clear (ircode_t *code, uint32_t nreg);
 void        ircode_register_set (ircode_t *code, uint32_t nreg);
 void        ircode_register_dump (ircode_t *code);
 
-void        ircode_register_set_skip_clear (ircode_t *code, uint32_t nreg);
-void        ircode_register_unset_skip_clear (ircode_t *code, uint32_t nreg);
-void        ircode_register_clear_temps (ircode_t *code);
+void        ircode_register_temp_protect (ircode_t *code, uint32_t nreg);
+void        ircode_register_temp_unprotect (ircode_t *code, uint32_t nreg);
+void        ircode_register_temps_clear (ircode_t *code);
 
 #endif

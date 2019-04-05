@@ -1413,7 +1413,7 @@ static bool range_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
 
     gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(1));    // closure to execute
-    gravity_value_t value = GET_VALUE(0);                            // self parameter
+    gravity_value_t value = GET_VALUE(0);                           // self parameter
     gravity_range_t *range = VALUE_AS_RANGE(value);
     bool is_forward = range->from < range->to;
 

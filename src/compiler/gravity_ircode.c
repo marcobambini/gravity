@@ -495,12 +495,18 @@ uint32_t ircode_register_first_temp_available (ircode_t *code) {
     return 0;
 }
 
+uint32_t ircode_register_push_temp_protected (ircode_t *code) {
+    uint32_t value = ircode_register_push_temp(code);
+    ircode_register_temp_protect(code, value);
+    return value;
+}
+
 uint32_t ircode_register_push_temp (ircode_t *code) {
     uint32_t value = ircode_register_new(code);
     marray_push(uint32_t, code->registers, value);
     if (value > code->maxtemp) {code->maxtemp = value; ++code->ntemps;}
 
-    DEBUG_REGISTER("PUSH REGISTER %d", value);
+    DEBUG_REGISTER("PUSH TEMP REGISTER %d", value);
     return value;
 }
 
@@ -544,17 +550,22 @@ uint32_t ircode_register_count (ircode_t *code) {
 
 // MARK: -
 
-void ircode_register_set_skip_clear (ircode_t *code, uint32_t nreg) {
+void ircode_register_temp_protect (ircode_t *code, uint32_t nreg) {
     code->skipclear[nreg] = true;
+    DEBUG_REGISTER("SET SKIP REGISTER %d", nreg);
 }
 
-void ircode_register_unset_skip_clear (ircode_t *code, uint32_t nreg) {
+void ircode_register_temp_unprotect (ircode_t *code, uint32_t nreg) {
     code->skipclear[nreg] = false;
+    DEBUG_REGISTER("UNSET SKIP REGISTER %d", nreg);
 }
 
-void ircode_register_clear_temps (ircode_t *code) {
+void ircode_register_temps_clear (ircode_t *code) {
     // clear all temporary registers (if not protected)
     for (uint32_t i=code->nlocals; i<=code->maxtemp; ++i) {
-        if (!code->skipclear[i]) code->state[i] = false;
+        if (!code->skipclear[i]) {
+            code->state[i] = false;
+            DEBUG_REGISTER("CLEAR TEMP REGISTER %d", i);
+        }
     }
 }
