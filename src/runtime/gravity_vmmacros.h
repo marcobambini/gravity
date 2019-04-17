@@ -319,11 +319,11 @@
 #define DECLARE_1VARIABLE(_v,_idx)                  register gravity_value_t _v = GET_VALUE(_idx)
 #define DECLARE_2VARIABLES(_v1,_v2,_idx1,_idx2)     DECLARE_1VARIABLE(_v1,_idx1);DECLARE_1VARIABLE(_v2,_idx2)
 
-#define CHECK_VALID(_v, _msg)                       if (VALUE_ISA_NOTVALID(_v)) RETURN_ERROR(_msg)
-#define INTERNAL_CONVERT_FLOAT(_v)                  _v = convert_value2float(vm,_v); CHECK_VALID(_v, "Unable to convert object to Float")
-#define INTERNAL_CONVERT_BOOL(_v)                   _v = convert_value2bool(vm,_v); CHECK_VALID(_v, "Unable to convert object to Bool")
-#define INTERNAL_CONVERT_INT(_v)                    _v = convert_value2int(vm,_v); CHECK_VALID(_v, "Unable to convert object to Int")
-#define INTERNAL_CONVERT_STRING(_v)                 _v = convert_value2string(vm,_v); CHECK_VALID(_v, "Unable to convert object to String")
+#define CHECK_VALID(_check,_v,_msg)                 if ((_check) && VALUE_ISA_NOTVALID(_v)) RETURN_ERROR(_msg)
+#define INTERNAL_CONVERT_FLOAT(_v,_check)           _v = convert_value2float(vm,_v); CHECK_VALID(_check,_v, "Unable to convert object to Float")
+#define INTERNAL_CONVERT_BOOL(_v,_check)            _v = convert_value2bool(vm,_v); CHECK_VALID(_check,_v, "Unable to convert object to Bool")
+#define INTERNAL_CONVERT_INT(_v,_check)             _v = convert_value2int(vm,_v); CHECK_VALID(_check,_v, "Unable to convert object to Int")
+#define INTERNAL_CONVERT_STRING(_v,_check)          _v = convert_value2string(vm,_v); CHECK_VALID(_check,_v, "Unable to convert object to String")
 
 #define NEW_FUNCTION(_fptr)                         (gravity_function_new_internal(NULL, NULL, _fptr, 0))
 #define NEW_CLOSURE_VALUE(_fptr)                    ((gravity_value_t){.isa = gravity_class_closure,.p = (gravity_object_t *)gravity_closure_new(NULL, NEW_FUNCTION(_fptr))})

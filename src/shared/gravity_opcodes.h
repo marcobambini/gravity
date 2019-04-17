@@ -209,7 +209,7 @@ typedef enum {
 #define GRAVITY_CLASS_OBJECT_NAME       "Object"
 #define GRAVITY_CLASS_CLASS_NAME        "Class"
 #define GRAVITY_CLASS_NULL_NAME         "Null"
-#define GRAVITY_CLASS_FUNCTION_NAME     "Function"
+#define GRAVITY_CLASS_FUNCTION_NAME     "Func"
 #define GRAVITY_CLASS_FIBER_NAME        "Fiber"
 #define GRAVITY_CLASS_INSTANCE_NAME     "Instance"
 #define GRAVITY_CLASS_CLOSURE_NAME      "Closure"

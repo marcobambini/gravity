@@ -1604,8 +1604,8 @@ static bool operator_float_add (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v1, true);
+    INTERNAL_CONVERT_FLOAT(v2, true);
     RETURN_VALUE(VALUE_FROM_FLOAT(v1.f + v2.f), rindex);
 }
 
@@ -1613,8 +1613,8 @@ static bool operator_float_sub (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v1, true);
+    INTERNAL_CONVERT_FLOAT(v2, true);
     RETURN_VALUE(VALUE_FROM_FLOAT(v1.f - v2.f), rindex);
 }
 
@@ -1622,8 +1622,8 @@ static bool operator_float_div (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v1, true);
+    INTERNAL_CONVERT_FLOAT(v2, true);
 
     if (v2.f == 0.0) RETURN_ERROR("Division by 0 error.");
     RETURN_VALUE(VALUE_FROM_FLOAT(v1.f / v2.f), rindex);
@@ -1633,8 +1633,8 @@ static bool operator_float_mul (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v1, true);
+    INTERNAL_CONVERT_FLOAT(v2, true);
     RETURN_VALUE(VALUE_FROM_FLOAT(v1.f * v2.f), rindex);
 }
 
@@ -1642,8 +1642,8 @@ static bool operator_float_rem (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v1, true);
+    INTERNAL_CONVERT_FLOAT(v2, true);
 
     // compute floating point modulus
     #if GRAVITY_ENABLE_DOUBLE
@@ -1657,8 +1657,8 @@ static bool operator_float_and (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v1, true);
+    INTERNAL_CONVERT_BOOL(v2, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n && v2.n), rindex);
 }
 
@@ -1666,8 +1666,8 @@ static bool operator_float_or (gravity_vm *vm, gravity_value_t *args, uint16_t n
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v1, true);
+    INTERNAL_CONVERT_BOOL(v2, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n || v2.n), rindex);
 }
 
@@ -1685,11 +1685,14 @@ static bool operator_float_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v2, false);
     
     // simpler equality test
-    if (v1.f == v2.f) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-    if (v1.f > v2.f) RETURN_VALUE(VALUE_FROM_INT(1), rindex);
+    if (VALUE_ISA_VALID(v2)) {
+        if (v1.f == v2.f) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+        if (v1.f > v2.f) RETURN_VALUE(VALUE_FROM_INT(1), rindex);
+    }
+    
     RETURN_VALUE(VALUE_FROM_INT(-1), rindex);
 }
 
@@ -1747,7 +1750,7 @@ static bool float_isclose (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
     if (nargs < 2) RETURN_VALUE(VALUE_FROM_BOOL(true), rindex);
     
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v2);
+    INTERNAL_CONVERT_FLOAT(v2, true);
     gravity_float_t rel_tol = 1e-09;
     gravity_float_t abs_tol=0.0;
     if (nargs > 2 && VALUE_ISA_FLOAT(GET_VALUE(2))) rel_tol = VALUE_AS_FLOAT(GET_VALUE(2));
@@ -1778,21 +1781,21 @@ static bool float_isclose (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 static bool operator_int_add (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2);
+    INTERNAL_CONVERT_INT(v2, true);
     RETURN_VALUE(VALUE_FROM_INT(v1.n + v2.n), rindex);
 }
 
 static bool operator_int_sub (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2);
+    INTERNAL_CONVERT_INT(v2, true);
     RETURN_VALUE(VALUE_FROM_INT(v1.n - v2.n), rindex);
 }
 
 static bool operator_int_div (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2);
+    INTERNAL_CONVERT_INT(v2, true);
 
     if (v2.n == 0) RETURN_ERROR("Division by 0 error.");
     RETURN_VALUE(VALUE_FROM_INT(v1.n / v2.n), rindex);
@@ -1801,14 +1804,14 @@ static bool operator_int_div (gravity_vm *vm, gravity_value_t *args, uint16_t na
 static bool operator_int_mul (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2);
+    INTERNAL_CONVERT_INT(v2, true);
     RETURN_VALUE(VALUE_FROM_INT(v1.n * v2.n), rindex);
 }
 
 static bool operator_int_rem (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2);
+    INTERNAL_CONVERT_INT(v2, true);
 
     if (v2.n == 0) RETURN_ERROR("Reminder by 0 error.");
     RETURN_VALUE(VALUE_FROM_INT(v1.n % v2.n), rindex);
@@ -1817,16 +1820,16 @@ static bool operator_int_rem (gravity_vm *vm, gravity_value_t *args, uint16_t na
 static bool operator_int_and (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v1, true);
+    INTERNAL_CONVERT_BOOL(v2, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n && v2.n), rindex);
 }
 
 static bool operator_int_or (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v1, true);
+    INTERNAL_CONVERT_BOOL(v2, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n || v2.n), rindex);
 }
 
@@ -1849,9 +1852,13 @@ static bool operator_int_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t na
     }
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2);
-    if (v1.n == v2.n) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-    if (v1.n > v2.n) RETURN_VALUE(VALUE_FROM_INT(1), rindex);
+    INTERNAL_CONVERT_INT(v2, false);
+    
+    if (VALUE_ISA_VALID(v2)) {
+        if (v1.n == v2.n) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
+        if (v1.n > v2.n) RETURN_VALUE(VALUE_FROM_INT(1), rindex);
+    }
+    
     RETURN_VALUE(VALUE_FROM_INT(-1), rindex);
 }
 
@@ -1950,7 +1957,7 @@ static bool operator_bool_and (gravity_vm *vm, gravity_value_t *args, uint16_t n
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
+    INTERNAL_CONVERT_BOOL(v1, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n && v2.n), rindex);
 }
 
@@ -1958,7 +1965,7 @@ static bool operator_bool_or (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
+    INTERNAL_CONVERT_BOOL(v1, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n || v2.n), rindex);
 }
 
@@ -1966,7 +1973,7 @@ static bool operator_bool_bitor (gravity_vm *vm, gravity_value_t *args, uint16_t
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
+    INTERNAL_CONVERT_BOOL(v1, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n | v2.n), rindex);
 }
 
@@ -1974,7 +1981,7 @@ static bool operator_bool_bitand (gravity_vm *vm, gravity_value_t *args, uint16_
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
+    INTERNAL_CONVERT_BOOL(v1, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n & v2.n), rindex);
 }
 
@@ -1982,7 +1989,7 @@ static bool operator_bool_bitxor (gravity_vm *vm, gravity_value_t *args, uint16_
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
+    INTERNAL_CONVERT_BOOL(v1, true);
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n ^ v2.n), rindex);
 }
 
@@ -2015,7 +2022,7 @@ static bool operator_string_add (gravity_vm *vm, gravity_value_t *args, uint16_t
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_STRING(v2);
+    INTERNAL_CONVERT_STRING(v2, true);
 
     gravity_string_t *s1 = VALUE_AS_STRING(v1);
     gravity_string_t *s2 = VALUE_AS_STRING(v2);
@@ -2044,7 +2051,7 @@ static bool operator_string_sub (gravity_vm *vm, gravity_value_t *args, uint16_t
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_STRING(v2);
+    INTERNAL_CONVERT_STRING(v2, true);
 
     gravity_string_t *s1 = VALUE_AS_STRING(v1);
     gravity_string_t *s2 = VALUE_AS_STRING(v2);
@@ -2083,8 +2090,8 @@ static bool operator_string_and (gravity_vm *vm, gravity_value_t *args, uint16_t
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v1, true);
+    INTERNAL_CONVERT_BOOL(v2, true);
 
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n && v2.n), rindex);
 }
@@ -2093,8 +2100,8 @@ static bool operator_string_or (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_BOOL(v1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v1, true);
+    INTERNAL_CONVERT_BOOL(v2, true);
 
     RETURN_VALUE(VALUE_FROM_BOOL(v1.n || v2.n), rindex);
 }
@@ -2117,12 +2124,15 @@ static bool operator_string_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_STRING(v2);
+    INTERNAL_CONVERT_STRING(v2, false);
 
-    gravity_string_t *s1 = VALUE_AS_STRING(v1);
-    gravity_string_t *s2 = VALUE_AS_STRING(v2);
-
-    RETURN_VALUE(VALUE_FROM_INT(strcmp(s1->s, s2->s)), rindex);
+    if (VALUE_ISA_VALID(v2)) {
+        gravity_string_t *s1 = VALUE_AS_STRING(v1);
+        gravity_string_t *s2 = VALUE_AS_STRING(v2);
+        RETURN_VALUE(VALUE_FROM_INT(strcmp(s1->s, s2->s)), rindex);
+    }
+    
+    RETURN_VALUE(VALUE_FROM_INT(-1), rindex);
 }
 
 static bool string_length (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2773,7 +2783,7 @@ static bool operator_null_or (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused(vm,nargs)
 
     DECLARE_1VARIABLE(v2, 1);
-    INTERNAL_CONVERT_BOOL(v2);
+    INTERNAL_CONVERT_BOOL(v2, true);
     RETURN_VALUE(VALUE_FROM_BOOL(0 || v2.n), rindex);
 }
 
@@ -2854,7 +2864,7 @@ static bool system_realprint (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused (rindex)
     for (uint16_t i=1; i<nargs; ++i) {
         gravity_value_t v = GET_VALUE(i);
-        INTERNAL_CONVERT_STRING(v);
+        INTERNAL_CONVERT_STRING(v, true);
         gravity_string_t *s = VALUE_AS_STRING(v);
         printf("%.*s", s->len, s->s);
     }

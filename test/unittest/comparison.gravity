@@ -1,0 +1,27 @@
+#unittest {
+    name: "New comparison algorithm.";
+    result: false;
+};
+
+class foo {
+    func bar() {
+        System.print("Hello from bar");
+    }
+}
+
+func main() {
+    var target = foo();
+    var a = null;
+    var b = 1;
+    var c = 1.1;
+    var d = "";
+    var e = undefined;
+    
+    // when comparing different objects no runtime error should be raised if target
+    // cannot be converted to the destination type
+    if ((a == target) && (b == target) && (c == target) && (d == target) && (e == target)) {
+        return true;
+    } else {
+        return false;
+    }
+}
