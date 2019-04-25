@@ -1519,6 +1519,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                     report_error(self, (gnode_t *)subnode->expr, "Unexpected register error.");
                     return;
                 }
+                marray_push(uint32_t, self_list, rtemp);
             }
         }
 

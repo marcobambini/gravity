@@ -1685,7 +1685,7 @@ static bool operator_float_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_FLOAT(v2, false);
+    INTERNAL_CONVERT_FLOAT(v2, true);
     
     // simpler equality test
     if (VALUE_ISA_VALID(v2)) {
@@ -1852,7 +1852,7 @@ static bool operator_int_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t na
     }
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_INT(v2, false);
+    INTERNAL_CONVERT_INT(v2, true);
     
     if (VALUE_ISA_VALID(v2)) {
         if (v1.n == v2.n) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
@@ -1867,8 +1867,8 @@ static bool int_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
 
     gravity_closure_t *closure = VALUE_AS_CLOSURE(GET_VALUE(1));    // closure to execute
-    gravity_value_t value = GET_VALUE(0);                            // self parameter
-    register gravity_int_t n = value.n;                                // times to execute the loop
+    gravity_value_t value = GET_VALUE(0);                           // self parameter
+    register gravity_int_t n = value.n;                             // times to execute the loop
     register gravity_int_t i = 0;
 
     nanotime_t t1 = nanotime();
@@ -2124,7 +2124,7 @@ static bool operator_string_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t
     #pragma unused(vm, nargs)
 
     DECLARE_2VARIABLES(v1, v2, 0, 1);
-    INTERNAL_CONVERT_STRING(v2, false);
+    INTERNAL_CONVERT_STRING(v2, true);
 
     if (VALUE_ISA_VALID(v2)) {
         gravity_string_t *s1 = VALUE_AS_STRING(v1);

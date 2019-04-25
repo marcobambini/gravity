@@ -1,5 +1,5 @@
 #unittest {
-    name: "New comparison algorithm.";
+    name: "Comparison with type checking.";
     result: false;
 };
 
@@ -17,9 +17,7 @@ func main() {
     var d = "";
     var e = undefined;
     
-    // when comparing different objects no runtime error should be raised if target
-    // cannot be converted to the destination type
-    if ((a == target) && (b == target) && (c == target) && (d == target) && (e == target)) {
+    if ((a === target) && (b === target) && (c === target) && (d === target) && (e === target)) {
         return true;
     } else {
         return false;
