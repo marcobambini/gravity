@@ -173,6 +173,11 @@ bool gravity_class_setsuper (gravity_class_t *baseclass, gravity_class_t *superc
     return true;
 }
 
+bool gravity_class_setsuper_extern (gravity_class_t *baseclass, const char *identifier) {
+    if (identifier) baseclass->superlook = string_dup(identifier);
+    return true;
+}
+
 gravity_class_t *gravity_class_new_single (gravity_vm *vm, const char *identifier, uint32_t nivar) {
     gravity_class_t *c = (gravity_class_t *)mem_alloc(NULL, sizeof(gravity_class_t));
     assert(c);
@@ -248,12 +253,14 @@ void gravity_class_setxdata (gravity_class_t *c, void *xdata) {
 
 void gravity_class_serialize (gravity_class_t *c, json_t *json) {
     json_begin_object(json, c->identifier);
-    json_add_cstring(json, GRAVITY_JSON_LABELTYPE, GRAVITY_JSON_CLASS);            // MANDATORY 1st FIELD
-    json_add_cstring(json, GRAVITY_JSON_LABELIDENTIFIER, c->identifier);        // MANDATORY 2nd FIELD
-
+    json_add_cstring(json, GRAVITY_JSON_LABELTYPE, GRAVITY_JSON_CLASS);     // MANDATORY 1st FIELD
+    json_add_cstring(json, GRAVITY_JSON_LABELIDENTIFIER, c->identifier);    // MANDATORY 2nd FIELD
+    
     // avoid write superclass name if it is the default Object one
     if ((c->superclass) && (c->superclass->identifier) && (strcmp(c->superclass->identifier, GRAVITY_CLASS_OBJECT_NAME) != 0)) {
         json_add_cstring(json, GRAVITY_JSON_LABELSUPER, c->superclass->identifier);
+    } else if (c->superlook) {
+        json_add_cstring(json, GRAVITY_JSON_LABELSUPER, c->superlook);
     }
 
     // get c meta class
@@ -391,6 +398,8 @@ static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, boo
     }
 
     if (c->identifier) mem_free((void *)c->identifier);
+    if (c->superlook) mem_free((void *)c->superlook);
+    
     if (!skip_base) {
         // base classes have functions not registered inside VM so manually free all of them
         gravity_hash_iterate(c->htable, gravity_hash_finteralfree, NULL);
@@ -1579,7 +1588,7 @@ gravity_instance_t *gravity_instance_new (gravity_vm *vm, gravity_class_t *c) {
     
     if (c->nivars) instance->ivars = (gravity_value_t *)mem_alloc(NULL, c->nivars * sizeof(gravity_value_t));
     for (uint32_t i=0; i<c->nivars; ++i) instance->ivars[i] = VALUE_FROM_NULL;
-
+    
     if (vm) gravity_vm_transfer(vm, (gravity_object_t*) instance);
     return instance;
 }

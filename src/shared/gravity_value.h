@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.6.7"     // git tag 0.6.7
-#define GRAVITY_VERSION_NUMBER				0x000607    // git push --tags
+#define GRAVITY_VERSION						"0.6.9"     // git tag 0.6.9
+#define GRAVITY_VERSION_NUMBER				0x000609    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -370,6 +370,7 @@ typedef struct gravity_class_s {
     bool                    unused;         // unused padding byte
     void                    *xdata;         // extra bridged data
     struct gravity_class_s  *superclass;    // reference to the super class
+    const char              *superlook;     // when a superclass is set to extern a runtime lookup must be performed
     gravity_hash_t          *htable;        // hash table
     uint32_t                nivars;         // number of instance variables
 	//gravity_value_r			inames;			    // ivar names
@@ -456,6 +457,7 @@ GRAVITY_API void                gravity_class_bind (gravity_class_t *c, const ch
 GRAVITY_API gravity_class_t     *gravity_class_getsuper (gravity_class_t *c);
 GRAVITY_API bool                gravity_class_grow (gravity_class_t *c, uint32_t n);
 GRAVITY_API bool                gravity_class_setsuper (gravity_class_t *subclass, gravity_class_t *superclass);
+GRAVITY_API bool                gravity_class_setsuper_extern (gravity_class_t *baseclass, const char *identifier);
 GRAVITY_API gravity_class_t     *gravity_class_new_single (gravity_vm *vm, const char *identifier, uint32_t nfields);
 GRAVITY_API gravity_class_t     *gravity_class_new_pair (gravity_vm *vm, const char *identifier, gravity_class_t *superclass, uint32_t nivar, uint32_t nsvar);
 GRAVITY_API gravity_class_t     *gravity_class_get_meta (gravity_class_t *c);

@@ -468,10 +468,13 @@ static void visit_loop_while_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 
     uint32_t labelTrue  = ircode_newlabel(code);
     uint32_t labelFalse = ircode_newlabel(code);
+    uint32_t labelCheck = ircode_newlabel(code);
     ircode_setlabel_true(code, labelTrue);
     ircode_setlabel_false(code, labelFalse);
+    ircode_setlabel_check(code, labelCheck);
 
 	ircode_marklabel(code, labelTrue, LINE_NUMBER(node));
+    ircode_marklabel(code, labelCheck, LINE_NUMBER(node));
     visit(node->cond);
     uint32_t reg = ircode_register_pop(code);
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid while condition expression.");
@@ -484,6 +487,7 @@ static void visit_loop_while_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 
     ircode_unsetlabel_true(code);
     ircode_unsetlabel_false(code);
+    ircode_unsetlabel_check(code);
 }
 
 static void visit_loop_repeat_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
@@ -499,10 +503,13 @@ static void visit_loop_repeat_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 
     uint32_t labelTrue  = ircode_newlabel(code);
     uint32_t labelFalse = ircode_newlabel(code);    // end label is necessary to handle optional break statement
+    uint32_t labelCheck = ircode_newlabel(code);
     ircode_setlabel_true(code, labelTrue);
     ircode_setlabel_false(code, labelFalse);
+    ircode_setlabel_check(code, labelCheck);
 
 	ircode_marklabel(code, labelTrue, LINE_NUMBER(node));
+    ircode_marklabel(code, labelCheck, LINE_NUMBER(node));
     visit(node->stmt);
     visit(node->expr);
     uint32_t reg = ircode_register_pop(code);
@@ -514,6 +521,7 @@ static void visit_loop_repeat_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 
     ircode_unsetlabel_true(code);
     ircode_unsetlabel_false(code);
+    ircode_unsetlabel_check(code);
 }
 
 static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
@@ -582,8 +590,10 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     // while code
     uint32_t labelTrue  = ircode_newlabel(code);
     uint32_t labelFalse = ircode_newlabel(code);
+    uint32_t labelCheck = ircode_newlabel(code);
     ircode_setlabel_true(code, labelTrue);
     ircode_setlabel_false(code, labelFalse);
+    ircode_setlabel_check(code, labelCheck);
 
 	ircode_marklabel(code, labelTrue, LINE_NUMBER(node));
 	ircode_add(code, JUMPF, $value, labelFalse, 1, LINE_NUMBER(node));				// flag JUMPF instruction to check ONLY BOOL values
@@ -614,6 +624,7 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     temp = ircode_register_pop(code);                                   // --TEMP => 4
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
 
+    ircode_marklabel(code, labelCheck, LINE_NUMBER(node));
     // update $value for the next check
     // $value = $expr.iterate($value);
     temp1 = ircode_register_push_temp(code);                            // ++TEMP => 5
@@ -636,6 +647,7 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 
     ircode_unsetlabel_true(code);
     ircode_unsetlabel_false(code);
+    ircode_unsetlabel_check(code);
 
     temp = ircode_register_pop(code);                                   // --TEMP => 3
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
@@ -683,7 +695,7 @@ static void visit_jump_stmt (gvisitor_t *self, gnode_jump_stmt_t *node) {
         uint32_t label = ircode_getlabel_false(code);
 		ircode_add(code, JUMP, label, 0, 0, LINE_NUMBER(node)); // goto $end;
     } else if (type == TOK_KEY_CONTINUE) {
-        uint32_t label = ircode_getlabel_true(code);
+        uint32_t label = ircode_getlabel_check(code);
 		ircode_add(code, JUMP, label, 0, 0, LINE_NUMBER(node)); // goto $start;
     } else if (type == TOK_KEY_RETURN) {
         if (node->expr) {
@@ -1156,21 +1168,30 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
 
     // mark the class as a struct
     c->is_struct = node->is_struct;
-
+    
     // check if class has a declared superclass
     if (node->superclass) {
         // node->superclass should be a gnode_class_decl_t at this point
-        assert(NODE_ISA_CLASS(node->superclass));
-
-        gnode_class_decl_t *super = (gnode_class_decl_t *)node->superclass;
-        if (super->data) {
-            // means that superclass has already been processed and its runtime representation is available
-            gravity_class_setsuper(c, (gravity_class_t *)super->data);
+        if (NODE_ISA_CLASS(node->superclass)) {
+            node->super_extern = (((gnode_class_decl_t *)node->superclass)->storage == TOK_KEY_EXTERN);
         } else {
-            // superclass has not yet processed so we need recheck the node at the end of the visit
-            // add node to superfix for later processing
-            codegen_t *data = (codegen_t *)self->data;
-            marray_push(gnode_class_decl_t *, data->superfix, node);
+            node->superclass = gnode2class((gnode_t*)node->superclass, &node->super_extern);
+            if (!node->superclass) report_error(self, (gnode_t*)node, "Unable to set superclass to non class object.");
+        }
+        
+        gnode_class_decl_t *super = (gnode_class_decl_t *)node->superclass;
+        if (node->super_extern) {
+            gravity_class_setsuper_extern(c, super->identifier);
+        } else {
+            if (super->data) {
+                // means that superclass has already been processed and its runtime representation is available
+                gravity_class_setsuper(c, (gravity_class_t *)super->data);
+            } else {
+                // superclass has not yet processed so we need recheck the node at the end of the visit
+                // add node to superfix for later processing
+                codegen_t *data = (codegen_t *)self->data;
+                marray_push(gnode_class_decl_t *, data->superfix, node);
+            }
         }
     }
 

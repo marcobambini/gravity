@@ -863,7 +863,7 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
         REPORT_ERROR(node, "%s is a special name and cannot be used as class identifier.", CLASS_CONSTRUCTOR_NAME);
         return;
     }
-
+    
     // check superclass
     if (node->superclass) {
         // get super class identifier and reset the field (so in case of error it cannot be accessed)
@@ -883,7 +883,7 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
         if (!target) {
             REPORT_ERROR(id, "Unable to find superclass %s for class %s.", id->value, node->identifier);
         } else {
-            gnode_class_decl_t *target_class = NODE_ISA(target, NODE_CLASS_DECL) ? (gnode_class_decl_t *)target : NULL;
+            gnode_class_decl_t *target_class = (gnode_class_decl_t *)gnode2class(target, &node->super_extern);
             if (!target_class) {
                 REPORT_ERROR(id, "Unable to set non class %s as superclass of %s.", id->value, node->identifier);
             } else if ((gnode_class_decl_t *)node == (gnode_class_decl_t *)target_class->superclass) {

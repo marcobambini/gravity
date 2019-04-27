@@ -1,0 +1,16 @@
+#unittest {
+    name: "Superclass set to local class declaration.";
+    result: 3;
+};
+
+func main() {
+    class C1b {
+        var v1 = 3;
+    }
+    
+    class C2 : C1b {
+    }
+    
+    var i1 = C2()
+    return i1.v1;
+}

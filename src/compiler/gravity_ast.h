@@ -129,6 +129,14 @@ typedef struct {
 typedef gnode_function_decl_t gnode_function_expr_t;
 
 typedef struct {
+    gnode_t             base;               // VARIABLE_DECL
+    gtoken_t            type;               // TOK_KEY_VAR | TOK_KEY_CONST
+    gtoken_t            access;             // TOK_KEY_PRIVATE | TOK_KEY_INTERNAL | TOK_KEY_PUBLIC
+    gtoken_t            storage;            // TOK_KEY_STATIC | TOK_KEY_EXTERN
+    gnode_r             *decls;             // variable declarations list (gnode_var_t)
+} gnode_variable_decl_t;
+
+typedef struct {
     gnode_t             base;               // VARIABLE
     gnode_t             *env;               // shortcut to node where variable is declared
     const char          *identifier;        // variable name
@@ -138,15 +146,8 @@ typedef struct {
     uint16_t            index;              // local variable index (if local)
     bool                upvalue;            // flag set if this variable is used as an upvalue
     bool                iscomputed;         // flag set is variable must not be backed
+    gnode_variable_decl_t   *vdecl;         // reference to enclosing variable declaration (in order to be able to have access to storage and access fields)
 } gnode_var_t;
-
-typedef struct {
-    gnode_t             base;               // VARIABLE_DECL
-    gtoken_t            type;               // TOK_KEY_VAR | TOK_KEY_CONST
-    gtoken_t            access;             // TOK_KEY_PRIVATE | TOK_KEY_INTERNAL | TOK_KEY_PUBLIC
-    gtoken_t            storage;            // TOK_KEY_STATIC | TOK_KEY_EXTERN
-    gnode_r             *decls;             // variable declarations list (gnode_var_t)
-} gnode_variable_decl_t;
 
 typedef struct {
     gnode_t             base;               // ENUM_DECL
@@ -166,6 +167,7 @@ typedef struct {
     gtoken_t            storage;            // TOK_KEY_STATIC | TOK_KEY_EXTERN
     const char          *identifier;        // class name
     gnode_t             *superclass;        // super class ptr
+    bool                super_extern;       // flag set when a superclass is declared as extern
     gnode_r             *protocols;         // array of protocols (currently unused)
     gnode_r             *decls;             // class declarations list
     symboltable_t       *symtable;          // class internal symbol table
@@ -264,7 +266,7 @@ gnode_t *gnode_enum_decl_create (gtoken_s token, const char *identifier, gtoken_
 gnode_t *gnode_class_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_t *superclass, gnode_r *protocols, gnode_r *declarations, bool is_struct, gnode_t *decl);
 gnode_t *gnode_module_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, gnode_t *decl);
 gnode_t *gnode_variable_decl_create (gtoken_s token, gtoken_t type, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *declarations, gnode_t *decl);
-gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const char *annotation_type, gtoken_t storage_specifier, gnode_t *expr, gnode_t *decl);
+gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const char *annotation_type, gnode_t *expr, gnode_t *decl, gnode_variable_decl_t *vdecl);
 
 gnode_t *gnode_function_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, gnode_r *params, gnode_compound_stmt_t *block, gnode_t *decl);
 
@@ -289,6 +291,7 @@ gupvalue_t *gnode_function_add_upvalue(gnode_function_decl_t *f, gnode_var_t *sy
 cstring_r  *cstring_array_create (void);
 void_r  *void_array_create (void);
 void    gnode_array_sethead(gnode_r *list, gnode_t *node);
+gnode_t *gnode2class (gnode_t *node, bool *isextern);
 
 bool    gnode_is_equal (gnode_t *node1, gnode_t *node2);
 bool    gnode_is_expression (gnode_t *node);

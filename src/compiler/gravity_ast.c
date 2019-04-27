@@ -96,6 +96,28 @@ gupvalue_t *gnode_function_add_upvalue(gnode_function_decl_t *f, gnode_var_t *sy
     return upvalue;
 }
 
+gnode_t *gnode2class (gnode_t *node, bool *isextern) {
+    if (isextern) *isextern = false;
+    
+    if (NODE_ISA_CLASS(node)) {
+        gnode_class_decl_t *c = (gnode_class_decl_t *)node;
+        if (isextern) *isextern = (c->storage == TOK_KEY_EXTERN);
+        return node;
+    }
+    else if (NODE_ISA(node, NODE_VARIABLE)) {
+        gnode_var_t *var = (gnode_var_t *)node;
+        const char *class_manifest_type = gravity_class_class->identifier;
+        if ((var->annotation_type) && (string_cmp(var->annotation_type, class_manifest_type) == 0) && (NODE_ISA_CLASS(var->expr))) return var->expr;
+        
+        gnode_variable_decl_t *vdecl = var->vdecl;
+        if (vdecl && isextern && (vdecl->storage == TOK_KEY_EXTERN)) {
+            *isextern = true;
+            return node;
+        }
+    }
+    return NULL;
+}
+
 // MARK: - Statements initializers -
 
 gnode_t *gnode_jump_stat_create (gtoken_s token, gnode_t *expr, gnode_t *decl) {
@@ -236,7 +258,7 @@ gnode_t *gnode_variable_decl_create (gtoken_s token, gtoken_t type, gtoken_t acc
     return (gnode_t *)node;
 }
 
-gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const char *annotation_type, gtoken_t access_specifier, gnode_t *expr, gnode_t *decl) {
+gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const char *annotation_type, gnode_t *expr, gnode_t *decl, gnode_variable_decl_t *vdecl) {
     gnode_var_t *node = (gnode_var_t *)mem_alloc(NULL, sizeof(gnode_var_t));
 
     SETBASE(node, NODE_VARIABLE, token);
@@ -244,7 +266,7 @@ gnode_t *gnode_variable_create (gtoken_s token, const char *identifier, const ch
     node->identifier = identifier;
     node->annotation_type = annotation_type;
     node->expr = expr;
-    node->access = access_specifier;
+    node->vdecl = vdecl;
     node->iscomputed = false;
     return (gnode_t *)node;
 }

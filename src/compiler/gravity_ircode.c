@@ -19,6 +19,7 @@ struct ircode_t {
 
     uint32_r    label_true;                 // labels used in loops
     uint32_r    label_false;
+    uint32_r    label_check;
     uint32_t    label_counter;
 
     uint32_t    maxtemp;                    // maximum number of temp registers used in this ircode
@@ -46,6 +47,7 @@ ircode_t *ircode_create (uint16_t nlocals) {
     marray_init(*code->list);
     marray_init(code->label_true);
     marray_init(code->label_false);
+    marray_init(code->label_check);
     marray_init(code->registers);
     marray_init(code->context);
 
@@ -70,6 +72,7 @@ void ircode_free (ircode_t *code) {
     marray_destroy(code->registers);
     marray_destroy(code->label_true);
     marray_destroy(code->label_false);
+    marray_destroy(code->label_check);
     mem_free(code->list);
     mem_free(code);
 }
@@ -333,12 +336,20 @@ void ircode_setlabel_false (ircode_t *code, uint32_t nlabel) {
     marray_push(uint32_t, code->label_false, nlabel);
 }
 
+void ircode_setlabel_check (ircode_t *code, uint32_t nlabel) {
+    marray_push(uint32_t, code->label_check, nlabel);
+}
+
 void ircode_unsetlabel_true (ircode_t *code) {
     marray_pop(code->label_true);
 }
 
 void ircode_unsetlabel_false (ircode_t *code) {
     marray_pop(code->label_false);
+}
+
+void ircode_unsetlabel_check (ircode_t *code) {
+    marray_pop(code->label_check);
 }
 
 uint32_t ircode_getlabel_true (ircode_t *code) {
@@ -350,6 +361,12 @@ uint32_t ircode_getlabel_true (ircode_t *code) {
 uint32_t ircode_getlabel_false (ircode_t *code) {
     size_t n = marray_size(code->label_false);
     uint32_t v = marray_get(code->label_false, n-1);
+    return v;
+}
+
+uint32_t ircode_getlabel_check (ircode_t *code) {
+    size_t n = marray_size(code->label_check);
+    uint32_t v = marray_get(code->label_check, n-1);
     return v;
 }
 

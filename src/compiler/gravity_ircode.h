@@ -69,10 +69,13 @@ void        ircode_patch_init (ircode_t *code, uint16_t index);
 uint32_t    ircode_newlabel (ircode_t *code);
 void        ircode_setlabel_true (ircode_t *code, uint32_t nlabel);
 void        ircode_setlabel_false (ircode_t *code, uint32_t nlabel);
+void        ircode_setlabel_check (ircode_t *code, uint32_t nlabel);
 void        ircode_unsetlabel_true (ircode_t *code);
 void        ircode_unsetlabel_false (ircode_t *code);
+void        ircode_unsetlabel_check (ircode_t *code);
 uint32_t    ircode_getlabel_true (ircode_t *code);
 uint32_t    ircode_getlabel_false (ircode_t *code);
+uint32_t    ircode_getlabel_check (ircode_t *code);
 void		ircode_marklabel (ircode_t *code, uint32_t nlabel, uint32_t lineno);
 
 void        inst_setskip (inst_t *inst);

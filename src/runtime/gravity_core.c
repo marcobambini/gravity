@@ -1523,6 +1523,12 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     // perform alloc (then check for init)
     gravity_gc_setenabled(vm, false);
     gravity_instance_t *instance = gravity_instance_new(vm, c);
+    
+    // special case: check if superclass is an xdata class
+    gravity_delegate_t *delegate = gravity_vm_delegate(vm);
+    if (c->superclass->xdata && delegate->bridge_initinstance) {
+        delegate->bridge_initinstance(vm, c->superclass->xdata, VALUE_FROM_NULL, instance, NULL, 1);
+    }
 
     // if is inner class then ivar 0 is reserved for a reference to its outer class
     if (c->has_outer) gravity_instance_setivar(instance, 0, gravity_vm_getslot(vm, 0));
@@ -1540,7 +1546,6 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     }
 
     // no closure found (means no constructor found in this class)
-    gravity_delegate_t *delegate = gravity_vm_delegate(vm);
     if (c->xdata && delegate->bridge_initinstance) {
         // even if no closure is found try to execute the default bridge init instance (if class is bridged)
         if (nargs != 1) RETURN_ERROR("No init with %d parameters found in class %s", nargs-1, c->identifier);
