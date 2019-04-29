@@ -1,0 +1,13 @@
+#unittest {
+    name: "Local enum.";
+    result: "One";
+};
+
+func main() {
+    enum test {
+        one = "One",
+        two = "Two"
+    };
+    
+    return test.one;
+}

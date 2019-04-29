@@ -771,10 +771,10 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
 }
 
 static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) {
-    gnode_t            *top = TOP_DECLARATION();
-    symboltable_t    *symtable = symtable_from_node(top);
-    size_t            count = gnode_array_size(node->decls);
-    gnode_n            env = NODE_TAG(top);
+    gnode_t         *top = TOP_DECLARATION();
+    symboltable_t   *symtable = symtable_from_node(top);
+    size_t          count = gnode_array_size(node->decls);
+    gnode_n         env = NODE_TAG(top);
     bool            env_is_function = (env == NODE_FUNCTION_DECL);
 
     // check if optional access and storage specifiers make sense in current context
@@ -791,7 +791,8 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
         // visit expression first in order to prevent var a = a
         // variable with a initial value (or with a getter/setter)
         if (p->expr) visit(p->expr);
-
+        if (NODE_ISA(p->expr, NODE_ENUM_DECL)) continue;
+        
 //        // check for manifest type
 //        if (p->annotation_type) {
 //            // struct gnode_var_t was modified with
@@ -845,6 +846,14 @@ static void visit_enum_decl (gvisitor_t *self, gnode_enum_decl_t *node) {
     // check if optional access and storage specifiers make sense in current context
     gnode_t *top = TOP_DECLARATION();
     check_access_storage_specifiers(self, (gnode_t *)node, NODE_TAG(top), node->access, node->storage);
+    
+    if (NODE_ISA_FUNCTION(top)) {
+        // it is a local defined enum
+        symboltable_t *symtable = symtable_from_node(top);
+        if (!symboltable_insert(symtable, node->identifier, (void *)node)) {
+            REPORT_ERROR(node, "Identifier %s redeclared.", node->identifier);
+        }
+    }
 }
 
 static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {

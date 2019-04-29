@@ -1035,7 +1035,8 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
             //    MOVE    0 1        ; move register 1 into register 0
             //
 
-            // generate expression code
+            // generate expression code (if it is not a local enum)
+            if (NODE_ISA(p->expr, NODE_ENUM_DECL)) continue;
             if (p->expr) visit(p->expr); // context is a function
 
             gravity_function_t *context_function = (gravity_function_t *)context_object;
