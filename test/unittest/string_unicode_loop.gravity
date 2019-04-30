@@ -1,0 +1,13 @@
+#unittest {
+    name: "Unicode string for loop.";
+    result: "£99£89£";
+};
+
+func main() {
+    var s = "£99£89£";
+    var s2 = "";
+    for (var c in s) {
+        s2 += c;
+    }
+    return s2;
+}

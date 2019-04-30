@@ -1,0 +1,10 @@
+#unittest {
+    name: "Unicode string split.";
+    result: "£";
+};
+
+func main() {
+    var s = "£99.89";
+    var r = s.split("");
+    return r[0];
+}

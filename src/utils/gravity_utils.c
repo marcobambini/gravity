@@ -480,8 +480,8 @@ inline uint32_t utf8_charbytes (const char *s, uint32_t i) {
 
 uint32_t utf8_nbytes (uint32_t n) {
     if (n <= 0x7f) return 1;        // 127
-    if (n <= 0x7ff) return 2;        // 2047
-    if (n <= 0xffff) return 3;        // 65535
+    if (n <= 0x7ff) return 2;       // 2047
+    if (n <= 0xffff) return 3;      // 65535
     if (n <= 0x10ffff) return 4;    // 1114111
 
     return 0;

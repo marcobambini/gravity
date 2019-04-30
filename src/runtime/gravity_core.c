@@ -2451,11 +2451,13 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     char *original = string->s;
     uint32_t slen = string->len;
 
-    // If the separator is empty, then we split the string at every character
+    // if the separator is empty, then we split the string at every character
     if (seplen == 0) {
-    for (uint32_t i=0; i<slen; ++i) {
-            marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, 1));
-            original += 1;
+        for (uint32_t i=0; i<slen;) {
+            uint32_t n = utf8_charbytes(original, 0);
+            marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, n));
+            original += n;
+            i += n;
         }
         gravity_gc_setenabled(vm, true);
         RETURN_VALUE(VALUE_FROM_OBJECT(list), rindex);
@@ -2536,22 +2538,24 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
     if (!VALUE_ISA_INT(value)) RETURN_ERROR("Iterator expects a numeric value here.");
 
     // compute new value
-    gravity_int_t n = value.n;
-    if (n+1 < string->len) {
-        ++n;
+    gravity_int_t index = value.n;
+    if (index+1 < string->len) {
+        uint32_t n = utf8_charbytes(string->s + index, 0);
+        index += n;
     } else {
         RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     }
 
     // return new iterator
-    RETURN_VALUE(VALUE_FROM_INT(n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(index), rindex);
 }
 
 static bool string_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
-    register int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
-    RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, 1), rindex);
+    int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+    uint32_t n = utf8_charbytes(string->s + index, 0);
+    RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, n), rindex);
 }
 
 static bool string_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
