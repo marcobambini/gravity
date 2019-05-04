@@ -28,7 +28,19 @@ else
 		LDFLAGS = -lm
 	else ifeq ($(UNAME_S),OpenBSD)
 		# OpenBSD
-		# LIBTARGET = libgravity.so (not used)
+		CFLAGS += -D_WITH_GETLINE
+		LDFLAGS = -lm
+	else ifeq ($(UNAME_S),FreeBSD)
+		# FreeBSD
+		CFLAGS += -D_WITH_GETLINE
+		LDFLAGS = -lm
+	else ifeq ($(UNAME_S),NetBSD)
+		# NetBSD
+		CFLAGS += -D_WITH_GETLINE
+		LDFLAGS = -lm
+	else ifeq ($(UNAME_S),DragonFly)
+		# DragonFly
+		CFLAGS += -D_WITH_GETLINE
 		LDFLAGS = -lm
 	else
 		# Linux
