@@ -2140,13 +2140,23 @@ static bool operator_string_cmp (gravity_vm *vm, gravity_value_t *args, uint16_t
     RETURN_VALUE(VALUE_FROM_INT(-1), rindex);
 }
 
+static bool string_bytes (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    
+    DECLARE_1VARIABLE(v1, 0);
+    gravity_string_t *s1 = VALUE_AS_STRING(v1);
+    
+    RETURN_VALUE(VALUE_FROM_INT(s1->len), rindex);
+}
+
 static bool string_length (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
 
     DECLARE_1VARIABLE(v1, 0);
     gravity_string_t *s1 = VALUE_AS_STRING(v1);
-
-    RETURN_VALUE(VALUE_FROM_INT(s1->len), rindex);
+    uint32_t length = (s1->len) ? utf8_len(s1->s, s1->len) : 0;
+    
+    RETURN_VALUE(VALUE_FROM_INT(length), rindex);
 }
 
 static bool string_index (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -3192,6 +3202,8 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_string, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(string_storeat));
     closure = computed_property_create(NULL, NEW_FUNCTION(string_length), NULL);
     gravity_class_bind(gravity_class_string, "length", VALUE_FROM_OBJECT(closure));
+    closure = computed_property_create(NULL, NEW_FUNCTION(string_bytes), NULL);
+    gravity_class_bind(gravity_class_string, "bytes", VALUE_FROM_OBJECT(closure));
     gravity_class_bind(gravity_class_string, "index", NEW_CLOSURE_VALUE(string_index));
     gravity_class_bind(gravity_class_string, "contains", NEW_CLOSURE_VALUE(string_contains));
     gravity_class_bind(gravity_class_string, "replace", NEW_CLOSURE_VALUE(string_find_replace));

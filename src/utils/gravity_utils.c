@@ -533,10 +533,10 @@ uint32_t utf8_encode(char *buffer, uint32_t value) {
 uint32_t utf8_len (const char *s, uint32_t nbytes) {
     if (nbytes == 0) nbytes = (uint32_t)strlen(s);
     
-    uint32_t pos = 1;
+    uint32_t pos = 0;
     uint32_t len = 0;
     
-    while (pos <= nbytes) {
+    while (pos < nbytes) {
         ++len;
         uint32_t n = utf8_charbytes(s, pos);
         if (n == 0) return 0; // means error

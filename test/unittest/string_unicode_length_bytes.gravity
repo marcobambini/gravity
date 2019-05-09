@@ -1,0 +1,14 @@
+#unittest {
+    name: "Unicode string length and bytes.";
+    result: 12;
+};
+
+func main() {
+    var s = "😀H😇";
+    var n1 = s.length; // 3
+    var n2 = s.bytes;  // 9
+    if (n1 != 3) return false;
+    if (n2 != 9) return false;
+    
+    return n1 + n2;
+}
