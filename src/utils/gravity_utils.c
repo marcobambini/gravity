@@ -261,7 +261,7 @@ DIRREF directory_init (const char *dirpath) {
 	#endif
 }
 
-const char *directory_read (DIRREF ref) {
+const char *directory_read (DIRREF ref, char *out) {
 	if (ref == NULL) return NULL;
 	
 	while (1) {
@@ -275,7 +275,9 @@ const char *directory_read (DIRREF ref) {
 		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
 		if (findData.cFileName[0] == '\0') continue;
 		if (findData.cFileName[0] == '.') continue;
-		return (const char*)findData.cFileName;
+		// cFileName from WIN32_FIND_DATAA is a fixed size array, and findData is local
+		// This line of code is under the assumption that `out` is at least MAX_PATH in size!
+		return !out ? NULL : memcpy(out, findData.cFileName, sizeof(findData.cFileName));
 		#else
 		struct dirent *d;
 		if ((d = readdir(ref)) == NULL) {
