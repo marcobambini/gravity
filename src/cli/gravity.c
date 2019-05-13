@@ -175,7 +175,7 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
     while ((target_file = directory_read(dir))) {
         
         #ifdef WIN32
-        const char winbuffer[MAX_PATH];
+        char winbuffer[MAX_PATH];
         WideCharToMultiByte (CP_UTF8, 0, (LPCWSTR)target_file, -1, winbuffer, sizeof(winbuffer), NULL, NULL );
         target_file = (const char *)winbuffer;
         #endif
