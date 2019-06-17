@@ -499,6 +499,7 @@ GRAVITY_API uint32_t            gravity_instance_size (gravity_vm *vm, gravity_i
 // MARK: - VALUE -
 GRAVITY_API bool                gravity_value_equals (gravity_value_t v1, gravity_value_t v2);
 GRAVITY_API bool                gravity_value_vm_equals (gravity_vm *vm, gravity_value_t v1, gravity_value_t v2);
+GRAVITY_API uint16_t            gravity_value_ptr_append (gravity_vm *vm, gravity_value_t *values, gravity_value_t value, uint16_t nvalues);
 GRAVITY_API uint32_t            gravity_value_hash (gravity_value_t value);
 GRAVITY_API gravity_class_t     *gravity_value_getclass (gravity_value_t v);
 GRAVITY_API gravity_class_t     *gravity_value_getsuper (gravity_value_t v);
@@ -524,6 +525,7 @@ GRAVITY_API gravity_list_t      *gravity_list_new (gravity_vm *vm, uint32_t n);
 GRAVITY_API gravity_list_t      *gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_value_t *p);
 GRAVITY_API void                gravity_list_free (gravity_vm *vm, gravity_list_t *list);
 GRAVITY_API void                gravity_list_append_list (gravity_vm *vm, gravity_list_t *list1, gravity_list_t *list2);
+GRAVITY_API void                gravity_list_append_value (gravity_vm *vm, gravity_list_t *list, gravity_value_t *value);
 GRAVITY_API void                gravity_list_blacken (gravity_vm *vm, gravity_list_t *list);
 GRAVITY_API uint32_t            gravity_list_size (gravity_vm *vm, gravity_list_t *list);
 

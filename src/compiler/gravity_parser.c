@@ -2516,6 +2516,11 @@ static void parser_register_optional_classes (gravity_parser_t *parser) {
     gnode_array_push(decls, decl2);
     #endif
 
+    #ifdef GRAVITY_INCLUDE_HTTP
+    gnode_t *decl3 = gnode_variable_create(NO_TOKEN, string_dup(GRAVITY_HTTP_NAME()), NULL, NULL, LAST_DECLARATION(), NULL);
+    gnode_array_push(decls, decl3);
+    #endif
+
     // check if optional classes callback is registered
     if (parser->delegate && parser->delegate->optional_classes) {
         const char **list = parser->delegate->optional_classes();

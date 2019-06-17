@@ -26,6 +26,24 @@
 #define GRAVITY_ISMATH_CLASS(_c)            false
 #endif
 
+
+#ifndef GRAVITY_INCLUDE_HTTP
+#define GRAVITY_INCLUDE_HTTP
+#endif
+
+#ifdef GRAVITY_INCLUDE_HTTP
+#define GRAVITY_HTTP_REGISTER(_vm)          gravity_http_register(_vm)
+#define GRAVITY_HTTP_FREE()                 gravity_http_free()
+#define GRAVITY_HTTP_NAME()                 gravity_http_name()
+#define GRAVITY_ISHTTP_CLASS(_c)            gravity_ishttp_class(_c)
+#include "gravity_http.h"
+#else
+#define GRAVITY_HTTP_REGISTER(_vm)
+#define GRAVITY_HTTP_FREE()
+#define GRAVITY_HTTP_NAME()                 NULL
+#define GRAVITY_ISHTTP_CLASS(_c)            false
+#endif
+
 #ifndef GRAVITY_INCLUDE_ENV
 #define GRAVITY_INCLUDE_ENV
 #endif

@@ -2086,6 +2086,12 @@ void gravity_list_append_list (gravity_vm *vm, gravity_list_t *list1, gravity_li
     }
 }
 
+void gravity_list_append_value (gravity_vm *vm, gravity_list_t *list, gravity_value_t *value) {
+    #pragma unused(vm)
+    // append value to list
+    marray_push(gravity_value_t, list->array, *value);
+}
+
 uint32_t gravity_list_size (gravity_vm *vm, gravity_list_t *list) {
     SET_OBJECT_VISITED_FLAG(list, true);
     
