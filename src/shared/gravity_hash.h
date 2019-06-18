@@ -39,6 +39,7 @@ typedef bool        (*gravity_hash_compare_fn) (gravity_value_t value1, gravity_
 
 // PUBLIC functions
 GRAVITY_API gravity_hash_t  *gravity_hash_create (uint32_t size, gravity_hash_compute_fn compute, gravity_hash_isequal_fn isequal, gravity_hash_iterate_fn free, void *data);
+GRAVITY_API gravity_hash_t  *gravity_hash_create_from (gravity_hash_t *from_hash);
 GRAVITY_API void            gravity_hash_free (gravity_hash_t *hashtable);
 GRAVITY_API bool            gravity_hash_isempty (gravity_hash_t *hashtable);
 GRAVITY_API bool            gravity_hash_remove  (gravity_hash_t *hashtable, gravity_value_t key);

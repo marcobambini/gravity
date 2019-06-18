@@ -174,6 +174,21 @@ gravity_hash_t *gravity_hash_create (uint32_t size, gravity_hash_compute_fn comp
     return hashtable;
 }
 
+gravity_hash_t *gravity_hash_create_from (gravity_hash_t *from_hash) {
+    if (from_hash->size < GRAVITYHASH_DEFAULT_SIZE) from_hash->size = GRAVITYHASH_DEFAULT_SIZE;
+
+    gravity_hash_t *hashtable = (gravity_hash_t *)mem_alloc(NULL, sizeof(gravity_hash_t));
+    if (!hashtable) return NULL;
+    if (!(hashtable->nodes = mem_calloc(NULL, from_hash->size, sizeof(hash_node_t*)))) {mem_free(hashtable); return NULL;}
+
+    hashtable->compute_fn = from_hash->compute_fn;
+    hashtable->isequal_fn = from_hash->isequal_fn;
+    hashtable->free_fn = from_hash->free_fn;
+    hashtable->data = from_hash->data;
+    hashtable->size = from_hash->size;
+    return hashtable;
+}
+
 void gravity_hash_free (gravity_hash_t *hashtable) {
     if (!hashtable) return;
     gravity_hash_iterate_fn free_fn = hashtable->free_fn;

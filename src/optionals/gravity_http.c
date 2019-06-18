@@ -81,14 +81,21 @@ static int establish_connection(struct addrinfo *info) {
   return -1;
 }
 
-static char *set_request(char *method, char *path) {
+static ssize_t send_request(gravity_vm *vm, int fd, char *method, char *path, gravity_map_t *data) {
     char *req = (char *)mem_alloc(NULL, 1000 * sizeof(char));
-    sprintf(req, "%s %s HTTP/1.0\r\n\r\n", method, path);
-    return req;
-}
-
-static ssize_t send_request(int fd, char *method, char *path) {
-    char *req = set_request(method, path);
+    sprintf(req, "%s %s HTTP/1.1\r\n", method, path);
+    if (strcmp(method, "POST") == 0 && data != NULL) {
+        char content_length_header[40];
+        char *json = gravity_map_to_string(vm, data);
+        sprintf(content_length_header, "Content-Length: %llu\r\n", strlen(json) * (uint64_t)sizeof(char));
+        strcat(req, content_length_header);
+        strcat(req, "Content-Type: application/json\r\n");
+        strcat(req, "\r\n");
+        strcat(req, json);
+        strcat(req, "\r\n");
+    } else {
+        strcat(req, "\r\n");
+    }
     ssize_t b = send(fd, req, strlen(req), 0);
     mem_free(req);
     return b;
@@ -100,27 +107,74 @@ static char *receive_request(int fd, char **buf) {
     return *buf;
 }
 
-static bool http_request (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(vm, nargs)
+static bool validate_options(gravity_vm *vm, gravity_map_t **options, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if(!VALUE_ISA_MAP(args[1])) {
+        RETURN_ERROR("Data must be a map.");
+    }
+    *options = VALUE_AS_MAP(args[1]);
+    return true;
+}
 
-    if(!VALUE_ISA_STRING(args[1])) {
-        RETURN_ERROR("Hostname must be a string.");
-    }
-    if(!VALUE_ISA_STRING(args[2])) {
+static bool validate_request_args(gravity_vm *vm, gravity_map_t **options, uint32_t rindex) {
+    // validate host
+    //  - required
+    //  - must be a string
+    gravity_value_t *host = gravity_hash_lookup_cstring((*options)->hash, "host");
+    if (host == NULL)
+        RETURN_ERROR("Host must be specified.");
+    if (!VALUE_ISA_STRING(((gravity_value_t)(*host))))
+        RETURN_ERROR("Host must be a string.");
+
+    // validate path
+    //  - not required, defaults to '/'
+    //  - must be a string
+    gravity_value_t *path = gravity_hash_lookup_cstring((*options)->hash, "path");
+    if (path == NULL)
+        gravity_map_insert(vm, *options, gravity_string_to_value(vm, "path", 4), gravity_string_to_value(vm, "/", 1));
+    else if (!VALUE_ISA_STRING(((gravity_value_t)(*path))))
         RETURN_ERROR("Path must be a string.");
-    }
-    if(!VALUE_ISA_STRING(args[3])) {
-        RETURN_ERROR("Port must be an string.");
-    }
-    if(!VALUE_ISA_STRING(args[4])) {
-        RETURN_ERROR("Method must be an string.");
-    }
+
+    // validate port
+    //  - not required, defaults to "80"
+    //  - must be a string
+    gravity_value_t *port = gravity_hash_lookup_cstring((*options)->hash, "port");
+    if (port == NULL)
+        gravity_map_insert(vm, *options, gravity_string_to_value(vm, "port", 4), gravity_string_to_value(vm, "80", 2));
+    else if (!VALUE_ISA_STRING(((gravity_value_t)(*port))))
+        RETURN_ERROR("Port must be a string.");
+
+    // validate method
+    //  - not required, defaults to "GET"
+    //  - must be a string
+    gravity_value_t *method = gravity_hash_lookup_cstring((*options)->hash, "method");
+    if (method == NULL)
+        gravity_map_insert(vm, *options, gravity_string_to_value(vm, "method", 6), gravity_string_to_value(vm, "GET", 3));
+    else if (!VALUE_ISA_STRING(((gravity_value_t)(*method))))
+        RETURN_ERROR("Method must be a string.");
+
+    // validate data
+    //  - not required, defaults to empty map
+    //  - must be a map
+    gravity_value_t *data = gravity_hash_lookup_cstring((*options)->hash, "data");
+    if (data == NULL)
+        gravity_map_insert(vm, *options, gravity_string_to_value(vm, "data", 4), gravity_map_to_value(vm, gravity_map_new(vm, 32)));
+    else if (!VALUE_ISA_MAP(((gravity_value_t)(*data))))
+        RETURN_ERROR("Data must be a map.");
+
+    return true;
+}
+
+static bool http_request (gravity_vm *vm, gravity_map_t *options, uint32_t rindex) {
+    bool valid_args = validate_request_args(vm, &options, rindex);
+    if (!valid_args)
+        return valid_args;
 
     int fd;
-    char *hostname = VALUE_AS_CSTRING(args[1]);
-    char *path = VALUE_AS_CSTRING(args[2]);
-    char *port = VALUE_AS_CSTRING(args[3]);
-    char *method = VALUE_AS_CSTRING(args[4]);
+    char *hostname = VALUE_AS_CSTRING(*gravity_hash_lookup_cstring(options->hash, "host"));
+    char *path = VALUE_AS_CSTRING(*gravity_hash_lookup_cstring(options->hash, "path"));
+    char *port = VALUE_AS_CSTRING(*gravity_hash_lookup_cstring(options->hash, "port"));
+    char *method = VALUE_AS_CSTRING(*gravity_hash_lookup_cstring(options->hash, "method"));
+    gravity_map_t *data = VALUE_AS_MAP(*gravity_hash_lookup_cstring(options->hash, "data"));
 
 	fd = establish_connection(get_host_info(hostname, port));
     if (fd == -1) {
@@ -128,7 +182,7 @@ static bool http_request (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     }
 
     char *buf;
-    send_request(fd, method, path);
+    send_request(vm, fd, method, path, data);
     receive_request(fd, &buf);
     close(fd);
 
@@ -137,7 +191,7 @@ static bool http_request (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     token = strtok(buf, "\n");
 
     // TODO: fix this ugliness
-    char content_length[3];
+    char content_length[10];
     char http_version[5];
     char status_code[5];
     char status_message[31];
@@ -145,9 +199,13 @@ static bool http_request (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     char charset[20];
     char date[50];
     // parse headers
+    char body[1000] = "";
+    bool parsing_body = false;
     while (token) {
-        printf("Current token: %s\n", token);
-        if (sscanf(token, "HTTP/%s %s %s\r\n", http_version, status_code, status_message) > 0) {
+        if (parsing_body) {
+            strcat(body, token);
+        }
+        else if (sscanf(token, "HTTP/%s %s %s\r\n", http_version, status_code, status_message) > 0) {
             gravity_map_insert(vm, response,
                 gravity_string_to_value(vm, "http_version", strlen("http_version")),
                 gravity_string_to_value(vm, http_version, strlen(http_version)));
@@ -178,32 +236,39 @@ static bool http_request (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
             gravity_map_insert(vm, response,
                 gravity_string_to_value(vm, "body_reached", strlen("body_reached")),
                 gravity_string_to_value(vm, "true", strlen("true")));
-            token = strtok(NULL, "\n");
-            break;
+            parsing_body = true;
         }
-        token = strtok(NULL, "\n");
-    }
-
-    // parse body
-    char body[1000];
-    while (token) {
-        // TODO: make body dynamic list
-        strcat(body, token);
         token = strtok(NULL, "\n");
     }
     gravity_map_insert(vm, response,
         gravity_string_to_value(vm, "body", (uint16_t)strlen("body")),
-        gravity_string_to_value(vm, body, (uint16_t)strlen(body)));
-
+        gravity_string_to_value(vm, body, strlen(body)));
     mem_free(buf);
     RETURN_VALUE(VALUE_FROM_OBJECT(response), rindex);
 }
 
 static bool http_get (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-    gravity_value_t method_val = gravity_string_to_value(vm, "GET", 3);
-    args[nargs++] = method_val;
-    return http_request(vm, args, nargs, rindex);
+    gravity_map_t *options;
+    bool valid_options = validate_options(vm, &options, args, nargs, rindex);
+    if (!valid_options)
+        return valid_options;
+    gravity_map_insert(vm, options,
+        gravity_string_to_value(vm, "method", strlen("method")),
+        gravity_string_to_value(vm, "GET", strlen("GET")));
+    return http_request(vm, options, rindex);
+}
+
+static bool http_post (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_map_t *options;
+    bool valid_options = validate_options(vm, &options, args, nargs, rindex);
+    if (!valid_options)
+        return valid_options;
+    gravity_map_insert(vm, options,
+        gravity_string_to_value(vm, "method", strlen("method")),
+        gravity_string_to_value(vm, "POST", strlen("POST")));
+    return http_request(vm, options, rindex);
 }
 
 // MARK: - Internals -
@@ -212,6 +277,7 @@ static void create_optional_class (void) {
     gravity_class_http = gravity_class_new_pair(NULL, HTTP_CLASS_NAME, NULL, 0, 0);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_http);
     gravity_class_bind(meta, "get", NEW_CLOSURE_VALUE(http_get));
+    gravity_class_bind(meta, "post", NEW_CLOSURE_VALUE(http_post));
     gravity_closure_t *closure = NULL;
     SETMETA_INITED(gravity_class_http);
 }
@@ -239,7 +305,6 @@ void gravity_http_free (void) {
     if (--refcount) return;
 
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_http);
-    // computed_property_free(meta, "E", true);
     gravity_class_free_core(NULL, meta);
     gravity_class_free_core(NULL, gravity_class_http);
 

@@ -536,6 +536,8 @@ GRAVITY_API void                gravity_map_append_map (gravity_vm *vm, gravity_
 GRAVITY_API void                gravity_map_insert (gravity_vm *vm, gravity_map_t *map, gravity_value_t key, gravity_value_t value);
 GRAVITY_API void                gravity_map_blacken (gravity_vm *vm, gravity_map_t *map);
 GRAVITY_API uint32_t            gravity_map_size (gravity_vm *vm, gravity_map_t *map);
+GRAVITY_API char                *gravity_map_to_string (gravity_vm *vm, gravity_map_t *map);
+GRAVITY_API gravity_value_t     gravity_map_to_value (gravity_vm *vm, gravity_map_t *map);
 
 // MARK: - RANGE -
 GRAVITY_API gravity_range_t     *gravity_range_new (gravity_vm *vm, gravity_int_t from, gravity_int_t to, bool inclusive);
@@ -546,6 +548,7 @@ GRAVITY_API uint32_t            gravity_range_size (gravity_vm *vm, gravity_rang
 /// MARK: - STRING -
 GRAVITY_API gravity_value_t     gravity_string_to_value (gravity_vm *vm, const char *s, uint32_t len);
 GRAVITY_API gravity_string_t    *gravity_string_new (gravity_vm *vm, char *s, uint32_t len, uint32_t alloc);
+GRAVITY_API void                gravity_string_concat_cstring (gravity_vm *vm, gravity_string_t *s, char *cstring);
 GRAVITY_API void				gravity_string_set(gravity_string_t *obj, char *s, uint32_t len);
 GRAVITY_API void                gravity_string_free (gravity_vm *vm, gravity_string_t *value);
 GRAVITY_API void                gravity_string_blacken (gravity_vm *vm, gravity_string_t *string);
