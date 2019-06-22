@@ -24,6 +24,7 @@ typedef struct {
     int status_code;
     char *status_message;
     int headercount;
+    int error;
 } Response;
 
 typedef struct {
@@ -38,6 +39,7 @@ typedef struct {
     int   fd;
     void  *conn;
     void *ctx;
+    int error;
 } Request;
 
 // http library

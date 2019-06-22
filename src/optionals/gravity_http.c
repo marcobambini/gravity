@@ -61,12 +61,19 @@ static Request *http_request_new(gravity_vm *vm, char *hostname, char *path, int
     req->port = port;
     req->method = method;
     req->data = data;
+    bool trying_ssl = strstr(req->scheme, "https://") != NULL || req->port == 443;
     #ifdef GRAVITY_OPENSSL_ENABLED
-    req->use_ssl = string_starts_with(req->scheme, "https://") || req->port == 443;
+    req->use_ssl = trying_ssl;
     #else
+    if (trying_ssl) {
+        fprintf(stderr, "Trying to use ssl when openssl is not installed\n");
+        req->error = 1;
+        return req;
+    }
     req->use_ssl = false;
     #endif
     req->body = mem_alloc(NULL, HTTP_MAX_REQUEST_BODY_SIZE * sizeof(char));
+    req->error = 0;
     return req;
 }
 
@@ -178,6 +185,8 @@ static void http_request_connect_tcp(Request *req) {
 // Establish connection with host
 static Response *http_request_connect(gravity_vm *vm, char *hostname, char *path, int port, char *method, gravity_map_t *data) {
     Request *req = http_request_new(NULL, hostname, path, port, method, data);
+    if (req->error != 0)
+        return http_response_new(vm, req);
     #ifdef GRAVITY_OPENSSL_ENABLED
     if (req->use_ssl)
         http_request_connect_ssl(req);
@@ -263,11 +272,12 @@ static Response *http_response_new(gravity_vm *vm, Request *req) {
     resp->hostname = mem_alloc(vm, strlen(req->hostname));
     memcpy(resp->hostname, req->hostname, strlen(req->hostname) + 1);
     resp->headercount = 0;
+    resp->error = req->error;
     return resp;
 }
 
 static void http_response_free(Response *resp) {
-    if (resp->headers != NULL)
+    if (resp != NULL && resp->headers != NULL)
         mem_free(resp->headers);
     if (resp != NULL)
         mem_free(resp);
@@ -378,7 +388,7 @@ static Response *http_response_receive(gravity_vm *vm, Request *req) {
     #else
     if (true) {
     #endif
-        while (recv(req->fd, buf, HTTP_MAX_BUF_SIZE, MSG_WAITSTREAM) > 0);
+        while (recv(req->fd, buf, HTTP_MAX_BUF_SIZE, MSG_WAITALL) > 0);
     }
     close(req->fd);
     #ifdef GRAVITY_OPENSSL_ENABLED
@@ -405,17 +415,20 @@ static bool http_request (gravity_vm *vm, gravity_map_t *options, uint32_t rinde
 
     // build response map
     gravity_map_t *response = gravity_map_new(vm, 32);
-    gravity_map_t *headers = gravity_map_new(vm, HTTP_MAX_HEADERS_SIZE);
-    for (int i = 0; i < resp->headercount; i++)
-        gravity_map_insert(vm, headers,
-            VALUE_FROM_CSTRING(vm, resp->headers[i].name),
-            VALUE_FROM_CSTRING(vm, resp->headers[i].value));
-    gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "Headers"), VALUE_FROM_OBJECT(headers));
-    gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "Body"), VALUE_FROM_CSTRING(vm, resp->body));
     gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "Hostname"), VALUE_FROM_CSTRING(vm, resp->hostname));
-    gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "StatusCode"), VALUE_FROM_INT(resp->status_code));
-    gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "StatusMessage"), VALUE_FROM_CSTRING(vm, resp->status_message));
-
+    if (resp->error != 0)
+        gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "Error"), VALUE_FROM_CSTRING(vm, "Failed to make request"));
+    else {
+        gravity_map_t *headers = gravity_map_new(vm, HTTP_MAX_HEADERS_SIZE);
+        for (int i = 0; i < resp->headercount; i++)
+            gravity_map_insert(vm, headers,
+                VALUE_FROM_CSTRING(vm, resp->headers[i].name),
+                VALUE_FROM_CSTRING(vm, resp->headers[i].value));
+        gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "Headers"), VALUE_FROM_OBJECT(headers));
+        gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "Body"), VALUE_FROM_CSTRING(vm, resp->body));
+        gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "StatusCode"), VALUE_FROM_INT(resp->status_code));
+        gravity_map_insert(vm, response, VALUE_FROM_CSTRING(vm, "StatusMessage"), VALUE_FROM_CSTRING(vm, resp->status_message));
+    }
 
     // free allocated
     http_response_free(resp);

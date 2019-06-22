@@ -6,6 +6,9 @@ UTILS_DIR = src/utils/
 OPT_DIR = src/optionals/
 GRAVITY_SRC = src/cli/gravity.c
 
+DOCKER_DIR = docker
+DOCKERFILE_DIRS = $(notdir $(wildcard $(DOCKER_DIR)/*))
+
 CC ?= gcc
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(RUNTIME_DIR)/*.c) \
@@ -13,8 +16,8 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(UTILS_DIR)/*.c) \
       $(wildcard $(OPT_DIR)/*.c)
 
-OPENSSL_ENABLED = true
-OPENSSL_INSTALLED = $(shell $(PKG_CONFIG) --libs openssl 2>&1 1>/dev/null && echo true || echo false)
+OPENSSL_ENABLED := true
+OPENSSL_INSTALLED = $(shell $(PKG_CONFIG) --exists openssl && echo true || echo false)
 $(info OPENSSL_ENABLED: $(OPENSSL_ENABLED))
 $(info OPENSSL_INSTALLED: $(OPENSSL_INSTALLED))
 ifeq ($(OPENSSL_ENABLED),true)
@@ -85,3 +88,18 @@ lib: gravity
 
 clean:
 	rm -f $(OBJ) gravity libgravity.so gravity.dll
+
+docker.%.base:
+	docker build --no-cache -t gravity-$*-base -f $(DOCKER_DIR)/$*/base/Dockerfile .
+
+docker.build:
+	docker-compose build
+
+docker.up: docker.$(DOCKERFILE_DIRS).base docker.build
+	$(info building gravity on: $(DOCKERFILE_DIRS))
+	docker-compose up
+
+docker.down:
+	docker-compose down
+	docker-compose stop
+	docker-compose rm
