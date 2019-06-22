@@ -1,0 +1,6 @@
+version: '3'
+services:
+  ubuntu_openssl_enabled:
+    build: docker/ubuntu/openssl_enabled
+  ubuntu_openssl_disabled:
+    build: docker/ubuntu/openssl_disabled

@@ -1,0 +1,40 @@
+func main() {
+    var get_tests = [
+        [
+            "host": "github.com"
+        ],
+        [
+            "host": "https://reddit.com"
+        ],
+        [
+            "host": "https://api.github.com",
+            "path": "/users/jamesalbert"
+        ],
+        [
+            "host": "https://httpbin.org",
+            "path": "/get"
+        ]
+    ]
+
+    get_tests.loop(func (request) {
+        var resp = Http.get(request)
+        System.print("=== " + resp.Hostname)
+        System.print(resp)
+    })
+
+    var post_tests = [
+        [
+            "host": "https://httpbin.org/post",
+            "path": "/post",
+            "data": [
+                "pet": "cat"
+            ]
+        ]
+    ]
+
+    post_tests.loop(func (request) {
+        var resp = Http.post(request)
+        System.print("=== " + resp.Hostname)
+        System.print(resp)
+    })
+}

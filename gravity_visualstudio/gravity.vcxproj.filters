@@ -120,6 +120,9 @@
     <ClInclude Include="..\src\optionals\gravity_math.h">
       <Filter>src\opt</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\optionals\gravity_http.h">
+      <Filter>src\opt</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\optionals\gravity_optionals.h">
       <Filter>src\opt</Filter>
     </ClInclude>
@@ -183,6 +186,9 @@
       <Filter>src\runtime</Filter>
     </ClCompile>
     <ClCompile Include="..\src\optionals\gravity_math.c">
+      <Filter>src\opt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\optionals\gravity_http.c">
       <Filter>src\opt</Filter>
     </ClCompile>
     <ClCompile Include="..\src\compiler\gravity_ast.c">
