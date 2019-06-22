@@ -522,6 +522,7 @@ GRAVITY_API const char          *gravity_object_debug (gravity_object_t *obj, bo
 
 // MARK: - LIST -
 GRAVITY_API gravity_list_t      *gravity_list_new (gravity_vm *vm, uint32_t n);
+GRAVITY_API gravity_value_t     gravity_list_to_value (gravity_vm *vm, gravity_list_t *list);
 GRAVITY_API gravity_list_t      *gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_value_t *p);
 GRAVITY_API void                gravity_list_free (gravity_vm *vm, gravity_list_t *list);
 GRAVITY_API void                gravity_list_append_list (gravity_vm *vm, gravity_list_t *list1, gravity_list_t *list2);

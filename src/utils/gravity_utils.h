@@ -47,6 +47,7 @@ const char  *directory_read (DIRREF ref, char *out);
 int         string_nocasencmp (const char *s1, const char *s2, size_t n);
 int         string_casencmp (const char *s1, const char *s2, size_t n);
 int         string_cmp (const char *s1, const char *s2);
+bool        string_starts_with(const char *s1, const char *s2);
 const char  *string_dup (const char *s1);
 const char  *string_ndup (const char *s1, size_t n);
 void        string_reverse (char *p);

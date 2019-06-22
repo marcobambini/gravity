@@ -323,6 +323,10 @@ int string_cmp (const char *s1, const char *s2) {
     return strcmp(s1, s2);
 }
 
+bool string_starts_with(const char *s1, const char *s2) {
+    return strncmp(s1, s2, strlen(s2)) == 0;
+}
+
 const char *string_dup (const char *s1) {
     size_t    len = (size_t)strlen(s1);
     char    *s = (char *)mem_alloc(NULL, len + 1);

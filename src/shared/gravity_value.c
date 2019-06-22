@@ -2057,6 +2057,18 @@ gravity_list_t *gravity_list_new (gravity_vm *vm, uint32_t n) {
     return list;
 }
 
+gravity_value_t gravity_list_to_value(gravity_vm *vm, gravity_list_t *list) {
+    gravity_list_t *copy = mem_alloc(NULL, sizeof(gravity_list_t));
+    copy->array = list->array;
+
+    gravity_value_t value;
+    value.isa = gravity_class_list;
+    value.p = (gravity_object_t *)copy;
+
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) copy);
+    return value;
+}
+
 gravity_list_t *gravity_list_from_array (gravity_vm *vm, uint32_t n, gravity_value_t *p) {
     gravity_list_t *list = (gravity_list_t *)mem_alloc(NULL, sizeof(gravity_list_t));
 
@@ -2227,7 +2239,11 @@ static void gravity_map_stringify_iterator(gravity_hash_t *hashtable, gravity_va
     // INT
     if (VALUE_ISA_INT(v)) {
         substr = mem_alloc(NULL, strlen(key_string) + sizeof(int64_t) + 10 * sizeof(char));
+        #ifdef __APPLE__
         sprintf(substr, "%s\"%s\": %lld", delimiter, key_string, (int64_t)v.n);
+        #else
+        sprintf(substr, "%s\"%s\": %ld", delimiter, key_string, (int64_t)v.n);
+        #endif
         gravity_string_concat_cstring(NULL, map_string, substr);
         return;
     }
@@ -2259,12 +2275,21 @@ static void gravity_map_stringify_iterator(gravity_hash_t *hashtable, gravity_va
         return;
     }
 
+    if (VALUE_ISA_LIST(v)) {
+        gravity_list_t *value_list = VALUE_AS_LIST(v);
+        char *value_list_string = VALUE_AS_CSTRING(convert_value2string(NULL, v));
+        substr = mem_alloc(NULL, strlen(key_string) + strlen(value_list_string) + 10 * sizeof(char));
+        sprintf(substr, "%s%s: %s", delimiter, key_string, value_list_string);
+        gravity_string_concat_cstring(NULL, map_string, substr);
+        return;
+    }
+
     // should never reach this point
     assert(0);
 }
 
 char *gravity_map_to_string(gravity_vm *vm, gravity_map_t *map) {
-    gravity_string_t *map_string = gravity_string_new(NULL, "", 1000, 0);
+    gravity_string_t *map_string = gravity_string_new(NULL, "", 0, 0);
     gravity_hash_iterate(map->hash, gravity_map_stringify_iterator, map_string);
     gravity_string_concat_cstring(NULL, map_string, "}");
     return map_string->s;
@@ -2272,7 +2297,7 @@ char *gravity_map_to_string(gravity_vm *vm, gravity_map_t *map) {
 
 gravity_value_t gravity_map_to_value (gravity_vm *vm, gravity_map_t *map) {
     // allocate the size of a string
-    gravity_hash_t *h = gravity_hash_create_from(map->hash);
+    gravity_hash_t *h = gravity_hash_dup(map->hash);
     gravity_map_t *m = mem_alloc(vm, gravity_map_size(vm, map));
     m->hash = h; 
 
@@ -2360,12 +2385,12 @@ inline gravity_string_t *gravity_string_new (gravity_vm *vm, char *s, uint32_t l
 }
 
 inline void gravity_string_concat_cstring (gravity_vm *vm, gravity_string_t *obj, char *cstring) {
-    uint32_t len = (uint32_t)(strlen(obj->s) + strlen(cstring));
+    uint32_t len = (uint32_t)(obj->len + strlen(cstring));
     uint32_t alloc = MAXNUM(len+1, DEFAULT_MINSTRING_SIZE);
     obj->s = mem_realloc(NULL, obj->s, alloc);
+    memcpy(obj->s + obj->len, cstring, 1 + strlen(cstring));
     obj->len = len;
     obj->alloc = alloc;
-    strcat(obj->s, cstring);
 }
 
 inline void gravity_string_set (gravity_string_t *obj, char *s, uint32_t len) {
