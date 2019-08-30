@@ -21,7 +21,6 @@
   * [Function](func.md)
   * [Closure](closure.md)
   * [Class](class.md)
-  * [Instance](instance.md)
   * [Control Flow](controlflow.md)
   * [Loops](loop.md)
   * [Fibers](fiber.md)
