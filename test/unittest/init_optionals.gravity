@@ -1,0 +1,29 @@
+#unittest {
+    name: "Optional arguments in constructor";
+    result: 22200;
+};
+
+class Foo {
+    var v1;
+    var v2;
+
+    func init (p1, p2) {
+        if (p1) v1 = p1;
+        else v1 = 100;
+        
+        if (p2) v2 = p2;
+        else v2 = 200
+    }
+    
+    func tot () {
+        return v1 * v2;
+    }
+}
+
+func main() {
+    var f1 = Foo();         // 100 * 200 = 20000
+    var f2 = Foo(10);       // 10  * 200 =  2000
+    var f3 = Foo(10, 20);   // 10  *  20 =   200
+    
+    return f1.tot() + f2.tot() + f3.tot();
+}

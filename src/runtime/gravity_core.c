@@ -95,6 +95,12 @@ typedef enum {
     number_format_float
 } number_format_type;
 
+typedef enum {
+    introspection_info_all,
+    introspection_info_methods,
+    introspection_info_variables
+} introspection_info_type;
+
 // MARK: - Utils -
 static void map_keys_array (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data) {
     #pragma unused (hashtable, value)
@@ -120,14 +126,16 @@ static gravity_value_t convert_string2number (gravity_string_t *string, number_f
 
     // check special HEX, OCT, BIN cases
     if ((s[0] == '0') && (len > 2)) {
-        int64_t n = 0;
-
         int c = toupper(s[1]);
-        if (c == 'B') n = number_from_bin(&s[2], len-2);
-        else if (c == 'O') n = number_from_oct(&s[2], len-2);
-        else if (c == 'X') n = number_from_hex(s, len);
-        if (sign == -1) n = -n;
-        return (number_format == number_format_float) ? VALUE_FROM_FLOAT((gravity_float_t)n) : VALUE_FROM_INT((gravity_int_t)n);
+        bool isHexBinOct = ((c == 'B') || (c == 'O') || (c == 'X'));
+        if (isHexBinOct) {
+            int64_t n = 0;
+            if (c == 'B') n = number_from_bin(&s[2], len-2);
+            else if (c == 'O') n = number_from_oct(&s[2], len-2);
+            else if (c == 'X') n = number_from_hex(s, len);
+            if (sign == -1) n = -n;
+            return (number_format == number_format_float) ? VALUE_FROM_FLOAT((gravity_float_t)n) : VALUE_FROM_INT((gravity_int_t)n);
+        }
     }
 
     // if dot character is contained into the string than force the float_preferred flag
@@ -463,13 +471,127 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
     return VALUE_FROM_ERROR(NULL);
 }
 
-// MARK: - Object Class -
+// MARK: - Object Introspection -
 
 static bool object_class (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
     RETURN_VALUE(VALUE_FROM_OBJECT(c), rindex);
 }
+
+static bool object_meta (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+    RETURN_VALUE(VALUE_FROM_OBJECT(gravity_class_get_meta(c)), rindex);
+}
+
+static bool object_respond (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+    gravity_value_t key = GET_VALUE(1);
+    
+    bool result = false;
+    if (VALUE_ISA_STRING(key)) result = (gravity_class_lookup(c, key) != NULL);
+    
+    RETURN_VALUE(VALUE_FROM_BOOL(result), rindex);
+}
+
+static void collect_introspection (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data1, void *data2, void *data3) {
+    #pragma unused (hashtable, data3)
+    gravity_list_t *list = (gravity_list_t *)data1;
+    introspection_info_type mask = *((introspection_info_type *)data2);
+    
+    // EXEC_TYPE_NATIVE     = 0
+    // EXEC_TYPE_INTERNAL   = 1
+    // EXEC_TYPE_BRIDGED    = 2
+    // EXEC_TYPE_SPECIAL    = 3
+    
+    gravity_closure_t *closure = VALUE_AS_CLOSURE(value);
+    gravity_function_t *func = closure->f;
+    bool is_var = (func->tag == EXEC_TYPE_SPECIAL);
+    
+    if ((mask == introspection_info_all) ||
+        ((mask == introspection_info_variables) && (is_var)) ||
+        ((mask == introspection_info_methods) && (!is_var))) {
+            marray_push(gravity_value_t, list->array, key);
+    }
+}
+
+static void collect_introspection_extended (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data1, void *data2, void *data3) {
+    #pragma unused (hashtable)
+    
+    if (!VALUE_ISA_CLOSURE(value)) return;
+    
+    gravity_map_t *map = (gravity_map_t *)data1;
+    introspection_info_type mask = *((introspection_info_type *)data2);
+    gravity_vm *vm = (gravity_vm *)data3;
+    
+    gravity_closure_t *closure = VALUE_AS_CLOSURE(value);
+    gravity_function_t *func = closure->f;
+    bool is_var = (func->tag == EXEC_TYPE_SPECIAL);
+    
+    // create info map
+    gravity_map_t *info = gravity_map_new(vm, 16);
+    
+    // name
+    // description?
+    // isvar
+        // index
+        // read-only
+        // type?
+    // parameters (array of maps)
+        // name
+        // type?
+        // index
+        // value?
+    
+    gravity_map_insert(vm, info, VALUE_FROM_CSTRING(vm, "name"), VALUE_FROM_CSTRING(vm, VALUE_AS_STRING(key)->s));
+    gravity_map_insert(vm, info, VALUE_FROM_CSTRING(vm, "isvar"), VALUE_FROM_BOOL(is_var));
+    if (is_var) {
+        if (func->index < GRAVITY_COMPUTED_INDEX) gravity_map_insert(vm, info, VALUE_FROM_CSTRING(vm, "index"), VALUE_FROM_INT(func->index));
+        gravity_map_insert(vm, info, VALUE_FROM_CSTRING(vm, "readonly"), VALUE_FROM_BOOL(func->special[0] != NULL && func->special[1] == NULL));
+    } else {
+        gravity_list_t *params = gravity_function_params_get(vm, func);
+        if (params) gravity_map_insert(vm, info, VALUE_FROM_CSTRING(vm, "params"), VALUE_FROM_OBJECT(params));
+    }
+    
+    if ((mask == introspection_info_all) ||
+        ((mask == introspection_info_variables) && (is_var)) ||
+        ((mask == introspection_info_methods) && (!is_var))) {
+        gravity_map_insert(vm, map, key, VALUE_FROM_OBJECT(info));
+    }
+}
+
+static bool object_real_introspection (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex, introspection_info_type mask) {
+    bool extended = ((nargs >= 2) && (VALUE_ISA_BOOL(args[1]) && (VALUE_AS_BOOL(args[1]) == true)));
+    bool nosuper = ((nargs >= 3) && (VALUE_ISA_BOOL(args[2]) && (VALUE_AS_BOOL(args[2]) == true)));
+    
+    gravity_hash_iterate3_fn callback = (extended) ? collect_introspection_extended : collect_introspection;
+    gravity_object_t *data = (extended) ? (gravity_object_t *)gravity_map_new(vm, 256) : (gravity_object_t *)gravity_list_new(vm, 256);
+    
+    gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+    while (c) {
+        gravity_hash_t *htable = c->htable;
+        gravity_hash_iterate3(htable, callback, (void *)data, (void *)&mask, (void *)vm);
+        c = (nosuper) ? NULL : c->superclass;
+    }
+    
+    RETURN_VALUE(VALUE_FROM_OBJECT(data), rindex);
+}
+
+static bool object_methods (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    return object_real_introspection(vm, args, nargs, rindex, introspection_info_methods);
+}
+
+static bool object_properties (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    return object_real_introspection(vm, args, nargs, rindex, introspection_info_variables);
+}
+
+static bool object_introspection (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    return object_real_introspection(vm, args, nargs, rindex, introspection_info_all);
+}
+
+// MARK: - Object Class -
 
 static bool object_internal_size (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
@@ -478,10 +600,10 @@ static bool object_internal_size (gravity_vm *vm, gravity_value_t *args, uint16_
     RETURN_VALUE(VALUE_FROM_INT(size), rindex);
 }
 
-static bool object_isa (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+static bool object_is (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
 
-    gravity_class_t    *c1 = gravity_value_getclass(GET_VALUE(0));
+    gravity_class_t *c1 = gravity_value_getclass(GET_VALUE(0));
     gravity_class_t *c2 = VALUE_AS_CLASS(GET_VALUE(1));
 
     while (c1 != c2 && c1->superclass != NULL) {
@@ -1022,7 +1144,21 @@ static bool list_reversed (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
     RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
-static bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t val1, gravity_value_t val2, gravity_closure_t *predicate) {
+typedef bool (list_comparison_callback) (gravity_vm *vm, gravity_value_t val1, gravity_value_t val2);
+
+static bool list_default_number_compare (gravity_vm *vm, gravity_value_t val1, gravity_value_t val2) {
+    gravity_float_t n1 = convert_value2float(vm, val1).f;
+    gravity_float_t n2 = convert_value2float(vm, val2).f;
+    return n1 > n2;
+}
+
+static bool list_default_string_compare (gravity_vm *vm, gravity_value_t val1, gravity_value_t val2) {
+    gravity_string_t *s1 = VALUE_AS_STRING(convert_value2string(vm, val1));
+    gravity_string_t *s2 = VALUE_AS_STRING(convert_value2string(vm, val2));
+    return (strcmp(s1->s, s2->s) > 0);
+}
+
+static bool compare_values (gravity_vm *vm, gravity_value_t selfvalue, gravity_value_t val1, gravity_value_t val2, gravity_closure_t *predicate) {
     gravity_value_t params[2] = {val1, val2};
     if (!gravity_vm_runclosure(vm, predicate, selfvalue, params, 2)) return false;
     gravity_value_t result = gravity_vm_result(vm);
@@ -1034,12 +1170,12 @@ static bool compare_values(gravity_vm *vm, gravity_value_t selfvalue, gravity_va
     return truthy_value.n;
 }
 
-static uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
+static uint32_t partition (gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate, list_comparison_callback *callback) {
     gravity_value_t pivot = array[high];
     int32_t i = low - 1;
     
     for (int32_t j = low; j <= high - 1; j++) {
-        if (!compare_values(vm, selfvalue, array[j], pivot, predicate)) {
+        if ((predicate && !compare_values(vm, selfvalue, array[j], pivot, predicate)) || (callback && !callback(vm, array[j], pivot))) {
             ++i;
             gravity_value_t temp = array[i]; //swap a[i], a[j]
             array[i] = array[j];
@@ -1054,39 +1190,48 @@ static uint32_t partition(gravity_vm *vm, gravity_value_t *array, int32_t low, i
     return i + 1;
 }
 
-static void quicksort(gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate) {
+static void quicksort (gravity_vm *vm, gravity_value_t *array, int32_t low, int32_t high, gravity_value_t selfvalue, gravity_closure_t *predicate, list_comparison_callback *callback) {
     if (gravity_vm_isaborted(vm)) return;
     
     if (low < high) {
-        int32_t pi = partition(vm, array, low, high, selfvalue, predicate);
-        quicksort(vm, array, low, pi - 1, selfvalue, predicate);
-        quicksort(vm, array, pi + 1, high, selfvalue, predicate);
+        int32_t pi = partition(vm, array, low, high, selfvalue, predicate, callback);
+        quicksort(vm, array, low, pi - 1, selfvalue, predicate, callback);
+        quicksort(vm, array, pi + 1, high, selfvalue, predicate, callback);
     }
 }
 
 static bool list_sort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 2) RETURN_ERROR("One argument is needed by the sort function.");
-  if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
-  gravity_value_t selfvalue = GET_VALUE(0);                            // self parameter
+    //the predicate is the comparison function passed to list.sort() if any
+    gravity_closure_t *predicate = NULL;
+    list_comparison_callback *callback = NULL;
+    if (nargs >=2 && VALUE_ISA_CLOSURE(GET_VALUE(1))) predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
     
-  //the predicate is the comparison function, passed to list.sort()
-  gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
-  gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-  int32_t count = (int32_t)marray_size(list->array);
+    gravity_value_t selfvalue = GET_VALUE(0); // self parameter
+    gravity_list_t *list = VALUE_AS_LIST(selfvalue);
     
-  quicksort(vm, list->array.p, 0, count-1, selfvalue, predicate);
-  RETURN_VALUE(VALUE_FROM_OBJECT((gravity_object_t *)list), rindex);
+    int32_t count = (int32_t)marray_size(list->array);
+    if (count > 1) {
+        if (predicate == NULL) {
+            gravity_value_t first_value = marray_get(list->array, 0);
+            if (VALUE_ISA_INT(first_value) || (VALUE_ISA_FLOAT(first_value))) callback = list_default_number_compare;
+            else callback = list_default_string_compare;
+        }
+        quicksort(vm, list->array.p, 0, count-1, selfvalue, predicate, callback);
+    }
+    
+    RETURN_VALUE(VALUE_FROM_OBJECT((gravity_object_t *)list), rindex);
 }
 
 static bool list_sorted (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    if (nargs != 2) RETURN_ERROR("One argument is needed by the sort function.");
-    if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
-    gravity_value_t selfvalue = GET_VALUE(0);   // self parameter
-
-    // the predicate is the comparison function, passed to list.sort()
-    gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
+    //the predicate is the comparison function passed to list.sort() if any
+    gravity_closure_t *predicate = NULL;
+    list_comparison_callback *callback = NULL;
+    if (nargs >=2 && VALUE_ISA_CLOSURE(GET_VALUE(1))) predicate = VALUE_AS_CLOSURE(GET_VALUE(1));
+    
+    gravity_value_t selfvalue = GET_VALUE(0); // self parameter
     gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-    size_t count = marray_size(list->array);
+    
+    int32_t count = (int32_t)marray_size(list->array);
     
     // do not transfer newlist to GC because it could be freed during predicate closure execution
     // (because newlist is not yet in any stack)
@@ -1096,7 +1241,14 @@ static bool list_sorted (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     memcpy(newlist->array.p, list->array.p, sizeof(gravity_value_t)*count);
     newlist->array.m = list->array.m;
     newlist->array.n = list->array.n;
-    quicksort(vm, newlist->array.p, 0, (int32_t)count-1, selfvalue, predicate);
+    if (count > 1) {
+        if (predicate == NULL) {
+            gravity_value_t first_value = marray_get(list->array, 0);
+            if (VALUE_ISA_INT(first_value) || (VALUE_ISA_FLOAT(first_value))) callback = list_default_number_compare;
+            else callback = list_default_string_compare;
+        }
+        quicksort(vm, newlist->array.p, 0, (int32_t)count-1, selfvalue, predicate, callback);
+    }
 
     gravity_vm_transfer(vm, (gravity_object_t*) newlist);
     RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
@@ -1126,7 +1278,7 @@ static bool list_map (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
-static bool list_filter(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+static bool list_filter (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     if (nargs != 2) RETURN_ERROR("One argument is needed by the filter function.");
     if (!VALUE_ISA_CLOSURE(GET_VALUE(1))) RETURN_ERROR("Argument must be a Closure.");
     
@@ -1151,23 +1303,23 @@ static bool list_filter(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     RETURN_VALUE(VALUE_FROM_OBJECT(newlist), rindex);
 }
 
-static bool list_reduce(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-  if (nargs != 3) RETURN_ERROR("Two arguments are needed by the reduce function.");
-  if (!VALUE_ISA_CLOSURE(GET_VALUE(2))) RETURN_ERROR("Argument 2 must be a Closure.");
+static bool list_reduce (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (nargs != 3) RETURN_ERROR("Two arguments are needed by the reduce function.");
+    if (!VALUE_ISA_CLOSURE(GET_VALUE(2))) RETURN_ERROR("Argument 2 must be a Closure.");
     
-  gravity_value_t selfvalue = GET_VALUE(0); // self parameter
-  gravity_value_t start = GET_VALUE(1);     // start parameter
-  gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(2));
+    gravity_value_t selfvalue = GET_VALUE(0); // self parameter
+    gravity_value_t start = GET_VALUE(1);     // start parameter
+    gravity_closure_t *predicate = VALUE_AS_CLOSURE(GET_VALUE(2));
     
-  gravity_list_t *list = VALUE_AS_LIST(selfvalue);
-  size_t count = marray_size(list->array);
-  for (uint32_t i = 0; i < count; i++) {
-    gravity_value_t params[2] = {start, marray_get(list->array, i)};
-    if (!gravity_vm_runclosure(vm, predicate, selfvalue, params, 2)) return false;
-    start = gravity_vm_result(vm);
-  }
+    gravity_list_t *list = VALUE_AS_LIST(selfvalue);
+    size_t count = marray_size(list->array);
+    for (uint32_t i = 0; i < count; i++) {
+        gravity_value_t params[2] = {start, marray_get(list->array, i)};
+        if (!gravity_vm_runclosure(vm, predicate, selfvalue, params, 2)) return false;
+        start = gravity_vm_result(vm);
+    }
     
-  RETURN_VALUE(start, rindex);
+    RETURN_VALUE(start, rindex);
 }
 
 static bool list_join (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1541,6 +1693,15 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 
     // if constructor found in this class then executes it
     if (closure) {
+        // as with func call even in constructor if less arguments are passed then fill the holes with UNDEFINED values
+        if (nargs < closure->f->nparams) {
+            uint16_t rargs = nargs;
+            while (rargs < closure->f->nparams) {
+                args[rargs] = VALUE_FROM_UNDEFINED;
+                ++rargs;
+            }
+        }
+        
         gravity_gc_setenabled(vm, true);
         RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
     }
@@ -1601,6 +1762,36 @@ static bool closure_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     }
     
     RETURN_NOVALUE();
+}
+
+// MARK: - Function Class -
+
+static bool function_closure (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(nargs)
+    
+    gravity_function_t *func = VALUE_AS_FUNCTION(GET_VALUE(0));
+    gravity_closure_t *closure = gravity_closure_new(vm, func);
+    RETURN_VALUE(VALUE_FROM_OBJECT(closure), rindex);
+}
+
+static bool function_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    if (!VALUE_ISA_FUNCTION(GET_VALUE(0))) RETURN_ERROR("Unable to convert Object to closure");
+    
+    gravity_function_t *func = VALUE_AS_FUNCTION(GET_VALUE(0));
+    gravity_closure_t *closure = gravity_closure_new(vm, func);
+    
+    // fix the default arg values case
+    // to be really correct and safe, stack size should be checked here but I know in advance that a minimum DEFAULT_MINSTACK_SIZE
+    // is guaratee before calling a function, so just make sure that you do not use more than DEFAULT_MINSTACK_SIZE arguments
+    // DEFAULT_MINSTACK_SIZE is 256 and in case of a 256 function arguments a maximum registers error would be returned
+    // so I can assume to be always safe here
+    while (nargs < func->nparams) {
+        uint32_t index = (func->nparams - nargs);
+        args[index] = VALUE_FROM_UNDEFINED;
+        ++nargs;
+    }
+    
+    RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
 }
 
 // MARK: - Float Class -
@@ -2613,6 +2804,28 @@ static bool string_trim (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     RETURN_VALUE(value, rindex);
 }
 
+static bool string_raw (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
+    
+    uint32_t ascii = 0;
+    uint32_t n = utf8_charbytes(string->s, 0);
+    for (uint32_t i=0; i<n; ++i) {
+        // if (n > 1) {printf("%u (%d)\n", (uint8_t)string->s[i], (uint32_t)pow(10, n-(i+1)));}
+        ascii += ((uint8_t)string->s[i] * pow(10, n-(i+1)));
+    }
+    
+    RETURN_VALUE(VALUE_FROM_INT(ascii), rindex);
+}
+
+static bool string_toclass (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, nargs)
+    gravity_value_t result = gravity_vm_lookup(vm, GET_VALUE(0));
+    
+    if (VALUE_ISA_CLASS(result)) RETURN_VALUE(result, rindex);
+    RETURN_VALUE(VALUE_FROM_NULL, rindex);
+}
+
 // MARK: - Fiber Class -
 
 static bool fiber_create (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -3033,10 +3246,10 @@ void gravity_core_init (void) {
     gravity_class_list = gravity_class_new_pair(NULL, GRAVITY_CLASS_LIST_NAME, NULL, 0, 0);
     gravity_class_map = gravity_class_new_pair(NULL, GRAVITY_CLASS_MAP_NAME, NULL, 0, 0);
     gravity_class_range = gravity_class_new_pair(NULL, GRAVITY_CLASS_RANGE_NAME, NULL, 0, 0);
-
+    
     // OBJECT CLASS
     gravity_class_bind(gravity_class_object, GRAVITY_CLASS_CLASS_NAME, NEW_CLOSURE_VALUE(object_class));
-    gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_ISA_NAME, NEW_CLOSURE_VALUE(object_isa));
+    gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_IS_NAME, NEW_CLOSURE_VALUE(object_is));
     gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_CMP_NAME, NEW_CLOSURE_VALUE(object_cmp));
     gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_EQQ_NAME, NEW_CLOSURE_VALUE(object_eqq));
     gravity_class_bind(gravity_class_object, GRAVITY_OPERATOR_NEQQ_NAME, NEW_CLOSURE_VALUE(object_neqq));
@@ -3055,6 +3268,14 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(object_exec));
     gravity_class_bind(gravity_class_object, "clone", NEW_CLOSURE_VALUE(object_clone));
 
+    // INTROSPECTION support added to OBJECT CLASS
+    gravity_class_bind(gravity_class_object, "class", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(object_class), NULL)));
+    gravity_class_bind(gravity_class_object, "meta", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(object_meta), NULL)));
+    gravity_class_bind(gravity_class_object, "respondTo", NEW_CLOSURE_VALUE(object_respond));
+    gravity_class_bind(gravity_class_object, "methods", NEW_CLOSURE_VALUE(object_methods));
+    gravity_class_bind(gravity_class_object, "properties", NEW_CLOSURE_VALUE(object_properties));
+    gravity_class_bind(gravity_class_object, "introspection", NEW_CLOSURE_VALUE(object_introspection));
+    
     // NULL CLASS
     // Meta
     gravity_class_t *null_meta = gravity_class_get_meta(gravity_class_null);
@@ -3069,6 +3290,10 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_closure, "apply", NEW_CLOSURE_VALUE(closure_apply));
     gravity_class_bind(gravity_class_closure, "bind", NEW_CLOSURE_VALUE(closure_bind));
 
+    // FUNCTION CLASS
+    gravity_class_bind(gravity_class_function, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(function_exec));
+    gravity_class_bind(gravity_class_function, "closure", NEW_CLOSURE_VALUE(function_closure));
+    
     // LIST CLASS
     gravity_closure_t *closure = computed_property_create(NULL, NEW_FUNCTION(list_count), NULL);
     gravity_class_bind(gravity_class_list, "count", VALUE_FROM_OBJECT(closure));
@@ -3217,6 +3442,9 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_string, ITERATOR_NEXT_FUNCTION, NEW_CLOSURE_VALUE(string_iterator_next));
     gravity_class_bind(gravity_class_string, "number", NEW_CLOSURE_VALUE(string_number));
     gravity_class_bind(gravity_class_string, "trim", NEW_CLOSURE_VALUE(string_trim));
+    gravity_class_bind(gravity_class_string, "raw", NEW_CLOSURE_VALUE(string_raw));
+    gravity_class_bind(gravity_class_string, GRAVITY_TOCLASS_NAME, NEW_CLOSURE_VALUE(string_toclass));
+    
     // Meta
     gravity_class_t *string_meta = gravity_class_get_meta(gravity_class_string);
     gravity_class_bind(string_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(string_exec));
@@ -3270,7 +3498,7 @@ void gravity_core_init (void) {
     gravity_class_bind(system_meta, GRAVITY_VM_MAXCALLS, value);
     gravity_class_bind(system_meta, GRAVITY_VM_MAXBLOCK, value);
     gravity_class_bind(system_meta, GRAVITY_VM_MAXRECURSION, value);
-
+    
     // INIT META
     SETMETA_INITED(gravity_class_int);
     SETMETA_INITED(gravity_class_float);

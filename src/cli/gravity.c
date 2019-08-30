@@ -314,7 +314,7 @@ static op_type parse_args (int argc, const char* argv[]) {
     return type;
 }
 
-// MARK: - Special Modes
+// MARK: - Special Modes -
 
 static void gravity_repl (void) {
 

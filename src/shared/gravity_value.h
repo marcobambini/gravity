@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.7.0"     // git tag 0.7.0
-#define GRAVITY_VERSION_NUMBER				0x000700    // git push --tags
+#define GRAVITY_VERSION						"0.7.4"     // git tag 0.7.4
+#define GRAVITY_VERSION_NUMBER				0x000704    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -265,7 +265,7 @@ typedef struct {
             gravity_value_r pname;          // param names
             uint32_t        ninsts;         // number of instructions in the bytecode
             uint32_t        *bytecode;      // bytecode as array of 32bit values
-            uint32_t        *lineno;            // debug: line number <-> current instruction relation
+            uint32_t        *lineno;        // debug: line number <-> current instruction relation
             float           purity;         // experimental value
             bool            useargs;        // flag set by the compiler to optimize the creation of the arguments array only if needed
         };
@@ -297,6 +297,7 @@ typedef struct gravity_closure_s {
     gravity_function_t      *f;             // function prototype
     gravity_object_t        *context;       // context where the closure has been created (or object bound by the user)
     gravity_upvalue_t       **upvalue;      // upvalue array
+    uint32_t                refcount;       // bridge language sometimes needs to protect closures from GC
 } gravity_closure_t;
 
 typedef struct {
@@ -433,6 +434,7 @@ GRAVITY_API gravity_value_t     gravity_function_cpool_get (gravity_function_t *
 GRAVITY_API void                gravity_function_dump (gravity_function_t *f, code_dump_function codef);
 GRAVITY_API void                gravity_function_setouter (gravity_function_t *f, gravity_object_t *outer);
 GRAVITY_API void                gravity_function_setxdata (gravity_function_t *f, void *xdata);
+GRAVITY_API gravity_list_t      *gravity_function_params_get (gravity_vm *vm, gravity_function_t *f);
 GRAVITY_API void                gravity_function_serialize (gravity_function_t *f, json_t *json);
 GRAVITY_API uint32_t            *gravity_bytecode_deserialize (const char *buffer, size_t len, uint32_t *ninst);
 GRAVITY_API gravity_function_t  *gravity_function_deserialize (gravity_vm *vm, json_value *json);
@@ -444,6 +446,8 @@ GRAVITY_API uint32_t            gravity_function_size (gravity_vm *vm, gravity_f
 GRAVITY_API gravity_closure_t   *gravity_closure_new (gravity_vm *vm, gravity_function_t *f);
 GRAVITY_API void                gravity_closure_free (gravity_vm *vm, gravity_closure_t *closure);
 GRAVITY_API uint32_t            gravity_closure_size (gravity_vm *vm, gravity_closure_t *closure);
+GRAVITY_API void                gravity_closure_inc_refcount (gravity_vm *vm, gravity_closure_t *closure);
+GRAVITY_API void                gravity_closure_dec_refcount (gravity_vm *vm, gravity_closure_t *closure);
 GRAVITY_API void                gravity_closure_blacken (gravity_vm *vm, gravity_closure_t *closure);
 
 // MARK: - UPVALUE -
@@ -495,6 +499,7 @@ GRAVITY_API void                gravity_instance_free (gravity_vm *vm, gravity_i
 GRAVITY_API gravity_closure_t   *gravity_instance_lookup_event (gravity_instance_t *i, const char *name);
 GRAVITY_API void                gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API uint32_t            gravity_instance_size (gravity_vm *vm, gravity_instance_t *i);
+GRAVITY_API void                gravity_instance_serialize (gravity_instance_t *i, json_t *json);
 
 // MARK: - VALUE -
 GRAVITY_API bool                gravity_value_equals (gravity_value_t v1, gravity_value_t v2);
@@ -503,7 +508,7 @@ GRAVITY_API uint32_t            gravity_value_hash (gravity_value_t value);
 GRAVITY_API gravity_class_t     *gravity_value_getclass (gravity_value_t v);
 GRAVITY_API gravity_class_t     *gravity_value_getsuper (gravity_value_t v);
 GRAVITY_API void                gravity_value_free (gravity_vm *vm, gravity_value_t v);
-GRAVITY_API void                gravity_value_serialize (gravity_value_t v, json_t *json);
+GRAVITY_API void                gravity_value_serialize (const char *key, gravity_value_t v, json_t *json);
 GRAVITY_API void                gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16_t len);
 GRAVITY_API bool                gravity_value_isobject (gravity_value_t v);
 GRAVITY_API void                *gravity_value_xdata (gravity_value_t value);
@@ -540,6 +545,8 @@ GRAVITY_API gravity_range_t     *gravity_range_new (gravity_vm *vm, gravity_int_
 GRAVITY_API void                gravity_range_free (gravity_vm *vm, gravity_range_t *range);
 GRAVITY_API void                gravity_range_blacken (gravity_vm *vm, gravity_range_t *range);
 GRAVITY_API uint32_t            gravity_range_size (gravity_vm *vm, gravity_range_t *range);
+GRAVITY_API void                gravity_range_serialize (gravity_range_t *r, json_t *json);
+GRAVITY_API gravity_range_t     *gravity_range_deserialize (gravity_vm *vm, json_value *json);
 
 /// MARK: - STRING -
 GRAVITY_API gravity_value_t     gravity_string_to_value (gravity_vm *vm, const char *s, uint32_t len);

@@ -18,8 +18,6 @@
 #include "gravity_macros.h"
 #include "gravity_vmmacros.h"
 
-#define MATH_CLASS_NAME             "Math"
-
 #if GRAVITY_ENABLE_DOUBLE
 #define SIN                         sin
 #define COS                         cos
@@ -933,7 +931,7 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 // MARK: - Internals -
 
 static void create_optional_class (void) {
-    gravity_class_math = gravity_class_new_pair(NULL, MATH_CLASS_NAME, NULL, 0, 0);
+    gravity_class_math = gravity_class_new_pair(NULL, GRAVITY_CLASS_MATH_NAME, NULL, 0, 0);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_math);
 
     gravity_class_bind(meta, "abs", NEW_CLOSURE_VALUE(math_abs));
@@ -990,7 +988,7 @@ bool gravity_ismath_class (gravity_class_t *c) {
 }
 
 const char *gravity_math_name (void) {
-    return MATH_CLASS_NAME;
+    return GRAVITY_CLASS_MATH_NAME;
 }
 
 void gravity_math_register (gravity_vm *vm) {
@@ -998,7 +996,7 @@ void gravity_math_register (gravity_vm *vm) {
     ++refcount;
 
     if (!vm || gravity_vm_ismini(vm)) return;
-    gravity_vm_setvalue(vm, MATH_CLASS_NAME, VALUE_FROM_OBJECT(gravity_class_math));
+    gravity_vm_setvalue(vm, GRAVITY_CLASS_MATH_NAME, VALUE_FROM_OBJECT(gravity_class_math));
 }
 
 void gravity_math_free (void) {

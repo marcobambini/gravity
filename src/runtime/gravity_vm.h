@@ -58,6 +58,7 @@ GRAVITY_API void                gravity_gc_start (gravity_vm* vm);
 GRAVITY_API void                gravity_gc_setenabled (gravity_vm* vm, bool enabled);
 GRAVITY_API void                gravity_gc_temppush (gravity_vm *vm, gravity_object_t *obj);
 GRAVITY_API void                gravity_gc_temppop (gravity_vm *vm);
+GRAVITY_API void                gravity_gc_tempnull (gravity_vm *vm, gravity_object_t *obj);
 GRAVITY_API void                gravity_gc_setvalues (gravity_vm *vm, gravity_int_t threshold, gravity_int_t minthreshold, gravity_float_t ratio);
     
 GRAVITY_API void                gravity_vm_transfer (gravity_vm* vm, gravity_object_t *obj);

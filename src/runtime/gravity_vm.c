@@ -180,7 +180,7 @@ static void gravity_cache_setup (void) {
     cache[GRAVITY_OR_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_OR_NAME);
     cache[GRAVITY_CMP_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_CMP_NAME);
     cache[GRAVITY_EQQ_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_EQQ_NAME);
-    cache[GRAVITY_ISA_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_ISA_NAME);
+    cache[GRAVITY_IS_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_IS_NAME);
     cache[GRAVITY_MATCH_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_MATCH_NAME);
     cache[GRAVITY_NEG_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_NEG_NAME);
     cache[GRAVITY_NOT_INDEX] = VALUE_FROM_CSTRING(NULL, GRAVITY_OPERATOR_NOT_NAME);
@@ -357,15 +357,17 @@ static void gravity_vm_loadclass (gravity_vm *vm, gravity_class_t *c) {
 void gravity_opt_register (gravity_vm *vm) {
     GRAVITY_MATH_REGISTER(vm);
     GRAVITY_ENV_REGISTER(vm);
+    GRAVITY_JSON_REGISTER(vm);
 }
 
 void gravity_opt_free() {
     GRAVITY_MATH_FREE();
     GRAVITY_ENV_FREE();
+    GRAVITY_JSON_FREE();
 }
 
 bool gravity_isopt_class (gravity_class_t *c) {
-    return (GRAVITY_ISMATH_CLASS(c)) || (GRAVITY_ISENV_CLASS(c));
+    return (GRAVITY_ISMATH_CLASS(c)) || (GRAVITY_ISENV_CLASS(c) || (GRAVITY_ISJSON_CLASS(c)));
 }
 
 // MARK: - MAIN EXECUTION -
@@ -692,7 +694,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DEFINE_STACK_VARIABLE(v3,r3);
 
                 // prepare function call for binary operation
-                PREPARE_FUNC_CALL2(closure, v2, v3, (op == ISA) ? GRAVITY_ISA_INDEX : GRAVITY_MATCH_INDEX, rwin);
+                PREPARE_FUNC_CALL2(closure, v2, v3, (op == ISA) ? GRAVITY_IS_INDEX : GRAVITY_MATCH_INDEX, rwin);
 
                 // call function f
                 CALL_FUNC(ISA, closure, r1, 2, rwin);
@@ -2330,4 +2332,14 @@ void gravity_gc_temppush (gravity_vm *vm, gravity_object_t *obj) {
 
 void gravity_gc_temppop (gravity_vm *vm) {
     marray_pop(vm->gctemp);
+}
+
+void gravity_gc_tempnull (gravity_vm *vm, gravity_object_t *obj) {
+    for (uint32_t i=0; i<marray_size(vm->gctemp); ++i) {
+        gravity_object_t *tobj = marray_get(vm->gctemp, i);
+        if (tobj == obj) {
+            marray_setnull(vm->gctemp, i);
+            break;
+        }
+    }
 }

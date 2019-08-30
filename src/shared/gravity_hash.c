@@ -389,6 +389,20 @@ void gravity_hash_iterate2 (gravity_hash_t *hashtable, gravity_hash_iterate2_fn 
     }
 }
 
+void gravity_hash_iterate3 (gravity_hash_t *hashtable, gravity_hash_iterate3_fn iterate, void *data1, void *data2, void *data3) {
+    if ((!hashtable) || (!iterate)) return;
+    
+    for (uint32_t i=0; i<hashtable->size; ++i) {
+        hash_node_t *node = hashtable->nodes[i];
+        if (!node) continue;
+        
+        while (node) {
+            iterate(hashtable, node->key, node->value, data1, data2, data3);
+            node = node->next;
+        }
+    }
+}
+
 void gravity_hash_dump (gravity_hash_t *hashtable) {
     gravity_hash_iterate(hashtable, table_dump, NULL);
 }

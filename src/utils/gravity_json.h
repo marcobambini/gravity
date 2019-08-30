@@ -7,8 +7,24 @@
 
 // MARK: JSON serializer -
 
+typedef enum
+{
+    json_opt_none           =   0x00,
+    json_opt_need_comma     =   0x01,
+    json_opt_prettify       =   0x02,
+    json_opt_no_maptype     =   0x04,
+    json_opt_no_undef       =   0x08,
+    json_opt_unused_1       =   0x10,
+    json_opt_unused_2       =   0x20,
+    json_opt_unused_3       =   0x40,
+    json_opt_unused_4       =   0x80,
+    json_opt_unused_5       =   0x100,
+} json_opt_mask;
+
 typedef struct json_t    json_t;
 json_t      *json_new (void);
+void        json_free (json_t *json);
+
 void        json_begin_object (json_t *json, const char *key);
 void        json_end_object (json_t *json);
 void        json_begin_array (json_t *json, const char *key);
@@ -19,10 +35,16 @@ void        json_add_int (json_t *json, const char *key, int64_t value);
 void        json_add_double (json_t *json, const char *key, double value);
 void        json_add_bool (json_t *json, const char *key, bool value);
 void        json_add_null (json_t *json, const char *key);
-void        json_free (json_t *json);
-const char  *json_buffer (json_t *json, size_t *len);
+void        json_set_label (json_t *json, const char *key);
+const char  *json_get_label (json_t *json, const char *key);
+
+char        *json_buffer (json_t *json, size_t *len);
 bool        json_write_file (json_t *json, const char *path);
-void        json_pop (json_t *json, uint32_t n);
+
+uint32_t    json_get_options (json_t *json);
+void        json_set_option (json_t *json, json_opt_mask option_value);
+void        json_clear_option (json_t *json, json_opt_mask option_value);
+bool        json_option_isset (json_t *json, json_opt_mask option_value);
 
 #endif
 

@@ -139,22 +139,24 @@ gnode_t *gnode_label_stat_create (gtoken_s token, gnode_t *expr, gnode_t *stmt, 
     return (gnode_t *)node;
 }
 
-gnode_t *gnode_flow_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt1, gnode_t *stmt2, gnode_t *decl) {
+gnode_t *gnode_flow_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt1, gnode_t *stmt2, gnode_t *decl, uint32_t block_length) {
     gnode_flow_stmt_t *node = (gnode_flow_stmt_t *)mem_alloc(NULL, sizeof(gnode_flow_stmt_t));
 
     SETBASE(node, NODE_FLOW_STAT, token);
     SETDECL(node, decl);
+	node->base.block_length = block_length;
     node->cond = cond;
     node->stmt = stmt1;
     node->elsestmt = stmt2;
     return (gnode_t *)node;
 }
 
-gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, gnode_t *expr, gnode_t *decl) {
+gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, gnode_t *expr, gnode_t *decl, uint32_t block_length) {
     gnode_loop_stmt_t *node = (gnode_loop_stmt_t *)mem_alloc(NULL, sizeof(gnode_loop_stmt_t));
 
     SETBASE(node, NODE_LOOP_STAT, token);
     SETDECL(node, decl);
+    node->base.block_length = block_length;
     node->cond = cond;
     node->stmt = stmt;
     node->expr = expr;
@@ -162,11 +164,12 @@ gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, g
     return (gnode_t *)node;
 }
 
-gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, gnode_t *decl) {
+gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, gnode_t *decl, uint32_t block_length) {
     gnode_compound_stmt_t *node = (gnode_compound_stmt_t *)mem_alloc(NULL, sizeof(gnode_compound_stmt_t));
 
     SETBASE(node, type, token);
     SETDECL(node, decl);
+	node->base.block_length = block_length;
     node->stmts = stmts;
     node->nclose = UINT32_MAX;
     return (gnode_t *)node;

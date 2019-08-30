@@ -19,6 +19,7 @@
 #define marray_decl_init(_t,_v)     _t _v; marray_init(_v)
 #define marray_destroy(v)           if ((v).p) free((v).p)
 #define marray_get(v, i)            ((v).p[(i)])
+#define marray_setnull(v, i)        ((v).p[(i)] = NULL)
 #define marray_pop(v)               ((v).p[--(v).n])
 #define marray_last(v)              ((v).p[(v).n-1])
 #define marray_size(v)              ((v).n)

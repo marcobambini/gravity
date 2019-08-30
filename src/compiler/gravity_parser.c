@@ -410,7 +410,10 @@ static gnode_t *parse_ternary_expression (gravity_parser_t *parser) {
     gnode_t *expr2 = parse_expression(parser);
     CHECK_NODE(expr2);
 
-    return gnode_flow_stat_create(token, cond, expr1, expr2, LAST_DECLARATION());
+	// read current token to extract node total length
+	gtoken_s end_token = gravity_lexer_token(lexer);
+
+    return gnode_flow_stat_create(token, cond, expr1, expr2, LAST_DECLARATION(), end_token.position + end_token.length - token.position);
 }
 
 static gnode_t *parse_file_expression (gravity_parser_t *parser) {
@@ -1294,8 +1297,11 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
     gnode_array_push(functions, (getter) ? getter : NULL);    // getter is at index 0
     gnode_array_push(functions, (setter) ? setter : NULL);    // setter is at index 1
 
+	// read current token to extract node total length
+	gtoken_s end_token = gravity_lexer_token(lexer);
+	
     // a compound node is used to capture getter and setter
-    return gnode_block_stat_create(NODE_COMPOUND_STAT, token_block, functions, LAST_DECLARATION());
+    return gnode_block_stat_create(NODE_COMPOUND_STAT, token_block, functions, LAST_DECLARATION(), end_token.position + end_token.length - token_block.position);
 
 parse_error:
     return NULL;
@@ -1499,9 +1505,21 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
                 }
 
                 if (unary->op == TOK_OP_SUB) {
-                    if (enum_literal->type == LITERAL_FLOAT) enum_literal->value.d = -enum_literal->value.d;
-                    else if (enum_literal->type == LITERAL_INT) enum_literal->value.n64 = -enum_literal->value.n64;
-                    else assert(0); // should never reach this point
+                    gnode_t *temp = NULL;
+                    if (enum_literal->type == LITERAL_FLOAT) {
+                        //enum_literal->value.d = -enum_literal->value.d;
+                        temp = gnode_literal_float_expr_create(enum_value->base.token, -enum_literal->value.d, LAST_DECLARATION());
+                    }
+                    else if (enum_literal->type == LITERAL_INT) {
+                        //enum_literal->value.n64 = -enum_literal->value.n64;
+                        temp = gnode_literal_int_expr_create(enum_value->base.token, -enum_literal->value.n64, LAST_DECLARATION());
+                    }
+                    
+                    if (temp) {
+                        gnode_free((gnode_t *)enum_value);
+                        enum_value = (gnode_base_t *)temp;
+                        enum_literal = (gnode_literal_expr_t *)temp;
+                    }
                 }
 
             } else {
@@ -2155,7 +2173,10 @@ static gnode_t *parse_flow_statement (gravity_parser_t *parser) {
         stmt2 = parse_statement(parser);
     }
 
-    return gnode_flow_stat_create(token, cond, stmt1, stmt2, LAST_DECLARATION());
+	// read current token to extract node total length
+	gtoken_s end_token = gravity_lexer_token(lexer);
+	
+	return gnode_flow_stat_create(token, cond, stmt1, stmt2, LAST_DECLARATION(), end_token.position + end_token.length - token.position);
 }
 
 static gnode_t *parse_loop_statement (gravity_parser_t *parser) {
@@ -2172,6 +2193,7 @@ static gnode_t *parse_loop_statement (gravity_parser_t *parser) {
 
     gtoken_t type = gravity_lexer_next(lexer);
     gtoken_s token = gravity_lexer_token(lexer);
+    gtoken_s end_token;
     assert((type == TOK_KEY_WHILE) || (type == TOK_KEY_REPEAT)  || (type == TOK_KEY_FOR));
 
     // 'while' '(' expression ')' statement
@@ -2238,9 +2260,13 @@ static gnode_t *parse_loop_statement (gravity_parser_t *parser) {
         // parse for statement
         stmt = parse_statement(parser);
     }
-
+    
 return_node:
-    return gnode_loop_stat_create(token, cond, stmt, expr, LAST_DECLARATION());
+    // read current token to extract node total length
+    end_token = gravity_lexer_token(lexer);
+    
+    // return loop node
+    return gnode_loop_stat_create(token, cond, stmt, expr, LAST_DECLARATION(), end_token.position + end_token.length - token.position);
 }
 
 static gnode_t *parse_jump_statement (gravity_parser_t *parser) {
@@ -2288,7 +2314,10 @@ static gnode_t *parse_compound_statement (gravity_parser_t *parser) {
     // check and consume TOK_OP_CLOSED_CURLYBRACE
     parse_required(parser, TOK_OP_CLOSED_CURLYBRACE);
 
-    return gnode_block_stat_create(NODE_COMPOUND_STAT, token, stmts, LAST_DECLARATION());
+	// read current token to extract node total length
+	gtoken_s end_token = gravity_lexer_token(lexer);
+
+    return gnode_block_stat_create(NODE_COMPOUND_STAT, token, stmts, LAST_DECLARATION(), end_token.position + end_token.length - token.position);
 }
 
 static gnode_t *parse_empty_statement (gravity_parser_t *parser) {
@@ -2487,7 +2516,7 @@ static void parser_register_core_classes (gravity_parser_t *parser) {
     const char **list = gravity_core_identifiers();
 
     // for each core identifier create a dummy extern variable node
-    gnode_r    *decls = gnode_array_create();
+    gnode_r *decls = gnode_array_create();
 
     uint32_t i = 0;
     while (list[i]) {
@@ -2504,22 +2533,22 @@ static void parser_register_core_classes (gravity_parser_t *parser) {
 
 static void parser_register_optional_classes (gravity_parser_t *parser) {
     // for each optional identifier create a dummy extern variable node
-    gnode_r    *decls = gnode_array_create();
+    gnode_r *decls = gnode_array_create();
 
-    #ifdef GRAVITY_INCLUDE_MATH
-    gnode_t *decl = gnode_variable_create(NO_TOKEN, string_dup(GRAVITY_MATH_NAME()), NULL, NULL, LAST_DECLARATION(), NULL);
-    gnode_array_push(decls, decl);
-    #endif
-    
-    #ifdef GRAVITY_INCLUDE_ENV
-    gnode_t *decl2 = gnode_variable_create(NO_TOKEN, string_dup(GRAVITY_ENV_NAME()), NULL, NULL, LAST_DECLARATION(), NULL);
-    gnode_array_push(decls, decl2);
-    #endif
+    // compile time optional classes
+    const char **list = gravity_optional_identifiers();
+    uint32_t i = 0;
+    while (list[i]) {
+        const char *identifier = list[i];
+        gnode_t *decl = gnode_variable_create(NO_TOKEN, string_dup(identifier), NULL, NULL, LAST_DECLARATION(), NULL);
+        gnode_array_push(decls, decl);
+        ++i;
+    }
 
-    // check if optional classes callback is registered
+    // check if optional classes callback is registered (runtime optional classes)
     if (parser->delegate && parser->delegate->optional_classes) {
-        const char **list = parser->delegate->optional_classes();
-        uint32_t i = 0;
+        list = parser->delegate->optional_classes();
+        i = 0;
         while (list[i]) {
             const char *identifier = list[i];
             gnode_t *decl_node = gnode_variable_create(NO_TOKEN, string_dup(identifier), NULL, NULL, LAST_DECLARATION(), NULL);
@@ -2564,7 +2593,7 @@ static uint32_t parser_run (gravity_parser_t *parser) {
 static void parser_cleanup (gravity_parser_t *parser) {
     // in case of error (so AST is not returned)
     // then cleanup internal nodes
-    gnode_t *node= gnode_block_stat_create(NODE_LIST_STAT, NO_TOKEN, parser->statements, LAST_DECLARATION());
+    gnode_t *node= gnode_block_stat_create(NODE_LIST_STAT, NO_TOKEN, parser->statements, LAST_DECLARATION(), 0);
     gnode_free(node);
 }
 
@@ -2635,7 +2664,7 @@ gnode_t *gravity_parser_run (gravity_parser_t *parser, gravity_delegate_t *deleg
     if (marray_size(*parser->declarations) > 0) return NULL;
 
     // return ast
-    return gnode_block_stat_create(NODE_LIST_STAT, NO_TOKEN, parser->statements, NULL);
+    return gnode_block_stat_create(NODE_LIST_STAT, NO_TOKEN, parser->statements, NULL, 0);
 }
 
 void gravity_parser_free (gravity_parser_t *parser) {

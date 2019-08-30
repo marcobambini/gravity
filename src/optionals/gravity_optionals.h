@@ -26,6 +26,23 @@
 #define GRAVITY_ISMATH_CLASS(_c)            false
 #endif
 
+#ifndef GRAVITY_INCLUDE_JSON
+#define GRAVITY_INCLUDE_JSON
+#endif
+
+#ifdef GRAVITY_INCLUDE_JSON
+#define GRAVITY_JSON_REGISTER(_vm)          gravity_json_register(_vm)
+#define GRAVITY_JSON_FREE()                 gravity_json_free()
+#define GRAVITY_JSON_NAME()                 gravity_json_name()
+#define GRAVITY_ISJSON_CLASS(_c)            gravity_isjson_class(_c)
+#include "gravity_json.h"
+#else
+#define GRAVITY_JSON_REGISTER(_vm)
+#define GRAVITY_JSON_FREE()
+#define GRAVITY_JSON_NAME()                 NULL
+#define GRAVITY_ISJSON_CLASS(_c)            false
+#endif
+
 #ifndef GRAVITY_INCLUDE_ENV
 #define GRAVITY_INCLUDE_ENV
 #endif
@@ -42,5 +59,20 @@
 #define GRAVITY_ENV_NAME()                  NULL
 #define GRAVITY_ISENV_CLASS(_c)             false
 #endif
+
+inline static const char **gravity_optional_identifiers(void) {
+    static const char *list[] = {
+        #ifdef GRAVITY_INCLUDE_MATH
+        GRAVITY_CLASS_MATH_NAME,
+        #endif
+        #ifdef GRAVITY_INCLUDE_ENV
+        GRAVITY_CLASS_ENV_NAME,
+        #endif
+        #ifdef GRAVITY_INCLUDE_JSON
+        GRAVITY_CLASS_JSON_NAME,
+        #endif
+        NULL};
+    return list;
+}
 
 #endif

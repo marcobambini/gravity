@@ -1,6 +1,8 @@
 #ifndef GRAVITY_ENV_H
 #define GRAVITY_ENV_H
 
+#define GRAVITY_CLASS_ENV_NAME "ENV"
+
 #include "gravity_value.h"
 
 void gravity_env_register (gravity_vm *vm);

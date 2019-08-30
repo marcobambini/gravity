@@ -150,7 +150,7 @@ typedef enum {
     GRAVITY_OR_INDEX,
     GRAVITY_CMP_INDEX,
     GRAVITY_EQQ_INDEX,
-    GRAVITY_ISA_INDEX,
+    GRAVITY_IS_INDEX,
     GRAVITY_MATCH_INDEX,
     GRAVITY_NEG_INDEX,
     GRAVITY_NOT_INDEX,
@@ -183,7 +183,7 @@ typedef enum {
 #define GRAVITY_OPERATOR_CMP_NAME       "=="
 #define GRAVITY_OPERATOR_EQQ_NAME       "==="
 #define GRAVITY_OPERATOR_NEQQ_NAME      "!=="
-#define GRAVITY_OPERATOR_ISA_NAME       "is"
+#define GRAVITY_OPERATOR_IS_NAME        "is"
 #define GRAVITY_OPERATOR_MATCH_NAME     "=~"
 #define GRAVITY_OPERATOR_NEG_NAME       "neg"
 #define GRAVITY_OPERATOR_NOT_NAME        "!"
@@ -222,5 +222,11 @@ typedef enum {
 #define GRAVITY_SYSTEM_PRINT_NAME       "print"
 #define GRAVITY_SYSTEM_PUT_NAME         "put"
 #define GRAVITY_SYSTEM_NANOTIME_NAME    "nanotime"
+
+#define GRAVITY_TOCLASS_NAME            "toClass"
+#define GRAVITY_TOSTRING_NAME           "toString"
+#define GRAVITY_TOINT_NAME              "toInt"
+#define GRAVITY_TOFLOAT_NAME            "toFloat"
+#define GRAVITY_TOBOOL_NAME             "toBool"
 
 #endif

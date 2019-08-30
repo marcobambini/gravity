@@ -24,9 +24,6 @@
 #define unsetenv(_key)                      _putenv_s(_key, "")
 #endif
 
-
-#define ENV_CLASS_NAME "ENV"
-
 static gravity_class_t              *gravity_class_env = NULL;
 static uint32_t                     refcount = 0;
 
@@ -102,7 +99,7 @@ static bool gravity_env_keys(gravity_vm *vm, gravity_value_t *args, uint16_t npa
 // MARK: - Internals -
 
 static void create_optional_class (void) {
-    gravity_class_env = gravity_class_new_pair(NULL, ENV_CLASS_NAME, NULL, 0, 0);
+    gravity_class_env = gravity_class_new_pair(NULL, GRAVITY_CLASS_ENV_NAME, NULL, 0, 0);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_env);
     
     // .get(key) and .set(key, value)
@@ -124,7 +121,7 @@ void gravity_env_register(gravity_vm *vm) {
     ++refcount;
     
     if (!vm || gravity_vm_ismini(vm)) return;
-    gravity_vm_setvalue(vm, ENV_CLASS_NAME, VALUE_FROM_OBJECT(gravity_class_env));
+    gravity_vm_setvalue(vm, GRAVITY_CLASS_ENV_NAME, VALUE_FROM_OBJECT(gravity_class_env));
 }
 
 void gravity_env_free (void) {
@@ -143,5 +140,5 @@ bool gravity_isenv_class (gravity_class_t *c) {
 }
 
 const char *gravity_env_name (void) {
-    return ENV_CLASS_NAME;
+    return GRAVITY_CLASS_ENV_NAME;
 }

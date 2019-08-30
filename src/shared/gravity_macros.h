@@ -99,6 +99,8 @@
 // MARK: -
 #define GRAVITY_JSON_FUNCTION               "function"
 #define GRAVITY_JSON_CLASS                  "class"
+#define GRAVITY_JSON_RANGE                  "range"
+#define GRAVITY_JSON_INSTANCE               "instance"
 #define GRAVITY_JSON_ENUM                   "enum"
 #define GRAVITY_JSON_MAP                    "map"
 #define GRAVITY_JSON_VAR                    "var"
@@ -132,6 +134,9 @@
 #define GRAVITY_JSON_LABELSTATIC            "static"
 #define GRAVITY_JSON_LABELPARAMS            "params"
 #define GRAVITY_JSON_LABELSTRUCT            "struct"
+#define GRAVITY_JSON_LABELFROM              "from"
+#define GRAVITY_JSON_LABELTO                "to"
+#define GRAVITY_JSON_LABELIVAR              "ivar"
 
 #define GRAVITY_VM_ANONYMOUS_PREFIX         "$$"
 

@@ -29,6 +29,7 @@
 		A9506D5D1E69AB8D009A0045 /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2C1E69AB1E009A0045 /* gravity_json.c */; };
 		A9506D5E1E69AB8D009A0045 /* gravity_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D2E1E69AB1E009A0045 /* gravity_utils.c */; };
 		A956AADE220EBB8100C361D6 /* gravity_env.c in Sources */ = {isa = PBXBuildFile; fileRef = A956AADC220EBB8100C361D6 /* gravity_env.c */; };
+		A989830623189DFF006F82BE /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A989830423189DFF006F82BE /* gravity_json.c */; };
 		A9BB72F01F470832002FD2D6 /* gravity_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A9BB72EC1F470832002FD2D6 /* gravity_math.c */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +96,8 @@
 		A9506D2F1E69AB1E009A0045 /* gravity_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_utils.h; sourceTree = "<group>"; };
 		A956AADC220EBB8100C361D6 /* gravity_env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_env.c; sourceTree = "<group>"; };
 		A956AADD220EBB8100C361D6 /* gravity_env.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_env.h; sourceTree = "<group>"; };
+		A989830423189DFF006F82BE /* gravity_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_json.c; sourceTree = "<group>"; };
+		A989830523189DFF006F82BE /* gravity_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_json.h; sourceTree = "<group>"; };
 		A9BB72EC1F470832002FD2D6 /* gravity_math.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_math.c; sourceTree = "<group>"; };
 		A9BB72ED1F470832002FD2D6 /* gravity_math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_math.h; sourceTree = "<group>"; };
 		A9BB72EE1F470832002FD2D6 /* gravity_optionals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optionals.h; sourceTree = "<group>"; };
@@ -228,6 +231,8 @@
 			children = (
 				A9BB72EC1F470832002FD2D6 /* gravity_math.c */,
 				A9BB72ED1F470832002FD2D6 /* gravity_math.h */,
+				A989830423189DFF006F82BE /* gravity_json.c */,
+				A989830523189DFF006F82BE /* gravity_json.h */,
 				A956AADC220EBB8100C361D6 /* gravity_env.c */,
 				A956AADD220EBB8100C361D6 /* gravity_env.h */,
 				A9BB72EE1F470832002FD2D6 /* gravity_optionals.h */,
@@ -315,6 +320,7 @@
 				A9506D5E1E69AB8D009A0045 /* gravity_utils.c in Sources */,
 				A9506D451E69AB78009A0045 /* gravity_visitor.c in Sources */,
 				A9506D3C1E69AB78009A0045 /* gravity_compiler.c in Sources */,
+				A989830623189DFF006F82BE /* gravity_json.c in Sources */,
 				A9506D521E69AB7E009A0045 /* gravity_core.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

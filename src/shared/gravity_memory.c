@@ -16,7 +16,7 @@ void *gravity_calloc(gravity_vm *vm, size_t count, size_t size) {
         gravity_vm_seterror(vm, "Maximum memory allocation block size reached (req: %d, max: %lld).", (count * size), (int64_t)gravity_vm_maxmemblock(vm));
         return NULL;
     }
-    return calloc(count, size);;
+    return calloc(count, size);
 }
 
 void *gravity_realloc(gravity_vm *vm, void *ptr, size_t new_size) {

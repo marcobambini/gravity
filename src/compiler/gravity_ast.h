@@ -46,6 +46,7 @@ typedef enum {
 typedef struct {
     gnode_n     tag;                        // node type from gnode_n enum
     uint32_t    refcount;                   // reference count to manage duplicated nodes
+    uint32_t    block_length;               // total length in bytes of the block (used in autocompletion)
     gtoken_s    token;                      // token type and location
     bool        is_assignment;              // flag to check if it is an assignment node
     void        *decl;                      // enclosing declaration node
@@ -257,9 +258,9 @@ typedef struct {
 
 gnode_t *gnode_jump_stat_create (gtoken_s token, gnode_t *expr, gnode_t *decl);
 gnode_t *gnode_label_stat_create (gtoken_s token, gnode_t *expr, gnode_t *stmt, gnode_t *decl);
-gnode_t *gnode_flow_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt1, gnode_t *stmt2, gnode_t *decl);
-gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, gnode_t *expr, gnode_t *decl);
-gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, gnode_t *decl);
+gnode_t *gnode_flow_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt1, gnode_t *stmt2, gnode_t *decl, uint32_t block_length);
+gnode_t *gnode_loop_stat_create (gtoken_s token, gnode_t *cond, gnode_t *stmt, gnode_t *expr, gnode_t *decl, uint32_t block_length);
+gnode_t *gnode_block_stat_create (gnode_n type, gtoken_s token, gnode_r *stmts, gnode_t *decl, uint32_t block_length);
 gnode_t *gnode_empty_stat_create (gtoken_s token, gnode_t *decl);
 
 gnode_t *gnode_enum_decl_create (gtoken_s token, const char *identifier, gtoken_t access_specifier, gtoken_t storage_specifier, symboltable_t *symtable, gnode_t *decl);

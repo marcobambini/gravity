@@ -98,15 +98,15 @@ typedef enum {
 } gbuiltin_t;
 
 struct gtoken_s {
-    gtoken_t            type;       // enum based token type
-    uint32_t            lineno;     // token line number (1-based)
-    uint32_t            colno;      // token column number (0-based) at the end of the token
-    uint32_t            position;   // offset of the first character of the token
-    uint32_t            bytes;      // token length in bytes
-    uint32_t            length;     // token length (UTF-8)
-    uint32_t            fileid;     // token file id
-    gbuiltin_t          builtin;    // builtin special identifier flag
-    const char          *value;     // token value (not null terminated)
+    gtoken_t            type;           // enum based token type
+    uint32_t            lineno;         // token line number (1-based)
+    uint32_t            colno;          // token column number (0-based) at the end of the token
+    uint32_t            position;       // offset of the first character of the token
+    uint32_t            bytes;          // token length in bytes
+    uint32_t            length;         // token length (UTF-8)
+    uint32_t            fileid;         // token file id
+    gbuiltin_t          builtin;        // builtin special identifier flag
+    const char          *value;         // token value (not null terminated)
 };
 typedef struct gtoken_s         gtoken_s;
 

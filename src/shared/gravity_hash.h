@@ -34,6 +34,7 @@ typedef uint32_t    (*gravity_hash_compute_fn) (gravity_value_t key);
 typedef bool        (*gravity_hash_isequal_fn) (gravity_value_t v1, gravity_value_t v2);
 typedef void        (*gravity_hash_iterate_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data);
 typedef void        (*gravity_hash_iterate2_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data1, void *data2);
+typedef void        (*gravity_hash_iterate3_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t value, void *data1, void *data2, void *data3);
 typedef void        (*gravity_hash_transform_fn) (gravity_hash_t *hashtable, gravity_value_t key, gravity_value_t *value, void *data);
 typedef bool        (*gravity_hash_compare_fn) (gravity_value_t value1, gravity_value_t value2, void *data);
 
@@ -54,6 +55,7 @@ GRAVITY_API uint32_t        gravity_hash_compute_float (gravity_float_t f);
 GRAVITY_API void            gravity_hash_stat (gravity_hash_t *hashtable);
 GRAVITY_API void            gravity_hash_iterate (gravity_hash_t *hashtable, gravity_hash_iterate_fn iterate, void *data);
 GRAVITY_API void            gravity_hash_iterate2 (gravity_hash_t *hashtable, gravity_hash_iterate2_fn iterate, void *data1, void *data2);
+GRAVITY_API void            gravity_hash_iterate3 (gravity_hash_t *hashtable, gravity_hash_iterate3_fn iterate, void *data1, void *data2, void *data3);
 GRAVITY_API void            gravity_hash_transform (gravity_hash_t *hashtable, gravity_hash_transform_fn iterate, void *data);
 GRAVITY_API void            gravity_hash_dump (gravity_hash_t *hashtable);
 GRAVITY_API void            gravity_hash_append (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2);

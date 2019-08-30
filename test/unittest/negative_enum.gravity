@@ -1,0 +1,12 @@
+#unittest {
+    name: "Negative enum";
+    result: -12.0;
+};
+
+enum test {
+    one = -12.0
+}
+
+func main() {
+    return test.one;
+}

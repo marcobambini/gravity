@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_MATH__
 #define __GRAVITY_MATH__
 
+#define GRAVITY_CLASS_MATH_NAME             "Math"
+
 #include "gravity_value.h"
 
 void gravity_math_register (gravity_vm *vm);
