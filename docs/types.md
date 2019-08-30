@@ -17,4 +17,4 @@ func sum (a:Int, b: Int) {
 }
 ```
 
-> Manifest typing is currently used in autocompletion feature but I plan to introduce a full static type checking in a future release.
+> Manifest typing is currently used in autocompletion feature, full static type checking will be introduced in a future release.
