@@ -1,7 +1,6 @@
 <p align="center">
 <img src="assets/images/logo.png" height="90px" alt="Gravity Programming Language" title="Gravity Programming Language">
 </p>
----
 
 **Gravity** is a powerful, dynamically typed, lightweight, embeddable programming language written in C without any external dependencies (except for stdlib). It is a class-based concurrent scripting language with a modern [Swift](https://github.com/apple/swift) like syntax.
 
