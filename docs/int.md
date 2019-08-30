@@ -19,19 +19,19 @@ An Int represents a 64 bit signed number (can optionally be compiled as 32 bit s
 
 An Int can also be used as a convenient way to execute loops:
 ```swift
-5.loop() {
-  System.print("Hello World");
-}
+	5.loop() {
+  		System.print("Hello World");
+	}
 // result
-// Hello World
-// Hello World
-// Hello World
-// Hello World
-// Hello World
+	// Hello World
+	// Hello World
+	// Hello World
+	// Hello World
+	// Hello World
 ```
 
 The Int class exposes a min/max property used to know at runtime lower/upper bound values:
 ```swift
-var min = Int.min;    // -9223372036854775808 in 64bit systems
-var max = Int.max;    //  9223372036854775807 in 64bit systems
+	var min = Int.min;    // -9223372036854775808 in 64bit systems
+	var max = Int.max;    //  9223372036854775807 in 64bit systems
 ```
