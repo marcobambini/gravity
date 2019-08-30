@@ -6,7 +6,7 @@
 
 **Gravity** supports procedural programming, object-oriented programming, functional programming and data-driven programming. Thanks to special built-in methods, it can also be used as a prototype-based programming language.
 
-**Gravity** has been developed from scratch for the [Creo](https://creolabs.com) project in order to offer an easy way to write portable code for the iOS and Android platforms. It is written in portable C code that can be compiled on any platform using a C99 compiler. The VM code is about 2K lines long, the multipass compiler code is about 3K lines and the shared code is about 2K lines long. The compiler and virtual machine combined add less than 200KB to the executable on a 64 bit system.
+**Gravity** has been developed from scratch for the [Creo](https://creolabs.com) project in order to offer an easy way to write portable code for the iOS and Android platforms. It is written in portable C code that can be compiled on any platform using a C99 compiler. The VM code is about 4K lines long, the multipass compiler code is about 7K lines and the shared code is about 3K lines long. The compiler and virtual machine combined, add less than 200KB to the executable on a 64 bit system.
 
 > Comments in the C code make it easy to read and understand.
 
