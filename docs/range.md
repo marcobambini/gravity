@@ -14,8 +14,8 @@ A range is an object that represents a consecutive range of numbers. Syntax for 
 ```
 
 A range is expecially useful in for loops:
-```
-  for (var i in 1...10) {
-    // repeat for 10 times (with i from 1 to 10)
-  }
+```swift
+	for (var i in 1...10) {
+		// repeat for 10 times (with i from 1 to 10)
+	}
 ```
