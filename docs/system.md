@@ -17,19 +17,19 @@ Gravity automatically manages memory for you using a tri-colour marking garbage 
 ```swift
 	func main() {
 		// disable GC
-		System.gcenabled = false;
+		System.gcEnabled = false;
 
 		// ratio used during automatic recomputation of the new gcthreshold value
-		var ratio = System.gcratio;
+		var ratio = System.gcRatio;
 
 		// minimum GC threshold size
-		var minthreshold = System.gcminthreshold;
+		var minthreshold = System.gcMinThreshold;
 
 		// memory required to trigger a GC
-		var threshold = System.gcthreshold;
+		var threshold = System.gcThreshold;
 
 		// enable GC
-		System.gcenabled = true;
+		System.gcEnabled = true;
 	}
 ```
 
