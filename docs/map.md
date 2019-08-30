@@ -22,7 +22,7 @@ You can access an element from a list by calling the subscript operator [] on it
 	names["Andrew"];    // 2
 ```
 
-### Iterating elements
+### Iterating items
 The subscript operator works well for finding values when you know the key you’re looking for, but sometimes you want to see everything that’s in the map. Since the Map class implements the iterator method (through the keys method), you can easily use it in a for loop:
 ```swift
 	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
@@ -31,18 +31,32 @@ The subscript operator works well for finding values when you know the key you�
 	}
 ```
 
-### Adding elements
+### Adding items
 An item can be added to a map by simply setting a key/value:
 ```swift
 	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
 	people["Kiara"] = 5;	// people now contains the "Kiara" key with value 5
 ```
 
-### Removing elements
+### Removing items
 The remove method has been added to the map class as a conveniente way to remove keys:
 ```swift
 	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
 	people.remove("Paul");
 	people.remove("Ross");
 	return people.count; // 2 is returned in this case
+```
+
+### Retrieving keys
+The keys method has been added to the map class as a conveniente way to get access to all keys:
+```swift
+	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
+	return people.keys; // ["Mark", "Andrew", "Paul", "Ross"] is returned in this case
+```
+
+### Checking for a key
+To check if a key has been added to a map you can use the he hasKey method:
+```swift
+	var people = ["Mark":1, "Andrew":2, "Paul":3, "Ross":4];
+	return people.hasKey("Max"); // false is returned in this case because the "Max" key is not in the people map
 ```
