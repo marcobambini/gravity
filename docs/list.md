@@ -57,7 +57,7 @@ The List class implements the contains methods as a convenient way to check for 
 	return list.contains(3.1415); // Returns: true
 ```
 
-### List Joins
+### List Join
 The List class implements the join method as a convenient way to interpret a list as a string:
 ```swift
 	var list = [1,2,3,4,5];
@@ -98,4 +98,27 @@ The List class implements the reduce method as a convenient way to create a new 
     return num1+num2
   })
   // sum is now equal to 55
+```
+
+### List Sort
+The List class implements the sort method as a convenient way to sort its items. By default, the sort() method sorts the values as strings (or numbers) in alphabetical (for strings) and ascending order:
+			
+```swift
+  var fruits = ["Banana", "Orange", "Apple", "Mango"];
+  fruits.sort();
+  // fruits is now [Apple,Banana,Mango,Orange]
+  
+  var numbers = [10, 3.14, 82, 1, 7];
+  numbers.sort();
+  // numbers is now [1,3.14,7,10,82]
+  
+  // if you need to customize the sort algorithm you can provide a closure
+  func compare (a, b) {
+    return (a < b);
+  }
+  
+  var fruits = ["Banana", "Orange", "Apple", "Mango"];
+  fruits.sort(compare);
+  // fruits is now [Orange,Mango,Banana,Apple]
+  
 ```
