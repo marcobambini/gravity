@@ -40,7 +40,8 @@ bool        file_write (const char *path, const char *buffer, size_t len);
 // DIRECTORY
 bool        is_directory (const char *path);
 DIRREF      directory_init (const char *path);
-const char  *directory_read (DIRREF ref);
+// On Windows, you are expected to provied an output buffer of at least MAX_PATH in length
+const char  *directory_read (DIRREF ref, char *out);
 
 // STRING
 int         string_nocasencmp (const char *s1, const char *s2, size_t n);
