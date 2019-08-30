@@ -4,5 +4,5 @@ If you find any grammatical issue, please report it using Github Issues. Or, if 
 
 ### About me
 I am Marco Bambini and you can reach me at:
-* Twitter: [sqlabs](https://twitter.com/sqlabs)
+* Twitter: [_marcobambini](https://twitter.com/_marcobambini)
 * Email: [marco@creolabs.com](mailto:marco@creolabs.com)
