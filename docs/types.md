@@ -20,7 +20,7 @@ An Int represents a 64 bit (can optionally be compiled as 32 bit) signed number:
 ```
 
 ### Float
-A float represents a 32 bit (or better) floating point number:
+A float represents a 64 bit (can optionally be compiled as 32 bit) floating point number:
 ```swift
 	var a = 3.1415;		// float
 	var b = 1.25e2;		// scientific notation
