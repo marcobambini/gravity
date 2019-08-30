@@ -1,6 +1,6 @@
 ## Enum
 
-Enums defines a common type for a group of related values. If you are familiar with C, you will know that C enumerations assign related names to a set of integer values. Enums in Gravity are much more flexible and enable you to assign even non integer values:
+Enums defines a common type for a group of related values. If you are familiar with C, you will know that C enumerations assign related names to a set of integer values. Enums in Gravity are much more flexible and enable you to assign any literal value (Int, Float, String, Bool):
 
 ```swift
 	enum state {
