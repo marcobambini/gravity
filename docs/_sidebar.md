@@ -28,6 +28,7 @@
 * ADVANCED
 
   * [Embedding API](api.md)
+  * [Introspection](introspection.md)
   * [System class](system.md)
   * [Math class](math.md)
   * [Unit test](unittest.md)
