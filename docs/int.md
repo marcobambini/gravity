@@ -1,6 +1,8 @@
 ### Int
 
-In most dynamically typed programming language both Integers and Float are internally represented by a C double value. In a modern 64bit system, this implementation leads to some issue because some integer values cannot be correctly represented by a double value (more on this in https://www.viva64.com/en/l/0018/).
+In most dynamically typed programming language both Integers and Float are internally represented by a C double value.
+
+In a modern 64bit system, this implementation leads to some issue because some integer values cannot be correctly represented by a double value (for more details please read [Storage of integer values in double](https://www.viva64.com/en/l/0018/)).
 
 In Gravity Int and Float are internally represented by two different types to mitigate rounding errors.
 
@@ -22,7 +24,7 @@ An Int can also be used as a convenient way to execute loops:
 	5.loop() {
 		System.print("Hello World");
 	}
-// result
+	// result
 	// Hello World
 	// Hello World
 	// Hello World
