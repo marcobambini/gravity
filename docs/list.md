@@ -9,7 +9,7 @@ Lists (or arrays) are simple sequence of objects, their size is dynamic and thei
 	var n = r.count;	// n is 5
 ```
 
-### Accessing elements
+### Accessing items
 You can access an element from a list by calling the subscript operator [] on it with the index of the element you want. Like most languages, indices start at 0:
 			
 ```swift
@@ -25,7 +25,7 @@ Negative indices count backwards from the end:
 	names[-2];	// "Frank"
 ```
 
-### Iterating elements
+### Iterating items
 The subscript operator works well for finding values when you know the key you’re looking for, but sometimes you want to see everything that’s in the list. Since the List class implements the iterator method, you can easily use it in a for loop:
 ```swift
 	var people = ["Mark", "Andrew", "Paul", "Ross", "Frank", "Max"];
@@ -34,7 +34,7 @@ The subscript operator works well for finding values when you know the key you�
 	}
 ```
 
-### Adding elements
+### Adding items
 A List instance can be expanded by setting an index that is greater than the current size of the list:
 ```swift
 	var list = [10,20,30,40,50];
