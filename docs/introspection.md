@@ -15,8 +15,8 @@ Each method support two optional parameters:
 Result can be a List or a Map (in case of param1 set to true).
 
 Examples:
-```
-	List.introspection();
+```swift
+  List.introspection();
   // returns: [sort,reduce,loop,sorted,contains,filter,count,reverse,iterate,push,remove,pop,storeat,loadat,reversed,indexOf,next,map,join]
   
   List.introspection(true);
