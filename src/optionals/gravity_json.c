@@ -55,7 +55,7 @@ static bool JSON_stringify (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     const char *v = NULL;
     
     if (VALUE_ISA_NULL(value) || (VALUE_ISA_UNDEFINED(value))) v = "null";
-    else if (VALUE_ISA_FLOAT(value)) {snprintf(vbuffer, sizeof(vbuffer), "%f", value.f); v = vbuffer;}
+    else if (VALUE_ISA_FLOAT(value)) {snprintf(vbuffer, sizeof(vbuffer), "%g", value.f); v = vbuffer;}
     else if (VALUE_ISA_BOOL(value)) v = (value.n) ? "true" : "false";
     else if (VALUE_ISA_INT(value)) {
         #if GRAVITY_ENABLE_INT64

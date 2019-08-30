@@ -262,6 +262,7 @@ DIRREF directory_init (const char *dirpath) {
 }
 
 const char *directory_read (DIRREF ref, char *out) {
+    #pragma unused (out)
 	if (ref == NULL) return NULL;
 	
 	while (1) {

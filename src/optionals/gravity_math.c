@@ -521,7 +521,7 @@ static bool math_logx (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
 static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     if (nargs == 1) RETURN_VALUE(VALUE_FROM_NULL, rindex);
 
-    gravity_float_t n = -FLOAT_MAX;
+    gravity_float_t n = -GRAVITY_FLOAT_MAX;
     uint16_t maxindex = 1;
     bool found = false;
 
@@ -553,7 +553,7 @@ static bool math_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 static bool math_min (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     if (nargs == 1) RETURN_VALUE(VALUE_FROM_NULL, rindex);
 
-    gravity_float_t n = FLOAT_MAX;
+    gravity_float_t n = GRAVITY_FLOAT_MAX;
     uint16_t minindex = 1;
     bool found = false;
 
@@ -648,7 +648,7 @@ static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
             
             // convert f to string
             char buffer[512];
-            snprintf(buffer, sizeof(buffer), "%f", f);
+            snprintf(buffer, sizeof(buffer), "%g", f);
             
             // trunc c string to the requested ndigits
             char *p = buffer;

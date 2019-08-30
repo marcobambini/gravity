@@ -626,7 +626,7 @@ static void gravity_function_array_dump (gravity_function_t *f, gravity_value_r 
         }
         
         if (VALUE_ISA_FLOAT(v)) {
-            printf("%05zu\tFLOAT: %f\n", i, (double)v.f);
+            printf("%05zu\tFLOAT: %g\n", i, (double)v.f);
             continue;
         }
         
@@ -2047,7 +2047,7 @@ void gravity_value_dump (gravity_vm *vm, gravity_value_t v, char *buffer, uint16
         value = buffer;
     } else if (v.isa == gravity_class_float) {
         type = "FLOAT";
-        snprintf(buffer, len, "(%s) %f", type, v.f);
+        snprintf(buffer, len, "(%s) %g", type, v.f);
         value = buffer;
     } else if (v.isa == gravity_class_function) {
         type = "FUNCTION";

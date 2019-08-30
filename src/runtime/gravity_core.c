@@ -390,7 +390,7 @@ inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) 
     
     if (VALUE_ISA_FLOAT(v)) {
         char buffer[512];
-        snprintf(buffer, sizeof(buffer), "%f", v.f);
+        snprintf(buffer, sizeof(buffer), "%g", v.f);
         return VALUE_FROM_CSTRING(vm, buffer);
     }
 
@@ -564,16 +564,17 @@ static void collect_introspection_extended (gravity_hash_t *hashtable, gravity_v
 
 static bool object_real_introspection (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex, introspection_info_type mask) {
     bool extended = ((nargs >= 2) && (VALUE_ISA_BOOL(args[1]) && (VALUE_AS_BOOL(args[1]) == true)));
-    bool nosuper = ((nargs >= 3) && (VALUE_ISA_BOOL(args[2]) && (VALUE_AS_BOOL(args[2]) == true)));
+    bool scan_super = ((nargs >= 3) && (VALUE_ISA_BOOL(args[2]) && (VALUE_AS_BOOL(args[2]) == true)));
     
     gravity_hash_iterate3_fn callback = (extended) ? collect_introspection_extended : collect_introspection;
     gravity_object_t *data = (extended) ? (gravity_object_t *)gravity_map_new(vm, 256) : (gravity_object_t *)gravity_list_new(vm, 256);
     
-    gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+    gravity_value_t value = GET_VALUE(0);
+    gravity_class_t *c = (VALUE_ISA_CLASS(value)) ? VALUE_AS_CLASS(value) : gravity_value_getclass(value);
     while (c) {
         gravity_hash_t *htable = c->htable;
         gravity_hash_iterate3(htable, callback, (void *)data, (void *)&mask, (void *)vm);
-        c = (nosuper) ? NULL : c->superclass;
+        c = (!scan_super) ? NULL : c->superclass;
     }
     
     RETURN_VALUE(VALUE_FROM_OBJECT(data), rindex);
@@ -1971,6 +1972,16 @@ static bool float_isclose (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
     RETURN_VALUE(VALUE_FROM_BOOL(abs_diff <= result), rindex);
 }
 
+static bool float_min (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_VALUE(VALUE_FROM_FLOAT(GRAVITY_FLOAT_MIN), rindex);
+}
+
+static bool float_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_VALUE(VALUE_FROM_FLOAT(GRAVITY_FLOAT_MAX), rindex);
+}
+
 // MARK: - Int Class -
 
 // binary operators
@@ -2125,6 +2136,16 @@ static bool int_radians (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     #pragma unused(vm, nargs)
     // Convert the int from degrees to radians
     RETURN_VALUE(VALUE_FROM_FLOAT(GET_VALUE(0).n*3.141592653589793/180), rindex);
+}
+
+static bool int_min (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_MIN), rindex);
+}
+
+static bool int_max (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(vm, args, nargs)
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_MAX), rindex);
 }
 
 // MARK: - Bool Class -
@@ -3374,7 +3395,9 @@ void gravity_core_init (void) {
     gravity_class_t *int_meta = gravity_class_get_meta(gravity_class_int);
     gravity_class_bind(int_meta, "random", NEW_CLOSURE_VALUE(int_random));
     gravity_class_bind(int_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(int_exec));
-
+    gravity_class_bind(int_meta, "min", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(int_min), NULL)));
+    gravity_class_bind(int_meta, "max", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(int_max), NULL)));
+    
     // FLOAT CLASS
     gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_float_add));
     gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_SUB_NAME, NEW_CLOSURE_VALUE(operator_float_sub));
@@ -3397,6 +3420,8 @@ void gravity_core_init (void) {
     // Meta
     gravity_class_t *float_meta = gravity_class_get_meta(gravity_class_float);
     gravity_class_bind(float_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(float_exec));
+    gravity_class_bind(float_meta, "min", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(float_min), NULL)));
+    gravity_class_bind(float_meta, "max", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(float_max), NULL)));
 
     // BOOL CLASS
     gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_bool_add));
