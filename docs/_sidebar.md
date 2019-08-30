@@ -17,6 +17,7 @@
   * [List](list.md)
   * [Map](map.md)
   * [Enum](enum.md)
+  * [Range](range.md)
   * [Function](func.md)
   * [Closure](closure.md)
   * [Class](class.md)
