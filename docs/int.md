@@ -1,7 +1,7 @@
 ### Int
 
-In most dynamically typed programming language both Integers and Float are internally represented by a C double value.
-In a modern 64bit system, this implementation leads to some issue because some integer values cannot be correctly represented by a double value (more on this in https://www.viva64.com/en/l/0018/).
+In most dynamically typed programming language both Integers and Float are internally represented by a C double value. In a modern 64bit system, this implementation leads to some issue because some integer values cannot be correctly represented by a double value (more on this in https://www.viva64.com/en/l/0018/).
+
 In Gravity Int and Float are internally represented by two different types to mitigate rounding errors.
 
 An Int represents a 64 bit signed number (can optionally be compiled as 32 bit signed number):
@@ -20,7 +20,7 @@ An Int represents a 64 bit signed number (can optionally be compiled as 32 bit s
 An Int can also be used as a convenient way to execute loops:
 ```swift
 	5.loop() {
-  		System.print("Hello World");
+		System.print("Hello World");
 	}
 // result
 	// Hello World
