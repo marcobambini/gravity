@@ -176,7 +176,7 @@ typedef float                               gravity_float_t;
 #if GRAVITY_ENABLE_INT64
 typedef int64_t                             gravity_int_t;
 #define GRAVITY_INT_MAX                     9223372036854775807
-#define GRAVITY_INT_MIN                     -9223372036854775808
+#define GRAVITY_INT_MIN                     (-GRAVITY_INT_MAX-1LL)
 #else
 typedef int32_t                             gravity_int_t;
 #define GRAVITY_INT_MAX                     2147483647
