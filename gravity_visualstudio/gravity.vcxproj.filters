@@ -117,10 +117,16 @@
     <ClInclude Include="..\src\utils\gravity_utils.h">
       <Filter>include\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\optionals\gravity_math.h">
+    <ClInclude Include="..\src\optionals\gravity_optionals.h">
       <Filter>src\opt</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\optionals\gravity_optionals.h">
+    <ClInclude Include="..\src\optionals\gravity_opt_env.h">
+      <Filter>src\opt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\optionals\gravity_opt_json.h">
+      <Filter>src\opt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\optionals\gravity_opt_math.h">
       <Filter>src\opt</Filter>
     </ClInclude>
   </ItemGroup>
@@ -182,11 +188,17 @@
     <ClCompile Include="..\src\runtime\gravity_vm.c">
       <Filter>src\runtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\optionals\gravity_math.c">
-      <Filter>src\opt</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\compiler\gravity_ast.c">
       <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\optionals\gravity_opt_env.c">
+      <Filter>src\opt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\optionals\gravity_opt_json.c">
+      <Filter>src\opt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\optionals\gravity_opt_math.c">
+      <Filter>src\opt</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

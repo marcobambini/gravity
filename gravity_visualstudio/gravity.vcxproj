@@ -32,8 +32,10 @@
     <ClInclude Include="..\src\compiler\gravity_symboltable.h" />
     <ClInclude Include="..\src\compiler\gravity_token.h" />
     <ClInclude Include="..\src\compiler\gravity_visitor.h" />
-    <ClInclude Include="..\src\optionals\gravity_math.h" />
     <ClInclude Include="..\src\optionals\gravity_optionals.h" />
+    <ClInclude Include="..\src\optionals\gravity_opt_env.h" />
+    <ClInclude Include="..\src\optionals\gravity_opt_json.h" />
+    <ClInclude Include="..\src\optionals\gravity_opt_math.h" />
     <ClInclude Include="..\src\runtime\gravity_core.h" />
     <ClInclude Include="..\src\runtime\gravity_vm.h" />
     <ClInclude Include="..\src\runtime\gravity_vmmacros.h" />
@@ -62,7 +64,9 @@
     <ClCompile Include="..\src\compiler\gravity_symboltable.c" />
     <ClCompile Include="..\src\compiler\gravity_token.c" />
     <ClCompile Include="..\src\compiler\gravity_visitor.c" />
-    <ClCompile Include="..\src\optionals\gravity_math.c" />
+    <ClCompile Include="..\src\optionals\gravity_opt_env.c" />
+    <ClCompile Include="..\src\optionals\gravity_opt_json.c" />
+    <ClCompile Include="..\src\optionals\gravity_opt_math.c" />
     <ClCompile Include="..\src\runtime\gravity_core.c" />
     <ClCompile Include="..\src\runtime\gravity_vm.c" />
     <ClCompile Include="..\src\shared\gravity_hash.c" />
@@ -84,26 +88,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>

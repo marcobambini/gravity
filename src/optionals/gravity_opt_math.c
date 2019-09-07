@@ -906,7 +906,7 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
             gravity_int_t n2 = VALUE_AS_INT(value2); // max
             if (n1 == n2) RETURN_VALUE(VALUE_FROM_INT(n1), rindex);
             
-            gravity_int_t n0 = rnd * GRAVITY_INT_MAX;
+			gravity_int_t n0 = (gravity_int_t)(rnd * GRAVITY_INT_MAX);
             if (n1 > n2) {gravity_int_t temp = n1; n1 = n2; n2 = temp;} // swap numbers if min > max
             gravity_int_t n = (gravity_int_t)(n0 % (n2 + 1 - n1) + n1);
             RETURN_VALUE(VALUE_FROM_INT(n), rindex);

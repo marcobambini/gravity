@@ -341,6 +341,7 @@ const char *json_get_label (json_t *json, const char *key) {
     
     if (key) return key;
     assert(0);
+	return NULL;
 }
 
 // MARK: - Buffer
@@ -514,7 +515,7 @@ static int new_value (json_state * state,
    }
 
    if (! (value = (json_value *) json_alloc
-         (state, sizeof (json_value) + state->settings.value_extra, 1)))
+         (state, (unsigned long)(sizeof (json_value) + state->settings.value_extra), 1)))
    {
       return 0;
    }

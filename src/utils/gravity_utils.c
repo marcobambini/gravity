@@ -131,12 +131,12 @@ uint64_t file_size (const char *path) {
 }
 
 const char *file_read(const char *path, size_t *len) {
-    int        fd = 0;
-    off_t    fsize = 0;
-    size_t    fsize2 = 0;
-    char    *buffer = NULL;
+    int		fd = 0;
+    off_t	fsize = 0;
+    size_t	fsize2 = 0;
+    char	*buffer = NULL;
     
-    fsize = (size_t) file_size(path);
+    fsize = (off_t) file_size(path);
     if (fsize < 0) goto abort_read;
     
     fd = open(path, O_RDONLY);
@@ -214,7 +214,7 @@ bool file_write (const char *path, const char *buffer, size_t len) {
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
     if (fd < 0) return false;
     
-    ssize_t nwrite = write(fd, buffer, len);
+    ssize_t nwrite = (ssize_t)write(fd, buffer, len);
     close(fd);
     
     return (nwrite == len);

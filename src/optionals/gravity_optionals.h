@@ -60,7 +60,13 @@
 #define GRAVITY_ISENV_CLASS(_c)             false
 #endif
 
-inline static const char **gravity_optional_identifiers(void) {
+#ifdef _MSC_VER
+#define INLINE								__inline
+#else
+#define INLINE								inline
+#endif
+
+INLINE static const char **gravity_optional_identifiers(void) {
     static const char *list[] = {
         #ifdef GRAVITY_INCLUDE_MATH
         GRAVITY_CLASS_MATH_NAME,

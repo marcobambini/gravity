@@ -325,7 +325,7 @@ inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
 
     // handle conversion for basic classes
     if (VALUE_ISA_INT(v)) return VALUE_FROM_FLOAT((gravity_float_t)v.n);
-    if (VALUE_ISA_BOOL(v)) return VALUE_FROM_FLOAT(v.n);
+    if (VALUE_ISA_BOOL(v)) return VALUE_FROM_FLOAT((gravity_float_t)v.n);
     if (VALUE_ISA_NULL(v)) return VALUE_FROM_FLOAT(0);
     if (VALUE_ISA_UNDEFINED(v)) return VALUE_FROM_FLOAT(0);
     if (VALUE_ISA_STRING(v)) return convert_string2number(VALUE_AS_STRING(v), number_format_float);
@@ -2833,7 +2833,7 @@ static bool string_raw (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     uint32_t n = utf8_charbytes(string->s, 0);
     for (uint32_t i=0; i<n; ++i) {
         // if (n > 1) {printf("%u (%d)\n", (uint8_t)string->s[i], (uint32_t)pow(10, n-(i+1)));}
-        ascii += ((uint8_t)string->s[i] * pow(10, n-(i+1)));
+		ascii += (uint32_t)((uint8_t)string->s[i] * pow(10, n - (i + 1)));
     }
     
     RETURN_VALUE(VALUE_FROM_INT(ascii), rindex);

@@ -909,12 +909,17 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 #elif defined(__GNUC__)
                     #pragma GCC diagnostic push
                     #pragma GCC diagnostic ignored "-Wdiv-by-zero"
+				#elif defined(_MSC_VER)
+					#pragma warning (push)
+					#pragma warning (disable: 4723)
                 #endif
                 CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, /, CHECK_ZERO(v3));
                 #if defined(__clang__)
                     #pragma clang diagnostic pop
                 #elif defined(__GNUC__)
                     #pragma GCC diagnostic pop
+				#elif defined(_MSC_VER)
+					#pragma warning (pop)
                 #endif
 
                 // prepare function call for binary operation
