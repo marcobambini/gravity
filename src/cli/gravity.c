@@ -170,11 +170,11 @@ static const char *unittest_read (const char *path, size_t *size, uint32_t *file
 static void unittest_scan (const char *folder_path, unittest_data *data) {
     DIRREF dir = directory_init(folder_path);
     if (!dir) return;
-#ifdef WIN32
+    #ifdef WIN32
     char outbuffer[MAX_PATH];
-#else
+    #else
     char * outbuffer = NULL;
-#endif
+    #endif
     const char *target_file;
     while ((target_file = directory_read(dir, outbuffer))) {
         

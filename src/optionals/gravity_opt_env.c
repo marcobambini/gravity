@@ -17,7 +17,7 @@
 #include "gravity_opcodes.h"
 #include "gravity_debug.h"
 
-#include "gravity_env.h"
+#include "gravity_opt_env.h"
 
 #if defined(_WIN32)
 #define setenv(_key, _value_, _unused)      _putenv_s(_key, _value_)

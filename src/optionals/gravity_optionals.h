@@ -18,7 +18,7 @@
 #define GRAVITY_MATH_FREE()                 gravity_math_free()
 #define GRAVITY_MATH_NAME()                 gravity_math_name()
 #define GRAVITY_ISMATH_CLASS(_c)            gravity_ismath_class(_c)
-#include "gravity_math.h"
+#include "gravity_opt_math.h"
 #else
 #define GRAVITY_MATH_REGISTER(_vm)
 #define GRAVITY_MATH_FREE()
@@ -35,7 +35,7 @@
 #define GRAVITY_JSON_FREE()                 gravity_json_free()
 #define GRAVITY_JSON_NAME()                 gravity_json_name()
 #define GRAVITY_ISJSON_CLASS(_c)            gravity_isjson_class(_c)
-#include "gravity_json.h"
+#include "gravity_opt_json.h"
 #else
 #define GRAVITY_JSON_REGISTER(_vm)
 #define GRAVITY_JSON_FREE()
@@ -52,7 +52,7 @@
 #define GRAVITY_ENV_FREE()                  gravity_env_free()
 #define GRAVITY_ENV_NAME()                  gravity_env_name()
 #define GRAVITY_ISENV_CLASS(_c)             gravity_isenv_class(_c)
-#include "gravity_env.h"
+#include "gravity_opt_env.h"
 #else
 #define GRAVITY_ENV_REGISTER(_vm)
 #define GRAVITY_ENV_FREE()

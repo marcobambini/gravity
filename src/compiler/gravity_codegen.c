@@ -1060,14 +1060,14 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
             // example 1:
             //    var a;
             //
-            //    LOADK    0 NULL    ; move null into register 0
-            //    STOREG    0 0        ; move register 0 into hash(constant_pool(0))
+            //    LOADK    0 NULL   ; move null into register 0
+            //    STOREG    0 0     ; move register 0 into hash(constant_pool(0))
             //
             // example 2:
             //    var a = 10;
             //
-            //    LOADI    0 10    ; move 10 into register 0
-            //    STOREG    0 0        ; move register 0 into hash(constant_pool(0))
+            //    LOADI    0 10     ; move 10 into register 0
+            //    STOREG    0 0     ; move register 0 into hash(constant_pool(0))
             //
 
             gravity_function_t *context_function = (gravity_function_t *)context_object;
@@ -1119,8 +1119,8 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
             //  depending if variable has been created static
             //  and push it as current declaration then:
             //
-            //     LOADI    0 10    ; move 10 into register 0
-            //     STOREF    0 0        ; move register 0 into property 0
+            //     LOADI     0 10   ; move 10 into register 0
+            //     STOREF    0 0    ; move register 0 into property 0
 
             if (p->expr) {
                 // was gravity_class_lookup but that means than $init or init will be recursively searched also in super classes

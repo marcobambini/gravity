@@ -1,5 +1,5 @@
 //
-//  gravity_math.c
+//  gravity_opt_math.c
 //  gravity
 //
 //  Created by Marco Bambini on 14/08/2017.
@@ -11,12 +11,12 @@
 #include <time.h>
 #include <inttypes.h>
 #include "gravity_vm.h"
-#include "gravity_math.h"
 #include "gravity_core.h"
 #include "gravity_hash.h"
 #include "gravity_utils.h"
 #include "gravity_macros.h"
 #include "gravity_vmmacros.h"
+#include "gravity_opt_math.h"
 
 #if GRAVITY_ENABLE_DOUBLE
 #define SIN                         sin

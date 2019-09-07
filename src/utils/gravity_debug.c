@@ -41,7 +41,7 @@ const char *opcode_name (opcode_t op) {
                                                         bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);        \
                                                         bindex += snprintf(&buffer[bindex], balloc-bindex, "\n");
 
-#define DUMP_VM_NOCR(buffer, bindex, ...)                bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);    \
+#define DUMP_VM_NOCR(buffer, bindex, ...)               bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);    \
                                                         bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
 
 #define DUMP_VM_RAW(buffer, bindex, ...)                bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
@@ -51,7 +51,7 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
     uint32_t    pc = 0, inst = 0, ninsts = 0;
     opcode_t    op;
     
-    const int    rowlen = 256;
+    const int   rowlen = 256;
     uint32_t    bindex = 0;
     uint32_t    balloc = 0;
     char        *buffer = NULL;

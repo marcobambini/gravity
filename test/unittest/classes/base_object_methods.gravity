@@ -32,7 +32,7 @@ func main() {
 	
 	r = v.String();					if (r != v)			return "-7 (" + r + ")";
 	r = bar.String();				if (r != "bar")		return "-9 (" + r + ")";
-	r = 0.1.String();				if (r != "0.100000")	return "-10 (" + r + ")";
+	r = 0.1.String();				if (r != "0.1")		return "-10 (" + r + ")";
 	r = null.String();				if (r != "null")	return "-11 (" + r + ")";
 	r = true.String();				if (r != "true")	return "-12 (" + r + ")";
 	r = main.String();				if (r != "main")	return "-13 (" + r + ")";

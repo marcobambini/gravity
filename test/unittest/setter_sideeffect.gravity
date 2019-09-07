@@ -1,0 +1,33 @@
+#unittest {
+	name: "Prevents setter side effects.";
+	result: "This is test string1.This is test string2.";
+};
+
+class SetterTest {
+    private var _member1;
+    private var _member2;
+    
+    var member1 {
+        set {
+            _member1 = value;
+        }
+    }
+    
+    var member2 {
+        set {
+            _member2 = value;
+            return value;
+        }
+    }
+    
+}
+
+func main() {
+    var str1 = "This is test string1.";
+    var str2 = "This is test string2.";
+    
+    var setter_test = SetterTest();
+    setter_test.member1 = str1;
+    setter_test.member2 = str2;
+    return str1 + str2;
+}

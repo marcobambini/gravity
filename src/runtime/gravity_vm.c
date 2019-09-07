@@ -7,6 +7,7 @@
 //
 
 #include "gravity_hash.h"
+#include "gravity_json.h"
 #include "gravity_array.h"
 #include "gravity_debug.h"
 #include "gravity_macros.h"
@@ -15,7 +16,6 @@
 #include "gravity_opcodes.h"
 #include "gravity_memory.h"
 #include "gravity_vmmacros.h"
-#include "gravity_json.h"
 #include "gravity_optionals.h"
 
 // MARK: Internals -
@@ -588,7 +588,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                         // invalidate current_fiber because it does not need to be in sync in this case
                         current_fiber = NULL;
                         if (reset_r1) SETVALUE(rwin+1, v1);
-                        PUSH_FRAME(closure, &stackstart[rwin], r1, 2);
+                        // was r1 but it was incorrect, pass r3 as the destination register because I am sure it is a
+                        // dummy temp (and unused) register that can be safely set to NULL
+                        PUSH_FRAME(closure, &stackstart[rwin], r3, 2);
                     } break;
 
                     case EXEC_TYPE_INTERNAL: {

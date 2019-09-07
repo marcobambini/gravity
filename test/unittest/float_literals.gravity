@@ -1,6 +1,6 @@
 #unittest {
     name: "Float complex literals";
-    result: "[21.120120,12.200100,0.122120,0.000000]";
+    result: "[21.1201,12.2001,0.12212,0]";
 };
 
 func main() {

@@ -1,5 +1,5 @@
 //
-//  gravity_math.h
+//  gravity_opt_math.h
 //  gravity
 //
 //  Created by Marco Bambini on 14/08/2017.

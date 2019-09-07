@@ -1,5 +1,5 @@
 //
-//  gravity_json.c
+//  gravity_opt_json.c
 //  gravity
 //
 //  Created by Marco Bambini on 20/08/2019.
@@ -7,15 +7,15 @@
 //
 
 #include <inttypes.h>
-#include "gravity_json.h"
 #include "gravity_vm.h"
-#include "gravity_json.h"
 #include "gravity_core.h"
 #include "gravity_hash.h"
+#include "gravity_json.h"
 #include "gravity_utils.h"
 #include "gravity_macros.h"
 #include "gravity_opcodes.h"
 #include "gravity_vmmacros.h"
+#include "gravity_opt_json.h"
 
 #define GRAVITY_JSON_STRINGIFY_NAME     "stringify"
 #define GRAVITY_JSON_PARSE_NAME         "parse"
