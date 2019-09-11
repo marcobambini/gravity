@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.7.6"     // git tag 0.7.6
-#define GRAVITY_VERSION_NUMBER				0x000706    // git push --tags
+#define GRAVITY_VERSION						"0.7.7"     // git tag 0.7.7
+#define GRAVITY_VERSION_NUMBER				0x000707    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -478,6 +478,7 @@ GRAVITY_API void                gravity_class_free_core (gravity_vm *vm, gravity
 GRAVITY_API gravity_object_t    *gravity_class_lookup (gravity_class_t *c, gravity_value_t key);
 GRAVITY_API gravity_closure_t   *gravity_class_lookup_closure (gravity_class_t *c, gravity_value_t key);
 GRAVITY_API gravity_closure_t   *gravity_class_lookup_constructor (gravity_class_t *c, uint32_t nparams);
+GRAVITY_API gravity_class_t     *gravity_class_lookup_class_identifier (gravity_class_t *c, const char *identifier);
 GRAVITY_API void                gravity_class_blacken (gravity_vm *vm, gravity_class_t *c);
 GRAVITY_API uint32_t            gravity_class_size (gravity_vm *vm, gravity_class_t *c);
 

@@ -651,13 +651,13 @@ static bool object_not (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     RETURN_VALUE(VALUE_FROM_BOOL(VALUE_ISA_NULLCLASS(GET_VALUE(0))), rindex);
 }
 
-static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex, bool is_super) {
+static bool object_load (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-
+    
     // if there is a possibility that gravity_vm_runclosure is called then it is MANDATORY to save arguments before the call
     gravity_value_t target = GET_VALUE(0);
     gravity_value_t key = GET_VALUE(1);
-
+    
     // check if meta class needs to be initialized (it means if it contains valued static ivars)
     // meta classes must be inited somewhere, this problem does not exist with instances since object creation itself trigger a class init
     if (VALUE_ISA_CLASS(target)) {
@@ -671,32 +671,27 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
             }
         }
     }
-
-    // sanity check for super operator
-    if (is_super && !VALUE_ISA_CLASS(target)) {
-        RETURN_ERROR("Unable to lookup super for non class object");
-    }
-
+    
     // retrieve class and process key
-    gravity_class_t *c = (is_super) ? VALUE_AS_CLASS(target) : gravity_value_getclass(target);
+    gravity_class_t *c = gravity_value_getclass(target);
     gravity_instance_t *instance = VALUE_ISA_INSTANCE(target) ? VALUE_AS_INSTANCE(target) : NULL;
-
+    
     // key is an int its an optimization for faster loading of ivar
     if (VALUE_ISA_INT(key)) {
         // sanity check
         uint32_t nivar = c->nivars;
         uint32_t nindex = (uint32_t)key.n;
         if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in load operation (1).");
-
+        
         if (instance) RETURN_VALUE(instance->ivars[nindex], rindex);    // instance case
         RETURN_VALUE(c->ivars[nindex], rindex);                         // class case
     }
-
+    
     // key must be a string in this version
     if (!VALUE_ISA_STRING(key)) {
         RETURN_ERROR("Unable to lookup non string value into class %s", c->identifier);
     }
-
+    
     // lookup key in class c
     gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(c, key);
     if (!obj) {
@@ -707,11 +702,11 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
         }
     }
     if (!obj) goto execute_notfound;
-
+    
     if (OBJECT_ISA_CLOSURE(obj)) {
         gravity_closure_t *closure = (gravity_closure_t *)obj;
         if (!closure || !closure->f) goto execute_notfound;
-
+        
         // execute optimized default getter
         if (FUNCTION_ISA_SPECIAL(closure->f)) {
             if (FUNCTION_ISA_DEFAULT_GETTER(closure->f)) {
@@ -719,11 +714,11 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
                 uint32_t nivar = c->nivars;
                 uint32_t nindex = closure->f->index;
                 if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in load operation (2).");
-
+                
                 if (instance) RETURN_VALUE(instance->ivars[closure->f->index], rindex);
                 RETURN_VALUE(c->ivars[closure->f->index], rindex);
             }
-
+            
             if (FUNCTION_ISA_GETTER(closure->f)) {
                 // returns a function to be executed using the return false trick
                 RETURN_CLOSURE(VALUE_FROM_OBJECT((gravity_closure_t *)closure->f->special[EXEC_TYPE_SPECIAL_GETTER]), rindex);
@@ -731,22 +726,14 @@ static bool object_real_load (gravity_vm *vm, gravity_value_t *args, uint16_t na
             goto execute_notfound;
         }
     }
-
+    
     RETURN_VALUE(VALUE_FROM_OBJECT(obj), rindex);
-
+    
 execute_notfound: {
-        // in case of not found error return the notfound function to be executed (MANDATORY)
-        gravity_closure_t *closure = (gravity_closure_t *)gravity_class_lookup(c, gravity_vm_keyindex(vm, GRAVITY_NOTFOUND_INDEX));
-        RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
-    }
+    // in case of not found error return the notfound function to be executed (MANDATORY)
+    gravity_closure_t *closure = (gravity_closure_t *)gravity_class_lookup(c, gravity_vm_keyindex(vm, GRAVITY_NOTFOUND_INDEX));
+    RETURN_CLOSURE(VALUE_FROM_OBJECT(closure), rindex);
 }
-
-static bool object_loads (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    return object_real_load(vm, args, nargs, rindex, true);
-}
-
-static bool object_load (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    return object_real_load(vm, args, nargs, rindex, false);
 }
 
 static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -3279,7 +3266,6 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_object, GRAVITY_CLASS_BOOL_NAME, NEW_CLOSURE_VALUE(convert_object_bool));
     gravity_class_bind(gravity_class_object, GRAVITY_CLASS_STRING_NAME, NEW_CLOSURE_VALUE(convert_object_string));
     gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_LOAD_NAME, NEW_CLOSURE_VALUE(object_load));
-    gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_LOADS_NAME, NEW_CLOSURE_VALUE(object_loads));
     gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_STORE_NAME, NEW_CLOSURE_VALUE(object_store));
     gravity_class_bind(gravity_class_object, GRAVITY_INTERNAL_NOTFOUND_NAME, NEW_CLOSURE_VALUE(object_notfound));
     gravity_class_bind(gravity_class_object, "_size", NEW_CLOSURE_VALUE(object_internal_size));

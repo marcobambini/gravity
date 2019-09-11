@@ -432,6 +432,14 @@ inline gravity_object_t *gravity_class_lookup (gravity_class_t *c, gravity_value
     return NULL;
 }
 
+gravity_class_t *gravity_class_lookup_class_identifier (gravity_class_t *c, const char *identifier) {
+    while (c) {
+        if (string_cmp(c->identifier, identifier) == 0) return c;
+        c = c->superclass;
+    }
+    return NULL;
+}
+
 inline gravity_closure_t *gravity_class_lookup_closure (gravity_class_t *c, gravity_value_t key) {
     gravity_object_t *obj = gravity_class_lookup(c, key);
     if (obj && OBJECT_ISA_CLOSURE(obj)) return (gravity_closure_t *)obj;

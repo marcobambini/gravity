@@ -1,0 +1,29 @@
+#unittest {
+	name: "Superclass init call chain.";
+	result: 1110;
+};
+
+var g = 0;
+
+class Parent {
+    func init() {
+        g += 1000;
+    }
+}
+class Child:Parent {
+    func init() {
+        g += 100;
+        super.init();
+    }
+}
+class Grandchild:Child {
+    func init() {
+        g += 10;
+        super.init();
+    }
+}
+
+func main() {
+    var node = Grandchild();
+    return g;
+}

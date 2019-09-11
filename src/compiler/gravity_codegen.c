@@ -252,21 +252,38 @@ static void fix_superclasses (gvisitor_t *self) {
         gnode_class_decl_t *node = (gnode_class_decl_t *)gnode_array_get(superfix, i);
         gnode_class_decl_t *super = (gnode_class_decl_t *)node->superclass;
 
-        gravity_class_t    *c = (gravity_class_t *)node->data;
+        gravity_class_t *c = (gravity_class_t *)node->data;
         gravity_class_setsuper(c, (gravity_class_t *)super->data);
     }
 }
 
-static bool context_is_class (gvisitor_t *self) {
+static const char *lookup_superclass_identifier (gvisitor_t *self, gravity_class_t *c) {
+    codegen_t       *data = (codegen_t *)self->data;
+    gnode_class_r   *superfix = &data->superfix;
+    
+    size_t count = gnode_array_size(superfix);
+    for (size_t i=0; i<count; ++i) {
+        gnode_class_decl_t *node = (gnode_class_decl_t *)gnode_array_get(superfix, i);
+        gravity_class_t *target = (gravity_class_t *)node->data;
+        if (target == c) {
+            gnode_class_decl_t *super = (gnode_class_decl_t *)node->superclass;
+            return (super) ? super->identifier : NULL;
+        }
+    }
+    
+    return NULL;
+}
+
+static gravity_class_t *context_get_class (gvisitor_t *self) {
     gravity_object_r ctx = ((codegen_t *)self->data)->context;
     size_t len = marray_size(ctx);
     
     for (int i=(int)len-1; i>=0; --i) {
         gravity_object_t *context_object = (gravity_object_t *)marray_get(ctx, i);
-        if (OBJECT_ISA_CLASS(context_object)) return true;
+        if (OBJECT_ISA_CLASS(context_object)) return (gravity_class_t *)context_object;
     }
     
-    return false;
+    return NULL;
 }
 
 static bool node_is_closure (gnode_t *node, uint16_t *local_index) {
@@ -333,7 +350,7 @@ static uint32_t compute_self_register (gvisitor_t *self, ircode_t *code, gnode_t
     uint16_t local_index = 0;
     if (node_is_closure(node, &local_index)) {
         if (next_is_access) return local_index;
-        if (context_is_class(self)) return 0;
+        if (context_get_class(self) != NULL) return 0;
     }
     
     // default case is to return the target register
@@ -1191,6 +1208,7 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
                 // superclass has not yet processed so we need recheck the node at the end of the visit
                 // add node to superfix for later processing
                 codegen_t *data = (codegen_t *)self->data;
+                node->data = (void *)c;
                 marray_push(gnode_class_decl_t *, data->superfix, node);
             }
         }
@@ -1494,8 +1512,29 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                 return;
             }
 
-			if (is_super) ircode_add(code, LOADS, dest_register, target_register, index_register, LINE_NUMBER(node));
-			else ircode_add(code, (is_real_assigment) ? STORE : LOAD, dest_register, target_register, index_register, LINE_NUMBER(node));
+            if (is_super) {
+                gravity_class_t *class = context_get_class(self);
+                if (!class) {
+                    report_error(self, (gnode_t *)node, "Unable to use super keyword in a non class context.");
+                    return;
+                }
+                
+                // check if class has a superclass not yet processed
+                const char *identifier = lookup_superclass_identifier (self, class);
+                if (!identifier) {
+                    // it means that class superclass has already been processed
+                    class = class->superclass;
+                    identifier = (class) ? class->identifier : GRAVITY_CLASS_OBJECT_NAME;
+                }
+                
+                uint32_t cpool_index = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, identifier));
+                ircode_add_constant(code, cpool_index, LINE_NUMBER(node));
+                uint32_t temp_reg = ircode_register_pop(code);
+                ircode_add(code, LOADS, dest_register, temp_reg, index_register, LINE_NUMBER(node));
+            } else {
+                ircode_add(code, (is_real_assigment) ? STORE : LOAD, dest_register, target_register, index_register, LINE_NUMBER(node));
+            }
+            
             if (!is_real_assigment) {
                 if (i+1<count) {
                 uint32_t rtemp = ircode_register_pop_context_protect(code, true);
@@ -1817,7 +1856,7 @@ static void visit_keyword_expr (gvisitor_t *self, gnode_keyword_expr_t *node) {
             break;
 
         case TOK_KEY_SUPER:
-			ircode_add_constant(code, CPOOL_VALUE_SUPER, LINE_NUMBER(node));
+            ircode_register_push(code, 0);
             break;
 
         case TOK_KEY_CURRARGS:

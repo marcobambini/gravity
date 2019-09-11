@@ -411,12 +411,34 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 SETVALUE(r1, STACK_GET(r2));
                 DISPATCH();
             }
+            
+            // MARK: LOADS
+            CASE_CODE(LOADS): {
+                OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
+                DEBUG_VM("LOADS %d %d %d", r1, r2, r3);
+                
+                // r1 result
+                // r2 superclass to lookup (target implicit to self)
+                // r3 key
+                
+                DEFINE_STACK_VARIABLE(v2,r2);
+                DEFINE_INDEX_VARIABLE(v3,r3);
+                
+                gravity_value_t target = STACK_GET(0);
+                gravity_class_t *target_class = gravity_value_getclass(target);
+                gravity_class_t *super_target = gravity_class_lookup_class_identifier(target_class, VALUE_AS_CSTRING(v2));
+                if (!super_target) RUNTIME_ERROR("Unable to find superclass %s in self object", VALUE_AS_CSTRING(v2));
+                
+                gravity_object_t *result = gravity_class_lookup(super_target, v3);
+                if (!result) RUNTIME_ERROR("Unable to find %s in superclass %s", VALUE_AS_CSTRING(v3), (super_target->identifier) ? super_target->identifier : "N/A");
+                
+                SETVALUE(r1, VALUE_FROM_OBJECT(result));
+                DISPATCH();
+            }
 
             // MARK: LOAD
-            // MARK: LOADS
             // MARK: LOADAT
             CASE_CODE(LOAD):
-            CASE_CODE(LOADS):
             CASE_CODE(LOADAT):{
                 OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
                 DEBUG_VM("%s %d %d %d", (op == LOAD) ? "LOAD" : ((op == LOADAT) ? "LOADAT" : "LOADS"), r1, r2, r3);
