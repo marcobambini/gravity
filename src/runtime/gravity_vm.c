@@ -1452,9 +1452,8 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     closure->upvalue[i] = (p2) ? gravity_capture_upvalue (vm, fiber, &stackstart[p1]) : frame->closure->upvalue[p1];
                 }
                 
-                // re-start GC
-                gravity_gc_setenabled(vm, true);
                 SETVALUE(r1, VALUE_FROM_OBJECT(closure));
+                gravity_gc_setenabled(vm, true);
                 DISPATCH();
             }
 

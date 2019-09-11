@@ -1,0 +1,24 @@
+#unittest {
+	name: "Closure gc test.";
+	result: 0;
+};
+
+func main() {
+    for (var i in 0...100000) {
+        if (0 == (i % 1000)) {
+            //System.print("i = " + i);
+        }
+        var get_x = (func() {
+            var _x = 10;
+            func _get_x() {
+                return _x;
+            }
+            return _get_x;
+        })();
+        if(!(get_x is Closure)) {
+            return -1;
+        }
+    }
+    
+    return 0;
+}
