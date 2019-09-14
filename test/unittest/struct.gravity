@@ -1,0 +1,46 @@
+#unittest {
+	name: "Struct test.";
+	error: NONE;
+	result: 1070;
+};
+
+class P1 {
+    var x;
+    var y;
+    
+    func init (a, b) {
+        x = a;
+        y = b;
+    }
+    
+    func sum() {
+        return x + y;
+    }
+}
+
+struct P2 {
+    var x = 0;
+    var y = 0;
+    
+    func init (a, b) {
+        x = a;
+        y = b;
+    }
+    
+    func sum() {
+        return x + y;
+    }
+}
+
+func main() {
+    var p1 = P1(10, 20);
+    var p2 = P2(20, 30);
+    
+    var obj1 = p1;
+    obj1.x = 1000;
+    
+    var obj2 = p2;
+    obj2.x = 1000;
+    
+    return p1.sum() + p2.sum();
+}

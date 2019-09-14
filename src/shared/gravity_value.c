@@ -1754,6 +1754,10 @@ void gravity_instance_serialize (gravity_instance_t *instance, json_t *json) {
     json_end_object(json);
 }
 
+bool gravity_instance_isstruct (gravity_instance_t *i) {
+    return i->objclass->is_struct;
+}
+
 // MARK: -
 static bool hash_value_compare_cb (gravity_value_t v1, gravity_value_t v2, void *data) {
     #pragma unused (data)

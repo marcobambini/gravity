@@ -129,7 +129,7 @@ typedef enum {
             CLOSE,          //  A               //  close all upvalues from R(A)
 
                                                 //  *** UNUSED (6) ***
-            RESERVED1,      //                  //  reserved for future use
+            CHECK,          //  A               //  checkpoint for structs                  R(A) = R(A).clone (if A is a struct)
             RESERVED2,      //                  //  reserved for future use
             RESERVED3,      //                  //  reserved for future use
             RESERVED4,      //                  //  reserved for future use

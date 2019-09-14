@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.7.7"     // git tag 0.7.7
-#define GRAVITY_VERSION_NUMBER				0x000707    // git push --tags
+#define GRAVITY_VERSION						"0.7.8"     // git tag 0.7.8
+#define GRAVITY_VERSION_NUMBER				0x000708    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -501,6 +501,7 @@ GRAVITY_API gravity_closure_t   *gravity_instance_lookup_event (gravity_instance
 GRAVITY_API void                gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API uint32_t            gravity_instance_size (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API void                gravity_instance_serialize (gravity_instance_t *i, json_t *json);
+GRAVITY_API bool                gravity_instance_isstruct (gravity_instance_t *i);
 
 // MARK: - VALUE -
 GRAVITY_API bool                gravity_value_equals (gravity_value_t v1, gravity_value_t v2);

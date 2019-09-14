@@ -768,7 +768,13 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
         uint32_t nivar = c->nivars;
         uint32_t nindex = (uint32_t)key.n;
         if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in store operation (1).");
-
+        
+        // check for struct
+        if (VALUE_ISA_INSTANCE(value) && (gravity_instance_isstruct(VALUE_AS_INSTANCE(value)))) {
+            gravity_instance_t *instance_copy = gravity_instance_clone(vm, VALUE_AS_INSTANCE(value));
+            value = VALUE_FROM_OBJECT(instance_copy);
+        }
+        
         if (instance) instance->ivars[nindex] = value;
         else c->ivars[nindex] = value;
         RETURN_NOVALUE();
@@ -803,7 +809,13 @@ static bool object_store (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
                 uint32_t nivar = c->nivars;
                 uint32_t nindex = closure->f->index;
                 if (nindex >= nivar) RETURN_ERROR("Out of bounds ivar index in store operation (2).");
-
+                
+                // check for struct
+                if (VALUE_ISA_INSTANCE(value) && (gravity_instance_isstruct(VALUE_AS_INSTANCE(value)))) {
+                    gravity_instance_t *instance_copy = gravity_instance_clone(vm, VALUE_AS_INSTANCE(value));
+                    value = VALUE_FROM_OBJECT(instance_copy);
+                }
+                
                 if (instance) instance->ivars[nindex] = value;
                 else c->ivars[nindex] = value;
 
@@ -873,6 +885,9 @@ static bool object_bind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
         // store anonymous class (and its meta) into VM context
         gravity_vm_setvalue(vm, name, VALUE_FROM_OBJECT(anon));
     }
+    
+    // set closure context (only if class or instance)
+    // VALUE_AS_CLOSURE(GET_VALUE(2))->context = object;
 
     // add closure to anonymous class
     gravity_class_bind(c, key->s, GET_VALUE(2));
@@ -888,6 +903,12 @@ static bool object_unbind (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 
     // remove key/value from hash table
     gravity_class_t *c = gravity_value_getclass(GET_VALUE(0));
+    gravity_object_t *obj = (gravity_object_t *)gravity_class_lookup(c, GET_VALUE(1));
+    
+    // clear closure context
+    if (obj && OBJECT_ISA_CLOSURE(obj)) ((gravity_closure_t *)obj)->context = NULL;
+    
+    // remove key from class hash table
     gravity_hash_remove(c->htable, GET_VALUE(1));
 
     RETURN_NOVALUE();

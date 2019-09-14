@@ -90,6 +90,7 @@ void		ircode_add_int (ircode_t *code, int64_t n, uint32_t lineno);
 void		ircode_add_constant (ircode_t *code, uint32_t index, uint32_t lineno);
 void		ircode_add_skip (ircode_t *code, uint32_t lineno);
 void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
+void        ircode_add_check (ircode_t *code);
 
 // IMPORTANT NOTE
 //

@@ -192,7 +192,10 @@ static void finalize_function (gravity_function_t *f, bool add_debug) {
                 OPCODE_SET_ONE8bit_ONE18bit(op, inst->op, inst->p1, inst->p2);
                 break;
 
-            case RESERVED1:
+            case CHECK:
+                OPCODE_SET_ONE8bit_ONE18bit(op, inst->op, inst->p1, inst->p2);
+                break;
+                
             case RESERVED2:
             case RESERVED3:
             case RESERVED4:

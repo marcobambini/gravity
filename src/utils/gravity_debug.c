@@ -32,7 +32,7 @@ const char *opcode_name (opcode_t op) {
         "MUL", "REM", "AND", "OR", "LT", "GT", "EQ", "LEQ", "GEQ", "NEQ",
         "EQQ", "NEQQ", "IS", "MATCH", "NEG", "NOT", "LSHIFT", "RSHIFT", "BAND",
         "BOR", "BXOR", "BNOT", "MAPNEW", "LISTNEW", "RANGENEW", "SETLIST",
-        "CLOSURE", "CLOSE", "RESERVED1", "RESERVED2", "RESERVED3", "RESERVED4",
+        "CLOSURE", "CLOSE", "CHECK", "RESERVED2", "RESERVED3", "RESERVED4",
         "RESERVED5", "RESERVED6"};
     return optable[op];
 }
@@ -228,7 +228,13 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
                 break;
             }
                 
-            case RESERVED1:
+            case CHECK: {
+                OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
+                #pragma unused(r2)
+                DUMP_VM(buffer, bindex, "%s %d", opcode_name(op), r1);
+                break;
+            }
+                
             case RESERVED2:
             case RESERVED3:
             case RESERVED4:

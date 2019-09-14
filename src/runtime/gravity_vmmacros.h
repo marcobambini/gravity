@@ -133,7 +133,7 @@
                                     &&MATCH,        &&NEG,          &&NOT,          &&LSHIFT,       \
                                     &&RSHIFT,       &&BAND,         &&BOR,          &&BXOR,         \
                                     &&BNOT,         &&MAPNEW,       &&LISTNEW,      &&RANGENEW,     \
-                                    &&SETLIST,      &&CLOSURE,      &&CLOSE,        &&RESERVED1,    \
+                                    &&SETLIST,      &&CLOSURE,      &&CLOSE,        &&CHECK,        \
                                     &&RESERVED2,    &&RESERVED3,    &&RESERVED4,    &&RESERVED5,    \
                                     &&RESERVED6                                                        };
 #define INTERPRET_LOOP              DISPATCH();

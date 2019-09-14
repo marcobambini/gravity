@@ -1063,6 +1063,8 @@ static void visit_variable_decl (gvisitor_t *self, gnode_variable_decl_t *node) 
                 uint32_t reg = ircode_register_pop(code);
                 if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid var expression.");
 				ircode_add(code, MOVE, p->index, reg, 0, LINE_NUMBER(node));
+                // Checkpoint added to support STRUCT
+                ircode_add_check(code);
             } else {
                 // no default assignment expression found so initialize to NULL
 				ircode_add(code, LOADK, p->index, CPOOL_VALUE_NULL, 0, LINE_NUMBER(node));
@@ -1274,6 +1276,9 @@ static void visit_binary_expr (gvisitor_t *self, gnode_binary_expr_t *node) {
 
         CODEGEN_COUNT_REGISTERS(n2);
         CODEGEN_ASSERT_REGISTERS(n1, n2, 0);
+        
+        // Checkpoint added to support STRUCT
+        ircode_add_check(code);
         return;
     }
 
@@ -1453,6 +1458,10 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                     report_error(self, (gnode_t *)arg, "Invalid register computation in call expression.");
                     return;
                 }
+                
+                // a checkpoint should be added after each nreg computation in order to support STRUCT
+                // I'll skip this overhead in this version because it should be a type based decision
+                // ircode_add_check(code, nreg);
                 marray_push(uint32_t, args, nreg);
             }
 

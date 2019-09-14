@@ -1,0 +1,20 @@
+#unittest {
+	name: "Bind function to an existing class.";
+	error: NONE;
+	result: 100;
+};
+
+class Foo {
+    var x = 100;
+
+}
+
+func test() {
+    return self.x;
+}
+
+func main() {
+	var foo = Foo();
+    foo.bind("test", test);
+    return foo.test();
+}

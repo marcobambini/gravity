@@ -1437,8 +1437,9 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // create closure (outside GC)
                 gravity_closure_t *closure = gravity_closure_new(vm, f);
 
-                // save current context (if any)
-                closure->context = gravity_value_isobject(STACK_GET(0)) ? VALUE_AS_OBJECT(STACK_GET(0)) : NULL;
+                // save current context (only if class or instance)
+                if ((VALUE_ISA_CLASS(STACK_GET(0))) || (VALUE_ISA_INSTANCE(STACK_GET(0))))
+                    closure->context = VALUE_AS_OBJECT(STACK_GET(0)) ;
                 
                 // loop for each upvalue setup instruction
                 for (uint16_t i=0; i<f->nupvalues; ++i) {
@@ -1466,9 +1467,22 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 gravity_close_upvalues(fiber, &stackstart[r1]);
                 DISPATCH();
             }
-
+            
+            // MARK: CHECK
+            CASE_CODE(CHECK): {
+                OPCODE_GET_ONE8bit(inst, const uint32_t r1);
+                DEBUG_VM("CHECK %d", r1);
+                
+                gravity_value_t value = STACK_GET(r1);
+                if (VALUE_ISA_INSTANCE(value) && (gravity_instance_isstruct(VALUE_AS_INSTANCE(value)))) {
+                    gravity_instance_t *instance = gravity_instance_clone(vm, VALUE_AS_INSTANCE(value));
+                    SETVALUE(r1, VALUE_FROM_OBJECT(instance));
+                }
+                
+                DISPATCH();
+            }
+            
             // MARK: - RESERVED
-            CASE_CODE(RESERVED1):
             CASE_CODE(RESERVED2):
             CASE_CODE(RESERVED3):
             CASE_CODE(RESERVED4):

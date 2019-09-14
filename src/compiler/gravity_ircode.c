@@ -247,7 +247,7 @@ uint8_t opcode_numop (opcode_t op) {
         case RANGENEW: return 3;
         case CLOSURE: return 2;
         case CLOSE: return 1;
-        case RESERVED1:
+        case CHECK: return 1;
         case RESERVED2:
         case RESERVED3:
         case RESERVED4:
@@ -422,6 +422,14 @@ void ircode_add_skip (ircode_t *code, uint32_t lineno) {
 	inst_t *inst = inst_new(0, 0, 0, 0, NO_TAG, 0, 0, lineno);
     inst_setskip(inst);
     marray_push(inst_t*, *code->list, inst);
+}
+
+void ircode_add_check (ircode_t *code) {
+    inst_t *inst = marray_last(*code->list);
+    if ((inst) && (inst->op == MOVE)) {
+        inst_t *newinst = inst_new(CHECK, inst->p1, 0, 0, NO_TAG, 0, 0, inst->lineno);
+        marray_push(inst_t*, *code->list, newinst);
+    }    
 }
 
 // MARK: - Context based functions -
