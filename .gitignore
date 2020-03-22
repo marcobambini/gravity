@@ -319,3 +319,4 @@ api/api.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 *.xcscheme
 gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/xcschememanagement.plist
 *.xcscheme
+examples/GravityCpp/GravityCpp.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
