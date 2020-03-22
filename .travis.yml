@@ -5,5 +5,4 @@ os:
 compiler:
   - gcc
   - clang
-sudo: false # Enable container-based builds.
 script: make
