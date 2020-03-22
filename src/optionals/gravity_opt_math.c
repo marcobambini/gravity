@@ -648,7 +648,7 @@ static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
             
             // convert f to string
             char buffer[512];
-            snprintf(buffer, sizeof(buffer), "%g", f);
+            snprintf(buffer, sizeof(buffer), "%f", f);
             
             // trunc c string to the requested ndigits
             char *p = buffer;

@@ -291,7 +291,8 @@ void json_add_double (json_t *json, const char *key, double value) {
     json_check_comma(json);
     
     char buffer[512];
-    size_t len = snprintf(buffer, sizeof(buffer), "%g", value);
+    // was %g but we don't like scientific notation nor the missing .0 in case of float number with no decimals
+    size_t len = snprintf(buffer, sizeof(buffer), "%f", value);
 
     if (key) {
         json_write_raw (json, key, strlen(key), true, true);

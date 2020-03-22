@@ -332,7 +332,8 @@ uint32_t gravity_hash_compute_int (gravity_int_t n) {
 
 uint32_t gravity_hash_compute_float (gravity_float_t f) {
     char buffer[24];
-    snprintf(buffer, sizeof(buffer), "%g", f);
+    // was %g but we don't like scientific notation nor the missing .0 in case of float number with no decimals
+    snprintf(buffer, sizeof(buffer), "%f", f);
     return murmur3_32(buffer, (uint32_t)strlen(buffer), HASH_SEED_VALUE);
 }
 
