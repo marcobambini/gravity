@@ -1225,6 +1225,7 @@ gravity_closure_t *gravity_closure_new (gravity_vm *vm, gravity_function_t *f) {
     assert(closure);
 
     closure->isa = gravity_class_closure;
+    closure->vm = vm;
     closure->f = f;
 
     // allocate upvalue array (+1 so I can simplify the iterator without the needs to access closure->f->nupvalues)
