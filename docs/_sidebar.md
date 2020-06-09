@@ -24,13 +24,17 @@
   * [Control Flow](controlflow.md)
   * [Loops](loop.md)
   * [Fibers](fiber.md)
+  
+* OPTIONALS
+
+  * [System class](system.md)
+  * [Math class](math.md)
+  * [ENV class](env.md)
 
 * ADVANCED
 
   * [Embedding API](api.md)
   * [Introspection](introspection.md)
-  * [System class](system.md)
-  * [Math class](math.md)
   * [Unit test](unittest.md)
   * [Contributing](contrib.md)
 
