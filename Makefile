@@ -4,13 +4,14 @@ SHARED_DIR = src/shared/
 UTILS_DIR = src/utils/
 OPT_DIR = src/optionals/
 GRAVITY_SRC = src/cli/gravity.c
+EXAMPLE_SRC = examples/example.c
 
 CC ?= gcc
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
-      $(wildcard $(RUNTIME_DIR)/*.c) \
-      $(wildcard $(SHARED_DIR)/*.c) \
-      $(wildcard $(UTILS_DIR)/*.c) \
-      $(wildcard $(OPT_DIR)/*.c)
+      $(wildcard $(RUNTIME_DIR)*.c) \
+      $(wildcard $(SHARED_DIR)*.c) \
+      $(wildcard $(UTILS_DIR)*.c) \
+      $(wildcard $(OPT_DIR)*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
 CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
@@ -59,11 +60,14 @@ all: gravity
 
 gravity:	$(OBJ) $(GRAVITY_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-.PHONY: all clean gravity
+	
+example:	$(OBJ) $(EXAMPLE_SRC)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 lib: gravity
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) gravity libgravity.so gravity.dll
+	rm -f $(OBJ) gravity example libgravity.so gravity.dll
+	
+.PHONY: all clean gravity example
