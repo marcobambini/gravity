@@ -7,10 +7,10 @@ GRAVITY_SRC = src/cli/gravity.c
 
 CC ?= gcc
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
-      $(wildcard $(RUNTIME_DIR)/*.c) \
-      $(wildcard $(SHARED_DIR)/*.c) \
-      $(wildcard $(UTILS_DIR)/*.c) \
-      $(wildcard $(OPT_DIR)/*.c)
+      $(wildcard $(RUNTIME_DIR)*.c) \
+      $(wildcard $(SHARED_DIR)*.c) \
+      $(wildcard $(UTILS_DIR)*.c) \
+      $(wildcard $(OPT_DIR)*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
 CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
