@@ -258,18 +258,23 @@ static void print_version (void) {
 }
 
 static void print_help (void) {
-    printf("usage: gravity [options]\n");
-    printf("no options means enter interactive mode (not yet supported)\n");
+    printf("Usage: gravity [options] [arguments...]\n");
+    printf("\n");
+    printf("To start the REPL (not yet supported):\n");
+    printf("  gravity\n");
+    printf("\n");
+    printf("To compile and execute file:\n");
+    printf("  gravity example.gravity\n");
+    printf("\n");
     printf("Available options are:\n");
-    printf("--version          show version information and exit\n");
-    printf("--help             show command line usage and exit\n");
-    printf("-c input_file      compile input_file (default to gravity.json)\n");
-    printf("-o output_file     specify output file name\n");
-    printf("-x input_file      execute input_file (JSON format expected)\n");
-    printf("-i source_code     compile and execute source_code string\n");
-    printf("-q                 don't print result and execution time\n");
-    printf("-t                 Run unit tests (file_name is then treated as a folder)\n");
-    printf("file_name          compile file_name and executes it\n");
+    printf("  --version          show version information and exit\n");
+    printf("  --help             show command line usage and exit\n");
+    printf("  -c input_file      compile input_file\n");
+    printf("  -o output_file     specify output file name (default to gravity.json)\n");
+    printf("  -x input_file      execute input_file (JSON format expected)\n");
+    printf("  -i source_code     compile and execute source_code string\n");
+    printf("  -q                 don't print result and execution time\n");
+    printf("  -t folder          run unit tests from folder\n");
 }
 
 static op_type parse_args (int argc, const char* argv[]) {
