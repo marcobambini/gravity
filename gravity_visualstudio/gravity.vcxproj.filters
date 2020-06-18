@@ -36,9 +36,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="unistd.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\compiler\debug_macros.h">
       <Filter>include\compiler</Filter>
     </ClInclude>
@@ -106,6 +103,9 @@
       <Filter>include\shared</Filter>
     </ClInclude>
     <ClInclude Include="..\src\shared\gravity_value.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shared\gravity_config.h">
       <Filter>include\shared</Filter>
     </ClInclude>
     <ClInclude Include="..\src\utils\gravity_debug.h">

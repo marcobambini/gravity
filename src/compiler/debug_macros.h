@@ -16,11 +16,11 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <unistd.h>
 #include <limits.h>
 #include <float.h>
 #include <math.h>
 #include "gravity_memory.h"
+#include "gravity_config.h"
 
 #define GRAVITY_LEXEM_DEBUG             0
 #define GRAVITY_LEXER_DEGUB             0

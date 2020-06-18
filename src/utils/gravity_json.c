@@ -31,6 +31,7 @@
 #include "gravity_utils.h"
 #include "gravity_memory.h"
 #include "gravity_array.h"
+#include "gravity_config.h"
 
 #include <inttypes.h>
 #include <math.h>
@@ -39,7 +40,6 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <assert.h>
-#include <unistd.h>
 
 #ifdef _MSC_VER
    #ifndef _CRT_SECURE_NO_WARNINGS
