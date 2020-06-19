@@ -192,10 +192,10 @@
     <ClInclude Include="..\src\shared\gravity_memory.h" />
     <ClInclude Include="..\src\shared\gravity_opcodes.h" />
     <ClInclude Include="..\src\shared\gravity_value.h" />
+    <ClInclude Include="..\src\shared\gravity_config.h" />
     <ClInclude Include="..\src\utils\gravity_debug.h" />
     <ClInclude Include="..\src\utils\gravity_json.h" />
     <ClInclude Include="..\src\utils\gravity_utils.h" />
-    <ClInclude Include="unistd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cli\gravity.c" />

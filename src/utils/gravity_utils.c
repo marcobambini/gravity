@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <sys/stat.h>
 
 #if defined(__linux)
@@ -29,6 +28,7 @@
 
 #include "gravity_utils.h"
 #include "gravity_memory.h"
+#include "gravity_config.h"
 
 #define SWP(x,y) (x^=y, y^=x, x^=y)
 

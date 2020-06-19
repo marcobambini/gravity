@@ -41,9 +41,6 @@ if(MSVC)
     # MSVC does not like static inlining
     list(APPEND GRAVITY_PRIVATE_DEFINITIONS "inline=")
 
-    # custom unistd.h for MSVC
-    list(APPEND GRAVITY_PRIVATE_INCLUDES "gravity_visualstudio")
-
     # warning C4068: unknown pragma
     list(APPEND GRAVITY_PRIVATE_COMPILE_OPTIONS "/wd4068")
 
@@ -85,7 +82,6 @@ foreach(target ${GRAVITY_TARGETS})
     target_link_libraries(${target} PRIVATE ${GRAVITY_DEPENDENT_LIBS})
     target_compile_definitions(${target} PRIVATE ${GRAVITY_PRIVATE_DEFINITIONS})
     target_compile_options(${target} PRIVATE ${GRAVITY_PRIVATE_COMPILE_OPTIONS})
-    target_include_directories(${target} PRIVATE ${GRAVITY_PRIVATE_INCLUDES})
     target_include_directories(${target} PUBLIC ${GRAVITY_INCLUDE_DIR})
 
 endforeach()
@@ -94,7 +90,6 @@ endforeach()
 
 add_executable(gravity ${GRAVITY_SRC})
 target_link_libraries(gravity gravityapi_s)
-target_include_directories(gravity PRIVATE ${GRAVITY_PRIVATE_INCLUDES})
 target_include_directories(gravity PUBLIC ${GRAVITY_INCLUDE_DIR})
 
 # ----------------------------------------------------------------
