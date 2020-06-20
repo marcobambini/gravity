@@ -519,6 +519,14 @@ GRAVITY_API const char          *gravity_value_name (gravity_value_t value);
 GRAVITY_API void                gravity_value_blacken (gravity_vm *vm, gravity_value_t v);
 GRAVITY_API uint32_t            gravity_value_size (gravity_vm *vm, gravity_value_t v);
 
+GRAVITY_API gravity_value_t     gravity_value_from_error(const char* msg);
+GRAVITY_API gravity_value_t     gravity_value_from_object(void *obj);
+GRAVITY_API gravity_value_t     gravity_value_from_int(gravity_int_t n);
+GRAVITY_API gravity_value_t     gravity_value_from_float(gravity_float_t f);
+GRAVITY_API gravity_value_t     gravity_value_from_null();
+GRAVITY_API gravity_value_t     gravity_value_from_undefined();
+GRAVITY_API gravity_value_t     gravity_value_from_bool(bool b);
+
 // MARK: - OBJECT -
 GRAVITY_API void                gravity_object_serialize (gravity_object_t *obj, json_t *json);
 GRAVITY_API gravity_object_t    *gravity_object_deserialize (gravity_vm *vm, json_value *entry);

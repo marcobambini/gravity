@@ -2438,3 +2438,31 @@ uint32_t gravity_string_size (gravity_vm *vm, gravity_string_t *string) {
 void gravity_string_blacken (gravity_vm *vm, gravity_string_t *string) {
     gravity_vm_memupdate(vm, gravity_string_size(vm, string));
 }
+
+inline gravity_value_t gravity_value_from_error(const char* msg) {
+    return ((gravity_value_t){.isa = NULL, .p = ((gravity_object_t *)msg)});
+}
+
+inline gravity_value_t gravity_value_from_object(void *obj) {
+    return ((gravity_value_t){.isa = (((gravity_object_t *)(obj))->isa), .p = (gravity_object_t *)(obj)});
+}
+
+inline gravity_value_t gravity_value_from_int(gravity_int_t n) {
+    return ((gravity_value_t){.isa = gravity_class_int, .n = (n)});
+}
+
+inline gravity_value_t gravity_value_from_float(gravity_float_t f) {
+    return ((gravity_value_t){.isa = gravity_class_float, .f = (f)});
+}
+
+inline gravity_value_t gravity_value_from_null() {
+    return ((gravity_value_t){.isa = gravity_class_null, .n = 0});
+}
+
+inline gravity_value_t gravity_value_from_undefined() {
+    return ((gravity_value_t){.isa = gravity_class_null, .n = 1});
+}
+
+inline gravity_value_t gravity_value_from_bool(bool b) {
+    return ((gravity_value_t){.isa = gravity_class_bool, .n = (b)});
+}

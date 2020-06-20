@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_MACROS__
 #define __GRAVITY_MACROS__
 
+#include "gravity_config.h"
+
 #define AUTOLENGTH                          UINT32_MAX
 
 // MARK: -
@@ -36,6 +38,20 @@
 #define VALUE_AS_BOOL(x)                    ((x).n)
 
 // MARK: -
+#if GRAVITY_USE_HIDDEN_INITIALIZERS
+#define VALUE_FROM_ERROR(msg)               (gravity_value_from_error(msg))
+#define VALUE_NOT_VALID                     VALUE_FROM_ERROR(NULL)
+#define VALUE_FROM_OBJECT(obj)              (gravity_value_from_object(obj))
+#define VALUE_FROM_STRING(_vm,_s,_len)      (gravity_string_to_value(_vm, _s, _len))
+#define VALUE_FROM_CSTRING(_vm,_s)          (gravity_string_to_value(_vm, _s, AUTOLENGTH))
+#define VALUE_FROM_INT(x)                   (gravity_value_from_int(x))
+#define VALUE_FROM_FLOAT(x)                 (gravity_value_from_float(x))
+#define VALUE_FROM_NULL                     (gravity_value_from_null())
+#define VALUE_FROM_UNDEFINED                (gravity_value_from_undefined())
+#define VALUE_FROM_BOOL(x)                  (gravity_value_from_bool(x))
+#define VALUE_FROM_FALSE                    VALUE_FROM_BOOL(0)
+#define VALUE_FROM_TRUE                     VALUE_FROM_BOOL(1)
+#else
 #define VALUE_FROM_ERROR(msg)               ((gravity_value_t){.isa = NULL, .p = ((gravity_object_t *)msg)})
 #define VALUE_NOT_VALID                     VALUE_FROM_ERROR(NULL)
 #define VALUE_FROM_OBJECT(obj)              ((gravity_value_t){.isa = ((gravity_object_t *)(obj)->isa), .p = (gravity_object_t *)(obj)})
@@ -48,9 +64,12 @@
 #define VALUE_FROM_BOOL(x)                  ((gravity_value_t){.isa = gravity_class_bool, .n = (x)})
 #define VALUE_FROM_FALSE                    VALUE_FROM_BOOL(0)
 #define VALUE_FROM_TRUE                     VALUE_FROM_BOOL(1)
+#endif // GRAVITY_USE_HIDDEN_INITIALIZERS
+
 #define STATICVALUE_FROM_STRING(_v,_s,_l)   gravity_string_t __temp = {.isa = gravity_class_string, .s = (char *)_s, .len = (uint32_t)_l, }; \
                                             __temp.hash = gravity_hash_compute_buffer(__temp.s, __temp.len); \
                                             gravity_value_t _v = {.isa = gravity_class_string, .p = (gravity_object_t *)&__temp };
+
 // MARK: -
 #define VALUE_ISA_FUNCTION(v)               (v.isa == gravity_class_function)
 #define VALUE_ISA_INSTANCE(v)               (v.isa == gravity_class_instance)
