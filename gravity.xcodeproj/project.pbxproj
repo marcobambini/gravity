@@ -101,6 +101,7 @@
 		A9BB72EC1F470832002FD2D6 /* gravity_opt_math.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_math.c; sourceTree = "<group>"; };
 		A9BB72ED1F470832002FD2D6 /* gravity_opt_math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_math.h; sourceTree = "<group>"; };
 		A9BB72EE1F470832002FD2D6 /* gravity_optionals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optionals.h; sourceTree = "<group>"; };
+		A9F236CB249C89BD00EB676F /* gravity_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_config.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -201,6 +202,7 @@
 			children = (
 				A9506D1F1E69AB1E009A0045 /* gravity_array.h */,
 				A9506D201E69AB1E009A0045 /* gravity_delegate.h */,
+				A9F236CB249C89BD00EB676F /* gravity_config.h */,
 				A9506D211E69AB1E009A0045 /* gravity_hash.c */,
 				A9506D221E69AB1E009A0045 /* gravity_hash.h */,
 				A9506D231E69AB1E009A0045 /* gravity_macros.h */,
