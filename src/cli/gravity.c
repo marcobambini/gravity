@@ -178,12 +178,6 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
     const char *target_file;
     while ((target_file = directory_read(dir, outbuffer))) {
         
-        #ifdef WIN32
-        char winbuffer[MAX_PATH];
-        WideCharToMultiByte (CP_UTF8, 0, (LPCWSTR)target_file, -1, winbuffer, sizeof(winbuffer), NULL, NULL );
-        target_file = (const char *)winbuffer;
-        #endif
-        
         // if file is a folder then start recursion
         const char *full_path = file_buildpath(target_file, folder_path);
         if (is_directory(full_path)) {
