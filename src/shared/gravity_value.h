@@ -498,7 +498,7 @@ GRAVITY_API void                gravity_instance_setivar (gravity_instance_t *in
 GRAVITY_API void                gravity_instance_setxdata (gravity_instance_t *i, void *xdata);
 GRAVITY_API void                gravity_instance_free (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API gravity_closure_t   *gravity_instance_lookup_event (gravity_instance_t *i, const char *name);
-GRAVITY_API gravity_value_t     gravity_instance_lookup_real_property (gravity_instance_t *i, gravity_value_t key);
+GRAVITY_API gravity_value_t     gravity_instance_lookup_property (gravity_vm *vm, gravity_instance_t *i, gravity_value_t key);
 GRAVITY_API void                gravity_instance_blacken (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API uint32_t            gravity_instance_size (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API void                gravity_instance_serialize (gravity_instance_t *i, json_t *json);

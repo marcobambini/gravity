@@ -1703,7 +1703,7 @@ gravity_closure_t *gravity_instance_lookup_event (gravity_instance_t *i, const c
     return NULL;
 }
 
-gravity_value_t gravity_instance_lookup_real_property (gravity_instance_t *i, gravity_value_t key) {
+gravity_value_t gravity_instance_lookup_property (gravity_vm *vm, gravity_instance_t *i, gravity_value_t key) {
     gravity_closure_t *closure = gravity_class_lookup_closure(i->objclass, key);
     if (!closure) return VALUE_NOT_VALID;
     
@@ -1711,8 +1711,11 @@ gravity_value_t gravity_instance_lookup_real_property (gravity_instance_t *i, gr
     gravity_function_t *func = closure->f;
     if (!func || func->tag != EXEC_TYPE_SPECIAL) return VALUE_NOT_VALID;
     
-    // check if it is not a computed property
-    if (func->special[0] || func->special[1]) return VALUE_NOT_VALID;
+    // check if it a computed property with a getter
+    if (FUNCTION_ISA_GETTER(func)) {
+        gravity_closure_t *getter = (gravity_closure_t *)func->special[EXEC_TYPE_SPECIAL_GETTER];
+        if (gravity_vm_runclosure(vm, getter, VALUE_FROM_NULL, NULL, 0)) return gravity_vm_result(vm);
+    }
     
     // now I am sure that it is a real property (non-computed)
     return i->ivars[func->index];
