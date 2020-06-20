@@ -2443,8 +2443,8 @@ inline gravity_value_t gravity_value_from_error(const char* msg) {
     return ((gravity_value_t){.isa = NULL, .p = ((gravity_object_t *)msg)});
 }
 
-inline gravity_value_t gravity_value_from_object(gravity_object_t *obj) {
-    return ((gravity_value_t){.isa = ((gravity_object_t *)(obj)->isa), .p = (gravity_object_t *)(obj)});
+inline gravity_value_t gravity_value_from_object(void *obj) {
+    return ((gravity_value_t){.isa = (((gravity_object_t *)(obj))->isa), .p = (gravity_object_t *)(obj)});
 }
 
 inline gravity_value_t gravity_value_from_int(gravity_int_t n) {

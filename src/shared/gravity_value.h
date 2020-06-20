@@ -520,7 +520,7 @@ GRAVITY_API void                gravity_value_blacken (gravity_vm *vm, gravity_v
 GRAVITY_API uint32_t            gravity_value_size (gravity_vm *vm, gravity_value_t v);
 
 GRAVITY_API gravity_value_t     gravity_value_from_error(const char* msg);
-GRAVITY_API gravity_value_t     gravity_value_from_object(gravity_object_t *obj);
+GRAVITY_API gravity_value_t     gravity_value_from_object(void *obj);
 GRAVITY_API gravity_value_t     gravity_value_from_int(gravity_int_t n);
 GRAVITY_API gravity_value_t     gravity_value_from_float(gravity_float_t f);
 GRAVITY_API gravity_value_t     gravity_value_from_null();
