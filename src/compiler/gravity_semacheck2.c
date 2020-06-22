@@ -610,8 +610,8 @@ static void visit_loop_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     PUSH_STATEMENT(type);
 
     // check pre-conditions
-    const char    *LOOP_NAME;
-    gnode_t        *cond = NULL;
+    const char *LOOP_NAME = NULL;
+    gnode_t *cond = NULL;
     if (type == TOK_KEY_WHILE) {LOOP_NAME = "WHILE"; cond = node->cond;}
     else if (type == TOK_KEY_REPEAT) {LOOP_NAME = "REPEAT"; cond = node->expr;}
     else if (type == TOK_KEY_FOR) {LOOP_NAME = "FOR"; cond = node->cond;}
