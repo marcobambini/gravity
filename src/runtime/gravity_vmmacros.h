@@ -143,11 +143,13 @@
 #else
 #define DISPATCH()                  DEBUG_STACK();INC_PC;inst = *ip++;goto *dispatchTable[op = (opcode_t)OPCODE_GET_OPCODE(inst)];
 #endif
+#define DISPATCH_INNER()            DISPATCH()
 #else
 #define DECLARE_DISPATCH_TABLE
-#define INTERPRET_LOOP              inst = *ip++;op = (opcode_t)OPCODE_GET_OPCODE(inst);UPDATE_STATS(op);switch (op)
+#define INTERPRET_LOOP              vm_loop: inst = *ip++;op = (opcode_t)OPCODE_GET_OPCODE(inst);UPDATE_STATS(op); switch (op)
 #define CASE_CODE(name)             case name
 #define DISPATCH()                  break
+#define DISPATCH_INNER()            goto vm_loop
 #endif
 
 #define INIT_PARAMS(n)              for (uint32_t i=n; i<func->nparams; ++i)            \
@@ -181,9 +183,9 @@
 #define COMPUTE_JUMP(value)                         (func->bytecode + (value))
 
 // FAST MATH MACROS
-#define FMATH_BIN_INT(_r1,_v2,_v3,_OP)              do {SETVALUE(_r1, VALUE_FROM_INT(_v2 _OP _v3)); DISPATCH();} while(0)
-#define FMATH_BIN_FLOAT(_r1,_v2,_v3,_OP)            do {SETVALUE(_r1, VALUE_FROM_FLOAT(_v2 _OP _v3)); DISPATCH();} while(0)
-#define FMATH_BIN_BOOL(_r1,_v2,_v3,_OP)             do {SETVALUE(_r1, VALUE_FROM_BOOL(_v2 _OP _v3)); DISPATCH();} while(0)
+#define FMATH_BIN_INT(_r1,_v2,_v3,_OP)              do {SETVALUE(_r1, VALUE_FROM_INT(_v2 _OP _v3)); DISPATCH_INNER();} while(0)
+#define FMATH_BIN_FLOAT(_r1,_v2,_v3,_OP)            do {SETVALUE(_r1, VALUE_FROM_FLOAT(_v2 _OP _v3)); DISPATCH_INNER();} while(0)
+#define FMATH_BIN_BOOL(_r1,_v2,_v3,_OP)             do {SETVALUE(_r1, VALUE_FROM_BOOL(_v2 _OP _v3)); DISPATCH_INNER();} while(0)
 
 #define DEFINE_STACK_VARIABLE(_v,_r)                register gravity_value_t _v = STACK_GET(_r)
 #define DEFINE_INDEX_VARIABLE(_v,_r)                register gravity_value_t _v = (_r < MAX_REGISTERS) ? STACK_GET(_r) : VALUE_FROM_INT(_r-MAX_REGISTERS)
