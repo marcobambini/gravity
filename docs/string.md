@@ -52,3 +52,10 @@ Strings are an immutable sequence of characters. String literals can be surround
 	var str = "momo"
 	str.replace("o", "i") // returns mimi
 ```
+
+Strings can contain inline expressions with backslash and parentheses.
+```swift
+	var amount = 7
+	var fruit = "apples"
+	var n = "You have \(amount) \(fruit)!"  // n is now "You have 7 apples!"
+```
