@@ -1,6 +1,6 @@
 ### String
 
-Strings are an immutable sequence of characters. String literals can be surrounded with double or single quotes.
+Strings are an immutable sequence of characters. String literals can be surrounded with double or single quotes. Gravity supports UTF-8 strings and characters.
 ```swift
 	var a = "Hello World";  // double quotes
 	var b = 'Hello World';  // single quotes
