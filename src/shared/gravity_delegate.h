@@ -40,7 +40,7 @@ typedef void                (*gravity_type_callback) (void *token, const char *t
 typedef const char*         (*gravity_precode_callback) (void *xdata);
 typedef const char*			(*gravity_loadfile_callback) (const char *file, size_t *size, uint32_t *fileid, void *xdata, bool *is_static);
 typedef const char*         (*gravity_filename_callback) (uint32_t fileid, void *xdata);
-typedef const char**        (*gravity_optclass_callback) (void);
+typedef const char**        (*gravity_optclass_callback) (void *xdata);
 
 typedef bool                (*gravity_bridge_initinstance) (gravity_vm *vm, void *xdata, gravity_value_t ctx, gravity_instance_t *instance, gravity_value_t args[], int16_t nargs);
 typedef bool                (*gravity_bridge_setvalue) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, gravity_value_t value);
