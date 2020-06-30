@@ -39,7 +39,7 @@ typedef enum {
 
 // LEXER macros
 #define NEXT                    lexer->buffer[lexer->offset++]; ++lexer->position; INC_COL
-#define PEEK_CURRENT            lexer->buffer[lexer->offset]
+#define PEEK_CURRENT            ((int)lexer->buffer[lexer->offset])
 #define PEEK_NEXT               ((lexer->offset < lexer->length) ? lexer->buffer[lexer->offset+1] : 0)
 #define PEEK_NEXT2              ((lexer->offset+1 < lexer->length) ? lexer->buffer[lexer->offset+2] : 0)
 #define INC_LINE                ++lexer->lineno; RESET_COL
@@ -83,20 +83,20 @@ static inline bool is_newline (gravity_lexer_t *lexer, int c) {
 
     // CR+LF or CR
     if (c == 0x0D) {
-        if (PEEK_NEXT == 0x0A) {NEXT; return true;}
+        if (PEEK_CURRENT == 0x0A) {NEXT;}
         return true;
     }
 
     // UTF-8 cases https://en.wikipedia.org/wiki/Newline#Unicode
 
     // NEL: Next Line, U+0085 (UTF-8 in hex: C285)
-    if ((c == 0xC2) && (PEEK_NEXT == 0x85)) {
+    if ((c == 0xC2) && (PEEK_CURRENT == 0x85)) {
         NEXT;
         return true;
     }
 
     // LS: Line Separator, U+2028 (UTF-8 in hex: E280A8)
-    if ((c == 0xE2) && (PEEK_NEXT == 0x80) && (PEEK_NEXT2 == 0xA8)) {
+    if ((c == 0xE2) && (PEEK_CURRENT == 0x80) && (PEEK_NEXT == 0xA8)) {
         NEXT; NEXT;
         return true;
     }
