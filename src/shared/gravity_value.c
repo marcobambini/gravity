@@ -2455,11 +2455,11 @@ inline gravity_value_t gravity_value_from_float(gravity_float_t f) {
     return ((gravity_value_t){.isa = gravity_class_float, .f = (f)});
 }
 
-inline gravity_value_t gravity_value_from_null() {
+inline gravity_value_t gravity_value_from_null(void) {
     return ((gravity_value_t){.isa = gravity_class_null, .n = 0});
 }
 
-inline gravity_value_t gravity_value_from_undefined() {
+inline gravity_value_t gravity_value_from_undefined(void) {
     return ((gravity_value_t){.isa = gravity_class_null, .n = 1});
 }
 
