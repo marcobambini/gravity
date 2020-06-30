@@ -2547,7 +2547,7 @@ static void parser_register_optional_classes (gravity_parser_t *parser) {
 
     // check if optional classes callback is registered (runtime optional classes)
     if (parser->delegate && parser->delegate->optional_classes) {
-        list = parser->delegate->optional_classes();
+        list = parser->delegate->optional_classes(parser->delegate->xdata);
         i = 0;
         while (list[i]) {
             const char *identifier = list[i];
