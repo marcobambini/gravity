@@ -74,6 +74,8 @@ endif()
 add_library(gravityapi SHARED ${SRC_FILES})
 add_library(gravityapi_s STATIC ${SRC_FILES})
 
+target_compile_definitions(gravityapi PUBLIC BUILD_GRAVITY_API)
+
 # ----------------------------------------------------------------
 set(GRAVITY_TARGETS gravityapi gravityapi_s)
 
@@ -85,6 +87,7 @@ foreach(target ${GRAVITY_TARGETS})
     target_include_directories(${target} PUBLIC ${GRAVITY_INCLUDE_DIR})
 
 endforeach()
+
 
 # ----------------------------------------------------------------
 
