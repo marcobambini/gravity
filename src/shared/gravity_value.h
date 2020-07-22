@@ -90,9 +90,9 @@ extern "C" {
 #define GRAVITY_MAP_DOTSUGAR                1           // if 1 then map objects can be accessed with both map[key] and map.key
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #undef GRAVITY_COMPUTED_GOTO
-#define GRAVITY_COMPUTED_GOTO               0           // MSVC does not support it
+#define GRAVITY_COMPUTED_GOTO               0           // MSVC does not support computed goto (supported if using clang on Windows)
 #endif
 
 #define MAIN_FUNCTION                       "main"
