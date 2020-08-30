@@ -294,6 +294,7 @@ typedef struct gravity_closure_s {
     gravity_class_t         *isa;           // to be an object
     gravity_gc_t            gc;             // to be collectable by the garbage collector
 
+    gravity_vm              *vm;            // vm bound to this closure (useful when executed from a bridge)
     gravity_function_t      *f;             // function prototype
     gravity_object_t        *context;       // context where the closure has been created (or object bound by the user)
     gravity_upvalue_t       **upvalue;      // upvalue array
