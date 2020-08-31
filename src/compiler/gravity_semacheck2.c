@@ -49,21 +49,24 @@ typedef struct semacheck_t semacheck_t;
 // MARK: -
 
 static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *node, const char *format, ...) {
-    // increment internal error counter
-    if (error_type != GRAVITY_WARNING) ++self->nerr;
+    semacheck_t *current = (semacheck_t *)self->data;
     
     // check last error line in order to prevent to emit multiple errors for the same row
-    semacheck_t *current = (semacheck_t *)self->data;
+    // increment internal error counter (and save last reported line) only if it was a real error
+    if (error_type != GRAVITY_WARNING) {
+        ++self->nerr;
+        current->lasterror = (node) ? node->token.lineno : 0;
+    }
+    
     if (!node || node->token.lineno == current->lasterror) return;
-    current->lasterror = node->token.lineno;
 
     // get error callback (if any)
     void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
     gravity_error_callback error_fn = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->error_callback : NULL;
 
     // build error message
-    char        buffer[1024];
-    va_list        arg;
+    char buffer[1024];
+    va_list arg;
     if (format) {
         va_start (arg, format);
         vsnprintf(buffer, sizeof(buffer), format, arg);

@@ -62,13 +62,14 @@ typedef struct codegen_t codegen_t;
 
 // MARK: -
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
-    // increment internal error counter
-    ++self->nerr;
-    
-    // check last error line in order to prevent to emit multiple errors for the same row
     codegen_t *current = (codegen_t *)self->data;
+    
+     // check last error line in order to prevent to emit multiple errors for the same row
+    // increment internal error counter and save location of the last reported error (no WARNING cases here)
+    ++self->nerr;
+    current->lasterror = (node) ? node->token.lineno : 0;
+    
     if (!node || node->token.lineno == current->lasterror) return;
-    current->lasterror = node->token.lineno;
 
     // get error callback (if any)
     void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;

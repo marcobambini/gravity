@@ -155,18 +155,20 @@ static void patch_token_node (gnode_t *node, gtoken_s token) {
 static void report_error (gravity_parser_t *parser, error_type_t error_type, gtoken_s token, const char *format, ...) {
     // just one error for each line
     if (parser->last_error_lineno == token.lineno) return;
-    parser->last_error_lineno = token.lineno;
 
-    // increment internal error counter
-    if (error_type != GRAVITY_WARNING) ++parser->nerrors;
+    // increment internal error counter (and save last reported line) only if it was a real error
+    if (error_type != GRAVITY_WARNING) {
+        parser->last_error_lineno = token.lineno;
+        ++parser->nerrors;
+    }
 
     // get error callback (if any)
     void *data = (parser->delegate) ? parser->delegate->xdata : NULL;
     gravity_error_callback error_fn = (parser->delegate) ? ((gravity_delegate_t *)parser->delegate)->error_callback : NULL;
 
     // build error message
-    char        buffer[1024];
-    va_list        arg;
+    char buffer[1024];
+    va_list arg;
     if (format) {
         va_start (arg, format);
         vsnprintf(buffer, sizeof(buffer), format, arg);
@@ -816,7 +818,7 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
                     uint32_t sublen = i - j;
 
                     // create a new temp lexer
-                    gravity_lexer_t    *sublexer = gravity_lexer_create(&s[j], sublen, 0, true);
+                    gravity_lexer_t *sublexer = gravity_lexer_create(&s[j], sublen, 0, true);
                     marray_push(gravity_lexer_t*, *parser->lexer, sublexer);
 
                     // parse interpolated expression
@@ -1249,9 +1251,9 @@ static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
         const char *identifier = parse_identifier(parser);
         if (!identifier) goto parse_error;
 
-        bool        is_getter = false;
-        gtoken_s    token = gravity_lexer_token(lexer);
-        gnode_r     *params = NULL;
+        bool is_getter = false;
+        gtoken_s token = gravity_lexer_token(lexer);
+        gnode_r *params = NULL;
 
         // getter case: does not have explicit parameters (only implicit self)
         if (strcmp(identifier, GETTER_FUNCTION_NAME) == 0) {
@@ -1311,14 +1313,14 @@ static gnode_t *parse_variable_declaration (gravity_parser_t *parser, bool issta
     DEBUG_PARSER("parse_variable_declaration");
     DECLARE_LEXER;
 
-    gnode_r        *decls = NULL;
-    gnode_t        *decl = NULL;
-    gnode_t        *expr = NULL;
-    const char    *identifier = NULL;
-    const char    *type_annotation = NULL;
-    gtoken_t    type;
-    gtoken_t    peek;
-    gtoken_s    token, token2;
+    gnode_r *decls = NULL;
+    gnode_t *decl = NULL;
+    gnode_t *expr = NULL;
+    const char *identifier = NULL;
+    const char *type_annotation = NULL;
+    gtoken_t type;
+    gtoken_t peek;
+    gtoken_s token, token2;
 
     // access_specifier? storage_specifier? variable_declaration ';'
     // variable_declaration: variable_declarator decl_item
@@ -1432,9 +1434,9 @@ static gnode_t *parse_enum_declaration (gravity_parser_t *parser, gtoken_t acces
     DEBUG_PARSER("parse_enum_declaration %s", identifier);
 
     // check and consume TOK_OP_OPEN_CURLYBRACE
-    parse_required(parser, TOK_OP_OPEN_CURLYBRACE);
+    if (parse_required(parser, TOK_OP_OPEN_CURLYBRACE) == false) return NULL;
 
-    symboltable_t   *symtable = symboltable_create(SYMTABLE_TAG_ENUM);  // enum symbol table (symtable is OK because order is not important inside an enum)
+    symboltable_t *symtable = symboltable_create(SYMTABLE_TAG_ENUM);  // enum symbol table (symtable is OK because order is not important inside an enum)
     int64_t     enum_autoint = 0;           // autoincrement value (in case of INT enum)
     uint32_t    enum_counter = 0;           // enum internal counter (first value (if any) determines enum type)
     gliteral_t  enum_type = LITERAL_INT;    // enum type (default to int)
@@ -1892,7 +1894,7 @@ static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
     DEBUG_PARSER("parse_unittest_macro");
     DECLARE_LEXER;
 
-    // @unittest {
+    // #unittest {
     //        name: "Unit test name";
     //        note: "Some notes here";
     //        error: NONE, SYNTAX, RUNTIME, WARNING;
@@ -1900,17 +1902,25 @@ static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
     //        error_col: number;
     //        result: LITERAL;
     // '}' ';'?
+    
+    // sanity check: unittest macro must be root of the document
+    // 1. parse_statement
+    // 2. parse_macro_statement
+    if (marray_size(*parser->statements) != 2) {
+        REPORT_ERROR(gravity_lexer_token(lexer), "#unittest macro cannot be embedded in a statement (it must be the root of the document).");
+        return NULL;
+    }
 
-    gnode_literal_expr_t    *name_node = NULL;
-    gnode_literal_expr_t    *note_node = NULL;
-    gnode_identifier_expr_t    *err_node = NULL;
-    gnode_literal_expr_t    *row_node = NULL;
-    gnode_literal_expr_t    *col_node = NULL;
-    gnode_literal_expr_t    *value_node = NULL;
+    gnode_literal_expr_t *name_node = NULL;
+    gnode_literal_expr_t *note_node = NULL;
+    gnode_identifier_expr_t *err_node = NULL;
+    gnode_literal_expr_t *row_node = NULL;
+    gnode_literal_expr_t *col_node = NULL;
+    gnode_literal_expr_t *value_node = NULL;
 
     parse_required(parser, TOK_OP_OPEN_CURLYBRACE);
     while (gravity_lexer_peek(lexer) != TOK_OP_CLOSED_CURLYBRACE) {
-        const char    *id = parse_identifier(parser);
+        const char *id = parse_identifier(parser);
         if (id == NULL) goto handle_error;
         parse_required(parser, TOK_OP_COLON);
 
@@ -1961,7 +1971,7 @@ static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
             }
         }
         else {
-            REPORT_ERROR(gravity_lexer_token(lexer), "Unknown token found in @unittest declaration.");
+            REPORT_ERROR(gravity_lexer_token(lexer), "Unknown token found in #unittest declaration.");
             goto handle_error;
         }
 
@@ -1974,14 +1984,14 @@ static gnode_t *parse_unittest_macro (gravity_parser_t *parser) {
 
     // decode unit array and report error/unittest
     // unit test name max length is 1024
-    const char            *description = NULL;
-    const char            *note = NULL;
-    char                buffer[1024];
-    char                buffer2[1024];
-    error_type_t        expected_error = GRAVITY_ERROR_NONE;
-    gravity_value_t        expected_value = VALUE_FROM_NULL;
-    int32_t                expected_nrow = -1;
-    int32_t                expected_ncol = -1;
+    const char *description = NULL;
+    const char *note = NULL;
+    char buffer[1024];
+    char buffer2[1024];
+    error_type_t expected_error = GRAVITY_ERROR_NONE;
+    gravity_value_t expected_value = VALUE_FROM_NULL;
+    int32_t expected_nrow = -1;
+    int32_t expected_ncol = -1;
 
     // unittest name should be a literal string
     if ((name_node) && (name_node->type == LITERAL_STRING)) {
@@ -2062,10 +2072,10 @@ static gnode_t *parse_include_macro (gravity_parser_t *parser) {
 
     // process filename (can be an identifier or a literal string)
     // only literals are supported in this version
-    gtoken_t        type;
-    gtoken_s        token;
-    const char        *module_name;
-    gravity_lexer_t    *newlexer;
+    gtoken_t type;
+    gtoken_s token;
+    const char *module_name;
+    gravity_lexer_t *newlexer;
 
 loop:
     newlexer = NULL;
@@ -2281,7 +2291,7 @@ static gnode_t *parse_jump_statement (gravity_parser_t *parser) {
     gtoken_s token = gravity_lexer_token(lexer);
     assert((type == TOK_KEY_BREAK) || (type == TOK_KEY_CONTINUE) || (type == TOK_KEY_RETURN));
 
-    gnode_t    *expr = NULL;
+    gnode_t *expr = NULL;
     if ((type == TOK_KEY_RETURN) && (gravity_lexer_peek(lexer) != TOK_OP_SEMICOLON) && (gravity_lexer_peek(lexer) != TOK_OP_CLOSED_CURLYBRACE)) {
         expr = parse_expression(parser);
     }
@@ -2307,8 +2317,8 @@ static gnode_t *parse_compound_statement (gravity_parser_t *parser) {
             return NULL;
         }
         gnode_t *node = parse_statement(parser);
-        --parser->depth;
         if (node) gnode_array_push(stmts, node);
+        --parser->depth;
     }
 
     // check and consume TOK_OP_CLOSED_CURLYBRACE

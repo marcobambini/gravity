@@ -41,8 +41,8 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
     gravity_error_callback error_fn = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->error_callback : NULL;
 
     // build error message
-    char        buffer[1024];
-    va_list        arg;
+    char buffer[1024];
+    va_list arg;
     if (format) {
         va_start (arg, format);
         vsnprintf(buffer, sizeof(buffer), format, arg);
