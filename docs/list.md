@@ -82,7 +82,7 @@ The List class implements the filter method as a convenient way to create a new 
 ```swift
   var numbers = [1,2,3,4,5,6,7,8,9,10]
 
-  var even = numbers.map(func(num) {
+  var even = numbers.filter(func(num) {
     return !(num % 2)
   })
   // even is now equal to [2,4,6,8,10]
