@@ -191,6 +191,7 @@ gravity_class_t *gravity_class_new_single (gravity_vm *vm, const char *identifie
     c->htable = gravity_hash_create(0, gravity_value_hash, gravity_value_equals, gravity_hash_keyfree, NULL);
     if (nivar) {
         c->ivars = (gravity_value_t *)mem_alloc(NULL, nivar * sizeof(gravity_value_t));
+        assert(c->ivars);
         for (uint32_t i=0; i<nivar; ++i) c->ivars[i] = VALUE_FROM_NULL;
     }
 
@@ -685,6 +686,7 @@ static void gravity_function_bytecode_serialize (gravity_function_t *f, json_t *
     uint32_t ninst = f->ninsts;
     uint32_t length = ninst * 2 * sizeof(uint32_t);
     uint8_t *hexchar = (uint8_t*) mem_alloc(NULL, sizeof(uint8_t) * length);
+    assert(hexchar);
 
     for (uint32_t k=0, i=0; i < ninst; ++i) {
         uint32_t value = f->bytecode[i];
@@ -1337,11 +1339,13 @@ gravity_fiber_t *gravity_fiber_new (gravity_vm *vm, gravity_closure_t *closure, 
 
     if (nstack < DEFAULT_MINSTACK_SIZE) nstack = DEFAULT_MINSTACK_SIZE;
     fiber->stack = (gravity_value_t *)mem_alloc(NULL, sizeof(gravity_value_t) * nstack);
+    assert(fiber->stack);
     fiber->stacktop = fiber->stack;
     fiber->stackalloc = nstack;
 
     if (nframes < DEFAULT_MINCFRAME_SIZE) nframes = DEFAULT_MINCFRAME_SIZE;
     fiber->frames = (gravity_callframe_t *)mem_alloc(NULL, sizeof(gravity_callframe_t) * nframes);
+    assert(fiber->frames);
     fiber->framesalloc = nframes;
     fiber->nframes = 1;
 
@@ -2384,6 +2388,7 @@ inline gravity_value_t gravity_string_to_value (gravity_vm *vm, const char *s, u
 
     uint32_t alloc = MAXNUM(len+1, DEFAULT_MINSTRING_SIZE);
     char *ptr = mem_alloc(NULL, alloc);
+    assert(ptr);
     memcpy(ptr, s, len);
 
     obj->isa = gravity_class_string;

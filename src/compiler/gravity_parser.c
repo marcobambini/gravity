@@ -738,6 +738,7 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
 
     // analyze s (of length len) for escaped characters or for interpolations
     char *buffer = mem_alloc(NULL, len+1);
+    if (buffer==NULL) {REPORT_ERROR(token,"Unable to alloc memory for size: 0x%x",len+1); goto return_string}
     uint32_t length = 0;
 
     for (uint32_t i=0; i<len;) {
@@ -840,6 +841,7 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
                     if (!subnode) goto return_string;
 
                     buffer = mem_alloc(NULL, len+1);
+                    if (buffer==NULL) {REPORT_ERROR(token,"Unable to alloc memory for size: 0x%x",len+1); goto return_string}
                     length = 0;
 
                     continue;

@@ -45,6 +45,7 @@ static bool JSON_stringify (gravity_vm *vm, gravity_value_t *args, uint16_t narg
             RETURN_VALUE(VALUE_FROM_STRING(vm, vbuffer2, (uint32_t)vlen), rindex);
         } else {
             char *vbuffer2 = mem_alloc(NULL, vlen + nchars);
+            assert(vbuffer2);
             vlen = snprintf(vbuffer2, vlen + nchars, "\"%s\"", v);
             RETURN_VALUE(VALUE_FROM_OBJECT(gravity_string_new(vm, vbuffer2, (uint32_t)vlen, 0)), rindex);
         }

@@ -73,7 +73,7 @@ static void finalize_function (gravity_function_t *f, bool add_debug) {
     // +1 is just a trick so the VM switch loop terminates with an implicit RET0 instruction (RET0 has opcode 0)
     f->ninsts = ninst;
     bytecode = (uint32_t *)mem_alloc(NULL, (ninst+1) * sizeof(uint32_t));
-    if (add_debug) lineno = (uint32_t *)mem_alloc(NULL, (ninst+1) * sizeof(uint32_t));
+    if (add_debug) {lineno = (uint32_t *)mem_alloc(NULL, (ninst+1) * sizeof(uint32_t)); assert(lineno);}
     assert(bytecode);
 
     uint32_t j=0;
