@@ -125,7 +125,7 @@ uint64_t file_size (const char *path) {
     return (uint64_t)(((__int64)fileInfo.nFileSizeHigh) << 32 ) + fileInfo.nFileSizeLow;
     #else
     struct stat sb;
-    if (stat(path, &sb) > 0) return -1;
+    if (stat(path, &sb) < 0) return -1;
     return (uint64_t)sb.st_size;
     #endif
 }
