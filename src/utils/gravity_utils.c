@@ -496,37 +496,37 @@ uint32_t utf8_encode(char *buffer, uint32_t value) {
     
     if (value <= 0x7f) {
         // single byte (i.e. fits in ASCII).
-        *bytes = value & 0x7f;
+        *bytes = (char)(value & 0x7f);
         return 1;
     }
     
     if (value <= 0x7ff) {
         // two byte sequence: 110xxxxx 10xxxxxx.
-        *bytes = 0xc0 | ((value & 0x7c0) >> 6);
+        *bytes = (char)(0xc0 | ((value & 0x7c0) >> 6));
         ++bytes;
-        *bytes = 0x80 | (value & 0x3f);
+        *bytes = (char)(0x80 | (value & 0x3f));
         return 2;
     }
     
     if (value <= 0xffff) {
         // three byte sequence: 1110xxxx 10xxxxxx 10xxxxxx.
-        *bytes = 0xe0 | ((value & 0xf000) >> 12);
+        *bytes = (char)(0xe0 | ((value & 0xf000) >> 12));
         ++bytes;
-        *bytes = 0x80 | ((value & 0xfc0) >> 6);
+        *bytes = (char)(0x80 | ((value & 0xfc0) >> 6));
         ++bytes;
-        *bytes = 0x80 | (value & 0x3f);
+        *bytes = (char)(0x80 | (value & 0x3f));
         return 3;
     }
     
     if (value <= 0x10ffff) {
         // four byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx.
-        *bytes = 0xf0 | ((value & 0x1c0000) >> 18);
+        *bytes = (char)(0xf0 | ((value & 0x1c0000) >> 18));
         ++bytes;
-        *bytes = 0x80 | ((value & 0x3f000) >> 12);
+        *bytes = (char)(0x80 | ((value & 0x3f000) >> 12));
         ++bytes;
-        *bytes = 0x80 | ((value & 0xfc0) >> 6);
+        *bytes = (char)(0x80 | ((value & 0xfc0) >> 6));
         ++bytes;
-        *bytes = 0x80 | (value & 0x3f);
+        *bytes = (char)(0x80 | (value & 0x3f));
         return 4;
     }
     
