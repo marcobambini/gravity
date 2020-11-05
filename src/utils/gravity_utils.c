@@ -469,7 +469,7 @@ end_repl_str:
  */
 
 inline uint32_t utf8_charbytes (const char *s, uint32_t i) {
-    unsigned char c = s[i];
+    unsigned char c = (unsigned char)s[i];
     
     // determine bytes needed for character, based on RFC 3629
     if ((c > 0) && (c <= 127)) return 1;
