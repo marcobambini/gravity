@@ -64,20 +64,20 @@ typedef struct codegen_t codegen_t;
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
     codegen_t *current = (codegen_t *)self->data;
     
-     // check last error line in order to prevent to emit multiple errors for the same row
+    // check last error line in order to prevent to emit multiple errors for the same row
+    if (node && node->token.lineno == current->lasterror) return;
+    
     // increment internal error counter and save location of the last reported error (no WARNING cases here)
     ++self->nerr;
     current->lasterror = (node) ? node->token.lineno : 0;
-    
-    if (!node || node->token.lineno == current->lasterror) return;
 
     // get error callback (if any)
     void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
     gravity_error_callback error_fn = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->error_callback : NULL;
 
     // build error message
-    char        buffer[1024];
-    va_list        arg;
+    char buffer[1024];
+    va_list arg;
     if (format) {
         va_start (arg, format);
         vsnprintf(buffer, sizeof(buffer), format, arg);

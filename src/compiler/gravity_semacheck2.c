@@ -52,13 +52,13 @@ static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *no
     semacheck_t *current = (semacheck_t *)self->data;
     
     // check last error line in order to prevent to emit multiple errors for the same row
+    if (node && node->token.lineno == current->lasterror) return;
+    
     // increment internal error counter (and save last reported line) only if it was a real error
     if (error_type != GRAVITY_WARNING) {
         ++self->nerr;
         current->lasterror = (node) ? node->token.lineno : 0;
     }
-    
-    if (!node || node->token.lineno == current->lasterror) return;
 
     // get error callback (if any)
     void *data = (self->delegate) ? ((gravity_delegate_t *)self->delegate)->xdata : NULL;
@@ -75,10 +75,10 @@ static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *no
 
     // setup error struct
     error_desc_t error_desc = {
-        .lineno = node->token.lineno,
-        .colno = node->token.colno,
-        .fileid = node->token.fileid,
-        .offset = node->token.position
+        .lineno = (node) ? node->token.lineno : 0,
+        .colno = (node) ? node->token.colno : 0,
+        .fileid = (node) ? node->token.fileid : 0,
+        .offset = (node) ? node->token.position : 0
     };
 
     // finally call error callback

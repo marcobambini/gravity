@@ -30,6 +30,8 @@ static int ident =0;
 // MARK: -
 
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
+    // TODO: add lasterror here like in semacheck2
+    
     // increment internal error counter
     ++self->nerr;
 
