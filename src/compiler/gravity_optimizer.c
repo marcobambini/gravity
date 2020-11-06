@@ -274,9 +274,9 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
     // two numeric types are supported here, int64 or double
     // if types are equals then set the first one
     // if types are not equals then set to double
-    optag_t    type;
-    double    d = 0.0, d1 = 0.0, d2 = 0.0;
-    int64_t    n = 0, n1 = 0, n2 = 0;
+    optag_t type;
+    double  d = 0.0, d1 = 0.0, d2 = 0.0;
+    int64_t n = 0, n1 = 0, n2 = 0;
 
     // compute types
     if (inst1->tag == inst2->tag) type = inst1->tag;
@@ -359,14 +359,12 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
 static bool optimize_neg_instruction (ircode_t *code, inst_t *inst, uint32_t i) {
     inst_t *inst1 = NULL;
     pop1_instruction(code, i, &inst1);
-    if (inst1 == NULL) return false;
-    if (inst1->op != LOADI) return false;
-    if (inst1->p1 != inst->p2) return false;
+    if ((inst1 == NULL) || (inst1->op != LOADI) || (inst1->p1 != inst->p2)) return false;
     if (!ircode_register_istemp(code, inst1->p1)) return false;
 
     if (inst1->tag == INT_TAG) {
-        uint64_t n = inst1->n;
-        if (n>131072) return false;
+        int64_t n = inst1->n;
+        if (n > 131072) return false;
         inst1->p1 = inst->p2;
         inst1->n = -(int64_t)n;
     } else if (inst1->tag == DOUBLE_TAG) {
@@ -383,7 +381,7 @@ static bool optimize_neg_instruction (ircode_t *code, inst_t *inst, uint32_t i) 
 
 static bool optimize_math_instruction (ircode_t *code, inst_t *inst, uint32_t i) {
     uint8_t count = opcode_numop(inst->op) - 1;
-    inst_t *inst1 = NULL, *inst2 = NULL;
+    inst_t  *inst1 = NULL, *inst2 = NULL;
     bool    flag = false;
 
     if (count == 2) {
