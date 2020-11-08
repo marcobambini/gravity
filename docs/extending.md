@@ -1,53 +1,88 @@
-## API
+## Extending Gravity
 
-Gravity can be extended at runtime using C API. The right step to proceed is usually to create a new class, then add methods and properties to it and finally register that class inside the VM.
+Gravity can be extended at runtime using the C API (please read the Embedding section before proceeding).
+
+Three steps are required:
+1. Create a new class
+2. Add methods and properties to the class
+3. Register this class inside the VM
+
+In this simple example we'll create a "Foo" class with a "bar" method in C and then we'll execute it from Gravity.
 ```c
-	// report error callback function
-	void report_error (error_type_t error_type, const char *message,
-	                   error_desc_t error_desc, void *xdata) {
-		printf("%s\n", message);
-		exit(0);
-	}
+#include "gravity_compiler.h"
+#include "gravity_macros.h"
+#include "gravity_core.h"
+#include "gravity_vm.h"
+#include "gravity_vmmacros.h"
 
-	// function to be executed inside Gravity VM
-	bool my_function (gravity_vm *vm, gravity_value_t *args,
-	                  uint16_t nargs, uint32_t rindex) {
-		// do something useful here
-	}
+const char *source_code = " \
+extern var Foo; \
+func main () {   \
+    var c = Foo();  \
+    return c.sum(30, 40);   \
+}   \
+";
 
-	// Configure VM delegate
-	gravity_delegate_t delegate = {.error_callback = report_error};
+static bool sum (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // SKIPPED: check nargs (must be 3 because arg[0] is self)
+    gravity_value_t v1 = GET_VALUE(1);
+    gravity_value_t v2 = GET_VALUE(2);
+    
+    // SKIPPED: check that both v1 and v2 are int numbers
+    RETURN_VALUE(VALUE_FROM_INT(v1.n + v2.n), rindex);
+}
 
-	// Create a new VM
-	gravity_vm *vm = gravity_vm_new(&delegate);
+void setup_foo (gravity_vm *vm) {
+    // create a new Foo class
+    gravity_class_t *c = gravity_class_new_pair (vm, "Foo", NULL, 0, 0);
+    
+    // allocate and bind bar closure to the newly created class
+    gravity_class_bind(c, "sum", NEW_CLOSURE_VALUE(sum));
+    
+    // register class c inside VM
+    gravity_vm_setvalue(vm, "Foo", VALUE_FROM_OBJECT(c));
+}
 
-	// Create a new class
-	gravity_class_t *c = gravity_class_new_pair (vm, "MyClass", NULL, 0, 0);
+int main (void) {
+    // setup a delegate struct
+    gravity_delegate_t delegate = {.error_callback = report_error};
+    
+    // allocate a new compiler
+    gravity_compiler_t *compiler = gravity_compiler_create(&delegate);
+    
+    // compile Gravity source code into bytecode
+    gravity_closure_t *closure = gravity_compiler_run(compiler, source_code, strlen(source_code), 0, true, true);
+    
+    // allocate a new Gravity VM
+    gravity_vm *vm = gravity_vm_new(&delegate);
+    
+    // transfer memory from the compiler (front-end) to the VM (back-end)
+    gravity_compiler_transfer(compiler, vm);
+    
+    // once memory has been trasferred, you can get rid of the front-end
+    gravity_compiler_free(compiler);
+    
+    // register my Foo class inside Gravity VM
+    setup_foo(vm);
+    
+    // execute main closure
+    if (gravity_vm_runmain(vm, closure)) {
+        // retrieve returned result
+        gravity_value_t result = gravity_vm_result(vm);
+    
+        // dump result to a C string and print it to stdout
+        char buffer[512];
+        gravity_value_dump(vm, result, buffer, sizeof(buffer));
+        printf("RESULT: %s\n", buffer);
+    }
+    
+    // free VM and core libraries (implicitly allocated by the VM)
+    gravity_vm_free(vm);
+    gravity_core_free();
+    
+    return 0;
+}
 
-	// Allocate and bind closures to the newly created class
-	gravity_closure_t *closure = gravity_closure_new(vm, my_function);
-	gravity_class_bind(c, "myfunc", VALUE_FROM_OBJECT(closure));
+For more examples see the file gravity_core.c in the src/runtime/ directory. Most of the Gravity classes are built using these same APIs.
 
-	// Register class inside VM
-	gravity_vm_setvalue(vm, "MyClass", VALUE_FROM_OBJECT(c));
 ```
-
-Using the above C code a "MyClass" class has been registered inside the VM and ready to be used by Gravity:
-```swift
-	func main() {
-		// allocate a new class
-		var foo = MyClass();
-
-		// execute the myfunc C function
-		foo.myfunc();
-	}
-```
-
-### Execute Gravity code from C
-```c
-```
-
-### Bridge API
-Gravity C API offers much more flexibility using the delegate bridge API.
-TO DO: more information here.
-TO DO: post objc bridge.
