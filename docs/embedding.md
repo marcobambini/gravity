@@ -1,53 +1,80 @@
-## API
+## Embedding
 
-Gravity can be extended at runtime using C API. The right step to proceed is usually to create a new class, then add methods and properties to it and finally register that class inside the VM.
-```c
-	// report error callback function
-	void report_error (error_type_t error_type, const char *message,
-	                   error_desc_t error_desc, void *xdata) {
-		printf("%s\n", message);
-		exit(0);
-	}
-
-	// function to be executed inside Gravity VM
-	bool my_function (gravity_vm *vm, gravity_value_t *args,
-	                  uint16_t nargs, uint32_t rindex) {
-		// do something useful here
-	}
-
-	// Configure VM delegate
-	gravity_delegate_t delegate = {.error_callback = report_error};
-
-	// Create a new VM
-	gravity_vm *vm = gravity_vm_new(&delegate);
-
-	// Create a new class
-	gravity_class_t *c = gravity_class_new_pair (vm, "MyClass", NULL, 0, 0);
-
-	// Allocate and bind closures to the newly created class
-	gravity_closure_t *closure = gravity_closure_new(vm, my_function);
-	gravity_class_bind(c, "myfunc", VALUE_FROM_OBJECT(closure));
-
-	// Register class inside VM
-	gravity_vm_setvalue(vm, "MyClass", VALUE_FROM_OBJECT(c));
-```
-
-Using the above C code a "MyClass" class has been registered inside the VM and ready to be used by Gravity:
+Gravity can be easily embedded into any C/C++ code. Suppose to have the following Gravity code:
 ```swift
-	func main() {
-		// allocate a new class
-		var foo = MyClass();
+func sum (a, b) {
+    return a + b
+}
 
-		// execute the myfunc C function
-		foo.myfunc();
-	}
+func mul (a, b) {
+    return a * b
+}
+
+func main () {
+    var a = 10
+    var b = 20
+    return sum(a, b) + mul(a, b)
+}
 ```
 
-### Execute Gravity code from C
-```c
-```
+The bare minimum C code to embed Gravity would be:
+```C
 
-### Bridge API
-Gravity C API offers much more flexibility using the delegate bridge API.
-TO DO: more information here.
-TO DO: post objc bridge.
+const char *source_code = "
+func sum (a, b) {
+    return a + b
+}
+
+func mul (a, b) {
+    return a * b
+}
+
+func main () {
+    var a = 10
+    var b = 20
+    return sum(a, b) + mul(a, b)
+}
+";
+
+// a very simple report error callback function
+void report_error (error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
+    printf("%s\n", message);
+    exit(0);
+}
+
+void main (void) {
+    // setup a delegate struct
+    gravity_delegate_t delegate = {
+        .error_callback = report_error
+    };
+    
+    // allocate a new compiler
+    gravity_compiler_t *compiler = gravity_compiler_create(&delegate);
+    
+    // compile Gravity source code into bytecode (embedded into a closure)
+    gravity_closure_t *closure = gravity_compiler_run(compiler, source_code, strlen(source_code), 0, true, true);
+    
+    // allocate a new Gravity VM
+    gravity_vm *vm = gravity_vm_new(&delegate);
+    
+    // transfer memory from the compiler (front-end) to the VM (back-end)
+    gravity_compiler_transfer(compiler, vm);
+    
+    // once memory has been trasferred, you can get rid of the front-end
+    gravity_compiler_free(compiler);
+    
+    // execute closure
+    if (gravity_vm_runmain(vm, closure)) {
+        // retrieve returned result
+        gravity_value_t result = gravity_vm_result(vm);
+	
+	// print result to stdout
+	printf("RESULT: %s", t, VALUE_AS_CSTRING(result));
+    }
+    
+    // free VM and core libraries (implicitly allocated by the VM)
+    gravity_vm_free(vm);
+    gravity_core_free();
+}
+
+```
