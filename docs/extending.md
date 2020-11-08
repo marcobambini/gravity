@@ -1,13 +1,13 @@
 ## Extending Gravity
 
-Gravity can be extended at runtime using the C API (please read the Embedding section before proceeding).
+Gravity can be extended at runtime using the C API (please read the [Embedding](https://marcobambini.github.io/gravity/#/embedding) section before proceeding).
 
 Three steps are required:
 1. Create a new class
 2. Add methods and properties to the class
 3. Register this class inside the VM
 
-In this simple example we'll create a "Foo" class with a "bar" method in C and then we'll execute it from Gravity.
+In this simple example we'll create a "Foo" class with a "sum" method in C and then we'll execute it from Gravity.
 ```c
 #include "gravity_compiler.h"
 #include "gravity_macros.h"
@@ -82,7 +82,5 @@ int main (void) {
     
     return 0;
 }
-
-For more examples see the file gravity_core.c in the src/runtime/ directory. Most of the Gravity classes are built using these same APIs.
-
 ```
+For more examples see the file gravity_core.c in the src/runtime/ directory. Most of the Gravity classes are built using these same APIs.
