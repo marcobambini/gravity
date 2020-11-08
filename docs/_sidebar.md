@@ -33,7 +33,7 @@
 
 * ADVANCED
 
-  * [Embedding API](api.md)
+  * [Embedding](embedding.md)
   * [Introspection](introspection.md)
   * [Unit test](unittest.md)
   * [Contributing](contrib.md)
