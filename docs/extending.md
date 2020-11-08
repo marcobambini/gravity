@@ -15,6 +15,7 @@ In this simple example we'll create a "Foo" class with a "sum" method in C and t
 #include "gravity_vm.h"
 #include "gravity_vmmacros.h"
 
+// notice the usage of the extern clause to tell compiler (the front-end) that the Foo object will be registered later by the back-end (the VM)
 const char *source_code = " \
 extern var Foo; \
 func main () {   \
