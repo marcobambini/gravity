@@ -41,7 +41,8 @@ func main () {   \
 ";
 
 // a very simple report error callback function
-void report_error (gravity_vm *vm, error_type_t error_type, const char *message, error_desc_t error_desc, void *xdata) {
+void report_error (gravity_vm *vm, error_type_t error_type, const char *message,
+                   error_desc_t error_desc, void *xdata) {
     printf("%s\n", message);
     exit(0);
 }
