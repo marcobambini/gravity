@@ -80,5 +80,9 @@ foreach(target ${GRAVITY_TARGETS})
     target_compile_definitions(${target} PRIVATE ${GRAVITY_PRIVATE_DEFINITIONS})
     target_compile_options(${target} PRIVATE ${GRAVITY_PRIVATE_COMPILE_OPTIONS})
     target_include_directories(${target} PUBLIC ${GRAVITY_INCLUDE_DIR})
+    set_target_properties(${target} PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    )
 
 endforeach()
