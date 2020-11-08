@@ -34,6 +34,7 @@
 * ADVANCED
 
   * [Embedding](embedding.md)
+  * [Extending](extending.md)
   * [Introspection](introspection.md)
   * [Unit test](unittest.md)
   * [Contributing](contrib.md)
