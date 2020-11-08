@@ -17,7 +17,7 @@ func main () {
 }
 ```
 
-The bare minimum C code to embed Gravity would be (to keep the code as simple as possible I skipped any error check condition that would be required):
+To keep the code as simple as possible I skipped any error check condition that would be required. The bare minimum C code to embed the above Gravity code would be:
 ```C
 #include "gravity_compiler.h"
 #include "gravity_macros.h"
@@ -47,13 +47,13 @@ void report_error (gravity_vm *vm, error_type_t error_type, const char *message,
 }
 
 int main (void) {
-    // setup a delegate struct
+    // setup a delegate struct (much more options are available)
     gravity_delegate_t delegate = {.error_callback = report_error};
     
     // allocate a new compiler
     gravity_compiler_t *compiler = gravity_compiler_create(&delegate);
     
-    // compile Gravity source code into bytecode (embedded into a closure)
+    // compile Gravity source code into a closure (bytecode)
     gravity_closure_t *closure = gravity_compiler_run(compiler, source_code, strlen(source_code), 0, true, true);
     
     // allocate a new Gravity VM
@@ -62,10 +62,10 @@ int main (void) {
     // transfer memory from the compiler (front-end) to the VM (back-end)
     gravity_compiler_transfer(compiler, vm);
     
-    // once memory has been trasferred, you can get rid of the front-end
+    // once the memory has been transferred, you can get rid of the front-end
     gravity_compiler_free(compiler);
     
-    // execute closure
+    // execute main closure
     if (gravity_vm_runmain(vm, closure)) {
         // retrieve returned result
         gravity_value_t result = gravity_vm_result(vm);
@@ -134,7 +134,7 @@ int main (void) {
     // transfer memory from the compiler (front-end) to the VM (back-end)
     gravity_compiler_transfer(compiler, vm);
     
-    // once memory has been trasferred, you can get rid of the front-end
+    // once the memory has been transferred, you can get rid of the front-end
     gravity_compiler_free(compiler);
     
     // load closure into VM
