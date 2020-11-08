@@ -18,7 +18,7 @@ func main () {
 ```
 
 To keep the code as simple as possible I skipped any error check condition that would be required. The bare minimum C code to embed the above Gravity code would be:
-```C
+```c
 #include "gravity_compiler.h"
 #include "gravity_macros.h"
 #include "gravity_core.h"
@@ -86,7 +86,7 @@ int main (void) {
 ```
 
 To load and execute a `myfile` Gravity source code from disk the required changes would be minimum:
-```C
+```c
 int main (void) {
     size_t size = 0;
     const char *source_code = file_read("myfile.gravity", &size);
@@ -102,7 +102,7 @@ int main (void) {
 ```
 
 To directly execute the `mul` Gravity function and pass some parameter from C to Gravity some minor changes need to be performed:
-```C
+```c
 #include "gravity_compiler.h"
 #include "gravity_macros.h"
 #include "gravity_core.h"
