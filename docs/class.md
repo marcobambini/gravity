@@ -141,5 +141,29 @@ There are many cases where nested classes can lead to more readable and maintain
 	}
 ```
 
+### Inheritance
+Single class inheritance is supported in Gravity.
+```swift
+class Bird {
+	func talk() {
+		System.print("Cheep")
+	}
+}
+
+class Owl : Bird {
+	func talk() {
+		System.print("Hoot")
+	}
+}
+
+func main() {
+	var bird = Bird()
+	bird.talk() // Output: Cheep
+
+	var owl = Owl()
+	owl.talk() // Output: Hoot
+}
+```
+
 ### Access specifiers
 The public and private keywords can be used to restrict access to specific parts of code.
