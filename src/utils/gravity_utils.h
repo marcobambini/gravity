@@ -27,9 +27,6 @@ nanotime_t  nanotime (void);
 double      microtime (nanotime_t tstart, nanotime_t tend);
 double      millitime (nanotime_t tstart, nanotime_t tend);
 
-// CONSOLE
-char        *readline (char *prompt, int *length);
-
 // FILE
 uint64_t    file_size (const char *path);
 const char  *file_read (const char *path, size_t *len);

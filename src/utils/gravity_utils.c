@@ -87,35 +87,6 @@ double millitime (nanotime_t tstart, nanotime_t tend) {
     return ((double)t / 1000000.0f);
 }
 
-// MARK: - Console Functions -
-
-#ifdef WIN32
-// getline is a POSIX function not available in C on Windows (only C++)
-static ssize_t getline (char **lineptr, size_t *n, FILE *stream) {
-    // to be implemented on Windows
-    // Never use gets: it offers no protections against a buffer overflow vulnerability.
-    // see http://stackoverflow.com/questions/3302255/c-scanf-vs-gets-vs-fgets
-    // we should implement something like ggets here
-    // http://web.archive.org/web/20080525133110/http://cbfalconer.home.att.net/download/
-    
-    return -1;
-}
-#endif
-
-char *readline (char *prompt, int *length) {
-    char    *line = NULL;
-    size_t    size = 0;
-    
-    printf("%s", prompt);
-    fflush(stdout);
-    
-    ssize_t nread = getline(&line, &size, stdin);
-    if (nread == -1 || feof(stdin)) return NULL;
-    
-    *length = (int)nread;
-    return line;
-}
-
 // MARK: - I/O Functions -
 
 uint64_t file_size (const char *path) {
