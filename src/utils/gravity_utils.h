@@ -28,17 +28,21 @@ double      microtime (nanotime_t tstart, nanotime_t tend);
 double      millitime (nanotime_t tstart, nanotime_t tend);
 
 // FILE
-uint64_t    file_size (const char *path);
-const char  *file_read (const char *path, size_t *len);
+int64_t     file_size (const char *path);
 bool        file_exists (const char *path);
-const char  *file_buildpath (const char *filename, const char *dirpath);
+bool        file_delete (const char *path);
+char        *file_read (const char *path, size_t *len);
 bool        file_write (const char *path, const char *buffer, size_t len);
+char        *file_buildpath (const char *filename, const char *dirpath);
+char        *file_name_frompath (const char *path);
 
 // DIRECTORY
 bool        is_directory (const char *path);
+bool        directory_create (const char *path);
 DIRREF      directory_init (const char *path);
-// On Windows, you are expected to provied an output buffer of at least MAX_PATH in length
-const char  *directory_read (DIRREF ref, char *out);
+// On Windows, you are expected to provied a win32buffer buffer of at least MAX_PATH in length
+char        *directory_read (DIRREF ref, char *win32buffer);
+char        *directory_read_extend (DIRREF ref, char *win32buffer);
 
 // STRING
 int         string_nocasencmp (const char *s1, const char *s2, size_t n);

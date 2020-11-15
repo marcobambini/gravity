@@ -60,6 +60,23 @@
 #define GRAVITY_ISENV_CLASS(_c)             false
 #endif
 
+#ifndef GRAVITY_INCLUDE_FILE
+#define GRAVITY_INCLUDE_FILE
+#endif
+
+#ifdef GRAVITY_INCLUDE_FILE
+#define GRAVITY_FILE_REGISTER(_vm)           gravity_file_register(_vm)
+#define GRAVITY_FILE_FREE()                  gravity_file_free()
+#define GRAVITY_FILE_NAME()                  gravity_file_name()
+#define GRAVITY_ISFILE_CLASS(_c)             gravity_isfile_class(_c)
+#include "gravity_opt_file.h"
+#else
+#define GRAVITY_FILE_REGISTER(_vm)
+#define GRAVITY_FILE_FREE()
+#define GRAVITY_FILE_NAME()                  NULL
+#define GRAVITY_ISFILE_CLASS(_c)             false
+#endif
+
 #ifdef _MSC_VER
 #define INLINE								__inline
 #else
@@ -76,6 +93,9 @@ INLINE static const char **gravity_optional_identifiers(void) {
         #endif
         #ifdef GRAVITY_INCLUDE_JSON
         GRAVITY_CLASS_JSON_NAME,
+        #endif
+        #ifdef GRAVITY_INCLUDE_FILE
+        GRAVITY_CLASS_FILE_NAME,
         #endif
         NULL};
     return list;

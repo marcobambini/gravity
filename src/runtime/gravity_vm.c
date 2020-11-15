@@ -358,16 +358,18 @@ void gravity_opt_register (gravity_vm *vm) {
     GRAVITY_MATH_REGISTER(vm);
     GRAVITY_ENV_REGISTER(vm);
     GRAVITY_JSON_REGISTER(vm);
+    GRAVITY_FILE_REGISTER(vm);
 }
 
 void gravity_opt_free() {
     GRAVITY_MATH_FREE();
     GRAVITY_ENV_FREE();
     GRAVITY_JSON_FREE();
+    GRAVITY_FILE_FREE();
 }
 
 bool gravity_isopt_class (gravity_class_t *c) {
-    return (GRAVITY_ISMATH_CLASS(c)) || (GRAVITY_ISENV_CLASS(c) || (GRAVITY_ISJSON_CLASS(c)));
+    return (GRAVITY_ISMATH_CLASS(c)) || (GRAVITY_ISENV_CLASS(c) || (GRAVITY_ISJSON_CLASS(c)) || (GRAVITY_ISFILE_CLASS(c)));
 }
 
 // MARK: - MAIN EXECUTION -

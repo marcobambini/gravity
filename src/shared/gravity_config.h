@@ -30,9 +30,10 @@ typedef int         mode_t;
 #define read        _read
 #define write       _write
 #define __func__    __FUNCTION__
-
+#define PATH_SEPARATOR  '\\'
 #else
 #include <unistd.h>
+#define PATH_SEPARATOR  '/'
 #endif
 
 // check if the compiler supports designated initializers when using c++

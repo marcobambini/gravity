@@ -173,7 +173,7 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
     #ifdef WIN32
     char outbuffer[MAX_PATH];
     #else
-    char * outbuffer = NULL;
+    char *outbuffer = NULL;
     #endif
     const char *target_file;
     while ((target_file = directory_read(dir, outbuffer))) {

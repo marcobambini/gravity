@@ -1066,7 +1066,7 @@ static bool list_remove (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
 static bool list_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-    gravity_list_t    *list = VALUE_AS_LIST(GET_VALUE(0));
+    gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
 
     // check for empty list first
     register uint32_t count = (uint32_t)marray_size(list->array);
@@ -1095,7 +1095,7 @@ static bool list_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
 
 static bool list_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-    gravity_list_t    *list = VALUE_AS_LIST(GET_VALUE(0));
+    gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
     register int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
     RETURN_VALUE(marray_get(list->array, index), rindex);
 }
