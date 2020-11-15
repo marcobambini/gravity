@@ -1,0 +1,40 @@
+#unittest {
+    name: "Switch flow control.";
+    error: NONE;
+    result: "^1244??STR2";
+}
+
+func test(x) {
+    var value = "^";
+    switch (x) {
+        case 0:
+            break;
+        case 1:
+            return "1";
+        case 2:
+            value = "2";
+            break;
+        case 3:
+            value = "3";
+        case 4:
+            value = "4";
+            break;
+        case "str2":
+            value = "STR2"
+            break;
+        default:
+            return "?";
+    }
+    return value;
+}
+
+func main() {
+    var result = "";
+    for (var i in 0...5) {
+        result += test(i);
+    }
+    result += test("str1");
+    result += test("str2");
+    return result;
+}
+

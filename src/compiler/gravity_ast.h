@@ -89,6 +89,7 @@ typedef struct {
     gnode_t             base;               // CASE or DEFAULT
     gnode_t             *expr;              // expression in case of CASE
     gnode_t             *stmt;              // common statement
+    uint32_t            label_case;         // for switch to jump
 } gnode_label_stmt_t;
 
 typedef struct {

@@ -390,12 +390,13 @@ static void visit_compound_stmt (gvisitor_t *self, gnode_compound_stmt_t *node) 
 
 static void visit_label_stmt (gvisitor_t *self, gnode_label_stmt_t *node) {
     DEBUG_CODEGEN("visit_label_stmt");
+    DECLARE_CODE();
 
     gtoken_t type = NODE_TOKEN_TYPE(node);
     assert((type == TOK_KEY_DEFAULT) || (type == TOK_KEY_CASE));
 
-    if (type == TOK_KEY_DEFAULT) {visit(node->stmt);}
-    else if (type == TOK_KEY_CASE) {visit(node->expr); visit(node->stmt);}
+    ircode_marklabel(code, node->label_case, LINE_NUMBER(node));
+    visit(node->stmt);
 }
 
 static void visit_flow_if_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
@@ -442,10 +443,97 @@ static void visit_flow_if_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
 
 static void visit_flow_switch_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
     DEBUG_CODEGEN("visit_flow_switch_stmt");
-    return;
+    DECLARE_CODE();
+
+    /*
+         <condition>
+         <case jumps>
+         if-equal case_expr1: goto $case1
+         if-equal case_expr2: goto $case2
+         ...
+         if-equal case_exprN: goto $caseN
+         if-exist default:    goto $default
+         goto $end
+         <cases>
+         $case1:
+         $case2:
+         ...
+         $caseN:
+         [$default:]
+         $end:
+     */
+
+    uint32_t cond_reg, reg;
+    uint32_t label_final = ircode_newlabel(code);
+
+    ircode_setlabel_false(code, label_final);
 
     visit(node->cond);
+    cond_reg = ircode_register_last(code);
+    if (cond_reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid switch condition expression.");
+    if (!NODE_ISA(node->stmt, NODE_COMPOUND_STAT)) {
+        report_error(self, (gnode_t *)node, "Invalid switch stmt expression.");
+    }
+    gnode_compound_stmt_t *cases = (gnode_compound_stmt_t *)node->stmt;
+    gnode_label_stmt_t *default_stmt = NULL;
+    gnode_array_each(cases->stmts, {
+        if (NODE_ISA(val, NODE_LABEL_STAT)) {
+            gtoken_t type = val->token.type;
+            if (TOK_KEY_CASE == type) {
+                gnode_label_stmt_t *case_stmt = (gnode_label_stmt_t *)val;
+                visit(case_stmt->expr);
+                reg = ircode_register_pop(code);
+                if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid switch case expression.");
+
+                case_stmt->label_case = ircode_newlabel(code);
+                ircode_add(code, NEQ, reg, cond_reg, reg, LINE_NUMBER(case_stmt));
+                ircode_add(code, JUMPF, reg, case_stmt->label_case, 0, LINE_NUMBER(case_stmt));
+            } else if (TOK_KEY_DEFAULT == type) {
+                default_stmt = (gnode_label_stmt_t *)val;
+                default_stmt->label_case = ircode_newlabel(code);
+            }
+        }
+    });
+    if (NULL != default_stmt) {
+        ircode_add(code, JUMP, default_stmt->label_case, 0, 0, LINE_NUMBER(default_stmt));
+    } else {
+        ircode_add(code, JUMP, label_final, 0, 0, LINE_NUMBER(node));
+    }
+    // pop cond_reg
+    ircode_register_pop(code);
+
     visit(node->stmt);
+    ircode_marklabel(code, label_final, LINE_NUMBER(node));
+    ircode_unsetlabel_false(code);
+
+    return;
+}
+
+static void visit_flow_ternary_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
+    DEBUG_CODEGEN("visit_flow_ternary_stmt");
+    DECLARE_CODE();
+
+    uint32_t reg;
+    uint32_t label_false = ircode_newlabel(code);
+    uint32_t label_final = ircode_newlabel(code);
+
+    visit(node->cond);
+    reg = ircode_register_pop(code);
+    if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary condition expression.");
+    ircode_add(code, JUMPF, reg, label_false, 0, LINE_NUMBER(node));
+
+    visit(node->stmt);
+    reg = ircode_register_pop(code);
+    if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary left stmt expression.");
+    ircode_add(code, JUMP, label_final, 0, 0, LINE_NUMBER(node));
+
+    ircode_marklabel(code, label_false, LINE_NUMBER(node));
+    visit(node->elsestmt);
+    reg = ircode_register_last(code);
+    if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary right stmt expression.");
+    ircode_marklabel(code, label_final, LINE_NUMBER(node));
+
+    return;
 }
 
 static void visit_flow_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
@@ -459,7 +547,7 @@ static void visit_flow_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) {
     } else if (type == TOK_KEY_SWITCH) {
         visit_flow_switch_stmt(self, node);
     } else if (type == TOK_OP_TERNARY) {
-        report_error(self, (gnode_t *)node, "Ternary operator not yet supported.");
+        visit_flow_ternary_stmt(self, node);
     }
 }
 

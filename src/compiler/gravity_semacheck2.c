@@ -294,7 +294,7 @@ static gnode_t *lookup_symtable_id (gvisitor_t *self, gnode_identifier_expr_t *i
 
 static bool is_expression (gnode_t *node) {
     gnode_n tag = NODE_TAG(node);
-    return ((tag >= NODE_BINARY_EXPR) && (tag <= NODE_ACCESS_EXPR));
+    return ((tag >= NODE_BINARY_EXPR) && (tag <= NODE_ACCESS_EXPR)) || (tag == NODE_FLOW_STAT);
 }
 
 static bool is_expression_assignment (gnode_t *node) {
@@ -363,6 +363,12 @@ static bool is_expression_valid (gnode_t *node) {
             if (expr->op == TOK_OP_ASSIGN) return false;
             if (!is_expression_valid(expr->left)) return false;
             return is_expression_valid(expr->right);
+        }
+
+        case NODE_FLOW_STAT: {
+            gnode_flow_stmt_t *flow_stmt = (gnode_flow_stmt_t *)node;
+            if (TOK_OP_TERNARY != NODE_TOKEN_TYPE(flow_stmt)) return false;
+            return is_expression_valid(flow_stmt->cond) && is_expression_valid(flow_stmt->stmt) && is_expression_valid(flow_stmt->elsestmt);
         }
 
         case NODE_IDENTIFIER_EXPR: {
