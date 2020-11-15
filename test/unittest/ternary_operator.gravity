@@ -1,0 +1,17 @@
+#unittest {
+    name: "Ternary operator.";
+    error: NONE;
+    result: "le1le1eq2eq3ge4ge4";
+}
+
+func test(x) {
+    return x <= 2 ? x == 2 ? "eq2" : "le1" : x >= 4 ? "ge4" : "eq3";
+}
+func main() {
+    var result = "";
+    for(var i in 0...5) {
+        result += test(i);
+    }
+    return result;
+}
+
