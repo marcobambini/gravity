@@ -29,6 +29,7 @@
 
   * [System class](system.md)
   * [Math class](math.md)
+  * [File class](file.md)
   * [ENV class](env.md)
 
 * ADVANCED
