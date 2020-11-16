@@ -1,7 +1,7 @@
 ## File
 File is a class to add I/O capabilities to Gravity.
 
-### Example 1
+### Class methods example
 ```swift
 func main() {
   var target_file = "FULL_PATH_TO_A_TEXT_FILE_HERE";
@@ -36,7 +36,7 @@ func main() {
 }
 ```
 
-### Example 2
+### Read/write buffer example
 ```swift
 func main() {
   var target_file = "FULL_PATH_TO_A_TEXT_FILE_HERE";
@@ -58,5 +58,29 @@ func main() {
   f.close();
 
   return data;
+}
+```
+
+### Read line example
+```
+func main() {
+    var target_file = "FULL_PATH_TO_A_TEXT_FILE_HERE";
+    var f = File.open(target_file, "w+");
+    
+    f.write("This is the first line\n");
+    f.write("This is the second line\n");
+    f.write("This is the third line\n");
+    
+    f.close();
+    
+    f = File.open(target_file, "r");
+    while (!f.isEOF()) {
+        var line = f.read("\n");
+        System.print(line);
+    }
+    
+    f.close();
+    
+    return 0;
 }
 ```
