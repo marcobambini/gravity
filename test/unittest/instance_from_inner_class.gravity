@@ -1,0 +1,16 @@
+#unittest {
+        name: "Instance from inner class.";
+        result: true;
+};
+
+class TestA {
+  static class TestB { }
+  static func get_test_b_instance() {
+    return TestB();
+  }
+}
+
+func main() {
+  var test_b = TestA.get_test_b_instance()
+  return !(test_b is TestA) && (TestA != TestA.TestB) && (test_b is TestA.TestB);
+}
