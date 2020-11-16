@@ -92,7 +92,7 @@ double millitime (nanotime_t tstart, nanotime_t tend) {
 
 int64_t file_size (const char *path) {
     #ifdef WIN32
-    WIN32_FILE_ATTRIBUTE_DATA   fileInfo;
+    WIN32_FILE_ATTRIBUTE_DATA fileInfo;
     if (GetFileAttributesExA(path, GetFileExInfoStandard, (void*)&fileInfo) == 0) return -1;
     return (int64_t)(((__int64)fileInfo.nFileSizeHigh) << 32 ) + fileInfo.nFileSizeLow;
     #else

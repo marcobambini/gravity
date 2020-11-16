@@ -17,45 +17,42 @@
 static gravity_class_t              *gravity_class_file = NULL;
 static uint32_t                     refcount = 0;
 
-// MARK: - Implementation -
+// MARK: Instance -
 
-/*
-     GRAVITY EXAMPLE
-     ==============
+typedef struct {
+    gravity_class_t         *isa;   // to be an object
+    gravity_gc_t            gc;     // to be collectable by the garbage collector
+    FILE                    *file;  // real FILE instance
+} gravity_file_t;
+
+#define VALUE_AS_FILE(x)    ((gravity_file_t *)VALUE_AS_OBJECT(x))
+
+static uint32_t gravity_ifile_free (gravity_vm *vm, gravity_object_t *object) {
+    UNUSED_PARAM(vm);
     
-     func main() {
-         var target_file = "FULL_PATH_TO_A_TEXT_FILE_HERE";
-         var target_folder = "FULL_PATH_TO_A_FOLDER_HERE";
- 
-         // FILE TEST
-         var size = File.size(target_file);
-         var exists = File.exists(target_file);
-         var is_dir = File.is_directory(target_file);
-         var data = File.read(target_file);
-         
-         System.print("File: " + target_file);
-         System.print("Size: " + size);
-         System.print("Exists: " + exists);
-         System.print("Is Directory: " + is_dir);
-         System.print("Data: " + data);
-         
-         // FOLDER TEST
-         func closure (file_name, full_path, is_directory) {
-             if (is_directory) {
-                 System.print("+ \(file_name)");
-             } else {
-                 System.print("    \(file_name)");
-             }
-         }
-         
-         var recursive = true;
-         var n = File.directory_scan(target_folder, recursive, closure);
-         
-         // return the number of file processed
-         return n;
-     }
- 
- */
+    gravity_file_t *instance = (gravity_file_t *)object;
+    DEBUG_FREE("FREE %s", gravity_object_debug(object, true));
+    if (instance->file) fclose(instance->file);
+    mem_free((void *)object);
+    
+    return 0;
+}
+
+static gravity_file_t *gravity_ifile_new (gravity_vm *vm, FILE *f) {
+    if (!f) return NULL;
+    
+    gravity_file_t *instance = (gravity_file_t *)mem_alloc(NULL, sizeof(gravity_file_t));
+    if (!instance) return NULL;
+    
+    instance->isa = gravity_class_file;
+    instance->gc.free = gravity_ifile_free;
+    instance->file = f;
+
+    if (vm) gravity_vm_transfer(vm, (gravity_object_t*) instance);
+    return instance;
+}
+
+// MARK: - Implementation -
 
 static bool internal_file_size (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     // 1 parameter of type string is required
@@ -237,25 +234,143 @@ static bool internal_file_directory_scan (gravity_vm *vm, gravity_value_t *args,
     // do not report directory name in the first scan
     scan_directory(vm, path, recursive, closure, &n, false);
     
-    /*
-     func closure (var filename, var full_path) {
-        Console.write(filename);
-     }
-     
-     var skipdot = true;
-     var recursive = true;
-     File.directory_scan("/Users/marco/Desktop/", true, recursive, closure);
-     */
-    
     RETURN_VALUE(VALUE_FROM_INT(n), rindex);
 }
+
+// MARK: -
+
+static bool internal_file_open (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var file = File.open("path_to_file", "mode")
+    
+    /*
+     mode is a string:
+        r or rb: Open file for reading.
+        w or wb: Truncate to zero length or create file for writing.
+        a or ab: Append; open or create file for writing at end-of-file.
+        r+ or rb+ or r+b: Open file for update (reading and writing).
+        w+ or wb+ or w+b: Truncate to zero length or create file for update.
+        a+ or ab+ or a+b: Append; open or create file for update, writing at end-of-file.
+     */
+    
+    // 1 parameter of type string is required
+    if (nargs > 1 && !VALUE_ISA_STRING(args[1])) {
+        RETURN_ERROR("A path parameter of type String is required.");
+    }
+    char *path = VALUE_AS_STRING(args[1])->s;
+    
+    char *mode = "r";
+    if (nargs > 2 && VALUE_ISA_STRING(args[2])) {
+        mode = VALUE_AS_STRING(args[2])->s;
+    }
+    
+    FILE *file = fopen(path, mode);
+    if (file == NULL) {
+        RETURN_VALUE(VALUE_FROM_NULL, rindex);
+    }
+    
+    gravity_file_t *instance = gravity_ifile_new(vm, file);
+    if (instance == NULL) {
+        RETURN_VALUE(VALUE_FROM_NULL, rindex);
+    }
+    
+    RETURN_VALUE(VALUE_FROM_OBJECT((gravity_object_t*) instance), rindex);
+}
+
+static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var data = file.read(N)
+    
+    // 1 parameter of type int is required
+    if (nargs < 1 && !VALUE_ISA_INT(args[1])) {
+        RETURN_ERROR("A path parameter of type Int is required.");
+    }
+    
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    gravity_int_t n = VALUE_AS_INT(args[1]);
+    
+    char *b = (char *)mem_alloc(NULL, n);
+    if (!b) {
+        RETURN_ERROR("Not enought memory to allocate required buffer.");
+    }
+    
+    size_t nread = fread(b, (size_t)n, 1, instance->file);
+    gravity_string_t *result = gravity_string_new(vm, b, (uint32_t)nread, (uint32_t)n);
+    
+    RETURN_VALUE(VALUE_FROM_OBJECT(result), rindex);
+}
+
+static bool internal_file_iwrite (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var written = file.write(data)
+    
+    // 1 parameter of type int is required
+    if (nargs < 1 && !VALUE_ISA_STRING(args[1])) {
+        RETURN_ERROR("A parameter of type String is required.");
+    }
+    
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    gravity_string_t *data = VALUE_AS_STRING(args[1]);
+    
+    size_t nwritten = fwrite(data->s, data->len, 1, instance->file);
+    RETURN_VALUE(VALUE_FROM_INT(nwritten), rindex);
+}
+
+static bool internal_file_iseek (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var result = file.seek(offset, whence)
+    
+    // 2 parameters of type int are required
+    if (nargs != 3 && !VALUE_ISA_INT(args[1]) && !VALUE_ISA_INT(args[2])) {
+        RETURN_ERROR("An offset parameter of type Int and a whence parameter of type Int are required.");
+    }
+    
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    gravity_int_t offset = VALUE_AS_INT(args[1]);
+    gravity_int_t whence = VALUE_AS_INT(args[2]);
+    
+    int result = fseek(instance->file, (long)offset, (int)whence);
+    RETURN_VALUE(VALUE_FROM_INT(result), rindex);
+}
+
+static bool internal_file_ierror (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var error = file.error();
+    
+    UNUSED_PARAM(nargs);
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    int result = ferror(instance->file);
+    RETURN_VALUE(VALUE_FROM_INT(result), rindex);
+}
+
+static bool internal_file_iflush (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var error = file.flush();
+    
+    UNUSED_PARAM(nargs);
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    int result = fflush(instance->file);
+    RETURN_VALUE(VALUE_FROM_INT(result), rindex);
+}
+
+static bool internal_file_iclose (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    UNUSED_PARAM(nargs);
+    
+    // var bool = file.close()
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    
+    bool result = false;
+    if (instance->file) {
+        fclose(instance->file);
+        instance->file = NULL;
+        result = true;
+    }
+    
+    RETURN_VALUE(VALUE_FROM_BOOL(result), rindex);
+}
+
 
 // MARK: - Internals -
 
 static void create_optional_class (void) {
     gravity_class_file = gravity_class_new_pair(NULL, GRAVITY_CLASS_FILE_NAME, NULL, 0, 0);
     gravity_class_t *meta = gravity_class_get_meta(gravity_class_file);
-
+    
+    // class methods
     gravity_class_bind(meta, "size", NEW_CLOSURE_VALUE(internal_file_size));
     gravity_class_bind(meta, "exists", NEW_CLOSURE_VALUE(internal_file_exists));
     gravity_class_bind(meta, "delete", NEW_CLOSURE_VALUE(internal_file_delete));
@@ -265,6 +380,15 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, "is_directory", NEW_CLOSURE_VALUE(internal_file_is_directory));
     gravity_class_bind(meta, "directory_create", NEW_CLOSURE_VALUE(internal_file_directory_create));
     gravity_class_bind(meta, "directory_scan", NEW_CLOSURE_VALUE(internal_file_directory_scan));
+    
+    // instance methods
+    gravity_class_bind(meta, "open", NEW_CLOSURE_VALUE(internal_file_open));
+    gravity_class_bind(gravity_class_file, "read", NEW_CLOSURE_VALUE(internal_file_iread));
+    gravity_class_bind(gravity_class_file, "write", NEW_CLOSURE_VALUE(internal_file_iwrite));
+    gravity_class_bind(gravity_class_file, "seek", NEW_CLOSURE_VALUE(internal_file_iseek));
+    gravity_class_bind(gravity_class_file, "error", NEW_CLOSURE_VALUE(internal_file_ierror));
+    gravity_class_bind(gravity_class_file, "flush", NEW_CLOSURE_VALUE(internal_file_iflush));
+    gravity_class_bind(gravity_class_file, "close", NEW_CLOSURE_VALUE(internal_file_iclose));
 
     SETMETA_INITED(gravity_class_file);
 }

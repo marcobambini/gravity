@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.8.0"     // git tag 0.8.0
-#define GRAVITY_VERSION_NUMBER				0x000800    // git push --tags
+#define GRAVITY_VERSION						"0.8.1"     // git tag 0.8.0
+#define GRAVITY_VERSION_NUMBER				0x000801    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -227,6 +227,7 @@ typedef struct gravity_vm                gravity_vm;        // vm is an opaque d
 #endif
 
 typedef bool (*gravity_c_internal)(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex);
+typedef uint32_t (*gravity_gc_callback)(gravity_vm *vm, gravity_object_t *obj);
 
 typedef enum {
     EXEC_TYPE_SPECIAL_GETTER = 0,       // index inside special gravity_function_t union to represent getter func
@@ -243,6 +244,9 @@ typedef enum {
 typedef struct gravity_gc_s {
     bool                    isdark;         // flag to check if object is reachable
     bool                    visited;        // flag to check if object has already been counted in memory size
+    gravity_gc_callback     free;           // free callback
+    gravity_gc_callback     size;           // size callback
+    gravity_gc_callback     blacken;        // blacken callback
     gravity_object_t        *next;          // to track next object in the linked list
 } gravity_gc_t;
 

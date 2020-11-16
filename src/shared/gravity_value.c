@@ -1579,8 +1579,9 @@ const char *gravity_object_debug (gravity_object_t *obj, bool is_free) {
 
 void gravity_object_free (gravity_vm *vm, gravity_object_t *obj) {
     if ((!obj) || (!OBJECT_IS_VALID(obj))) return;
-
-    if (OBJECT_ISA_CLASS(obj)) gravity_class_free(vm, (gravity_class_t *)obj);
+    
+    if (obj->gc.free) obj->gc.free(vm, obj);
+    else if (OBJECT_ISA_CLASS(obj)) gravity_class_free(vm, (gravity_class_t *)obj);
     else if (OBJECT_ISA_FUNCTION(obj)) gravity_function_free(vm, (gravity_function_t *)obj);
     else if (OBJECT_ISA_CLOSURE(obj)) gravity_closure_free(vm, (gravity_closure_t *)obj);
     else if (OBJECT_ISA_INSTANCE(obj)) gravity_instance_free(vm, (gravity_instance_t *)obj);
@@ -1600,7 +1601,8 @@ uint32_t gravity_object_size (gravity_vm *vm, gravity_object_t *obj) {
     // check if object has already been visited (to avoid infinite loop)
     if (obj->gc.visited) return 0;
     
-    if (OBJECT_ISA_CLASS(obj)) return gravity_class_size(vm, (gravity_class_t *)obj);
+    if (obj->gc.size) return obj->gc.size(vm, obj);
+    else if (OBJECT_ISA_CLASS(obj)) return gravity_class_size(vm, (gravity_class_t *)obj);
     else if (OBJECT_ISA_FUNCTION(obj)) return gravity_function_size(vm, (gravity_function_t *)obj);
     else if (OBJECT_ISA_CLOSURE(obj)) return gravity_closure_size(vm, (gravity_closure_t *)obj);
     else if (OBJECT_ISA_INSTANCE(obj)) return gravity_instance_size(vm, (gravity_instance_t *)obj);
@@ -1617,7 +1619,8 @@ uint32_t gravity_object_size (gravity_vm *vm, gravity_object_t *obj) {
 void gravity_object_blacken (gravity_vm *vm, gravity_object_t *obj) {
     if ((!obj) || (!OBJECT_IS_VALID(obj))) return;
 
-    if (OBJECT_ISA_CLASS(obj)) gravity_class_blacken(vm, (gravity_class_t *)obj);
+    if (obj->gc.blacken) obj->gc.blacken(vm, obj);
+    else if (OBJECT_ISA_CLASS(obj)) gravity_class_blacken(vm, (gravity_class_t *)obj);
     else if (OBJECT_ISA_FUNCTION(obj)) gravity_function_blacken(vm, (gravity_function_t *)obj);
     else if (OBJECT_ISA_CLOSURE(obj)) gravity_closure_blacken(vm, (gravity_closure_t *)obj);
     else if (OBJECT_ISA_INSTANCE(obj)) gravity_instance_blacken(vm, (gravity_instance_t *)obj);
