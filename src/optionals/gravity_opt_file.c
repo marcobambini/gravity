@@ -280,21 +280,58 @@ static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t
     // var data = file.read(N)
     
     // 1 parameter of type int is required
-    if (nargs < 1 && !VALUE_ISA_INT(args[1])) {
-        RETURN_ERROR("A path parameter of type Int is required.");
+    if (nargs < 1 && (!VALUE_ISA_INT(args[1]) && !VALUE_ISA_STRING(args[1]))) {
+        RETURN_ERROR("A parameter of type Int or String is required.");
     }
     
     gravity_file_t *instance = VALUE_AS_FILE(args[0]);
-    gravity_int_t n = VALUE_AS_INT(args[1]);
+    gravity_int_t n = 256;
+    gravity_string_t *str = NULL;
+    size_t nread = 0;
     
-    char *b = (char *)mem_alloc(NULL, n);
-    if (!b) {
+    if (VALUE_ISA_INT(args[1])) n = VALUE_AS_INT(args[1]);
+    else str = VALUE_AS_STRING(args[1]);
+    
+    char *buffer = (char *)mem_alloc(NULL, n);
+    if (!buffer) {
         RETURN_ERROR("Not enought memory to allocate required buffer.");
     }
     
-    size_t nread = fread(b, (size_t)n, 1, instance->file);
-    gravity_string_t *result = gravity_string_new(vm, b, (uint32_t)nread, (uint32_t)n);
+    // args[1] was a number so read up-to n characters
+    if (str == NULL) {
+        nread = fread(buffer, (size_t)n, 1, instance->file);
+    } else {
+        // read up-until s character was found (or EOF)
+        // taking in account buffer b resizing
+        // algorithm modified from: http://cvsweb.netbsd.org/bsdweb.cgi/~checkout~/pkgsrc/pkgtools/libnbcompat/files/getdelim.c
+        
+        int delimiter = (int)str->s[0];
+        char *ptr, *eptr;
+        
+        for (ptr = buffer, eptr = buffer + n; ++nread;) {
+            int c = fgetc(instance->file);
+            if ((c == -1) || feof(instance->file)) break;
+            
+            *ptr++ = c;
+            if (c == delimiter) break;
+            
+            if (ptr + 2 >= eptr) {
+                char *nbuf;
+                size_t nbufsiz = n * 2;
+                ssize_t d = ptr - buffer;
+                if ((nbuf = mem_realloc(NULL, buffer, nbufsiz)) == NULL) break;
+                
+                buffer = nbuf;
+                n = nbufsiz;
+                eptr = nbuf + nbufsiz;
+                ptr = nbuf + d;
+            }
+        }
+        // NULL terminate the string
+        buffer[nread] = 0;
+    }
     
+    gravity_string_t *result = gravity_string_new(vm, buffer, (uint32_t)nread, (uint32_t)n);
     RETURN_VALUE(VALUE_FROM_OBJECT(result), rindex);
 }
 
@@ -347,6 +384,14 @@ static bool internal_file_iflush (gravity_vm *vm, gravity_value_t *args, uint16_
     RETURN_VALUE(VALUE_FROM_INT(result), rindex);
 }
 
+static bool internal_file_iisEOF (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var isEOF = file.isEOF()
+    UNUSED_PARAM(nargs);
+    gravity_file_t *instance = VALUE_AS_FILE(args[0]);
+    int result = feof(instance->file);
+    RETURN_VALUE(VALUE_FROM_BOOL(result != 0), rindex);
+}
+
 static bool internal_file_iclose (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     UNUSED_PARAM(nargs);
     
@@ -386,6 +431,7 @@ static void create_optional_class (void) {
     gravity_class_bind(gravity_class_file, "read", NEW_CLOSURE_VALUE(internal_file_iread));
     gravity_class_bind(gravity_class_file, "write", NEW_CLOSURE_VALUE(internal_file_iwrite));
     gravity_class_bind(gravity_class_file, "seek", NEW_CLOSURE_VALUE(internal_file_iseek));
+    gravity_class_bind(gravity_class_file, "isEOF", NEW_CLOSURE_VALUE(internal_file_iisEOF));
     gravity_class_bind(gravity_class_file, "error", NEW_CLOSURE_VALUE(internal_file_ierror));
     gravity_class_bind(gravity_class_file, "flush", NEW_CLOSURE_VALUE(internal_file_iflush));
     gravity_class_bind(gravity_class_file, "close", NEW_CLOSURE_VALUE(internal_file_iclose));
