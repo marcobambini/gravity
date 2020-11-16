@@ -1194,9 +1194,14 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     SETVALUE(rwin+r3, VALUE_FROM_UNDEFINED);
                     ++r3;
                 }
-
-                // check for closure autocaptured self context (or custom self set by the user)
-                if (closure->context) SETVALUE(rwin, VALUE_FROM_OBJECT(closure->context));
+                
+                if (VALUE_ISA_CLASS(v)) {
+                    // set self as class for class_exec()
+                    SETVALUE(rwin, v);
+                } else if (closure->context) {
+                    // check for closure autocaptured self context (or custom self set by the user)
+                    SETVALUE(rwin, VALUE_FROM_OBJECT(closure->context));
+                }
                 
                 DEBUG_STACK();
 
