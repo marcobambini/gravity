@@ -34,6 +34,7 @@
     <ClInclude Include="..\src\compiler\gravity_visitor.h" />
     <ClInclude Include="..\src\optionals\gravity_optionals.h" />
     <ClInclude Include="..\src\optionals\gravity_opt_env.h" />
+    <ClInclude Include="..\src\optionals\gravity_opt_file.h" />
     <ClInclude Include="..\src\optionals\gravity_opt_json.h" />
     <ClInclude Include="..\src\optionals\gravity_opt_math.h" />
     <ClInclude Include="..\src\runtime\gravity_core.h" />
@@ -65,6 +66,7 @@
     <ClCompile Include="..\src\compiler\gravity_token.c" />
     <ClCompile Include="..\src\compiler\gravity_visitor.c" />
     <ClCompile Include="..\src\optionals\gravity_opt_env.c" />
+    <ClCompile Include="..\src\optionals\gravity_opt_file.c" />
     <ClCompile Include="..\src\optionals\gravity_opt_json.c" />
     <ClCompile Include="..\src\optionals\gravity_opt_math.c" />
     <ClCompile Include="..\src\runtime\gravity_core.c" />

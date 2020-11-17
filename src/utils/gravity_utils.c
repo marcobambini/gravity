@@ -24,6 +24,7 @@
 #include <windows.h>
 #include <Shlwapi.h>
 #include <tchar.h>
+#include <io.h>
 #endif
 
 #include "gravity_utils.h"
@@ -193,7 +194,7 @@ char *file_name_frompath (const char *path) {
     if (!path || (path[0] == 0)) return NULL;
     
     // must be sure to have a read-write memory address
-    char *buffer = strdup(path);
+	char *buffer = string_dup(path);
     if (!buffer) return false;
     
     char *name = NULL;
@@ -201,7 +202,7 @@ char *file_name_frompath (const char *path) {
     for (size_t i=len-1; i>0; --i) {
         if (buffer[i] == PATH_SEPARATOR) {
             buffer[i] = 0;
-            name = strdup(&buffer[i+1]);
+			name = string_dup(&buffer[i + 1]);
             break;
         }
     }
@@ -353,15 +354,15 @@ int string_cmp (const char *s1, const char *s2) {
     return strcmp(s1, s2);
 }
 
-const char *string_dup (const char *s1) {
-    size_t    len = (size_t)strlen(s1);
-    char    *s = (char *)mem_alloc(NULL, len + 1);
+char *string_dup (const char *s1) {
+    size_t len = (size_t)strlen(s1);
+    char*s = (char *)mem_alloc(NULL, len + 1);
     if (!s) return NULL;
     memcpy(s, s1, len);
     return s;
 }
 
-const char *string_ndup (const char *s1, size_t n) {
+char *string_ndup (const char *s1, size_t n) {
     char *s = (char *)mem_alloc(NULL, n + 1);
     if (!s) return NULL;
     memcpy(s, s1, n);

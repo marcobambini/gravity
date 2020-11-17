@@ -639,7 +639,7 @@ static gnode_t *parse_identifier_or_keyword_expression (gravity_parser_t *parser
     token_keywords_indexes(&idx_start, &idx_end);
 
     gtoken_t peek = gravity_lexer_peek(lexer);
-    if ((peek >= idx_start) && (peek <= idx_end)) {
+    if (((uint32_t)peek >= idx_start) && ((uint32_t)peek <= idx_end)) {
 
         // consume token keyword
         gtoken_t keyword = gravity_lexer_next(lexer);

@@ -8,6 +8,7 @@ EXPORTS
 	gravity_vm_set_callbacks
 	gravity_vm_free
 ;	gravity_vm_reset
+	gravity_vm_loadclosure
 	gravity_vm_runclosure
 	gravity_vm_runmain
 	gravity_vm_setvalue
