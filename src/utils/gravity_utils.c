@@ -630,7 +630,7 @@ int64_t number_from_hex (const char *s, uint32_t len) {
     // LLONG_MAX  = +9223372036854775807
     // HEX(9223372036854775808) = 346DC5D638865
     
-    // sanity check on len in order to workaround an address sanityzer error
+    // sanity check on len in order to workaround an address sanitizer error
     if (len > 24) return 0;
     return (int64_t) strtoll(s, NULL, 16);
 }
@@ -640,7 +640,7 @@ int64_t number_from_oct (const char *s, uint32_t len) {
     // LLONG_MAX  = +9223372036854775807
     // OCT(9223372036854775808) = 32155613530704145
     
-    // sanity check on len in order to workaround an address sanityzer error
+    // sanity check on len in order to workaround an address sanitizer error
     if (len > 24) return 0;
     return (int64_t) strtoll(s, NULL, 8);
 }
