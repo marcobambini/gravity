@@ -611,7 +611,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     case EXEC_TYPE_NATIVE: {
                         // invalidate current_fiber because it does not need to be in sync in this case
                         current_fiber = NULL;
-                        if (reset_r1) SETVALUE(rwin+1, v1);
+                        if (reset_r1) {SETVALUE(rwin+1, v1); reset_r1 = false;}
                         // was r1 but it was incorrect, pass r3 as the destination register because I am sure it is a
                         // dummy temp (and unused) register that can be safely set to NULL
                         PUSH_FRAME(closure, &stackstart[rwin], r3, 2);
@@ -620,13 +620,14 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                     case EXEC_TYPE_INTERNAL: {
                         // backup register r1 because it can be overwrite to return a closure
                         gravity_value_t r1copy = STACK_GET(r1);
+                        if (reset_r1) {SETVALUE(rwin+1, r1copy);  reset_r1 = false;}
                         BEGIN_TRUST_USERCODE(vm);
                         bool result = closure->f->internal(vm, &stackstart[rwin], 2, r1);
                         END_TRUST_USERCODE(vm);
                         if (!result) {
                             if (vm->aborted) return false;
 
-                            // check for special getter trick
+                            // check for special setter trick
                             if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
                                 closure = VALUE_AS_CLOSURE(STACK_GET(r1));
                                 SETVALUE(r1, r1copy);

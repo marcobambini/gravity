@@ -37,11 +37,11 @@ const char *opcode_name (opcode_t op) {
     return optable[op];
 }
 
-#define DUMP_VM(buffer, bindex, ...)                    bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);    \
-                                                        bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);        \
+#define DUMP_VM(buffer, bindex, ...)                    bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);   \
+                                                        bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);    \
                                                         bindex += snprintf(&buffer[bindex], balloc-bindex, "\n");
 
-#define DUMP_VM_NOCR(buffer, bindex, ...)               bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);    \
+#define DUMP_VM_NOCR(buffer, bindex, ...)               bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);   \
                                                         bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
 
 #define DUMP_VM_RAW(buffer, bindex, ...)                bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);

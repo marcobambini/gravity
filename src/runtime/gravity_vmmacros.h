@@ -307,9 +307,9 @@
 #define RETURN_FIBER()                              return false
 #define RETURN_NOVALUE()                            return true
 #define RETURN_ERROR(...)                           do {                                                                                    \
-                                                        char buffer[4096];                                                                  \
-                                                        snprintf(buffer, sizeof(buffer), __VA_ARGS__);                                      \
-                                                        gravity_fiber_seterror(gravity_vm_fiber(vm), (const char *) buffer);                \
+                                                        char _buffer[4096];                                                                 \
+                                                        snprintf(_buffer, sizeof(_buffer), __VA_ARGS__);                                    \
+                                                        gravity_fiber_seterror(gravity_vm_fiber(vm), (const char *) _buffer);               \
                                                         gravity_vm_setslot(vm, VALUE_FROM_NULL, rindex);                                    \
                                                         return false;                                                                       \
                                                     } while(0)
