@@ -99,22 +99,14 @@ static bool gravity_env_keys(gravity_vm *vm, gravity_value_t *args, uint16_t npa
     RETURN_VALUE(VALUE_FROM_OBJECT(keys), rindex);
 }
 
-static bool gravity_env_argv(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(vm, args, nargs)
-    
-    if (argv)
-        RETURN_VALUE(VALUE_FROM_OBJECT(argv), rindex);
-
-    RETURN_VALUE(VALUE_FROM_NULL, rindex);
+static bool gravity_env_argc(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+   #pragma unused(vm, args, nargs)
+   RETURN_VALUE((argc != -1) ? VALUE_FROM_INT(argc) : VALUE_FROM_NULL, rindex);
 }
 
-static bool gravity_env_argc(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(vm, args, nargs)
-
-    if (argc != -1)
-        RETURN_VALUE(VALUE_FROM_INT(argc), rindex);
-
-    RETURN_VALUE(VALUE_FROM_NULL, rindex);
+static bool gravity_env_argv(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+   #pragma unused(vm, args, nargs)
+   RETURN_VALUE((argv) ? VALUE_FROM_OBJECT(argv) : VALUE_FROM_NULL, rindex);
 }
 
 // MARK: - Internals -
@@ -132,7 +124,6 @@ static void create_optional_class (void) {
     gravity_class_bind(meta, GRAVITY_INTERNAL_LOADAT_NAME, NEW_CLOSURE_VALUE(gravity_env_get));
     gravity_class_bind(meta, GRAVITY_INTERNAL_STOREAT_NAME, NEW_CLOSURE_VALUE(gravity_env_set));
 
-    // argc and argv properties
     gravity_closure_t *closure = NULL;
     closure = computed_property_create(NULL, NEW_FUNCTION(gravity_env_argc), NULL);
     gravity_class_bind(meta, "argc", VALUE_FROM_OBJECT(closure));
@@ -153,13 +144,12 @@ void gravity_env_register(gravity_vm *vm) {
 }
 
 void gravity_env_register_args(gravity_vm *vm, uint32_t _argc, const char **_argv) {
-    gravity_value_t tmp[_argc];
-    for (int i = 0; i < _argc; ++i) {
-        tmp[i] = VALUE_FROM_CSTRING(NULL, _argv[i]);
-    }
-
     argc = _argc;
-    argv = gravity_list_from_array(vm, argc, tmp);
+    argv = gravity_list_new(vm, argc);
+    for (int i = 0; i < _argc; ++i) {
+        gravity_value_t arg = VALUE_FROM_CSTRING(vm, _argv[i]);
+        marray_push(gravity_value_t, argv->array, arg);
+    }
 }
 
 void gravity_env_free (void) {
