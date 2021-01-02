@@ -221,6 +221,7 @@ typedef enum {
 #define GRAVITY_CLASS_SYSTEM_NAME       "System"
 #define GRAVITY_SYSTEM_PRINT_NAME       "print"
 #define GRAVITY_SYSTEM_PUT_NAME         "put"
+#define GRAVITY_SYSTEM_INPUT_NAME       "input"
 #define GRAVITY_SYSTEM_NANOTIME_NAME    "nanotime"
 
 #define GRAVITY_TOCLASS_NAME            "toClass"

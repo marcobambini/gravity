@@ -3141,6 +3141,15 @@ static bool system_print (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     return system_realprint(vm, args, nargs, rindex, true);
 }
 
+static bool system_input (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    #pragma unused(args,nargs)
+    char buffer[1024];
+    fgets(buffer, 1024, stdin);
+    // remove trailing newline captured by fgets
+    buffer[strlen(buffer) - 1] = 0;
+    RETURN_VALUE(VALUE_FROM_CSTRING(vm, buffer), rindex);
+}
+
 static bool system_get (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (args, nargs)
     gravity_value_t key = GET_VALUE(1);
@@ -3519,6 +3528,7 @@ void gravity_core_init (void) {
     gravity_class_bind(system_meta, GRAVITY_SYSTEM_NANOTIME_NAME, NEW_CLOSURE_VALUE(system_nanotime));
     gravity_class_bind(system_meta, GRAVITY_SYSTEM_PRINT_NAME, NEW_CLOSURE_VALUE(system_print));
     gravity_class_bind(system_meta, GRAVITY_SYSTEM_PUT_NAME, NEW_CLOSURE_VALUE(system_put));
+    gravity_class_bind(system_meta, GRAVITY_SYSTEM_INPUT_NAME, NEW_CLOSURE_VALUE(system_input));
     gravity_class_bind(system_meta, "exit", NEW_CLOSURE_VALUE(system_exit));
 
     closure = computed_property_create(NULL, NEW_FUNCTION(system_get), NEW_FUNCTION(system_set));
