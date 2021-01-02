@@ -3142,12 +3142,18 @@ static bool system_print (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 }
 
 static bool system_input (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(args,nargs)
+    // optional argument is a boolean flag
+    bool remove_trailing = true;
+    if (nargs >= 2 && VALUE_ISA_BOOL(GET_VALUE(1))) remove_trailing = VALUE_AS_BOOL(GET_VALUE(1));
+    
     char buffer[1024];
-    fgets(buffer, 1024, stdin);
-    // remove trailing newline captured by fgets
-    buffer[strlen(buffer) - 1] = 0;
-    RETURN_VALUE(VALUE_FROM_CSTRING(vm, buffer), rindex);
+    if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+        // remove trailing newline captured by fgets (default true)
+        if (remove_trailing) buffer[strlen(buffer) - 1] = 0;
+        RETURN_VALUE(VALUE_FROM_CSTRING(vm, buffer), rindex);
+    }
+    
+    RETURN_VALUE(VALUE_FROM_NULL, rindex);
 }
 
 static bool system_get (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
