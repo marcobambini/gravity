@@ -11,6 +11,7 @@
 #include "gravity_utils.h"
 #include "gravity_core.h"
 #include "gravity_vm.h"
+#include "gravity_opt_env.h"
 
 #define DEFAULT_OUTPUT "gravity.g"
 
@@ -420,6 +421,9 @@ int main (int argc, const char* argv[]) {
 
     // create VM
     gravity_vm *vm = gravity_vm_new(&delegate);
+
+    // pass argc and argv to the ENV class
+    gravity_env_register_args(vm, argc, argv);
 
     // check if input file is source code that needs to be compiled
     if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
