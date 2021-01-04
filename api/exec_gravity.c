@@ -42,7 +42,7 @@ int main(int argc, const char * argv[]) {
 
     // compile source into a closure
     gravity_compiler_t *compiler = gravity_compiler_create(&delegate);
-    gravity_closure_t *closure = gravity_compiler_run(compiler, source, strlen(source), 0, true);
+    gravity_closure_t *closure = gravity_compiler_run(compiler, source, strlen(source), 0, true, true);
     if (!closure) return -1;
 
     // setup a new VM and a new fiber
