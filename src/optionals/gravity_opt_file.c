@@ -384,8 +384,8 @@ static bool internal_file_iflush (gravity_vm *vm, gravity_value_t *args, uint16_
     RETURN_VALUE(VALUE_FROM_INT(result), rindex);
 }
 
-static bool internal_file_iisEOF (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    // var isEOF = file.isEOF()
+static bool internal_file_ieof (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // var isEOF = file.eof()
     UNUSED_PARAM(nargs);
     gravity_file_t *instance = VALUE_AS_FILE(args[0]);
     int result = feof(instance->file);
@@ -431,7 +431,7 @@ static void create_optional_class (void) {
     gravity_class_bind(gravity_class_file, "read", NEW_CLOSURE_VALUE(internal_file_iread));
     gravity_class_bind(gravity_class_file, "write", NEW_CLOSURE_VALUE(internal_file_iwrite));
     gravity_class_bind(gravity_class_file, "seek", NEW_CLOSURE_VALUE(internal_file_iseek));
-    gravity_class_bind(gravity_class_file, "isEOF", NEW_CLOSURE_VALUE(internal_file_iisEOF));
+    gravity_class_bind(gravity_class_file, "eof", NEW_CLOSURE_VALUE(internal_file_ieof));
     gravity_class_bind(gravity_class_file, "error", NEW_CLOSURE_VALUE(internal_file_ierror));
     gravity_class_bind(gravity_class_file, "flush", NEW_CLOSURE_VALUE(internal_file_iflush));
     gravity_class_bind(gravity_class_file, "close", NEW_CLOSURE_VALUE(internal_file_iclose));
