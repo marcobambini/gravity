@@ -26,6 +26,9 @@
 #include <tchar.h>
 #include <io.h>
 #endif
+#if defined(__EMSCRIPTEN__)
+#include <sys/time.h>
+#endif
 
 #include "gravity_utils.h"
 #include "gravity_macros.h"
