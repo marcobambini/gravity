@@ -321,3 +321,5 @@ gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/xcschememanagement.plis
 *.xcscheme
 examples/GravityCpp/GravityCpp.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/gravity.xcscheme
+binding/GravityObjC/GravityObjC.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+gravity.xcodeproj/xcuserdata/marco.xcuserdatad/xcschemes/gravity.xcscheme

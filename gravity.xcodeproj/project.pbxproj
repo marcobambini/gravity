@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A91DA59E256108D300AC32BD /* gravity_opt_file.c in Sources */ = {isa = PBXBuildFile; fileRef = A91DA59D256108D300AC32BD /* gravity_opt_file.c */; };
 		A9506D381E69AB66009A0045 /* gravity.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506CFC1E69AB1E009A0045 /* gravity.c */; };
 		A9506D3A1E69AB78009A0045 /* gravity_ast.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D001E69AB1E009A0045 /* gravity_ast.c */; };
 		A9506D3B1E69AB78009A0045 /* gravity_codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = A9506D021E69AB1E009A0045 /* gravity_codegen.c */; };
@@ -46,6 +47,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A91DA59C256108D300AC32BD /* gravity_opt_file.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_opt_file.h; sourceTree = "<group>"; };
+		A91DA59D256108D300AC32BD /* gravity_opt_file.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gravity_opt_file.c; sourceTree = "<group>"; };
 		A9506CF01E69AAEB009A0045 /* gravity */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gravity; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9506CFC1E69AB1E009A0045 /* gravity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gravity.c; sourceTree = "<group>"; };
 		A9506CFF1E69AB1E009A0045 /* debug_macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug_macros.h; sourceTree = "<group>"; };
@@ -231,6 +234,8 @@
 		A9BB72EB1F470832002FD2D6 /* optionals */ = {
 			isa = PBXGroup;
 			children = (
+				A91DA59D256108D300AC32BD /* gravity_opt_file.c */,
+				A91DA59C256108D300AC32BD /* gravity_opt_file.h */,
 				A9BB72EC1F470832002FD2D6 /* gravity_opt_math.c */,
 				A9BB72ED1F470832002FD2D6 /* gravity_opt_math.h */,
 				A989830423189DFF006F82BE /* gravity_opt_json.c */,
@@ -268,7 +273,7 @@
 		A9506CE81E69AAEB009A0045 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1230;
 				ORGANIZATIONNAME = Creolabs;
 				TargetAttributes = {
 					A9506CEF1E69AAEB009A0045 = {
@@ -312,6 +317,7 @@
 				A9506D411E69AB78009A0045 /* gravity_semacheck1.c in Sources */,
 				A9506D401E69AB78009A0045 /* gravity_parser.c in Sources */,
 				A9506D5C1E69AB8D009A0045 /* gravity_debug.c in Sources */,
+				A91DA59E256108D300AC32BD /* gravity_opt_file.c in Sources */,
 				A9506D381E69AB66009A0045 /* gravity.c in Sources */,
 				A9506D561E69AB86009A0045 /* gravity_hash.c in Sources */,
 				A9506D421E69AB78009A0045 /* gravity_semacheck2.c in Sources */,
@@ -355,6 +361,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -411,6 +418,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

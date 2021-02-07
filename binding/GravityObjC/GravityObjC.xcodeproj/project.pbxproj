@@ -1,0 +1,526 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A9F7641D25CFC9C80027A085 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A9F7641C25CFC9C80027A085 /* main.m */; };
+		A9F7646525CFCA1B0027A085 /* gravity_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7642825CFCA1B0027A085 /* gravity_utils.c */; };
+		A9F7646625CFCA1B0027A085 /* gravity_debug.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7642925CFCA1B0027A085 /* gravity_debug.c */; };
+		A9F7646725CFCA1B0027A085 /* gravity_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7642A25CFCA1B0027A085 /* gravity_json.c */; };
+		A9F7646825CFCA1B0027A085 /* gravity_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643425CFCA1B0027A085 /* gravity_parser.c */; };
+		A9F7646925CFCA1B0027A085 /* gravity_visitor.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643A25CFCA1B0027A085 /* gravity_visitor.c */; };
+		A9F7646A25CFCA1B0027A085 /* gravity_token.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643B25CFCA1B0027A085 /* gravity_token.c */; };
+		A9F7646B25CFCA1B0027A085 /* gravity_lexer.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643C25CFCA1B0027A085 /* gravity_lexer.c */; };
+		A9F7646C25CFCA1B0027A085 /* gravity_semacheck1.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643D25CFCA1B0027A085 /* gravity_semacheck1.c */; };
+		A9F7646D25CFCA1B0027A085 /* gravity_codegen.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643E25CFCA1B0027A085 /* gravity_codegen.c */; };
+		A9F7646E25CFCA1B0027A085 /* gravity_ast.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7643F25CFCA1B0027A085 /* gravity_ast.c */; };
+		A9F7646F25CFCA1B0027A085 /* gravity_symboltable.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644025CFCA1B0027A085 /* gravity_symboltable.c */; };
+		A9F7647025CFCA1B0027A085 /* gravity_semacheck2.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644225CFCA1B0027A085 /* gravity_semacheck2.c */; };
+		A9F7647125CFCA1B0027A085 /* gravity_compiler.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644425CFCA1B0027A085 /* gravity_compiler.c */; };
+		A9F7647225CFCA1B0027A085 /* gravity_optimizer.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644525CFCA1B0027A085 /* gravity_optimizer.c */; };
+		A9F7647325CFCA1B0027A085 /* gravity_ircode.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644725CFCA1B0027A085 /* gravity_ircode.c */; };
+		A9F7647425CFCA1B0027A085 /* gravity_hash.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644925CFCA1B0027A085 /* gravity_hash.c */; };
+		A9F7647525CFCA1B0027A085 /* gravity_value.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7644A25CFCA1B0027A085 /* gravity_value.c */; };
+		A9F7647625CFCA1B0027A085 /* gravity_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7645225CFCA1B0027A085 /* gravity_memory.c */; };
+		A9F7647725CFCA1B0027A085 /* gravity_opt_file.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7645725CFCA1B0027A085 /* gravity_opt_file.c */; };
+		A9F7647825CFCA1B0027A085 /* gravity_opt_env.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7645825CFCA1B0027A085 /* gravity_opt_env.c */; };
+		A9F7647925CFCA1B0027A085 /* gravity_opt_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7645A25CFCA1B0027A085 /* gravity_opt_json.c */; };
+		A9F7647A25CFCA1B0027A085 /* gravity_opt_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7645B25CFCA1B0027A085 /* gravity_opt_math.c */; };
+		A9F7647B25CFCA1B0027A085 /* gravity_vm.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7646025CFCA1B0027A085 /* gravity_vm.c */; };
+		A9F7647C25CFCA1B0027A085 /* gravity_core.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7646425CFCA1B0027A085 /* gravity_core.c */; };
+		A9F7648225CFCB230027A085 /* console.c in Sources */ = {isa = PBXBuildFile; fileRef = A9F7648125CFCB230027A085 /* console.c */; };
+		A9F7648625CFCF820027A085 /* gravity_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = A9F7648525CFCF820027A085 /* gravity_objc.m */; };
+		A9F7648C25CFD9680027A085 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9F7648B25CFD9680027A085 /* Foundation.framework */; };
+		A9F7649025CFDAA30027A085 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9F7648F25CFDAA30027A085 /* AppKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A9F7641725CFC9C80027A085 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A9F7641925CFC9C80027A085 /* GravityObjC */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GravityObjC; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9F7641C25CFC9C80027A085 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A9F7642825CFCA1B0027A085 /* gravity_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_utils.c; sourceTree = "<group>"; };
+		A9F7642925CFCA1B0027A085 /* gravity_debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_debug.c; sourceTree = "<group>"; };
+		A9F7642A25CFCA1B0027A085 /* gravity_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_json.c; sourceTree = "<group>"; };
+		A9F7642B25CFCA1B0027A085 /* gravity_debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_debug.h; sourceTree = "<group>"; };
+		A9F7642C25CFCA1B0027A085 /* gravity_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_utils.h; sourceTree = "<group>"; };
+		A9F7642D25CFCA1B0027A085 /* gravity_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_json.h; sourceTree = "<group>"; };
+		A9F7642F25CFCA1B0027A085 /* gravity_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_ast.h; sourceTree = "<group>"; };
+		A9F7643025CFCA1B0027A085 /* gravity_codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_codegen.h; sourceTree = "<group>"; };
+		A9F7643125CFCA1B0027A085 /* gravity_semacheck1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_semacheck1.h; sourceTree = "<group>"; };
+		A9F7643225CFCA1B0027A085 /* gravity_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_token.h; sourceTree = "<group>"; };
+		A9F7643325CFCA1B0027A085 /* gravity_lexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_lexer.h; sourceTree = "<group>"; };
+		A9F7643425CFCA1B0027A085 /* gravity_parser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_parser.c; sourceTree = "<group>"; };
+		A9F7643525CFCA1B0027A085 /* gravity_symboltable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_symboltable.h; sourceTree = "<group>"; };
+		A9F7643625CFCA1B0027A085 /* gravity_optimizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optimizer.h; sourceTree = "<group>"; };
+		A9F7643725CFCA1B0027A085 /* gravity_compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_compiler.h; sourceTree = "<group>"; };
+		A9F7643825CFCA1B0027A085 /* gravity_semacheck2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_semacheck2.h; sourceTree = "<group>"; };
+		A9F7643925CFCA1B0027A085 /* gravity_ircode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_ircode.h; sourceTree = "<group>"; };
+		A9F7643A25CFCA1B0027A085 /* gravity_visitor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_visitor.c; sourceTree = "<group>"; };
+		A9F7643B25CFCA1B0027A085 /* gravity_token.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_token.c; sourceTree = "<group>"; };
+		A9F7643C25CFCA1B0027A085 /* gravity_lexer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_lexer.c; sourceTree = "<group>"; };
+		A9F7643D25CFCA1B0027A085 /* gravity_semacheck1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_semacheck1.c; sourceTree = "<group>"; };
+		A9F7643E25CFCA1B0027A085 /* gravity_codegen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_codegen.c; sourceTree = "<group>"; };
+		A9F7643F25CFCA1B0027A085 /* gravity_ast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_ast.c; sourceTree = "<group>"; };
+		A9F7644025CFCA1B0027A085 /* gravity_symboltable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_symboltable.c; sourceTree = "<group>"; };
+		A9F7644125CFCA1B0027A085 /* gravity_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_parser.h; sourceTree = "<group>"; };
+		A9F7644225CFCA1B0027A085 /* gravity_semacheck2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_semacheck2.c; sourceTree = "<group>"; };
+		A9F7644325CFCA1B0027A085 /* debug_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug_macros.h; sourceTree = "<group>"; };
+		A9F7644425CFCA1B0027A085 /* gravity_compiler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_compiler.c; sourceTree = "<group>"; };
+		A9F7644525CFCA1B0027A085 /* gravity_optimizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_optimizer.c; sourceTree = "<group>"; };
+		A9F7644625CFCA1B0027A085 /* gravity_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_visitor.h; sourceTree = "<group>"; };
+		A9F7644725CFCA1B0027A085 /* gravity_ircode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_ircode.c; sourceTree = "<group>"; };
+		A9F7644925CFCA1B0027A085 /* gravity_hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_hash.c; sourceTree = "<group>"; };
+		A9F7644A25CFCA1B0027A085 /* gravity_value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_value.c; sourceTree = "<group>"; };
+		A9F7644B25CFCA1B0027A085 /* gravity_memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_memory.h; sourceTree = "<group>"; };
+		A9F7644C25CFCA1B0027A085 /* gravity_macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_macros.h; sourceTree = "<group>"; };
+		A9F7644D25CFCA1B0027A085 /* gravity_delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_delegate.h; sourceTree = "<group>"; };
+		A9F7644E25CFCA1B0027A085 /* gravity_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_array.h; sourceTree = "<group>"; };
+		A9F7644F25CFCA1B0027A085 /* gravity_hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_hash.h; sourceTree = "<group>"; };
+		A9F7645025CFCA1B0027A085 /* gravity_value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_value.h; sourceTree = "<group>"; };
+		A9F7645125CFCA1B0027A085 /* gravity_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_config.h; sourceTree = "<group>"; };
+		A9F7645225CFCA1B0027A085 /* gravity_memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_memory.c; sourceTree = "<group>"; };
+		A9F7645325CFCA1B0027A085 /* gravity_opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opcodes.h; sourceTree = "<group>"; };
+		A9F7645525CFCA1B0027A085 /* gravity_opt_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_json.h; sourceTree = "<group>"; };
+		A9F7645625CFCA1B0027A085 /* gravity_opt_math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_math.h; sourceTree = "<group>"; };
+		A9F7645725CFCA1B0027A085 /* gravity_opt_file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_file.c; sourceTree = "<group>"; };
+		A9F7645825CFCA1B0027A085 /* gravity_opt_env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_env.c; sourceTree = "<group>"; };
+		A9F7645A25CFCA1B0027A085 /* gravity_opt_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_json.c; sourceTree = "<group>"; };
+		A9F7645B25CFCA1B0027A085 /* gravity_opt_math.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_math.c; sourceTree = "<group>"; };
+		A9F7645C25CFCA1B0027A085 /* gravity_optionals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_optionals.h; sourceTree = "<group>"; };
+		A9F7645D25CFCA1B0027A085 /* gravity_opt_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_file.h; sourceTree = "<group>"; };
+		A9F7645E25CFCA1B0027A085 /* gravity_opt_env.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_env.h; sourceTree = "<group>"; };
+		A9F7646025CFCA1B0027A085 /* gravity_vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_vm.c; sourceTree = "<group>"; };
+		A9F7646125CFCA1B0027A085 /* gravity_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_core.h; sourceTree = "<group>"; };
+		A9F7646225CFCA1B0027A085 /* gravity_vm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_vm.h; sourceTree = "<group>"; };
+		A9F7646325CFCA1B0027A085 /* gravity_vmmacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_vmmacros.h; sourceTree = "<group>"; };
+		A9F7646425CFCA1B0027A085 /* gravity_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_core.c; sourceTree = "<group>"; };
+		A9F7647F25CFCB230027A085 /* main.gravity */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = main.gravity; path = ../../shared/main.gravity; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		A9F7648025CFCB230027A085 /* console.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = console.h; path = ../../shared/console.h; sourceTree = "<group>"; };
+		A9F7648125CFCB230027A085 /* console.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = console.c; path = ../../shared/console.c; sourceTree = "<group>"; };
+		A9F7648425CFCF820027A085 /* gravity_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_objc.h; sourceTree = "<group>"; };
+		A9F7648525CFCF820027A085 /* gravity_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = gravity_objc.m; sourceTree = "<group>"; };
+		A9F7648B25CFD9680027A085 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		A9F7648F25CFDAA30027A085 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A9F7641625CFC9C80027A085 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9F7648C25CFD9680027A085 /* Foundation.framework in Frameworks */,
+				A9F7649025CFDAA30027A085 /* AppKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A9F7641025CFC9C80027A085 = {
+			isa = PBXGroup;
+			children = (
+				A9F7641B25CFC9C80027A085 /* ObjC */,
+				A9F7642425CFC9D30027A085 /* Gravity */,
+				A9F7641A25CFC9C80027A085 /* Products */,
+				A9F7648A25CFD9680027A085 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		A9F7641A25CFC9C80027A085 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7641925CFC9C80027A085 /* GravityObjC */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A9F7641B25CFC9C80027A085 /* ObjC */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7641C25CFC9C80027A085 /* main.m */,
+				A9F7648425CFCF820027A085 /* gravity_objc.h */,
+				A9F7648525CFCF820027A085 /* gravity_objc.m */,
+				A9F7648125CFCB230027A085 /* console.c */,
+				A9F7648025CFCB230027A085 /* console.h */,
+				A9F7647F25CFCB230027A085 /* main.gravity */,
+			);
+			path = ObjC;
+			sourceTree = "<group>";
+		};
+		A9F7642425CFC9D30027A085 /* Gravity */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7642E25CFCA1B0027A085 /* compiler */,
+				A9F7645425CFCA1B0027A085 /* optionals */,
+				A9F7645F25CFCA1B0027A085 /* runtime */,
+				A9F7644825CFCA1B0027A085 /* shared */,
+				A9F7642725CFCA1B0027A085 /* utils */,
+			);
+			name = Gravity;
+			sourceTree = "<group>";
+		};
+		A9F7642725CFCA1B0027A085 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7642825CFCA1B0027A085 /* gravity_utils.c */,
+				A9F7642925CFCA1B0027A085 /* gravity_debug.c */,
+				A9F7642A25CFCA1B0027A085 /* gravity_json.c */,
+				A9F7642B25CFCA1B0027A085 /* gravity_debug.h */,
+				A9F7642C25CFCA1B0027A085 /* gravity_utils.h */,
+				A9F7642D25CFCA1B0027A085 /* gravity_json.h */,
+			);
+			name = utils;
+			path = ../../src/utils;
+			sourceTree = "<group>";
+		};
+		A9F7642E25CFCA1B0027A085 /* compiler */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7642F25CFCA1B0027A085 /* gravity_ast.h */,
+				A9F7643025CFCA1B0027A085 /* gravity_codegen.h */,
+				A9F7643125CFCA1B0027A085 /* gravity_semacheck1.h */,
+				A9F7643225CFCA1B0027A085 /* gravity_token.h */,
+				A9F7643325CFCA1B0027A085 /* gravity_lexer.h */,
+				A9F7643425CFCA1B0027A085 /* gravity_parser.c */,
+				A9F7643525CFCA1B0027A085 /* gravity_symboltable.h */,
+				A9F7643625CFCA1B0027A085 /* gravity_optimizer.h */,
+				A9F7643725CFCA1B0027A085 /* gravity_compiler.h */,
+				A9F7643825CFCA1B0027A085 /* gravity_semacheck2.h */,
+				A9F7643925CFCA1B0027A085 /* gravity_ircode.h */,
+				A9F7643A25CFCA1B0027A085 /* gravity_visitor.c */,
+				A9F7643B25CFCA1B0027A085 /* gravity_token.c */,
+				A9F7643C25CFCA1B0027A085 /* gravity_lexer.c */,
+				A9F7643D25CFCA1B0027A085 /* gravity_semacheck1.c */,
+				A9F7643E25CFCA1B0027A085 /* gravity_codegen.c */,
+				A9F7643F25CFCA1B0027A085 /* gravity_ast.c */,
+				A9F7644025CFCA1B0027A085 /* gravity_symboltable.c */,
+				A9F7644125CFCA1B0027A085 /* gravity_parser.h */,
+				A9F7644225CFCA1B0027A085 /* gravity_semacheck2.c */,
+				A9F7644325CFCA1B0027A085 /* debug_macros.h */,
+				A9F7644425CFCA1B0027A085 /* gravity_compiler.c */,
+				A9F7644525CFCA1B0027A085 /* gravity_optimizer.c */,
+				A9F7644625CFCA1B0027A085 /* gravity_visitor.h */,
+				A9F7644725CFCA1B0027A085 /* gravity_ircode.c */,
+			);
+			name = compiler;
+			path = ../../src/compiler;
+			sourceTree = "<group>";
+		};
+		A9F7644825CFCA1B0027A085 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7644925CFCA1B0027A085 /* gravity_hash.c */,
+				A9F7644A25CFCA1B0027A085 /* gravity_value.c */,
+				A9F7644B25CFCA1B0027A085 /* gravity_memory.h */,
+				A9F7644C25CFCA1B0027A085 /* gravity_macros.h */,
+				A9F7644D25CFCA1B0027A085 /* gravity_delegate.h */,
+				A9F7644E25CFCA1B0027A085 /* gravity_array.h */,
+				A9F7644F25CFCA1B0027A085 /* gravity_hash.h */,
+				A9F7645025CFCA1B0027A085 /* gravity_value.h */,
+				A9F7645125CFCA1B0027A085 /* gravity_config.h */,
+				A9F7645225CFCA1B0027A085 /* gravity_memory.c */,
+				A9F7645325CFCA1B0027A085 /* gravity_opcodes.h */,
+			);
+			name = shared;
+			path = ../../src/shared;
+			sourceTree = "<group>";
+		};
+		A9F7645425CFCA1B0027A085 /* optionals */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7645525CFCA1B0027A085 /* gravity_opt_json.h */,
+				A9F7645625CFCA1B0027A085 /* gravity_opt_math.h */,
+				A9F7645725CFCA1B0027A085 /* gravity_opt_file.c */,
+				A9F7645825CFCA1B0027A085 /* gravity_opt_env.c */,
+				A9F7645A25CFCA1B0027A085 /* gravity_opt_json.c */,
+				A9F7645B25CFCA1B0027A085 /* gravity_opt_math.c */,
+				A9F7645C25CFCA1B0027A085 /* gravity_optionals.h */,
+				A9F7645D25CFCA1B0027A085 /* gravity_opt_file.h */,
+				A9F7645E25CFCA1B0027A085 /* gravity_opt_env.h */,
+			);
+			name = optionals;
+			path = ../../src/optionals;
+			sourceTree = "<group>";
+		};
+		A9F7645F25CFCA1B0027A085 /* runtime */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7646025CFCA1B0027A085 /* gravity_vm.c */,
+				A9F7646125CFCA1B0027A085 /* gravity_core.h */,
+				A9F7646225CFCA1B0027A085 /* gravity_vm.h */,
+				A9F7646325CFCA1B0027A085 /* gravity_vmmacros.h */,
+				A9F7646425CFCA1B0027A085 /* gravity_core.c */,
+			);
+			name = runtime;
+			path = ../../src/runtime;
+			sourceTree = "<group>";
+		};
+		A9F7648A25CFD9680027A085 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A9F7648F25CFDAA30027A085 /* AppKit.framework */,
+				A9F7648B25CFD9680027A085 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A9F7641825CFC9C80027A085 /* GravityObjC */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9F7642025CFC9C80027A085 /* Build configuration list for PBXNativeTarget "GravityObjC" */;
+			buildPhases = (
+				A9F7641525CFC9C80027A085 /* Sources */,
+				A9F7641625CFC9C80027A085 /* Frameworks */,
+				A9F7641725CFC9C80027A085 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GravityObjC;
+			productName = GravityObjC;
+			productReference = A9F7641925CFC9C80027A085 /* GravityObjC */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A9F7641125CFC9C80027A085 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					A9F7641825CFC9C80027A085 = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = A9F7641425CFC9C80027A085 /* Build configuration list for PBXProject "GravityObjC" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A9F7641025CFC9C80027A085;
+			productRefGroup = A9F7641A25CFC9C80027A085 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A9F7641825CFC9C80027A085 /* GravityObjC */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A9F7641525CFC9C80027A085 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9F7647A25CFCA1B0027A085 /* gravity_opt_math.c in Sources */,
+				A9F7648225CFCB230027A085 /* console.c in Sources */,
+				A9F7646525CFCA1B0027A085 /* gravity_utils.c in Sources */,
+				A9F7641D25CFC9C80027A085 /* main.m in Sources */,
+				A9F7647725CFCA1B0027A085 /* gravity_opt_file.c in Sources */,
+				A9F7647225CFCA1B0027A085 /* gravity_optimizer.c in Sources */,
+				A9F7646E25CFCA1B0027A085 /* gravity_ast.c in Sources */,
+				A9F7647C25CFCA1B0027A085 /* gravity_core.c in Sources */,
+				A9F7647525CFCA1B0027A085 /* gravity_value.c in Sources */,
+				A9F7647025CFCA1B0027A085 /* gravity_semacheck2.c in Sources */,
+				A9F7646A25CFCA1B0027A085 /* gravity_token.c in Sources */,
+				A9F7646C25CFCA1B0027A085 /* gravity_semacheck1.c in Sources */,
+				A9F7646D25CFCA1B0027A085 /* gravity_codegen.c in Sources */,
+				A9F7646825CFCA1B0027A085 /* gravity_parser.c in Sources */,
+				A9F7646925CFCA1B0027A085 /* gravity_visitor.c in Sources */,
+				A9F7647B25CFCA1B0027A085 /* gravity_vm.c in Sources */,
+				A9F7647425CFCA1B0027A085 /* gravity_hash.c in Sources */,
+				A9F7647125CFCA1B0027A085 /* gravity_compiler.c in Sources */,
+				A9F7646B25CFCA1B0027A085 /* gravity_lexer.c in Sources */,
+				A9F7647325CFCA1B0027A085 /* gravity_ircode.c in Sources */,
+				A9F7647825CFCA1B0027A085 /* gravity_opt_env.c in Sources */,
+				A9F7646F25CFCA1B0027A085 /* gravity_symboltable.c in Sources */,
+				A9F7646725CFCA1B0027A085 /* gravity_json.c in Sources */,
+				A9F7648625CFCF820027A085 /* gravity_objc.m in Sources */,
+				A9F7647625CFCA1B0027A085 /* gravity_memory.c in Sources */,
+				A9F7647925CFCA1B0027A085 /* gravity_opt_json.c in Sources */,
+				A9F7646625CFCA1B0027A085 /* gravity_debug.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A9F7641E25CFC9C80027A085 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A9F7641F25CFC9C80027A085 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A9F7642125CFC9C80027A085 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = GQXYFFXCUX;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		A9F7642225CFC9C80027A085 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = GQXYFFXCUX;
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A9F7641425CFC9C80027A085 /* Build configuration list for PBXProject "GravityObjC" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9F7641E25CFC9C80027A085 /* Debug */,
+				A9F7641F25CFC9C80027A085 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9F7642025CFC9C80027A085 /* Build configuration list for PBXNativeTarget "GravityObjC" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9F7642125CFC9C80027A085 /* Debug */,
+				A9F7642225CFC9C80027A085 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A9F7641125CFC9C80027A085 /* Project object */;
+}
