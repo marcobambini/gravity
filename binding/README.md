@@ -14,6 +14,34 @@ Using these APIs, we can construct a Gravity class that acts as a bridge between
 
 A more manual approach should be followed for other languages that do not offer runtime introspection features (if it is not possible to extract methods and properties at runtime). A manual approach could be header extraction or a text file that contains all the necessary information to reconstruct the class (and that it must be manually parsed).
 
+Using the Objective-C binding is really easy. Basically it means to execute the `ObjC.register` method and then you can use any ObjC method/property. For example:
+```swift
+// to be later registered at runtime
+extern var ObjC;
+
+// list here all the ObjC classes to register and use
+var Alert
+
+func loadObjCClasses() {
+    Alert = ObjC.register("NSAlert")
+}
+
+func main() {
+    loadObjCClasses();
+    
+    // ObjC Hello World
+    var alert = Alert()
+    alert.messageText = "Hello World"
+    alert.informativeText = "Hello from Gravity!"
+    alert.runModal()
+    
+    return 0
+}
+```
+
+Result in macOS 11.2 is a modal dialog:  
+<img width="328" alt="objcrun" src="https://user-images.githubusercontent.com/11838145/107142243-bcfbde80-692d-11eb-9b38-af3bd68f67f1.png">
+
 
 #### Java
 Some users asked for a way to bind Java to Gravity. I am not a Java expert, but I am sure that it can be done and the process can be fully automated.
