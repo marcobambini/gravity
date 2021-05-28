@@ -1,6 +1,6 @@
 //
 //  gravity_array.h
-//    gravity
+//  gravity
 //
 //  Created by Marco Bambini on 31/07/14.
 //  Copyright (c) 2014 CreoLabs. All rights reserved.
