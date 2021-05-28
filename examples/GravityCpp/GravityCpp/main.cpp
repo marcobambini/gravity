@@ -93,6 +93,41 @@ static bool rect_test (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
     RETURN_NOVALUE();
 }
 
+// MARK: -
+
+static bool length_get (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // get self object which is the instance created in rect_create function
+    gravity_instance_t *instance = (gravity_instance_t *)GET_VALUE(0).p;
+    
+    // get xdata (which is a cpp Rectangle instance)
+    Rectangle *r = (Rectangle *)instance->xdata;
+    
+    RETURN_VALUE(VALUE_FROM_FLOAT(r->length), rindex);
+}
+
+static bool length_set (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
+    // get self object which is the instance created in rect_create function
+    gravity_instance_t *instance = (gravity_instance_t *)GET_VALUE(0).p;
+    
+    // get xdata (which is a cpp Rectangle instance)
+    Rectangle *r = (Rectangle *)instance->xdata;
+    
+    // read user value
+    gravity_value_t value = GET_VALUE(1);
+    
+    // decode value
+    double d = 0.0f;
+    if (VALUE_ISA_FLOAT(value)) d = VALUE_AS_FLOAT(value);
+    else if (VALUE_ISA_INT(value)) d = double(VALUE_AS_INT(value));
+    // more cases here, for example VALUE_ISA_STRING
+    
+    r->length = d;
+    
+    RETURN_NOVALUE();
+}
+
+// MARK: -
+
 static void object_free (gravity_vm *vm, gravity_object_t *obj) {
     gravity_instance_t *instance = (gravity_instance_t *)obj;
     
@@ -111,6 +146,7 @@ void register_cpp_classes (gravity_vm *vm) {
     gravity_class_bind(rect_class_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(rect_create));
     gravity_class_bind(rect_class, "area", NEW_CLOSURE_VALUE(rect_area));
     gravity_class_bind(rect_class, "test", NEW_CLOSURE_VALUE(rect_test));
+    gravity_class_bind(rect_class, "length", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(length_get), NEW_FUNCTION(length_set))));
     
     // register Rectangle class inside VM
     gravity_vm_setvalue(vm, "Rectangle", VALUE_FROM_OBJECT(rect_class));

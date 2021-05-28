@@ -10,6 +10,7 @@
 		A924B42E2427B9F700CDC9A7 /* gravity_opt_math.c in Sources */ = {isa = PBXBuildFile; fileRef = A924B42C2427B9F700CDC9A7 /* gravity_opt_math.c */; };
 		A924B4332427BA1B00CDC9A7 /* gravity_opt_json.c in Sources */ = {isa = PBXBuildFile; fileRef = A924B4312427BA1B00CDC9A7 /* gravity_opt_json.c */; };
 		A924B4342427BA1B00CDC9A7 /* gravity_opt_env.c in Sources */ = {isa = PBXBuildFile; fileRef = A924B4322427BA1B00CDC9A7 /* gravity_opt_env.c */; };
+		A9D48C7E26614B2A00D095CA /* gravity_opt_file.c in Sources */ = {isa = PBXBuildFile; fileRef = A9D48C7C26614B2A00D095CA /* gravity_opt_file.c */; };
 		A9D4A9C921D3854100F02B66 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A9D4A9C821D3854100F02B66 /* main.cpp */; };
 		A9D4AA0721D3855F00F02B66 /* gravity_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = A9D4A9DA21D3855F00F02B66 /* gravity_parser.c */; };
 		A9D4AA0821D3855F00F02B66 /* gravity_visitor.c in Sources */ = {isa = PBXBuildFile; fileRef = A9D4A9E021D3855F00F02B66 /* gravity_visitor.c */; };
@@ -52,6 +53,9 @@
 		A924B4302427BA1B00CDC9A7 /* gravity_opt_json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_json.h; sourceTree = "<group>"; };
 		A924B4312427BA1B00CDC9A7 /* gravity_opt_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_json.c; sourceTree = "<group>"; };
 		A924B4322427BA1B00CDC9A7 /* gravity_opt_env.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_env.c; sourceTree = "<group>"; };
+		A9D48C7B26614AFB00D095CA /* gravity_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gravity_config.h; sourceTree = "<group>"; };
+		A9D48C7C26614B2A00D095CA /* gravity_opt_file.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = gravity_opt_file.c; sourceTree = "<group>"; };
+		A9D48C7D26614B2A00D095CA /* gravity_opt_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gravity_opt_file.h; sourceTree = "<group>"; };
 		A9D4A9C521D3854100F02B66 /* GravityCpp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GravityCpp; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9D4A9C821D3854100F02B66 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		A9D4A9D121D3855F00F02B66 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -151,10 +155,12 @@
 				A9D4A9D221D3855F00F02B66 /* gravity_optionals.h */,
 				A924B42C2427B9F700CDC9A7 /* gravity_opt_math.c */,
 				A924B42D2427B9F700CDC9A7 /* gravity_opt_math.h */,
-				A924B4322427BA1B00CDC9A7 /* gravity_opt_env.c */,
-				A924B42F2427BA1B00CDC9A7 /* gravity_opt_env.h */,
 				A924B4312427BA1B00CDC9A7 /* gravity_opt_json.c */,
 				A924B4302427BA1B00CDC9A7 /* gravity_opt_json.h */,
+				A924B4322427BA1B00CDC9A7 /* gravity_opt_env.c */,
+				A924B42F2427BA1B00CDC9A7 /* gravity_opt_env.h */,
+				A9D48C7C26614B2A00D095CA /* gravity_opt_file.c */,
+				A9D48C7D26614B2A00D095CA /* gravity_opt_file.h */,
 			);
 			name = optionals;
 			path = ../../../src/optionals;
@@ -223,6 +229,7 @@
 		A9D4A9FB21D3855F00F02B66 /* shared */ = {
 			isa = PBXGroup;
 			children = (
+				A9D48C7B26614AFB00D095CA /* gravity_config.h */,
 				A9D4AA0221D3855F00F02B66 /* gravity_hash.h */,
 				A9D4A9FC21D3855F00F02B66 /* gravity_hash.c */,
 				A9D4A9FD21D3855F00F02B66 /* gravity_value.c */,
@@ -264,7 +271,7 @@
 		A9D4A9BD21D3854000F02B66 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1120;
+				LastUpgradeCheck = 1250;
 				ORGANIZATIONNAME = Creolabs;
 				TargetAttributes = {
 					A9D4A9C421D3854100F02B66 = {
@@ -307,6 +314,7 @@
 				A9D4AA0F21D3855F00F02B66 /* gravity_semacheck2.c in Sources */,
 				A924B4342427BA1B00CDC9A7 /* gravity_opt_env.c in Sources */,
 				A9D4A9C921D3854100F02B66 /* main.cpp in Sources */,
+				A9D48C7E26614B2A00D095CA /* gravity_opt_file.c in Sources */,
 				A9D4AA1A21D3855F00F02B66 /* gravity_memory.c in Sources */,
 				A9D4AA1721D3855F00F02B66 /* gravity_core.c in Sources */,
 				A9D4AA0B21D3855F00F02B66 /* gravity_semacheck1.c in Sources */,
@@ -351,6 +359,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -410,6 +419,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
