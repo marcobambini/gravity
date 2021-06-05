@@ -259,6 +259,8 @@ static void fix_superclasses (gvisitor_t *self) {
 }
 
 static const char *lookup_superclass_identifier (gvisitor_t *self, gravity_class_t *c) {
+    if (c->superlook) return c->superlook;
+    
     codegen_t       *data = (codegen_t *)self->data;
     gnode_class_r   *superfix = &data->superfix;
     
@@ -1288,10 +1290,10 @@ static void visit_class_decl (gvisitor_t *self, gnode_class_decl_t *node) {
             if (!node->superclass) report_error(self, (gnode_t*)node, "Unable to set superclass to non class object.");
         }
         
-        gnode_class_decl_t *super = (gnode_class_decl_t *)node->superclass;
         if (node->super_extern) {
-            gravity_class_setsuper_extern(c, super->identifier);
+            gravity_class_setsuper_extern(c, gnode_identifier((gnode_t*)node->superclass));
         } else {
+            gnode_class_decl_t *super = (gnode_class_decl_t *)node->superclass;
             if (super->data) {
                 // means that superclass has already been processed and its runtime representation is available
                 gravity_class_setsuper(c, (gravity_class_t *)super->data);

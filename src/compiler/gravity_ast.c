@@ -514,6 +514,18 @@ gnode_t *gnode_duplicate (gnode_t *node, bool deep) {
     return node;
 }
 
+const char *gnode_identifier (gnode_t *node) {
+    if (NODE_ISA(node, NODE_VARIABLE)) return ((gnode_var_t *)node)->identifier;
+    if (NODE_ISA(node, NODE_CLASS_DECL)) return ((gnode_class_decl_t *)node)->identifier;
+    if (NODE_ISA(node, NODE_IDENTIFIER_EXPR)) return ((gnode_identifier_expr_t *)node)->value;
+    
+    if (NODE_ISA(node, NODE_FUNCTION_DECL)) return ((gnode_function_decl_t *)node)->identifier;
+    if (NODE_ISA(node, NODE_ENUM_DECL)) return ((gnode_enum_decl_t *)node)->identifier;
+    if (NODE_ISA(node, NODE_MODULE_DECL)) return ((gnode_module_decl_t *)node)->identifier;
+    
+    return NULL;
+}
+
 // MARK: - AST deallocator -
 
 // STATEMENTS

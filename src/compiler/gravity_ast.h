@@ -287,6 +287,8 @@ gnode_t *gnode_postfix_expr_create (gtoken_s token, gnode_t *id, gnode_r *list, 
 gnode_t *gnode_list_expr_create (gtoken_s token, gnode_r *list1, gnode_r *list2, bool ismap, gnode_t *decl);
 
 gnode_t *gnode_duplicate (gnode_t *node, bool deep);
+const char *gnode_identifier (gnode_t *node);
+
 gnode_r *gnode_array_create (void);
 gnode_r *gnode_array_remove_byindex(gnode_r *list, size_t index);
 gupvalue_t *gnode_function_add_upvalue(gnode_function_decl_t *f, gnode_var_t *symbol, uint16_t n);

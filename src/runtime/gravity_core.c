@@ -1680,6 +1680,22 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     // retrieve class (with sanity check)
     if (!VALUE_ISA_CLASS(GET_VALUE(0))) RETURN_ERROR("Unable to execute non class object.");
     gravity_class_t *c = (gravity_class_t *)GET_VALUE(0).p;
+    
+    // lazy loading extern superclass
+    if (c->superlook) {
+        gravity_class_t *super = NULL;
+        gravity_value_t supervalue = gravity_vm_getvalue(vm, c->superlook, (int32_t)strlen(c->superlook));
+        if (VALUE_ISA_CLASS(supervalue)) super = VALUE_AS_CLASS(supervalue);
+        else RETURN_ERROR("Unable to find superclass %s for class %s.", c->superlook, c->identifier);
+        
+        mem_free(c->superlook);
+        c->superlook = NULL;
+        c->superclass = super;
+        
+        STATICVALUE_FROM_STRING(key, GRAVITY_INTERNAL_EXEC_NAME, strlen(GRAVITY_INTERNAL_EXEC_NAME));
+        gravity_closure_t *super_closure = gravity_class_lookup_closure(gravity_class_get_meta(super), key);
+        if (super_closure) RETURN_CLOSURE(VALUE_FROM_OBJECT(super_closure), rindex);
+    }
 
     // perform alloc (then check for init)
     gravity_gc_setenabled(vm, false);
