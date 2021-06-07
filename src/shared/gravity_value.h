@@ -501,6 +501,7 @@ GRAVITY_API gravity_instance_t  *gravity_instance_new (gravity_vm *vm, gravity_c
 GRAVITY_API gravity_instance_t  *gravity_instance_clone (gravity_vm *vm, gravity_instance_t *src_instance);
 GRAVITY_API void                gravity_instance_setivar (gravity_instance_t *instance, uint32_t idx, gravity_value_t value);
 GRAVITY_API void                gravity_instance_setxdata (gravity_instance_t *i, void *xdata);
+GRAVITY_API void                gravity_instance_deinit (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API void                gravity_instance_free (gravity_vm *vm, gravity_instance_t *i);
 GRAVITY_API gravity_closure_t   *gravity_instance_lookup_event (gravity_instance_t *i, const char *name);
 GRAVITY_API gravity_value_t     gravity_instance_lookup_property (gravity_vm *vm, gravity_instance_t *i, gravity_value_t key);

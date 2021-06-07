@@ -1680,6 +1680,14 @@ void gravity_instance_setxdata (gravity_instance_t *i, void *xdata) {
     i->xdata = xdata;
 }
 
+void gravity_instance_deinit (gravity_vm *vm, gravity_instance_t *i) {
+    STATICVALUE_FROM_STRING(key, CLASS_DESTRUCTOR_NAME, strlen(CLASS_DESTRUCTOR_NAME));
+    
+    // check for destructor
+    gravity_closure_t *closure = gravity_class_lookup_closure(i->objclass, key);
+    if (closure) gravity_vm_runclosure(vm, closure, VALUE_FROM_OBJECT(i), NULL, 0);
+}
+
 void gravity_instance_free (gravity_vm *vm, gravity_instance_t *i) {
     DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)i, true));
 
