@@ -113,6 +113,26 @@ static gnode_t *lookup_node (gnode_t *node, const char *identifier) {
     return symboltable_lookup(symtable, identifier);
 }
 
+static bool node_canbe_superclass (gnode_t *node) {
+    if (NODE_ISA(node, NODE_CLASS_DECL)) return true;
+    
+    if (NODE_ISA(node, NODE_VARIABLE_DECL)) {
+        // extern var can be superclass
+        // if not a real class the error will be triggered at runtime
+        gnode_variable_decl_t *var = (gnode_variable_decl_t *)node;
+        return (var->storage == TOK_KEY_EXTERN);
+    }
+    
+    if (NODE_ISA(node, NODE_VARIABLE)) {
+        // extern var can be superclass
+        // if not a real class the error will be triggered at runtime
+        gnode_var_t *var = (gnode_var_t *)node;
+        return (var->vdecl->storage == TOK_KEY_EXTERN);
+    }
+    
+    return false;
+}
+
 // lookup an identifier into a stack of symbol tables
 // location inside node is updated with the result
 // and node found is returned
@@ -175,7 +195,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
             // lookup identifier in super (if not found target class)
             gnode_class_decl_t *c = (gnode_class_decl_t *)target;
             gnode_class_decl_t *super = (gnode_class_decl_t *)c->superclass;
-            if (super && !NODE_ISA(super, NODE_CLASS_DECL)) {
+            if (super && !node_canbe_superclass((gnode_t *)super)) {
                 REPORT_ERROR(node, "Cannot set superclass of %s to non class object.", c->identifier);
                 return NULL;
             }
