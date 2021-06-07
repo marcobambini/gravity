@@ -61,6 +61,41 @@ A class method (or property) is a method (or property) that operates on class ob
 
 ```
 
+### Class constructors and destructors
+Class constructors get called whenever an object of that class is instantiated. Constructors can optionally have parameters.
+To add a constructor to your class, create a method called init().
+
+Class destructors get called when the object gets deleted/goes out of scope.
+To add a destructor to your class, create a method called deinit().
+```swift
+class MyClass {
+
+  private var _value;
+
+  // Constructor - called when the class is instantiated
+  func init(value) {
+
+    System.print("MyClass instantiated with value: " + value);
+    _value = value;
+
+  }
+
+  // Destructor - Called when the object instance of this class is destroyed/goes out of scope.
+  func deinit() {
+
+    System.print("MyClass instance deinitialized");
+
+  }
+}
+
+func main() {
+
+  // Instantiate MyClass
+  var instance = MyClass("Hello, World!");
+
+}
+```
+
 ### Getters and Setters:
 As a convenient way to execute some code when a property is read or written, Gravity fully support custom getters and setters:
 ```swift
