@@ -135,7 +135,12 @@ char *file_read(const char *path, size_t *len) {
     fsize = (off_t) file_size(path);
     if (fsize < 0) goto abort_read;
     
-    fd = open(path, O_RDONLY|O_BINARY);
+    int oflags = O_RDONLY;
+    #ifdef WIN32
+    // Only Windows needs to understand the difference between text and binary, so only Windows defines O_BINARY 
+    oflags |= O_BINARY;
+    #endif
+    fd = open(path, oflags);
     if (fd < 0) goto abort_read;
     
     buffer = (char *)mem_alloc(NULL, (size_t)fsize + 1);
