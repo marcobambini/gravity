@@ -25,20 +25,20 @@ typedef enum {
     SYMTABLE_TAG_ENUM = 4
 } symtable_tag;
 
-symboltable_t   *symboltable_create (symtable_tag tag);
-gnode_t         *symboltable_lookup (symboltable_t *table, const char *identifier);
-gnode_t         *symboltable_global_lookup (symboltable_t *table, const char *identifier);
-bool            symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *node);
 uint32_t        symboltable_count (symboltable_t *table, uint32_t index);
-symtable_tag    symboltable_tag (symboltable_t *table);
+symboltable_t  *symboltable_create (symtable_tag tag);
+gnode_t        *symboltable_global_lookup (symboltable_t *table, const char *identifier);
+bool            symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *node);
+gnode_t        *symboltable_lookup (symboltable_t *table, const char *identifier);
 uint16_t        symboltable_setivar (symboltable_t *table, bool is_static);
+symtable_tag    symboltable_tag (symboltable_t *table);
 
+void            symboltable_dump (symboltable_t *table);
 void            symboltable_enter_scope (symboltable_t *table);
 uint32_t        symboltable_exit_scope (symboltable_t *table, uint32_t *nlevel);
-uint32_t        symboltable_local_index (symboltable_t *table);
 void            symboltable_free (symboltable_t *table);
-void            symboltable_dump (symboltable_t *table);
+uint32_t        symboltable_local_index (symboltable_t *table);
 
-void            *symboltable_hash_atindex (symboltable_t *table, size_t n);
+void           *symboltable_hash_atindex (symboltable_t *table, size_t n);
 
 #endif
