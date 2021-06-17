@@ -11,8 +11,8 @@
 
 #include "gravity_opcodes.h"
 
-const char *opcode_constname (int n);
-const char *opcode_name (opcode_t op);
-const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const char *bcode, uint32_t blen, bool deserialize);
+GRAVITY_API const char *opcode_constname (int n);
+GRAVITY_API const char *opcode_name (opcode_t op);
+GRAVITY_API const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const char *bcode, uint32_t blen, bool deserialize);
 
 #endif

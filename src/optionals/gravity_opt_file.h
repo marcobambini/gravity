@@ -13,9 +13,9 @@
 
 #include "gravity_value.h"
 
-void gravity_file_register (gravity_vm *vm);
-void gravity_file_free (void);
-bool gravity_isfile_class (gravity_class_t *c);
-const char *gravity_file_name (void);
+GRAVITY_API void gravity_file_register (gravity_vm *vm);
+GRAVITY_API void gravity_file_free (void);
+GRAVITY_API bool gravity_isfile_class (gravity_class_t *c);
+GRAVITY_API const char *gravity_file_name (void);
 
 #endif

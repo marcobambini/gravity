@@ -14,6 +14,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include "gravity_common.h"
+
 // memory debugger must be turned on ONLY with Xcode GuardMalloc ON
 #define GRAVITY_MEMORY_DEBUG            0
 
@@ -47,21 +49,21 @@ typedef struct gravity_vm                gravity_vm;
 #endif
 
 #if GRAVITY_MEMORY_DEBUG
-void    memdebug_init (void);
-void   *memdebug_calloc (gravity_vm *vm, size_t num, size_t size);
-void   *memdebug_malloc (gravity_vm *vm, size_t size);
-void   *memdebug_malloc0 (gravity_vm *vm, size_t size);
-void   *memdebug_realloc (gravity_vm *vm, void *ptr, size_t new_size);
+GRAVITY_API void    memdebug_init (void);
+GRAVITY_API void   *memdebug_calloc (gravity_vm *vm, size_t num, size_t size);
+GRAVITY_API void   *memdebug_malloc (gravity_vm *vm, size_t size);
+GRAVITY_API void   *memdebug_malloc0 (gravity_vm *vm, size_t size);
+GRAVITY_API void   *memdebug_realloc (gravity_vm *vm, void *ptr, size_t new_size);
 
-void    memdebug_free (void *ptr);
-size_t  memdebug_leaks (void);
-bool    memdebug_remove (void *ptr);
-void    memdebug_setcheck (bool flag);
-void    memdebug_stat (void);
-size_t  memdebug_status (void);
+GRAVITY_API void    memdebug_free (void *ptr);
+GRAVITY_API size_t  memdebug_leaks (void);
+GRAVITY_API bool    memdebug_remove (void *ptr);
+GRAVITY_API void    memdebug_setcheck (bool flag);
+GRAVITY_API void    memdebug_stat (void);
+GRAVITY_API size_t  memdebug_status (void);
 #else
-void    *gravity_calloc (gravity_vm *vm, size_t count, size_t size);
-void    *gravity_realloc (gravity_vm *vm, void *ptr, size_t new_size);
+GRAVITY_API void    *gravity_calloc (gravity_vm *vm, size_t count, size_t size);
+GRAVITY_API void    *gravity_realloc (gravity_vm *vm, void *ptr, size_t new_size);
 #endif
 
 #endif
