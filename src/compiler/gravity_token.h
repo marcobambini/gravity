@@ -115,34 +115,34 @@ typedef struct gtoken_s         gtoken_s;
 #define TOKEN_BYTES(_tok)       _tok.bytes
 #define TOKEN_VALUE(_tok)       _tok.value
 
-const char      *token_string (gtoken_s token, uint32_t *len);
-const char      *token_name (gtoken_t token);
 gtoken_t        token_keyword (const char *buffer, int32_t len);
-gtoken_t        token_special_builtin(gtoken_s *token);
 void            token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end);
-const char      *token_literal_name (gliteral_t value);
+const char     *token_literal_name (gliteral_t value);
+const char     *token_name (gtoken_t token);
+gtoken_t        token_special_builtin(gtoken_s *token);
+const char     *token_string (gtoken_s token, uint32_t *len);
 
-bool            token_islabel_statement (gtoken_t token);
-bool            token_isflow_statement (gtoken_t token);
-bool            token_isloop_statement (gtoken_t token);
-bool            token_isjump_statement (gtoken_t token);
+bool            token_isassignment (gtoken_t token);
+bool            token_isaccess_specifier (gtoken_t token);
 bool            token_iscompound_statement (gtoken_t token);
 bool            token_isdeclaration_statement (gtoken_t token);
-bool            token_isempty_statement (gtoken_t token);
-bool            token_isimport_statement (gtoken_t token);
-bool            token_isspecial_statement (gtoken_t token);
-bool            token_isoperator (gtoken_t token);
-bool            token_ismacro (gtoken_t token);
-bool            token_iserror (gtoken_t token);
 bool            token_iseof (gtoken_t token);
-bool            token_isidentifier (gtoken_t token);
-bool            token_isvariable_declaration (gtoken_t token);
-bool            token_isstatement (gtoken_t token);
-bool            token_isassignment (gtoken_t token);
-bool            token_isvariable_assignment (gtoken_t token);
-bool            token_isaccess_specifier (gtoken_t token);
-bool            token_isstorage_specifier (gtoken_t token);
-bool            token_isprimary_expression (gtoken_t token);
+bool            token_isempty_statement (gtoken_t token);
+bool            token_iserror (gtoken_t token);
 bool            token_isexpression_statement (gtoken_t token);
+bool            token_isflow_statement (gtoken_t token);
+bool            token_isjump_statement (gtoken_t token);
+bool            token_islabel_statement (gtoken_t token);
+bool            token_isloop_statement (gtoken_t token);
+bool            token_isidentifier (gtoken_t token);
+bool            token_isimport_statement (gtoken_t token);
+bool            token_ismacro (gtoken_t token);
+bool            token_isoperator (gtoken_t token);
+bool            token_isprimary_expression (gtoken_t token);
+bool            token_isspecial_statement (gtoken_t token);
+bool            token_isstatement (gtoken_t token);
+bool            token_isstorage_specifier (gtoken_t token);
+bool            token_isvariable_assignment (gtoken_t token);
+bool            token_isvariable_declaration (gtoken_t token);
 
 #endif

@@ -40,18 +40,20 @@
 typedef struct gravity_lexer_t gravity_lexer_t;
 
 // public functions
-gravity_lexer_t     *gravity_lexer_create (const char *source, size_t len, uint32_t fileid, bool is_static);
-void                gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_delegate_t *delegate);
+gravity_lexer_t    *gravity_lexer_create (const char *source, size_t len, uint32_t fileid, bool is_static);
 void                gravity_lexer_free (gravity_lexer_t *lexer);
+void                gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_delegate_t *delegate);
 
-gtoken_t            gravity_lexer_peek (gravity_lexer_t *lexer);
 gtoken_t            gravity_lexer_next (gravity_lexer_t *lexer);
+gtoken_t            gravity_lexer_peek (gravity_lexer_t *lexer);
+void                gravity_lexer_skip_line (gravity_lexer_t *lexer);
+
+uint32_t            gravity_lexer_lineno (gravity_lexer_t *lexer);
 gtoken_s            gravity_lexer_token (gravity_lexer_t *lexer);
+void                gravity_lexer_token_dump (gtoken_s token);
 gtoken_s            gravity_lexer_token_next (gravity_lexer_t *lexer);
 gtoken_t            gravity_lexer_token_type (gravity_lexer_t *lexer);
-void                gravity_lexer_token_dump (gtoken_s token);
-void                gravity_lexer_skip_line (gravity_lexer_t *lexer);
-uint32_t            gravity_lexer_lineno (gravity_lexer_t *lexer);
+
 
 #if GRAVITY_LEXER_DEGUB
 void                gravity_lexer_debug (gravity_lexer_t *lexer);
