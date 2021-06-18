@@ -560,7 +560,7 @@ GRAVITY_API gravity_range_t    *gravity_range_new (gravity_vm *vm, gravity_int_t
 GRAVITY_API void                gravity_range_serialize (gravity_range_t *r, json_t *json);
 GRAVITY_API uint32_t            gravity_range_size (gravity_vm *vm, gravity_range_t *range);
 
-/// MARK: - STRING -
+// MARK: - STRING -
 GRAVITY_API void                gravity_string_blacken (gravity_vm *vm, gravity_string_t *string);
 GRAVITY_API void                gravity_string_free (gravity_vm *vm, gravity_string_t *value);
 GRAVITY_API gravity_string_t   *gravity_string_new (gravity_vm *vm, char *s, uint32_t len, uint32_t alloc);
