@@ -573,13 +573,6 @@ GRAVITY_API void                gravity_string_free (gravity_vm *vm, gravity_str
 GRAVITY_API void                gravity_string_blacken (gravity_vm *vm, gravity_string_t *string);
 GRAVITY_API uint32_t            gravity_string_size (gravity_vm *vm, gravity_string_t *string);
 
-// MARK: - CALLBACKS -
-// HASH FREE CALLBACK FUNCTION
-GRAVITY_API void                gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
-GRAVITY_API void                gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
-GRAVITY_API void                gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
-GRAVITY_API void                gravity_hash_finteralfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
-
 #ifdef __cplusplus
 }
 #endif
