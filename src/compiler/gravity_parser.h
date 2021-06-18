@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_PARSER__
 #define __GRAVITY_PARSER__
 
+#include "gravity_common.h"
+
 #include "gravity_compiler.h"
 #include "debug_macros.h"
 #include "gravity_ast.h"
@@ -32,8 +34,8 @@
 typedef struct gravity_parser_t    gravity_parser_t;
 
 // public functions
-gravity_parser_t   *gravity_parser_create (const char *source, size_t len, uint32_t fileid, bool is_static);
-void                gravity_parser_free (gravity_parser_t *parser);
-gnode_t            *gravity_parser_run (gravity_parser_t *parser, gravity_delegate_t *delegate);
+GRTAVITY_API gravity_parser_t   *gravity_parser_create (const char *source, size_t len, uint32_t fileid, bool is_static);
+GRTAVITY_API void                gravity_parser_free (gravity_parser_t *parser);
+GRTAVITY_API gnode_t            *gravity_parser_run (gravity_parser_t *parser, gravity_delegate_t *delegate);
 
 #endif

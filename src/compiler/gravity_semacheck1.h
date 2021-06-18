@@ -54,9 +54,11 @@
 // It's a mandatory step in order to account for forward references
 // allowed in any non-local declaration
 
+#include "gravity_common.h"
+
 #include "gravity_ast.h"
 #include "gravity_delegate.h"
 
-bool gravity_semacheck1(gnode_t *node, gravity_delegate_t *delegate);
+GRAVITY_API bool gravity_semacheck1(gnode_t *node, gravity_delegate_t *delegate);
 
 #endif

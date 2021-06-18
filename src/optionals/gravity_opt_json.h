@@ -11,6 +11,7 @@
 
 #define GRAVITY_CLASS_JSON_NAME         "JSON"
 
+#include "gravity_common.h"
 #include "gravity_value.h"
 
 GRAVITY_API void gravity_json_register (gravity_vm *vm);

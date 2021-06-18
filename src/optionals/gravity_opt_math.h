@@ -11,6 +11,7 @@
 
 #define GRAVITY_CLASS_MATH_NAME             "Math"
 
+#include "gravity_common.h"
 #include "gravity_value.h"
 
 GRAVITY_API void gravity_math_register (gravity_vm *vm);

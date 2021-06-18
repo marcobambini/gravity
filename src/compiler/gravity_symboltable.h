@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_SYMTABLE__
 #define __GRAVITY_SYMTABLE__
 
+#include "gravity_common.h"
+
 #include "debug_macros.h"
 #include "gravity_ast.h"
 
@@ -25,20 +27,20 @@ typedef enum {
     SYMTABLE_TAG_ENUM = 4
 } symtable_tag;
 
-uint32_t        symboltable_count (symboltable_t *table, uint32_t index);
-symboltable_t  *symboltable_create (symtable_tag tag);
-gnode_t        *symboltable_global_lookup (symboltable_t *table, const char *identifier);
-bool            symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *node);
-gnode_t        *symboltable_lookup (symboltable_t *table, const char *identifier);
-uint16_t        symboltable_setivar (symboltable_t *table, bool is_static);
-symtable_tag    symboltable_tag (symboltable_t *table);
+GRTAVITY_API uint32_t        symboltable_count (symboltable_t *table, uint32_t index);
+GRTAVITY_API symboltable_t  *symboltable_create (symtable_tag tag);
+GRTAVITY_API gnode_t        *symboltable_global_lookup (symboltable_t *table, const char *identifier);
+GRTAVITY_API bool            symboltable_insert (symboltable_t *table, const char *identifier, gnode_t *node);
+GRTAVITY_API gnode_t        *symboltable_lookup (symboltable_t *table, const char *identifier);
+GRTAVITY_API uint16_t        symboltable_setivar (symboltable_t *table, bool is_static);
+GRTAVITY_API symtable_tag    symboltable_tag (symboltable_t *table);
 
-void            symboltable_dump (symboltable_t *table);
-void            symboltable_enter_scope (symboltable_t *table);
-uint32_t        symboltable_exit_scope (symboltable_t *table, uint32_t *nlevel);
-void            symboltable_free (symboltable_t *table);
-uint32_t        symboltable_local_index (symboltable_t *table);
+GRTAVITY_API void            symboltable_dump (symboltable_t *table);
+GRTAVITY_API void            symboltable_enter_scope (symboltable_t *table);
+GRTAVITY_API uint32_t        symboltable_exit_scope (symboltable_t *table, uint32_t *nlevel);
+GRTAVITY_API void            symboltable_free (symboltable_t *table);
+GRTAVITY_API uint32_t        symboltable_local_index (symboltable_t *table);
 
-void           *symboltable_hash_atindex (symboltable_t *table, size_t n);
+GRTAVITY_API void           *symboltable_hash_atindex (symboltable_t *table, size_t n);
 
 #endif

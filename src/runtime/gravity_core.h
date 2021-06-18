@@ -9,6 +9,7 @@
 #ifndef __GRAVITY_CORE__
 #define __GRAVITY_CORE__
 
+#include "gravity_common.h"
 #include "gravity_vm.h"
 
 #ifdef __cplusplus

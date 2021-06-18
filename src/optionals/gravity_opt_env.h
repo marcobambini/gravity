@@ -3,6 +3,7 @@
 
 #define GRAVITY_CLASS_ENV_NAME "ENV"
 
+#include "gravity_common.h"
 #include "gravity_value.h"
 
 GRAVITY_API void gravity_env_register (gravity_vm *vm);

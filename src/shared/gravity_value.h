@@ -10,6 +10,7 @@
 #define __GRAVITY_VALUES__
 
 #include "gravity_common.h"
+
 #include "gravity_memory.h"
 #include "gravity_utils.h"
 #include "gravity_array.h"

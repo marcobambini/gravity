@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_CODEGEN__
 #define __GRAVITY_CODEGEN__
 
+#include "gravity_common.h"
+
 #include "gravity_ast.h"
 #include "gravity_value.h"
 #include "gravity_delegate.h"

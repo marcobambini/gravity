@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_COMPILER__
 #define __GRAVITY_COMPILER__
 
+#include "gravity_common.h"
+
 #include "gravity_delegate.h"
 #include "debug_macros.h"
 #include "gravity_utils.h"

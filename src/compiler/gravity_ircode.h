@@ -23,6 +23,8 @@
 // the value on the operand stack. On the other hand, local variables (also registers) are long-lived and their life scope is
 // the time of method execution.
 
+#include "gravity_common.h"
+
 #include "debug_macros.h"
 #include "gravity_opcodes.h"
 #include "gravity_array.h"
@@ -55,42 +57,42 @@ typedef struct {
 
 typedef struct ircode_t ircode_t;
 
-uint32_t    ircode_count (ircode_t *code);
-ircode_t   *ircode_create (uint16_t nlocals);
-void        ircode_dump (void *code);
-void        ircode_free (ircode_t *code);
-inst_t     *ircode_get (ircode_t *code, uint32_t index);
-bool        ircode_iserror (ircode_t *code);
-uint32_t    ircode_ntemps (ircode_t *code);
-void        ircode_patch_init (ircode_t *code, uint16_t index);
-void        ircode_pop_context (ircode_t *code);
-void        ircode_push_context (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_count (ircode_t *code);
+GRTAVITY_API ircode_t   *ircode_create (uint16_t nlocals);
+GRTAVITY_API void        ircode_dump (void *code);
+GRTAVITY_API void        ircode_free (ircode_t *code);
+GRTAVITY_API inst_t     *ircode_get (ircode_t *code, uint32_t index);
+GRTAVITY_API bool        ircode_iserror (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_ntemps (ircode_t *code);
+GRTAVITY_API void        ircode_patch_init (ircode_t *code, uint16_t index);
+GRTAVITY_API void        ircode_pop_context (ircode_t *code);
+GRTAVITY_API void        ircode_push_context (ircode_t *code);
 
-uint32_t    ircode_getlabel_check (ircode_t *code);
-uint32_t    ircode_getlabel_false (ircode_t *code);
-uint32_t    ircode_getlabel_true (ircode_t *code);
-void        ircode_marklabel (ircode_t *code, uint32_t nlabel, uint32_t lineno);
-uint32_t    ircode_newlabel (ircode_t *code);
-void        ircode_setlabel_check (ircode_t *code, uint32_t nlabel);
-void        ircode_setlabel_false (ircode_t *code, uint32_t nlabel);
-void        ircode_setlabel_true (ircode_t *code, uint32_t nlabel);
-void        ircode_unsetlabel_check (ircode_t *code);
-void        ircode_unsetlabel_false (ircode_t *code);
-void        ircode_unsetlabel_true (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_getlabel_check (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_getlabel_false (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_getlabel_true (ircode_t *code);
+GRTAVITY_API void        ircode_marklabel (ircode_t *code, uint32_t nlabel, uint32_t lineno);
+GRTAVITY_API uint32_t    ircode_newlabel (ircode_t *code);
+GRTAVITY_API void        ircode_setlabel_check (ircode_t *code, uint32_t nlabel);
+GRTAVITY_API void        ircode_setlabel_false (ircode_t *code, uint32_t nlabel);
+GRTAVITY_API void        ircode_setlabel_true (ircode_t *code, uint32_t nlabel);
+GRTAVITY_API void        ircode_unsetlabel_check (ircode_t *code);
+GRTAVITY_API void        ircode_unsetlabel_false (ircode_t *code);
+GRTAVITY_API void        ircode_unsetlabel_true (ircode_t *code);
 
-void        inst_setskip (inst_t *inst);
-uint8_t     opcode_numop (opcode_t op);
+GRTAVITY_API void        inst_setskip (inst_t *inst);
+GRTAVITY_API uint8_t     opcode_numop (opcode_t op);
 
-void        ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t lineno);
-void        ircode_add_array (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_r r, uint32_t lineno);
-void        ircode_add_check (ircode_t *code);
-void        ircode_add_constant (ircode_t *code, uint32_t index, uint32_t lineno);
-void        ircode_add_double (ircode_t *code, double d, uint32_t lineno);
-void        ircode_add_int (ircode_t *code, int64_t n, uint32_t lineno);
-void        ircode_add_skip (ircode_t *code, uint32_t lineno);
-void        ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, uint32_t lineno);
-void        ircode_pragma (ircode_t *code, optag_t tag, uint32_t value, uint32_t lineno);
-void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
+GRTAVITY_API void        ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t lineno);
+GRTAVITY_API void        ircode_add_array (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_r r, uint32_t lineno);
+GRTAVITY_API void        ircode_add_check (ircode_t *code);
+GRTAVITY_API void        ircode_add_constant (ircode_t *code, uint32_t index, uint32_t lineno);
+GRTAVITY_API void        ircode_add_double (ircode_t *code, double d, uint32_t lineno);
+GRTAVITY_API void        ircode_add_int (ircode_t *code, int64_t n, uint32_t lineno);
+GRTAVITY_API void        ircode_add_skip (ircode_t *code, uint32_t lineno);
+GRTAVITY_API void        ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, uint32_t lineno);
+GRTAVITY_API void        ircode_pragma (ircode_t *code, optag_t tag, uint32_t value, uint32_t lineno);
+GRTAVITY_API void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
 
 // IMPORTANT NOTE
 //
@@ -103,23 +105,23 @@ void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint3
 // ircode_register_push_temp
 //
 
-bool        ircode_register_istemp (ircode_t *code, uint32_t n);
-uint32_t    ircode_register_push_temp (ircode_t *code);
-uint32_t    ircode_register_push_temp_protected (ircode_t *code);
-uint32_t    ircode_register_push (ircode_t *code, uint32_t nreg);
-uint32_t    ircode_register_pop (ircode_t *code);
-uint32_t    ircode_register_first_temp_available (ircode_t *code);
-uint32_t    ircode_register_pop_context_protect (ircode_t *code, bool protect);
-bool        ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg);
-void        ircode_register_protect_in_context (ircode_t *code, uint32_t nreg);
-uint32_t    ircode_register_last (ircode_t *code);
-uint32_t    ircode_register_count (ircode_t *code);
-void        ircode_register_clear (ircode_t *code, uint32_t nreg);
-void        ircode_register_set (ircode_t *code, uint32_t nreg);
-void        ircode_register_dump (ircode_t *code);
+GRTAVITY_API bool        ircode_register_istemp (ircode_t *code, uint32_t n);
+GRTAVITY_API uint32_t    ircode_register_push_temp (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_register_push_temp_protected (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_register_push (ircode_t *code, uint32_t nreg);
+GRTAVITY_API uint32_t    ircode_register_pop (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_register_first_temp_available (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_register_pop_context_protect (ircode_t *code, bool protect);
+GRTAVITY_API bool        ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg);
+GRTAVITY_API void        ircode_register_protect_in_context (ircode_t *code, uint32_t nreg);
+GRTAVITY_API uint32_t    ircode_register_last (ircode_t *code);
+GRTAVITY_API uint32_t    ircode_register_count (ircode_t *code);
+GRTAVITY_API void        ircode_register_clear (ircode_t *code, uint32_t nreg);
+GRTAVITY_API void        ircode_register_set (ircode_t *code, uint32_t nreg);
+GRTAVITY_API void        ircode_register_dump (ircode_t *code);
 
-void        ircode_register_temp_protect (ircode_t *code, uint32_t nreg);
-void        ircode_register_temp_unprotect (ircode_t *code, uint32_t nreg);
-void        ircode_register_temps_clear (ircode_t *code);
+GRTAVITY_API void        ircode_register_temp_protect (ircode_t *code, uint32_t nreg);
+GRTAVITY_API void        ircode_register_temp_unprotect (ircode_t *code, uint32_t nreg);
+GRTAVITY_API void        ircode_register_temps_clear (ircode_t *code);
 
 #endif

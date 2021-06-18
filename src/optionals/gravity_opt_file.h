@@ -11,6 +11,7 @@
 
 #define GRAVITY_CLASS_FILE_NAME             "File"
 
+#include "gravity_common.h"
 #include "gravity_value.h"
 
 GRAVITY_API void gravity_file_register (gravity_vm *vm);

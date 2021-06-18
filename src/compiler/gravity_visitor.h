@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_VISITOR__
 #define __GRAVITY_VISITOR__
 
+#include "gravity_common.h"
+
 #include "gravity_ast.h"
 
 #define visit(node) gvisit(self, node)
@@ -52,6 +54,6 @@ typedef struct gvisitor {
     void (* visit_postfix_expr)(struct gvisitor *self, gnode_postfix_expr_t *node);
 } gvisitor_t;
 
-void gvisit(gvisitor_t *self, gnode_t *node);
+GRAVITY_API void gvisit(gvisitor_t *self, gnode_t *node);
 
 #endif
