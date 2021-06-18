@@ -34,8 +34,8 @@
 typedef struct gravity_parser_t    gravity_parser_t;
 
 // public functions
-GRTAVITY_API gravity_parser_t   *gravity_parser_create (const char *source, size_t len, uint32_t fileid, bool is_static);
-GRTAVITY_API void                gravity_parser_free (gravity_parser_t *parser);
-GRTAVITY_API gnode_t            *gravity_parser_run (gravity_parser_t *parser, gravity_delegate_t *delegate);
+GRAVITY_API gravity_parser_t   *gravity_parser_create (const char *source, size_t len, uint32_t fileid, bool is_static);
+GRAVITY_API void                gravity_parser_free (gravity_parser_t *parser);
+GRAVITY_API gnode_t            *gravity_parser_run (gravity_parser_t *parser, gravity_delegate_t *delegate);
 
 #endif

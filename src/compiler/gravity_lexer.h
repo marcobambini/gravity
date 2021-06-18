@@ -42,23 +42,23 @@
 typedef struct gravity_lexer_t gravity_lexer_t;
 
 // public functions
-GRTAVITY_API gravity_lexer_t    *gravity_lexer_create (const char *source, size_t len, uint32_t fileid, bool is_static);
-GRTAVITY_API void                gravity_lexer_free (gravity_lexer_t *lexer);
-GRTAVITY_API void                gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_delegate_t *delegate);
+GRAVITY_API gravity_lexer_t    *gravity_lexer_create (const char *source, size_t len, uint32_t fileid, bool is_static);
+GRAVITY_API void                gravity_lexer_free (gravity_lexer_t *lexer);
+GRAVITY_API void                gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_delegate_t *delegate);
 
-GRTAVITY_API gtoken_t            gravity_lexer_next (gravity_lexer_t *lexer);
-GRTAVITY_API gtoken_t            gravity_lexer_peek (gravity_lexer_t *lexer);
-GRTAVITY_API void                gravity_lexer_skip_line (gravity_lexer_t *lexer);
+GRAVITY_API gtoken_t            gravity_lexer_next (gravity_lexer_t *lexer);
+GRAVITY_API gtoken_t            gravity_lexer_peek (gravity_lexer_t *lexer);
+GRAVITY_API void                gravity_lexer_skip_line (gravity_lexer_t *lexer);
 
-GRTAVITY_API uint32_t            gravity_lexer_lineno (gravity_lexer_t *lexer);
-GRTAVITY_API gtoken_s            gravity_lexer_token (gravity_lexer_t *lexer);
-GRTAVITY_API void                gravity_lexer_token_dump (gtoken_s token);
-GRTAVITY_API gtoken_s            gravity_lexer_token_next (gravity_lexer_t *lexer);
-GRTAVITY_API gtoken_t            gravity_lexer_token_type (gravity_lexer_t *lexer);
+GRAVITY_API uint32_t            gravity_lexer_lineno (gravity_lexer_t *lexer);
+GRAVITY_API gtoken_s            gravity_lexer_token (gravity_lexer_t *lexer);
+GRAVITY_API void                gravity_lexer_token_dump (gtoken_s token);
+GRAVITY_API gtoken_s            gravity_lexer_token_next (gravity_lexer_t *lexer);
+GRAVITY_API gtoken_t            gravity_lexer_token_type (gravity_lexer_t *lexer);
 
 
 #if GRAVITY_LEXER_DEGUB
-GRTAVITY_API void                gravity_lexer_debug (gravity_lexer_t *lexer);
+GRAVITY_API void                gravity_lexer_debug (gravity_lexer_t *lexer);
 #endif
 
 #endif

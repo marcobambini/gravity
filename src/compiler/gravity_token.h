@@ -118,34 +118,34 @@ typedef struct gtoken_s         gtoken_s;
 #define TOKEN_BYTES(_tok)       _tok.bytes
 #define TOKEN_VALUE(_tok)       _tok.value
 
-GRTAVITY_API gtoken_t        token_keyword (const char *buffer, int32_t len);
-GRTAVITY_API void            token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end);
-GRTAVITY_API const char     *token_literal_name (gliteral_t value);
-GRTAVITY_API const char     *token_name (gtoken_t token);
-GRTAVITY_API gtoken_t        token_special_builtin(gtoken_s *token);
-GRTAVITY_API const char     *token_string (gtoken_s token, uint32_t *len);
+GRAVITY_API gtoken_t        token_keyword (const char *buffer, int32_t len);
+GRAVITY_API void            token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end);
+GRAVITY_API const char     *token_literal_name (gliteral_t value);
+GRAVITY_API const char     *token_name (gtoken_t token);
+GRAVITY_API gtoken_t        token_special_builtin(gtoken_s *token);
+GRAVITY_API const char     *token_string (gtoken_s token, uint32_t *len);
 
-GRTAVITY_API bool            token_isassignment (gtoken_t token);
-GRTAVITY_API bool            token_isaccess_specifier (gtoken_t token);
-GRTAVITY_API bool            token_iscompound_statement (gtoken_t token);
-GRTAVITY_API bool            token_isdeclaration_statement (gtoken_t token);
-GRTAVITY_API bool            token_iseof (gtoken_t token);
-GRTAVITY_API bool            token_isempty_statement (gtoken_t token);
-GRTAVITY_API bool            token_iserror (gtoken_t token);
-GRTAVITY_API bool            token_isexpression_statement (gtoken_t token);
-GRTAVITY_API bool            token_isflow_statement (gtoken_t token);
-GRTAVITY_API bool            token_isjump_statement (gtoken_t token);
-GRTAVITY_API bool            token_islabel_statement (gtoken_t token);
-GRTAVITY_API bool            token_isloop_statement (gtoken_t token);
-GRTAVITY_API bool            token_isidentifier (gtoken_t token);
-GRTAVITY_API bool            token_isimport_statement (gtoken_t token);
-GRTAVITY_API bool            token_ismacro (gtoken_t token);
-GRTAVITY_API bool            token_isoperator (gtoken_t token);
-GRTAVITY_API bool            token_isprimary_expression (gtoken_t token);
-GRTAVITY_API bool            token_isspecial_statement (gtoken_t token);
-GRTAVITY_API bool            token_isstatement (gtoken_t token);
-GRTAVITY_API bool            token_isstorage_specifier (gtoken_t token);
-GRTAVITY_API bool            token_isvariable_assignment (gtoken_t token);
-GRTAVITY_API bool            token_isvariable_declaration (gtoken_t token);
+GRAVITY_API bool            token_isassignment (gtoken_t token);
+GRAVITY_API bool            token_isaccess_specifier (gtoken_t token);
+GRAVITY_API bool            token_iscompound_statement (gtoken_t token);
+GRAVITY_API bool            token_isdeclaration_statement (gtoken_t token);
+GRAVITY_API bool            token_iseof (gtoken_t token);
+GRAVITY_API bool            token_isempty_statement (gtoken_t token);
+GRAVITY_API bool            token_iserror (gtoken_t token);
+GRAVITY_API bool            token_isexpression_statement (gtoken_t token);
+GRAVITY_API bool            token_isflow_statement (gtoken_t token);
+GRAVITY_API bool            token_isjump_statement (gtoken_t token);
+GRAVITY_API bool            token_islabel_statement (gtoken_t token);
+GRAVITY_API bool            token_isloop_statement (gtoken_t token);
+GRAVITY_API bool            token_isidentifier (gtoken_t token);
+GRAVITY_API bool            token_isimport_statement (gtoken_t token);
+GRAVITY_API bool            token_ismacro (gtoken_t token);
+GRAVITY_API bool            token_isoperator (gtoken_t token);
+GRAVITY_API bool            token_isprimary_expression (gtoken_t token);
+GRAVITY_API bool            token_isspecial_statement (gtoken_t token);
+GRAVITY_API bool            token_isstatement (gtoken_t token);
+GRAVITY_API bool            token_isstorage_specifier (gtoken_t token);
+GRAVITY_API bool            token_isvariable_assignment (gtoken_t token);
+GRAVITY_API bool            token_isvariable_declaration (gtoken_t token);
 
 #endif
