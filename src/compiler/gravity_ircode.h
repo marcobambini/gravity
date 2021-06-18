@@ -55,42 +55,42 @@ typedef struct {
 
 typedef struct ircode_t ircode_t;
 
-ircode_t    *ircode_create (uint16_t nlocals);
-void        ircode_free (ircode_t *code);
 uint32_t    ircode_count (ircode_t *code);
-uint32_t    ircode_ntemps (ircode_t *code);
-inst_t      *ircode_get (ircode_t *code, uint32_t index);
+ircode_t   *ircode_create (uint16_t nlocals);
 void        ircode_dump (void *code);
-void        ircode_push_context (ircode_t *code);
-void        ircode_pop_context (ircode_t *code);
+void        ircode_free (ircode_t *code);
+inst_t     *ircode_get (ircode_t *code, uint32_t index);
 bool        ircode_iserror (ircode_t *code);
+uint32_t    ircode_ntemps (ircode_t *code);
 void        ircode_patch_init (ircode_t *code, uint16_t index);
+void        ircode_pop_context (ircode_t *code);
+void        ircode_push_context (ircode_t *code);
 
-uint32_t    ircode_newlabel (ircode_t *code);
-void        ircode_setlabel_true (ircode_t *code, uint32_t nlabel);
-void        ircode_setlabel_false (ircode_t *code, uint32_t nlabel);
-void        ircode_setlabel_check (ircode_t *code, uint32_t nlabel);
-void        ircode_unsetlabel_true (ircode_t *code);
-void        ircode_unsetlabel_false (ircode_t *code);
-void        ircode_unsetlabel_check (ircode_t *code);
-uint32_t    ircode_getlabel_true (ircode_t *code);
-uint32_t    ircode_getlabel_false (ircode_t *code);
 uint32_t    ircode_getlabel_check (ircode_t *code);
-void		ircode_marklabel (ircode_t *code, uint32_t nlabel, uint32_t lineno);
+uint32_t    ircode_getlabel_false (ircode_t *code);
+uint32_t    ircode_getlabel_true (ircode_t *code);
+void        ircode_marklabel (ircode_t *code, uint32_t nlabel, uint32_t lineno);
+uint32_t    ircode_newlabel (ircode_t *code);
+void        ircode_setlabel_check (ircode_t *code, uint32_t nlabel);
+void        ircode_setlabel_false (ircode_t *code, uint32_t nlabel);
+void        ircode_setlabel_true (ircode_t *code, uint32_t nlabel);
+void        ircode_unsetlabel_check (ircode_t *code);
+void        ircode_unsetlabel_false (ircode_t *code);
+void        ircode_unsetlabel_true (ircode_t *code);
 
 void        inst_setskip (inst_t *inst);
 uint8_t     opcode_numop (opcode_t op);
 
-void		ircode_pragma (ircode_t *code, optag_t tag, uint32_t value, uint32_t lineno);
-void		ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t lineno);
-void		ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, uint32_t lineno);
-void		ircode_add_array (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_r r, uint32_t lineno);
-void		ircode_add_double (ircode_t *code, double d, uint32_t lineno);
-void		ircode_add_int (ircode_t *code, int64_t n, uint32_t lineno);
-void		ircode_add_constant (ircode_t *code, uint32_t index, uint32_t lineno);
-void		ircode_add_skip (ircode_t *code, uint32_t lineno);
-void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
+void        ircode_add (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t lineno);
+void        ircode_add_array (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, uint32_r r, uint32_t lineno);
 void        ircode_add_check (ircode_t *code);
+void        ircode_add_constant (ircode_t *code, uint32_t index, uint32_t lineno);
+void        ircode_add_double (ircode_t *code, double d, uint32_t lineno);
+void        ircode_add_int (ircode_t *code, int64_t n, uint32_t lineno);
+void        ircode_add_skip (ircode_t *code, uint32_t lineno);
+void        ircode_add_tag (ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, optag_t tag, uint32_t lineno);
+void        ircode_pragma (ircode_t *code, optag_t tag, uint32_t value, uint32_t lineno);
+void        ircode_set_index (uint32_t index, ircode_t *code, opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3);
 
 // IMPORTANT NOTE
 //
