@@ -5,7 +5,7 @@ SET(GRAVITY_SRC gravity.c)
 
 # Executable
 add_executable(gravity ${GRAVITY_SRC})
-target_link_libraries(gravity gravityapi_s)
+target_link_libraries(gravity gravityapi)
 target_include_directories(gravity PUBLIC ${GRAVITY_INCLUDE_DIR})
 set_target_properties(gravity PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
