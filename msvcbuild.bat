@@ -1,10 +1,19 @@
 @IF /I NOT "%~1" == "KEEP" IF EXIST bld RMDIR /S /Q bld
 cmake -Bbld .
+
+@ECHO.
+@ECHO.
+@ECHO.
+
 @PUSHD bld
 @FOR %%X IN (msbuild.exe) DO @IF NOT "%%~$PATH:X" == "" @CALL :msvc
 @POPD
+
 @GOTO:EOF
 
+
+
+:msvc
 @ECHO. ------------------------------------------------------------------------------
 @ECHO. ------------------------------------------------------------------------------
 @ECHO. -------- building Debug ------------------------------------------------------

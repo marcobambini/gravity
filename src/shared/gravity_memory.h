@@ -61,9 +61,9 @@ bool    memdebug_remove (void *ptr);
 void    memdebug_setcheck (bool flag);
 void    memdebug_stat (void);
 size_t  memdebug_status (void);
+#else
+void    *gravity_calloc (gravity_vm *vm, size_t count, size_t size);
+void    *gravity_realloc (gravity_vm *vm, void *ptr, size_t new_size);
 #endif
-// we need to always export these for users (they are used by the cli)
-GRAVITY_API void    *gravity_calloc (gravity_vm *vm, size_t count, size_t size);
-GRAVITY_API void    *gravity_realloc (gravity_vm *vm, void *ptr, size_t new_size);
 
 #endif
