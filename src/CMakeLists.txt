@@ -23,6 +23,9 @@ set(GRAVITY_PRIVATE_COMPILE_OPTIONS "")
 set(GRAVITY_INSTALL_RUNTIME_PATH "/usr/local/bin")  # Gravity executable install path
 set(GRAVITY_INSTALL_LIB_PATH "lib")                 # Gravity shared library install path
 set(GRAVITY_INSTALL_LIB_STATIC_PATH "lib")          # Gravity static library install path
+set(GRAVITY_OUTDIR "${CMAKE_BINARY_DIR}/lib")                 # Gravity output directory (base)
+set(GRAVITY_OUTDIR_DEBUG "${CMAKE_BINARY_DIR}/Debug/lib")     # Gravity output directory (Debug)
+set(GRAVITY_OUTDIR_RELEASE "${CMAKE_BINARY_DIR}/Release/lib") # Gravity output directory (Debug)
 
 # ----------------------------------------------------------------
 if(MSVC)
@@ -68,11 +71,13 @@ endif()
 # ----------------------------------------------------------------
 add_library(gravityapi SHARED ${SRC_FILES})
 add_library(gravityapi_s STATIC ${SRC_FILES})
+add_library(gravityapi_sx STATIC ${SRC_FILES})
 
 target_compile_definitions(gravityapi PUBLIC BUILD_GRAVITY_API)
+target_compile_definitions(gravityapi_sx PUBLIC BUILD_GRAVITY_API)
 
 # ----------------------------------------------------------------
-set(GRAVITY_TARGETS gravityapi gravityapi_s)
+set(GRAVITY_TARGETS gravityapi gravityapi_s gravityapi_sx)
 
 foreach(target ${GRAVITY_TARGETS})
 
@@ -81,8 +86,15 @@ foreach(target ${GRAVITY_TARGETS})
     target_compile_options(${target} PRIVATE ${GRAVITY_PRIVATE_COMPILE_OPTIONS})
     target_include_directories(${target} PUBLIC ${GRAVITY_INCLUDE_DIR})
     set_target_properties(${target} PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${GRAVITY_OUTDIR}"
+        ARCHIVE_OUTPUT_DIRECTORY "${GRAVITY_OUTDIR}"
+        LIBRARY_OUTPUT_DIRECTORY "${GRAVITY_OUTDIR}"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${GRAVITY_OUTDIR_DEBUG}"
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${GRAVITY_OUTDIR_DEBUG}"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${GRAVITY_OUTDIR_DEBUG}"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${GRAVITY_OUTDIR_RELEASE}"
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${GRAVITY_OUTDIR_RELEASE}"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${GRAVITY_OUTDIR_RELEASE}"
     )
 
 endforeach()

@@ -3,12 +3,24 @@
 # Sources
 SET(GRAVITY_SRC gravity.c)
 
+set(GRAVITY_OUTDIR "${CMAKE_BINARY_DIR}/bin")                 # Gravity output directory (base)
+set(GRAVITY_OUTDIR_DEBUG "${CMAKE_BINARY_DIR}/Debug/bin")     # Gravity output directory (Debug)
+set(GRAVITY_OUTDIR_RELEASE "${CMAKE_BINARY_DIR}/Release/bin") # Gravity output directory (Debug)
+
 # Executable
 add_executable(gravity ${GRAVITY_SRC})
-target_link_libraries(gravity gravityapi_s)
+target_link_libraries(gravity gravityapi_sx)
 target_include_directories(gravity PUBLIC ${GRAVITY_INCLUDE_DIR})
 set_target_properties(gravity PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+        RUNTIME_OUTPUT_DIRECTORY "${GRAVITY_OUTDIR}"
+        ARCHIVE_OUTPUT_DIRECTORY "${GRAVITY_OUTDIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${GRAVITY_OUTDIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG "${GRAVITY_OUTDIR_DEBUG}"
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${GRAVITY_OUTDIR_DEBUG}/lib"
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${GRAVITY_OUTDIR_DEBUG}/lib"
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${GRAVITY_OUTDIR_RELEASE}"
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${GRAVITY_OUTDIR_RELEASE}/lib"
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${GRAVITY_OUTDIR_RELEASE}/lib"
 )
 
 # Install

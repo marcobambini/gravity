@@ -102,7 +102,7 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
     if (tag == LABEL_TAG) {
         DEBUG_OPCODE("LABEL %d", p1);
     } else if (tag != PRAGMA_MOVE_OPTIMIZATION){
-        const char *op_name = opcode_name(op);
+        const char *op_name = gravity_opcode_name(op);
 
         if (op == LOADI) {
             if (tag == DOUBLE_TAG)
@@ -118,7 +118,7 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
             } else if (nop == 2) {
                 DEBUG_OPCODE("%s %d %d", op_name, p1, p2);
             } else if (nop == 3) {
-                DEBUG_OPCODE("%s %d %d %d", opcode_name(op), p1, p2, p3);
+                DEBUG_OPCODE("%s %d %d %d", gravity_opcode_name(op), p1, p2, p3);
             }
         }
     }
@@ -289,31 +289,31 @@ void ircode_dump (void *_code) {
         
         switch (n) {
             case 0: {
-                printf("%05d\t%s\n", line, opcode_name(op));
+                printf("%05d\t%s\n", line, gravity_opcode_name(op));
             }
 
             case 1: {
-                printf("%05d\t%s %d\n", line, opcode_name(op), p1);
+                printf("%05d\t%s %d\n", line, gravity_opcode_name(op), p1);
             } break;
 
             case 2: {
                 if (op == LOADI) {
-                    if (inst->tag == DOUBLE_TAG) printf("%05d\t%s %d %.2f\n", line, opcode_name(op), p1, inst->d);
+                    if (inst->tag == DOUBLE_TAG) printf("%05d\t%s %d %.2f\n", line, gravity_opcode_name(op), p1, inst->d);
                     #if defined(_WIN32)
-                    else printf("%05d\t%s %d %I64d\n", line, opcode_name(op), p1, inst->n);
+                    else printf("%05d\t%s %d %I64d\n", line, gravity_opcode_name(op), p1, inst->n);
                     #else
-                    else printf("%05d\t%s %d %"PRId64"\n", line, opcode_name(op), p1, inst->n);
+                    else printf("%05d\t%s %d %"PRId64"\n", line, gravity_opcode_name(op), p1, inst->n);
                     #endif
                 } else if (op == LOADK) {
-                    if (p2 < CPOOL_INDEX_MAX) printf("%05d\t%s %d %d\n", line, opcode_name(op), p1, p2);
-                    else printf("%05d\t%s %d %s\n", line, opcode_name(op), p1, opcode_constname(p2));
+                    if (p2 < CPOOL_INDEX_MAX) printf("%05d\t%s %d %d\n", line, gravity_opcode_name(op), p1, p2);
+                    else printf("%05d\t%s %d %s\n", line, gravity_opcode_name(op), p1, gravity_opcode_constname(p2));
                 } else {
-                    printf("%05d\t%s %d %d\n", line, opcode_name(op), p1, p2);
+                    printf("%05d\t%s %d %d\n", line, gravity_opcode_name(op), p1, p2);
                 }
             } break;
 
             case 3: {
-                printf("%05d\t%s %d %d %d\n", line, opcode_name(op), p1, p2, p3);
+                printf("%05d\t%s %d %d %d\n", line, gravity_opcode_name(op), p1, p2, p3);
             } break;
 
             default: assert(0);

@@ -1550,6 +1550,10 @@ gravity_vm *gravity_vm_newmini (void) {
     return vm;
 }
 
+void gravity_vm_register_args (gravity_vm *vm, uint32_t _argc, const char **_argv) {
+    gravity_env_register_args(vm, _argc, _argv);
+}
+
 void gravity_vm_free (gravity_vm *vm) {
     if (!vm) return;
 
@@ -1642,7 +1646,7 @@ static void gravity_vm_stats (gravity_vm *vm) {
             double d = vm->tstat[i];
             double m = d / (double)n;
             double p = (d * 100) / total;
-            printf("%12s %*d %*.4f %*.4f (%.2f%%)\n", opcode_name((opcode_t)i), 10, n, 11, m, 10, d, p);
+            printf("%12s %*d %*.4f %*.4f (%.2f%%)\n", gravity_opcode_name((opcode_t)i), 10, n, 11, m, 10, d, p);
         }
     }
     printf("=======================================================\n");
