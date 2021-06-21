@@ -1549,6 +1549,7 @@ gravity_vm *gravity_vm_newmini (void) {
     gravity_vm *vm = mem_alloc(NULL, sizeof(gravity_vm));
     return vm;
 }
+
 void gravity_vm_register_args (gravity_vm *vm, uint32_t _argc, const char **_argv) {
     gravity_env_register_args(vm, _argc, _argv);
 }
