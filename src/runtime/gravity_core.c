@@ -1691,9 +1691,11 @@ static bool class_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         mem_free(c->superlook);
         c->superlook = NULL;
         c->superclass = super;
-        
+    }
+    
+    if (c->superclass) {
         STATICVALUE_FROM_STRING(key, GRAVITY_INTERNAL_EXEC_NAME, strlen(GRAVITY_INTERNAL_EXEC_NAME));
-        gravity_closure_t *super_closure = gravity_class_lookup_closure(gravity_class_get_meta(super), key);
+        gravity_closure_t *super_closure = gravity_class_lookup_closure(gravity_class_get_meta(c->superclass), key);
         if (super_closure) RETURN_CLOSURE(VALUE_FROM_OBJECT(super_closure), rindex);
     }
 
