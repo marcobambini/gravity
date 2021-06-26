@@ -43,9 +43,9 @@ typedef const char*         (*gravity_precode_callback) (void *xdata);
 typedef void                (*gravity_type_callback) (void *token, const char *type, void *xdata);
 
 typedef void                (*gravity_bridge_blacken) (gravity_vm *vm, void *xdata);
-typedef void*               (*gravity_bridge_clone)  (gravity_vm *vm, void *xdata);
+typedef void*               (*gravity_bridge_clone) (gravity_vm *vm, void *xdata);
 typedef bool                (*gravity_bridge_equals) (gravity_vm *vm, void *obj1, void *obj2);
-typedef bool                (*gravity_bridge_execute)  (gravity_vm *vm, void *xdata, gravity_value_t ctx, gravity_value_t args[], int16_t nargs, uint32_t vindex);
+typedef bool                (*gravity_bridge_execute) (gravity_vm *vm, void *xdata, gravity_value_t ctx, gravity_value_t args[], int16_t nargs, uint32_t vindex);
 typedef void                (*gravity_bridge_free) (gravity_vm *vm, gravity_object_t *obj);
 typedef bool                (*gravity_bridge_getundef) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, uint32_t vindex);
 typedef bool                (*gravity_bridge_getvalue) (gravity_vm *vm, void *xdata, gravity_value_t target, const char *key, uint32_t vindex);
