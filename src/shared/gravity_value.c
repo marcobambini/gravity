@@ -376,7 +376,7 @@ static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, boo
     
     if (!skip_base) {
         // base classes have functions not registered inside VM so manually free all of them
-        gravity_hash_iterate(c->htable, gravity_hash_finteralfree, NULL);
+        gravity_hash_iterate(c->htable, gravity_hash_interalfree, NULL);
         gravity_hash_iterate(c->htable, gravity_hash_valuefree, NULL);
     }
 

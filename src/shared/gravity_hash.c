@@ -482,7 +482,7 @@ cleanup:
     return result;
 }
 
-void gravity_hash_finteralfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
+void gravity_hash_interalfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
     #pragma unused(table, key, data)
     if (gravity_value_isobject(value)) {
         gravity_object_t *obj = VALUE_AS_OBJECT(value);
