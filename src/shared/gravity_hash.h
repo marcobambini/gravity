@@ -63,6 +63,13 @@ GRAVITY_API void             gravity_hash_transform (gravity_hash_t *hashtable, 
 
 GRAVITY_API bool             gravity_hash_compare (gravity_hash_t *hashtable1, gravity_hash_t *hashtable2, gravity_hash_compare_fn compare, void *data);
 
+// MARK: - CALLBACKS -
+// HASH FREE CALLBACK FUNCTION
+GRAVITY_API void                gravity_hash_finteralfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void                gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void                gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+GRAVITY_API void                gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data);
+
 #ifdef __cplusplus
 }
 #endif

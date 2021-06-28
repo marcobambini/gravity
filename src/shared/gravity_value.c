@@ -52,36 +52,6 @@ static void gravity_hash_serialize (gravity_hash_t *table, gravity_value_t key, 
         assert(0);
 }
 
-void gravity_hash_keyvaluefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
-    #pragma unused(table)
-    gravity_vm *vm = (gravity_vm *)data;
-    gravity_value_free(vm, key);
-    gravity_value_free(vm, value);
-}
-
-void gravity_hash_keyfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
-    #pragma unused(table, value)
-    gravity_vm *vm = (gravity_vm *)data;
-    gravity_value_free(vm, key);
-}
-
-void gravity_hash_finteralfree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
-    #pragma unused(table, key, data)
-    if (gravity_value_isobject(value)) {
-        gravity_object_t *obj = VALUE_AS_OBJECT(value);
-        if (OBJECT_ISA_CLOSURE(obj)) {
-            gravity_closure_t *closure = (gravity_closure_t *)obj;
-            if (closure->f && closure->f->tag == EXEC_TYPE_INTERNAL) gravity_function_free(NULL, closure->f);
-        }
-    }
-}
-
-void gravity_hash_valuefree (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data) {
-    #pragma unused(table, key)
-    gravity_vm *vm = (gravity_vm *)data;
-    gravity_value_free(vm, value);
-}
-
 static void gravity_hash_internalsize (gravity_hash_t *table, gravity_value_t key, gravity_value_t value, void *data1, void *data2) {
     #pragma unused(table)
     uint32_t    *size = (uint32_t *)data1;
