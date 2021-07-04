@@ -59,10 +59,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin|NetBSD|BSD|DragonFly|Linux")
     # for math functions
     list(APPEND GRAVITY_DEPENDENT_LIBS "m")
 
-    if (${CMAKE_SYSTEM_NAME} MATCHES "NetBSD|BSD|DragonFly")
-        list(APPEND GRAVITY_PRIVATE_DEFINITIONS "_WITH_GETLINE")
-    endif()
-
 endif()
 
 # ----------------------------------------------------------------
