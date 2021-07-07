@@ -13,6 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+
+#include "gravity_common.h"
+
 #include "gravity_value.h"
 
 #define GRAVITYHASH_ENABLE_STATS    1               // if 0 then stats are not enabled

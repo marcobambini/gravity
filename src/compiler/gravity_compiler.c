@@ -111,7 +111,7 @@ void gravity_compiler_free (gravity_compiler_t *compiler) {
     mem_free(compiler);
 }
 
-gnode_t *gravity_compiler_ast (gravity_compiler_t *compiler) {
+static gnode_t *gravity_compiler_ast (gravity_compiler_t *compiler) {
     return compiler->ast;
 }
 
