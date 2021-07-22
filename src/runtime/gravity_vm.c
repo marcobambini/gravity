@@ -630,6 +630,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                             // check for special setter trick
                             if (VALUE_ISA_CLOSURE(STACK_GET(r1))) {
                                 closure = VALUE_AS_CLOSURE(STACK_GET(r1));
+                                if (closure->f->tag == EXEC_TYPE_INTERNAL) r1copy = STACK_GET(rwin+1);
                                 SETVALUE(r1, r1copy);
                                 reset_r1 = true;
                                 goto execute_store_function;
