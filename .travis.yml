@@ -5,4 +5,6 @@ os:
 compiler:
   - gcc
   - clang
-script: make
+script:
+  - make
+  - test/unittest/run_all.sh
