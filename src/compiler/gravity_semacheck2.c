@@ -150,7 +150,7 @@ static gnode_t *lookup_identifier (gvisitor_t *self, const char *identifier, gno
     bool base_is_class = ISA(base_node, NODE_CLASS_DECL);
     bool base_is_static_function = (ISA(base_node, NODE_FUNCTION_DECL) && ((gnode_function_decl_t*)base_node)->storage == TOK_KEY_STATIC);
 
-    for (int i=(int)len-1; i>=0; --i) {
+    for (size_t i=len-1; i>=0; --i) {
         gnode_t *target = gnode_array_get(decls, i);
 
         // identify target type

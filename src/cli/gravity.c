@@ -449,7 +449,12 @@ int main (int argc, const char* argv[]) {
         if (type == OP_INLINE_RUN) {
             char *buffer = mem_alloc(NULL, size+1024);
             assert(buffer);
-            size = snprintf(buffer, size+1024, "func main() {%s};", input_file);
+            size =
+#if defined(_WIN32) || defined(__WIN32__) || defined(__WINDOWS__)
+                _snprintf_s(buffer, size+1024,  sizeof buffer, "func main() {%s};", input_file);
+#else
+                snprintf(buffer, size+1024, "func main() {%s};", input_file);
+#endif
             source_code = buffer;
         }
 

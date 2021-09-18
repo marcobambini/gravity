@@ -27,7 +27,7 @@
 static gravity_class_t              *gravity_class_env = NULL;
 static uint32_t                     refcount = 0;
 
-static int                          argc = -1;
+static size_t                       argc = -1;
 static gravity_list_t               *argv = NULL;
 
 /**
@@ -143,10 +143,10 @@ void gravity_env_register(gravity_vm *vm) {
     gravity_vm_setvalue(vm, GRAVITY_CLASS_ENV_NAME, VALUE_FROM_OBJECT(gravity_class_env));
 }
 
-void gravity_env_register_args(gravity_vm *vm, uint32_t _argc, const char **_argv) {
+void gravity_env_register_args(gravity_vm *vm, size_t _argc, const char **_argv) {
     argc = _argc;
     argv = gravity_list_new(vm, argc);
-    for (int i = 0; i < _argc; ++i) {
+    for (size_t i = 0; i < _argc; ++i) {
         gravity_value_t arg = VALUE_FROM_CSTRING(vm, _argv[i]);
         marray_push(gravity_value_t, argv->array, arg);
     }
