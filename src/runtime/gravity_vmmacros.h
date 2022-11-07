@@ -146,7 +146,7 @@
 #define DISPATCH_INNER()            DISPATCH()
 #else
 #define DECLARE_DISPATCH_TABLE
-#define INTERPRET_LOOP              vm_loop: inst = *ip++;op = (opcode_t)OPCODE_GET_OPCODE(inst);UPDATE_STATS(op); switch (op)
+#define INTERPRET_LOOP              vm_loop: inst = *ip++;op = (opcode_t)OPCODE_GET_OPCODE(inst);UPDATE_STATS(vm,op); switch (op)
 #define CASE_CODE(name)             case name
 #define DISPATCH()                  break
 #define DISPATCH_INNER()            goto vm_loop
