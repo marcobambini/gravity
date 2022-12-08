@@ -75,6 +75,10 @@ Gravity was supported by a couple of open-source projects. The inspiration for c
 ## Documentation
 The <a href="https://marcobambini.github.io/gravity/#/README">Getting Started</a> page is a guide for downloading and compiling the language. There is also a more extensive <a href="http://gravity-lang.org">language documentation</a>. Official [wiki](https://github.com/marcobambini/gravity/wiki) is used to collect related projects and tools.
 
+## Where Gravity is used
+* Gravity is the core language built into Creo (https://creolabs.com)
+* Gravity is the scripting language for the Untold game engine (https://youtu.be/OGrWq8jpK14?t=58)
+
 ## Community
 Seems like a good idea to make a group chat for people to discuss Gravity.<br> [![Join the chat at https://gitter.im/gravity-lang/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gravity-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
