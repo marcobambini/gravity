@@ -312,7 +312,7 @@ static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t
             int c = fgetc(instance->file);
             if ((c == -1) || feof(instance->file)) break;
             
-            *ptr++ = c;
+            *ptr++ = (char)c;
             if (c == delimiter) break;
             
             if (ptr + 2 >= eptr) {

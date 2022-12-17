@@ -34,7 +34,7 @@ static bool JSON_stringify (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     
     // special case for string because it can be huge (and must be quoted)
     if (VALUE_ISA_STRING(value)) {
-        const int nchars = 5;
+        const size_t nchars = 5;
         const char *v = VALUE_AS_STRING(value)->s;
         size_t vlen = VALUE_AS_STRING(value)->len;
 

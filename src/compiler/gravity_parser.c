@@ -123,7 +123,7 @@ static gnode_t *parse_macro_statement (gravity_parser_t *parser);
 // MARK: - Utils functions -
 
 static gnode_t *get_enclosing (gravity_parser_t *parser, gnode_n tag) {
-    int32_t n = (int32_t)gnode_array_size(parser->declarations);
+    size_t n = gnode_array_size(parser->declarations);
     if (!n) return NULL;
 
     --n;

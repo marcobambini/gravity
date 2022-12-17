@@ -1054,7 +1054,7 @@ static bool list_remove (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     if (!VALUE_ISA_INT(GET_VALUE(1))) RETURN_ERROR("Parameter must be of type Int.");
 
     gravity_int_t index = VALUE_AS_INT(GET_VALUE(1));
-    size_t count = marray_size(list->array);
+    gravity_int_t count = marray_size(list->array);
     if ((index < 0) || (index >= count)) RETURN_ERROR("Out of bounds index.");
 
     // remove an item means move others down
@@ -2447,11 +2447,11 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
     gravity_string_t *str_to_count = VALUE_AS_STRING(GET_VALUE(1));
 
-    int j = 0;
-    int count = 0;
+    size_t j = 0;
+    size_t count = 0;
 
     // iterate through whole string
-    for (int i = 0; i < main_str->len; ++i) {
+    for (size_t i = 0; i < main_str->len; ++i) {
         if (main_str->s[i] == str_to_count->s[j]) {
             // if the characters match and we are on the last character of the search
             // string, then we have found a match
@@ -2516,7 +2516,7 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
     // if no arguments passed, change the whole string to uppercase
     if (nargs == 1) {
-        for (int i = 0; i <= main_str->len; ++i) {
+        for (size_t i = 0; i <= main_str->len; ++i) {
          ret[i] = toupper(ret[i]);
         }
     }
@@ -2555,7 +2555,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
     // if no arguments passed, change the whole string to lowercase
     if (nargs == 1) {
-        for (int i = 0; i <= main_str->len; ++i) {
+        for (size_t i = 0; i <= main_str->len; ++i) {
          ret[i] = tolower(ret[i]);
         }
     }
@@ -2655,14 +2655,14 @@ static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     if (!VALUE_ISA_STRING(GET_VALUE(2))) RETURN_ERROR("A string needs to be assigned to a string index");
 
     gravity_string_t *value = VALUE_AS_STRING(GET_VALUE(2));
-    register int32_t index = (int32_t)VALUE_AS_INT(idxvalue);
+    register size_t index = (int32_t)VALUE_AS_INT(idxvalue);
 
     if (index < 0) index = string->len + index;
     if (index < 0 || index >= string->len) RETURN_ERROR("Out of bounds error: index %d beyond bounds 0...%d", index, string->len-1);
     if (index+value->len - 1 >= string->len) RETURN_ERROR("Out of bounds error: End of inserted string exceeds the length of the initial string");
 
     // this code is not UTF-8 safe
-    for (int i = index; i < index+value->len; ++i) {
+    for (size_t i = index; i < index+value->len; ++i) {
         string->s[i] = value->s[i-index];
     }
 
