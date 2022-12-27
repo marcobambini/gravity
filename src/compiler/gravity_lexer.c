@@ -79,11 +79,14 @@ static inline bool is_newline (gravity_lexer_t *lexer, int c) {
     // CR+LF: CR (U+000D) followed by LF (U+000A) (UTF-8 in hex: 0D0A)
 
     // LF
-    if (c == 0x0A) return true;
+    if (c == 0x0A)
+        return true;
 
     // CR+LF or CR
     if (c == 0x0D) {
-        if (PEEK_CURRENT == 0x0A) {NEXT;}
+        if (PEEK_NEXT == 0x0A) {
+            NEXT;
+        }
         return true;
     }
 
