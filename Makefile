@@ -23,62 +23,65 @@ endif
 
 
 ifeq ($(OS),Windows_NT)
-	# Windows
-	LIBTARGET = gravity.dll
-	LDFLAGS = -lShlwapi
-	ifeq ($(CC),tcc)
-		LDFLAGS += -lucrtbase
-		EXEXT = .exe
-	else
-		LDFLAGS += -lm
-	endif
+    # Windows
+    LIBTARGET = gravity.dll
+    LDFLAGS = -lShlwapi
+    ifeq ($(CC),tcc)
+        LDFLAGS += -lucrtbase
+        EXEXT = .exe
+    else
+        LDFLAGS += -lm
+    endif
 else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Darwin)
-		# MacOS
-		LIBTARGET = libgravity.dylib
-		LDFLAGS = -lm
-	else ifeq ($(UNAME_S),OpenBSD)
-		# OpenBSD
-		LIBTARGET = libgravity.so
-		LDFLAGS = -lm
-	else ifeq ($(UNAME_S),FreeBSD)
-		# FreeBSD
-		LIBTARGET = libgravity.so
-		LDFLAGS = -lm
-	else ifeq ($(UNAME_S),NetBSD)
-		# NetBSD
-		LIBTARGET = libgravity.so
-		LDFLAGS = -lm
-	else ifeq ($(UNAME_S),DragonFly)
-		# DragonFly
-		LIBTARGET = libgravity.so
-		LDFLAGS = -lm
-	else
-		# Linux
-		LIBTARGET = libgravity.so
-		LDFLAGS = -lm -lrt
-	endif
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Darwin)
+        # MacOS
+        LIBTARGET = libgravity.dylib
+        LDFLAGS = -lm
+    else ifeq ($(UNAME_S),OpenBSD)
+        # OpenBSD
+        LIBTARGET = libgravity.so
+        LDFLAGS = -lm
+    else ifeq ($(UNAME_S),FreeBSD)
+        # FreeBSD
+        LIBTARGET = libgravity.so
+        LDFLAGS = -lm
+    else ifeq ($(UNAME_S),NetBSD)
+        # NetBSD
+        LIBTARGET = libgravity.so
+        LDFLAGS = -lm
+    else ifeq ($(UNAME_S),DragonFly)
+        # DragonFly
+        LIBTARGET = libgravity.so
+        LDFLAGS = -lm
+    else
+        # Linux
+        LIBTARGET = libgravity.so
+        LDFLAGS = -lm -lrt
+    endif
 endif
 
 ifeq ($(mode),debug)
-	CFLAGS += -g -O0 -DDEBUG
+    CFLAGS += -g -O0 -DDEBUG
 else
-	CFLAGS += -O2
+    CFLAGS += -O2
 endif
 
 all: gravity$(EXEXT)
 
-gravity$(EXEXT):	$(OBJ) $(GRAVITY_SRC)
+gravity$(EXEXT):  $(OBJ) $(GRAVITY_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-example$(EXEXT):	$(OBJ) $(EXAMPLE_SRC)
+example$(EXEXT):  $(OBJ) $(EXAMPLE_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 lib: gravity$(EXEXT)
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
+cleanobj:
+	rm -f $(OBJ)
+
 clean:
 	rm -f $(OBJ) gravity gravity.def gravity.exe example example.def example.exe libgravity.so gravity.dll
-	
+
 .PHONY: all clean gravity$(EXEXT) example$(EXEXT)
