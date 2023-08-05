@@ -267,6 +267,7 @@ paket-files/
 *.gch
 
 # Libraries
+*.def
 *.lib
 *.a
 *.la
