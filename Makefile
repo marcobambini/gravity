@@ -14,13 +14,24 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(OPT_DIR)*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
-CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
 OBJ = $(SRC:.c=.o)
+
+CFLAGS = $(INCLUDE) -fPIC -DBUILD_GRAVITY_API
+ifneq ($(CC),tcc)
+    CFLAGS += -std=gnu99 -fgnu89-inline
+endif
+
 
 ifeq ($(OS),Windows_NT)
 	# Windows
 	LIBTARGET = gravity.dll
-	LDFLAGS = -lm -lShlwapi
+	LDFLAGS = -lShlwapi
+	ifeq ($(CC),tcc)
+		LDFLAGS += -lucrtbase
+		EXEXT = .exe
+	else
+		LDFLAGS += -lm
+	endif
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
@@ -56,18 +67,18 @@ else
 	CFLAGS += -O2
 endif
 
-all: gravity
+all: gravity$(EXEXT)
 
-gravity:	$(OBJ) $(GRAVITY_SRC)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-	
-example:	$(OBJ) $(EXAMPLE_SRC)
+gravity$(EXEXT):	$(OBJ) $(GRAVITY_SRC)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-lib: gravity
+example$(EXEXT):	$(OBJ) $(EXAMPLE_SRC)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+lib: gravity$(EXEXT)
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) gravity example libgravity.so gravity.dll
+	rm -f $(OBJ) gravity gravity$(EXEXT) example example$(EXEXT) libgravity.so gravity.dll
 	
-.PHONY: all clean gravity example
+.PHONY: all clean gravity$(EXEXT) example$(EXEXT)
