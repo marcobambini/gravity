@@ -25,10 +25,6 @@
 #include <Shlwapi.h>
 #include <tchar.h>
 #include <io.h>
-#ifdef __TINYC__
-#define _WIN32_FILE_ATTRIBUTE_DATA struct _WIN32_FILE_ATTRIBUTE_DATA
-#define _WIN32_FIND_DATAA struct _WIN32_FIND_DATAA
-#endif
 #endif
 #if defined(__EMSCRIPTEN__)
 #include <sys/time.h>
@@ -100,7 +96,7 @@ double millitime (nanotime_t tstart, nanotime_t tend) {
 
 int64_t file_size (const char *path) {
     #ifdef _WIN32
-    _WIN32_FILE_ATTRIBUTE_DATA fileInfo;
+    WIN32_FILE_ATTRIBUTE_DATA fileInfo;
     if (GetFileAttributesExA(path, GetFileExInfoStandard, (void*)&fileInfo) == 0) return -1;
     return (int64_t)(((__int64)fileInfo.nFileSizeHigh) << 32 ) + fileInfo.nFileSizeLow;
     #else
@@ -175,7 +171,7 @@ bool file_write (const char *path, const char *buffer, size_t len) {
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
     if (fd < 0) return false;
     
-    ssize_t nwrite = (ssize_t)write(fd, buffer, len);
+    ssize_t nwrite = (ssize_t)write(fd, buffer, (unsigned int)len);
     close(fd);
     
     return (nwrite == len);
@@ -307,7 +303,7 @@ char *directory_read_extend (DIRREF ref, char *win32buffer) {
     
     while (1) {
         #ifdef _WIN32
-        _WIN32_FIND_DATAA findData;
+        WIN32_FIND_DATAA findData;
         
         if (FindNextFileA(ref, &findData) == 0) {
             FindClose(ref);

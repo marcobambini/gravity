@@ -79,6 +79,6 @@ lib: gravity$(EXEXT)
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) gravity gravity$(EXEXT) example example$(EXEXT) libgravity.so gravity.dll
+	rm -f $(OBJ) gravity gravity.def gravity.exe example example.def example.exe libgravity.so gravity.dll
 	
 .PHONY: all clean gravity$(EXEXT) example$(EXEXT)
