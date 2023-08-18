@@ -308,11 +308,12 @@ static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t
         int delimiter = (int)str->s[0];
         char *ptr, *eptr;
         
-        for (ptr = buffer, eptr = buffer + n; ++nread;) {
+        for (ptr = buffer, eptr = buffer + n; ;) {
             int c = fgetc(instance->file);
             if ((c == -1) || feof(instance->file)) break;
             
             *ptr++ = c;
+            ++nread;
             if (c == delimiter) break;
             
             if (ptr + 2 >= eptr) {
@@ -329,6 +330,11 @@ static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t
         }
         // NULL terminate the string
         buffer[nread] = 0;
+    }
+    
+    if (nread == 0) {
+        if (buffer) mem_free(buffer);
+        RETURN_VALUE(VALUE_FROM_NULL, rindex);
     }
     
     gravity_string_t *result = gravity_string_new(vm, buffer, (uint32_t)nread, (uint32_t)n);
