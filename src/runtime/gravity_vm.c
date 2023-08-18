@@ -361,7 +361,7 @@ void gravity_opt_register (gravity_vm *vm) {
     GRAVITY_FILE_REGISTER(vm);
 }
 
-void gravity_opt_free() {
+void gravity_opt_free(void) {
     GRAVITY_MATH_FREE();
     GRAVITY_ENV_FREE();
     GRAVITY_JSON_FREE();
