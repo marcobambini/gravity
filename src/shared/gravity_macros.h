@@ -145,6 +145,7 @@
 #define GRAVITY_JSON_LABELINDEX             "index"
 #define GRAVITY_JSON_LABELSUPER             "super"
 #define GRAVITY_JSON_LABELNIVAR             "nivar"
+#define GRAVITY_JSON_LABELINAMES            "inames"
 #define GRAVITY_JSON_LABELSIVAR             "sivar"
 #define GRAVITY_JSON_LABELPURITY            "purity"
 #define GRAVITY_JSON_LABELREADONLY          "readonly"

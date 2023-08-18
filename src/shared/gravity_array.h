@@ -29,10 +29,10 @@
 #define marray_nset(v,N)            ((v).n = N)
 #define marray_push(type, v, x)     {if ((v).n == (v).m) {                                        \
                                     (v).m = (v).m? (v).m<<1 : MARRAY_DEFAULT_SIZE;                \
-                                    (v).p = (type*)realloc((v).p, sizeof(type) * (v).m);}        \
+                                    (v).p = (type*)realloc((v).p, sizeof(type) * (v).m);}         \
                                     (v).p[(v).n++] = (x);}
 #define marray_resize(type, v, n)   (v).m += n; (v).p = (type*)realloc((v).p, sizeof(type) * (v).m)
-#define marray_resize0(type, v, n)  (v).p = (type*)realloc((v).p, sizeof(type) * ((v).m+n));    \
+#define marray_resize0(type, v, n)  (v).p = (type*)realloc((v).p, sizeof(type) * ((v).m+n));      \
                                     (v).m ? memset((v).p+(sizeof(type) * n), 0, (sizeof(type) * n)) : memset((v).p, 0, (sizeof(type) * n)); (v).m += n
 #define marray_npop(v,k)            ((v).n -= k)
 #define marray_reset(v,k)           ((v).n = k)
