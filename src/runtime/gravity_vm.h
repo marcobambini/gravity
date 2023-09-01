@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_VM__
 #define __GRAVITY_VM__
 
+#include "gravity_common.h"
+
 #include "gravity_delegate.h"
 #include "gravity_value.h"
 
@@ -40,6 +42,7 @@ GRAVITY_API void                gravity_vm_loadclosure (gravity_vm *vm, gravity_
 GRAVITY_API gravity_value_t     gravity_vm_lookup (gravity_vm *vm, gravity_value_t key);
 GRAVITY_API gravity_vm         *gravity_vm_new (gravity_delegate_t *delegate);
 GRAVITY_API gravity_vm         *gravity_vm_newmini (void);
+GRAVITY_API void                gravity_vm_register_args (gravity_vm *vm, uint32_t _argc, const char **_argv);
 GRAVITY_API void                gravity_vm_reset (gravity_vm *vm);
 GRAVITY_API gravity_value_t     gravity_vm_result (gravity_vm *vm);
 GRAVITY_API bool                gravity_vm_runclosure (gravity_vm *vm, gravity_closure_t *closure, gravity_value_t sender, gravity_value_t params[], uint16_t nparams);

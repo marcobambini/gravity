@@ -11,7 +11,7 @@
 #include "gravity_debug.h"
 #include "gravity_vmmacros.h"
 
-const char *opcode_constname (int n) {
+const char *gravity_opcode_constname (int n) {
     switch (n) {
         case CPOOL_VALUE_SUPER: return "SUPER";
         case CPOOL_VALUE_NULL: return "NULL";
@@ -24,7 +24,7 @@ const char *opcode_constname (int n) {
     return "N/A";
 }
 
-const char *opcode_name (opcode_t op) {
+const char *gravity_opcode_name (opcode_t op) {
     static const char *optable[] = {
         "RET0", "HALT", "NOP", "RET", "CALL", "LOAD", "LOADS", "LOADAT",
         "LOADK", "LOADG", "LOADI", "LOADU", "MOVE", "STORE", "STOREAT",
@@ -80,7 +80,7 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
         // replace %s with %-Ns
         switch (op) {
             case NOP: {
-                DUMP_VM(buffer, bindex, "%s", opcode_name(op));
+                DUMP_VM(buffer, bindex, "%s", gravity_opcode_name(op));
                 break;
             }
                 
@@ -94,20 +94,20 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
             case LISTNEW:
             case CLOSURE: {
                 OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
-                DUMP_VM(buffer, bindex, "%s %d %d", opcode_name(op), r1, r2);
+                DUMP_VM(buffer, bindex, "%s %d %d", gravity_opcode_name(op), r1, r2);
                 break;
             }
                 
             case LOADI: {
                 OPCODE_GET_ONE8bit_SIGN_ONE17bit(inst, const uint32_t r1, const int32_t value);
-                DUMP_VM(buffer, bindex, "%s %d %d", opcode_name(op), r1, value);
+                DUMP_VM(buffer, bindex, "%s %d %d", gravity_opcode_name(op), r1, value);
                 break;
             }
 
             case LOADK: {
                 OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t index);
                 if (index < CPOOL_INDEX_MAX) {
-                    DUMP_VM(buffer, bindex, "%s %d %d", opcode_name(op), r1, index);
+                    DUMP_VM(buffer, bindex, "%s %d %d", gravity_opcode_name(op), r1, index);
                     if (f) {
                         char b[2018];
                         gravity_value_t constant = gravity_function_cpool_get(f, index);
@@ -127,7 +127,7 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
                         case CPOOL_VALUE_FUNC: special = "_FUNC"; break;
                         default: special = "Invalid index in LOADK opcode"; break;
                     }
-                    DUMP_VM(buffer, bindex, "%s %d %s", opcode_name(op), r1, special);
+                    DUMP_VM(buffer, bindex, "%s %d %s", gravity_opcode_name(op), r1, special);
                 }
                 break;
             }
@@ -160,7 +160,7 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
             case AND:
             case OR: {
                 OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
-                DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
+                DUMP_VM(buffer, bindex, "%s %d %d %d", gravity_opcode_name(op), r1, r2, r3);
                 break;
             }
                 
@@ -170,42 +170,42 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
             case NOT: {
                 OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
                 #pragma unused(r3)
-                DUMP_VM(buffer, bindex, "%s %d %d", opcode_name(op), r1, r2);
+                DUMP_VM(buffer, bindex, "%s %d %d", gravity_opcode_name(op), r1, r2);
                 break;
             }
             
             case RANGENEW: {
                 OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3);
-                DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
+                DUMP_VM(buffer, bindex, "%s %d %d %d", gravity_opcode_name(op), r1, r2, r3);
                 break;
             }
                 
             case JUMP: {
                 OPCODE_GET_ONE26bit(inst, const uint32_t value);
-                DUMP_VM(buffer, bindex, "%s %d", opcode_name(op), value);
+                DUMP_VM(buffer, bindex, "%s %d", gravity_opcode_name(op), value);
                 break;
             }
                 
             case CALL: {
                 // CALL A B C => R(A) = B(C0... CN)
                 OPCODE_GET_THREE8bit(inst, const uint32_t r1, const uint32_t r2, uint32_t r3);
-                DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
+                DUMP_VM(buffer, bindex, "%s %d %d %d", gravity_opcode_name(op), r1, r2, r3);
                 break;
             }
                 
             case RET0:
             case RET: {
                 if (op == RET0) {
-                    DUMP_VM(buffer, bindex, "%s", opcode_name(op));
+                    DUMP_VM(buffer, bindex, "%s", gravity_opcode_name(op));
                 } else {
                     OPCODE_GET_ONE8bit(inst, const uint32_t r1);
-                    DUMP_VM(buffer, bindex, "%s %d", opcode_name(op), r1);
+                    DUMP_VM(buffer, bindex, "%s %d", gravity_opcode_name(op), r1);
                 }
                 break;
             }
                 
             case HALT: {
-                DUMP_VM(buffer, bindex, "%s", opcode_name(op));
+                DUMP_VM(buffer, bindex, "%s", gravity_opcode_name(op));
                 break;
             }
                 
@@ -217,21 +217,21 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
             case SETLIST: {
                 OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, uint32_t r2, const uint32_t r3);
                 #pragma unused(r3)
-                DUMP_VM(buffer, bindex, "%s %d %d", opcode_name(op), r1, r2);
+                DUMP_VM(buffer, bindex, "%s %d %d", gravity_opcode_name(op), r1, r2);
                 break;
             }
                 
             case CLOSE: {
                 OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
                 #pragma unused(r2)
-                DUMP_VM(buffer, bindex, "%s %d", opcode_name(op), r1);
+                DUMP_VM(buffer, bindex, "%s %d", gravity_opcode_name(op), r1);
                 break;
             }
                 
             case CHECK: {
                 OPCODE_GET_ONE8bit_ONE18bit(inst, const uint32_t r1, const uint32_t r2);
                 #pragma unused(r2)
-                DUMP_VM(buffer, bindex, "%s %d", opcode_name(op), r1);
+                DUMP_VM(buffer, bindex, "%s %d", gravity_opcode_name(op), r1);
                 break;
             }
                 

@@ -235,10 +235,10 @@
 #define CHECK_FAST_BINBOOL_BIT(r1,v2,v3,OP)         if (VALUE_ISA_BOOL(v2) && VALUE_ISA_BOOL(v3)) FMATH_BIN_BOOL(r1, v2.n, v3.n, OP)
 
 #define DECODE_BINARY_OPERATION(r1,r2,r3)           OPCODE_GET_TWO8bit_ONE10bit(inst, const uint32_t r1, const uint32_t r2, const uint32_t r3); \
-                                                    DEBUG_VM("%s %d %d %d", opcode_name(op), r1, r2, r3)
+                                                    DEBUG_VM("%s %d %d %d", gravity_opcode_name(op), r1, r2, r3)
 
 #define PREPARE_FUNC_CALLN(_c,_i,_w,_N)             gravity_closure_t *_c = (gravity_closure_t *)gravity_class_lookup_closure(gravity_value_getclass(v2), cache[_i]); \
-                                                    if (!_c || !_c->f) RUNTIME_ERROR("Unable to perform operator %s on object", opcode_name(op));   \
+                                                    if (!_c || !_c->f) RUNTIME_ERROR("Unable to perform operator %s on object", gravity_opcode_name(op));   \
                                                     uint32_t _w = FN_COUNTREG(func, frame->nargs); \
                                                     uint32_t _rneed = FN_COUNTREG(_c->f, _N);      \
 													uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + _w + _rneed - fiber->stacktop, 0); \
