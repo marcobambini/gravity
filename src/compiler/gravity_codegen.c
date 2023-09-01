@@ -647,47 +647,47 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     //
     // to:
     // {
-    //    var $expr = expr;
-    //    var $value = $expr.iterate(null);
-    //    while ($value) {
-    //        cond = $expr.next($value);
+    //    var expr = expr;
+    //    var value = expr.iterate(null);
+    //    while (value) {
+    //        cond = expr.next(value);
     //        stmp;
-    //        $value = $expr.iterate($value);
+    //        value = expr.iterate(value);
     //    }
     // }
 
-    // $expr and $value are temporary registers that must be protected, otherwise
+    // expr and value are temporary registers that must be protected, otherwise
     // in visit_compound_statement, all temp registers are released within ircode_register_temps_clear
-    uint32_t $expr = ircode_register_push_temp_protected(code);     // ++TEMP => 1
-    uint32_t $value = ircode_register_push_temp_protected(code);    // ++TEMP => 2
+    uint32_t expr = ircode_register_push_temp_protected(code);     // ++TEMP => 1
+    uint32_t value = ircode_register_push_temp_protected(code);    // ++TEMP => 2
 
     // get cpool index for the required methods
     uint16_t iterate_idx = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, ITERATOR_INIT_FUNCTION));
     uint16_t next_idx = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, ITERATOR_NEXT_FUNCTION));
     uint32_t cond_idx = node2index(node->cond);
 
-    // generate code for $expr = expr (so expr is only evaluated once)
+    // generate code for expr = expr (so expr is only evaluated once)
     visit(node->expr);
     uint32_t once_expr = ircode_register_pop(code);
     if (once_expr == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid for expression.");
-	ircode_add(code, MOVE, $expr, once_expr, 0, LINE_NUMBER(node));
+	ircode_add(code, MOVE, expr, once_expr, 0, LINE_NUMBER(node));
 
-    // generate code for $value = $expr.iterate(null);
+    // generate code for value = expr.iterate(null);
     uint32_t iterate_fn = ircode_register_push_temp_protected(code);    // ++TEMP => 3
 	ircode_add(code, LOADK, iterate_fn, iterate_idx, 0, LINE_NUMBER(node));
-	ircode_add(code, LOAD, iterate_fn, $expr, iterate_fn, LINE_NUMBER(node));
+	ircode_add(code, LOAD, iterate_fn, expr, iterate_fn, LINE_NUMBER(node));
 
     uint32_t next_fn = ircode_register_push_temp_protected(code);       // ++TEMP => 4
 	ircode_add(code, LOADK, next_fn, next_idx, 0, LINE_NUMBER(node));
-	ircode_add(code, LOAD, next_fn, $expr, next_fn, LINE_NUMBER(node));
+	ircode_add(code, LOAD, next_fn, expr, next_fn, LINE_NUMBER(node));
 
     uint32_t temp1 = ircode_register_push_temp(code);                   // ++TEMP => 5
 	ircode_add(code, MOVE, temp1, iterate_fn, 0, LINE_NUMBER(node));
     uint32_t temp2 = ircode_register_push_temp(code);                   // ++TEMP => 6
-	ircode_add(code, MOVE, temp2, $expr, 0, LINE_NUMBER(node));
+	ircode_add(code, MOVE, temp2, expr, 0, LINE_NUMBER(node));
     uint32_t temp3 = ircode_register_push_temp(code);                   // ++TEMP => 7
 	ircode_add(code, LOADK, temp3, CPOOL_VALUE_NULL, 0, LINE_NUMBER(node));
-	ircode_add(code, CALL, $value, temp1, 2, LINE_NUMBER(node));
+	ircode_add(code, CALL, value, temp1, 2, LINE_NUMBER(node));
     uint32_t temp = ircode_register_pop(code);                          // --TEMP => 6
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
     temp = ircode_register_pop(code);                                   // --TEMP => 5
@@ -704,16 +704,16 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     ircode_setlabel_check(code, labelCheck);
 
 	ircode_marklabel(code, labelTrue, LINE_NUMBER(node));
-	ircode_add(code, JUMPF, $value, labelFalse, 1, LINE_NUMBER(node));				// flag JUMPF instruction to check ONLY BOOL values
+	ircode_add(code, JUMPF, value, labelFalse, 1, LINE_NUMBER(node));   // flag JUMPF instruction to check ONLY BOOL values
 
-    // cond = $expr.next($value);
+    // cond = expr.next(value);
     // cond is a local variable
     temp1 = ircode_register_push_temp_protected(code);                  // ++TEMP => 5
 	ircode_add(code, MOVE, temp1, next_fn, 0, LINE_NUMBER(node));
     temp2 = ircode_register_push_temp_protected(code);                  // ++TEMP => 6
-	ircode_add(code, MOVE, temp2, $expr, 0, LINE_NUMBER(node));
+	ircode_add(code, MOVE, temp2, expr, 0, LINE_NUMBER(node));
     temp3 = ircode_register_push_temp_protected(code);                  // ++TEMP => 7
-	ircode_add(code, MOVE, temp3, $value, 0, LINE_NUMBER(node));
+	ircode_add(code, MOVE, temp3, value, 0, LINE_NUMBER(node));
 	ircode_add(code, CALL, cond_idx, temp1, 2, LINE_NUMBER(node));
     
     // process statement
@@ -733,15 +733,15 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
 
     ircode_marklabel(code, labelCheck, LINE_NUMBER(node));
-    // update $value for the next check
-    // $value = $expr.iterate($value);
+    // update value for the next check
+    // value = expr.iterate(value);
     temp1 = ircode_register_push_temp(code);                            // ++TEMP => 5
 	ircode_add(code, MOVE, temp1, iterate_fn, 0, LINE_NUMBER(node));
     temp2 = ircode_register_push_temp(code);                            // ++TEMP => 6
-	ircode_add(code, MOVE, temp2, $expr, 0, LINE_NUMBER(node));
+	ircode_add(code, MOVE, temp2, expr, 0, LINE_NUMBER(node));
     temp2 = ircode_register_push_temp(code);                            // ++TEMP => 7
-	ircode_add(code, MOVE, temp2, $value, 0, LINE_NUMBER(node));
-	ircode_add(code, CALL, $value, temp1, 2, LINE_NUMBER(node));
+	ircode_add(code, MOVE, temp2, value, 0, LINE_NUMBER(node));
+	ircode_add(code, CALL, value, temp1, 2, LINE_NUMBER(node));
     temp = ircode_register_pop(code);                                   // --TEMP => 6
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
     temp = ircode_register_pop(code);                                   // --TEMP => 5
@@ -767,8 +767,8 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
 
     // mark main for registers as reusable
-    ircode_register_temp_unprotect(code, $expr);
-    ircode_register_temp_unprotect(code, $value);
+    ircode_register_temp_unprotect(code, expr);
+    ircode_register_temp_unprotect(code, value);
     ircode_register_temp_unprotect(code, iterate_fn);
     ircode_register_temp_unprotect(code, next_fn);
 

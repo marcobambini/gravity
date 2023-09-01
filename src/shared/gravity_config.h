@@ -9,7 +9,7 @@
 #ifndef __GRAVITY_CONFIG__
 #define __GRAVITY_CONFIG__
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || ( defined(__TINYC__) && defined(_WIN32) )
 
 #pragma comment(lib, "shlwapi")
 #include <basetsd.h>
@@ -23,7 +23,9 @@
 #endif
 
 typedef SSIZE_T     ssize_t;
+#ifndef __TINYC__
 typedef int         mode_t;
+#endif
 
 #define open        _open
 #define close       _close

@@ -168,13 +168,13 @@ static void scan_directory (gravity_vm *vm, char *path, bool recursive, gravity_
         mem_free(name);
         gravity_value_t p2 = VALUE_FROM_CSTRING(vm, path);
         gravity_value_t p3 = VALUE_FROM_BOOL(true);
-        gravity_value_t params[] = {p1, p2, p3};
+        gravity_value_t params[3] = {p1, p2, p3};
         
         gravity_vm_runclosure(vm, closure, VALUE_FROM_NULL, params, 3);
         if (n) *n = *n + 1;
     }
     
-    #ifdef WIN32
+    #ifdef _WIN32
     char buffer[MAX_PATH];
     #else
     char *buffer = NULL;
@@ -192,7 +192,7 @@ static void scan_directory (gravity_vm *vm, char *path, bool recursive, gravity_
         gravity_value_t p1 = VALUE_FROM_CSTRING(vm, target_file);
         gravity_value_t p2 = VALUE_FROM_CSTRING(vm, full_path);
         gravity_value_t p3 = VALUE_FROM_BOOL(false);
-        gravity_value_t params[] = {p1, p2, p3};
+        gravity_value_t params[3] = {p1, p2, p3};
         mem_free(full_path);
         
         gravity_vm_runclosure(vm, closure, VALUE_FROM_NULL, params, 3);
