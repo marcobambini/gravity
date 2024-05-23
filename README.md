@@ -41,57 +41,74 @@ class Vector {
 func main() {
 	// initialize a new vector object
 	var v1 = Vector(1,2,3);
-	
+
 	// initialize a new vector object
 	var v2 = Vector(4,5,6);
-	
+
 	// call + function in the vector object
 	var v3 = v1 + v2;
-	
+
 	// returns string "[1,2,3] + [4,5,6] = [5,7,9]"
     	return "\(v1) + \(v2) = \(v3)";
  }
- ```
+```
 
 ## Features
-* multipass compiler
-* dynamic typing
-* classes and inheritance
-* higher-order functions and classes
-* lexical scoping
-* coroutines (via fibers)
-* nested classes
-* closures
-* garbage collection
-* operator overriding
-* powerful embedding API
-* built-in unit tests
-* built-in JSON serializer/deserializer
-* **optional semicolons**
+
+- multipass compiler
+- dynamic typing
+- classes and inheritance
+- higher-order functions and classes
+- lexical scoping
+- coroutines (via fibers)
+- nested classes
+- closures
+- garbage collection
+- operator overriding
+- powerful embedding API
+- built-in unit tests
+- built-in JSON serializer/deserializer
+- **optional semicolons**
 
 ## Special thanks
+
 Gravity was supported by a couple of open-source projects. The inspiration for closures comes from the elegant <a href="http://www.lua.org" target="_blank">Lua</a> programming language; specifically from the document <a href="http://www.cs.tufts.edu/~nr/cs257/archive/roberto-ierusalimschy/closures-draft.pdf">Closures in Lua</a>. For fibers, upvalues handling and some parts of the garbage collector, my gratitude goes to <a href="http://journal.stuffwithstuff.com" target="_blank">Bob Nystrom</a> and his excellent <a href="https://github.com/munificent/wren">Wren</a> programming language. A very special thanks should also go to my friend **Andrea Donetti** who helped me debugging and testing various aspects of the language.
 
 ## Documentation
+
 The <a href="https://marcobambini.github.io/gravity/#/README">Getting Started</a> page is a guide for downloading and compiling the language. There is also a more extensive <a href="https://gravity-lang.org">language documentation</a>. Official [wiki](https://github.com/marcobambini/gravity/wiki) is used to collect related projects and tools.
 
 ## Where Gravity is used
-* Gravity is the core language built into Creo (https://creolabs.com)
-* Gravity is the scripting language for the Untold game engine (https://youtu.be/OGrWq8jpK14?t=58)
+
+- Gravity is the core language built into Creo (https://creolabs.com)
+- Gravity is the scripting language for the Untold game engine (https://youtu.be/OGrWq8jpK14?t=58)
 
 ## Community
+
 Seems like a good idea to make a group chat for people to discuss Gravity.<br> [![Join the chat at https://gitter.im/gravity-lang/](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gravity-lang/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Contributing
+
 Contributions to Gravity are welcomed and encouraged!<br>
 More information is available in the official [CONTRIBUTING](CONTRIBUTING.md) file.
-* <a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
-	* if you need help
-	* if you find a bug
-	* if you have a feature request
-	* to ask a general question
-* <a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
-	* if you want to contribute
+
+- <a href="https://github.com/marcobambini/gravity/issues/new">Open an issue</a>:
+  - if you need help
+  - if you find a bug
+  - if you have a feature request
+  - to ask a general question
+- <a href="https://github.com/marcobambini/gravity/pulls">Submit a pull request</a>:
+  - if you want to contribute
 
 ## License
+
 Gravity is available under the permissive MIT license.
+
+## Let's get ziggy
+
+I made a thin wrapper for gravity in zig, you can fetch it like any other zig packages,
+you can pass an optional parameter to the build options: "shared"
+
+- If set to true, the "gravity" artifact will be dynamically linked
+- If set to false, it will be statically linked
+- If not set, both of them will be created: "gravity" and "gravity_s", "gravity" is dynamic, "gravity_s" is static

@@ -1,10 +1,9 @@
 language: c
 os:
- - osx
- - linux
+  - windows
+  - osx
+  - linux
 compiler:
-  - gcc
-  - clang
+  - zig
 script:
-  - make
-  - test/unittest/run_all.sh
+  - zig build
