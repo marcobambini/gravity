@@ -66,6 +66,7 @@ pub fn build(b: *std.Build) void {
     inline for (INCLUDE) |I| {
         if (comptime std.mem.eql(u8, I, "-I"))
             continue;
+        lib_s.addIncludePath(b.path(I));
         lib_s.installHeadersDirectory(b.path(I), ".", .{});
     }
     lib_s.linkSystemLibrary("m");
@@ -89,6 +90,7 @@ pub fn build(b: *std.Build) void {
     inline for (INCLUDE) |I| {
         if (comptime std.mem.eql(u8, I, "-I"))
             continue;
+        lib.addIncludePath(b.path(I));
         lib.installHeadersDirectory(b.path(I), ".", .{});
     }
     lib.linkSystemLibrary("m");
@@ -100,7 +102,7 @@ pub fn build(b: *std.Build) void {
     lib.addCSourceFiles(.{
         .root = b.path("."),
         .files = SRC,
-        .flags = INCLUDE ++ CFLAGS ++ @as([]const []const u8, &.{ "-DBUILD_GRAVITY_API", "-DGRAVITY_DLL" }),
+        .flags = INCLUDE ++ CFLAGS ++ @as([]const []const u8, &.{"-DBUILD_GRAVITY_API"}),
     });
 
     b.installArtifact(lib);
