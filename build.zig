@@ -57,10 +57,8 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const shared = b.option(bool, "shared", "Whether to only build shared or static library, default: null/build both");
-
     const lib_s = b.addStaticLibrary(.{
-        .name = if (shared) |_| "gravity" else "gravity_s",
+        .name = "gravity_s",
         .target = target,
         .optimize = optimize,
         .link_libc = true,
@@ -105,15 +103,8 @@ pub fn build(b: *std.Build) void {
         .flags = INCLUDE ++ CFLAGS ++ @as([]const []const u8, &.{ "-DBUILD_GRAVITY_API", "-DGRAVITY_DLL" }),
     });
 
-    if (shared) |s| {
-        if (s)
-            b.installArtifact(lib)
-        else
-            b.installArtifact(lib_s);
-    } else {
-        b.installArtifact(lib);
-        b.installArtifact(lib_s);
-    }
+    b.installArtifact(lib);
+    b.installArtifact(lib_s);
 
     const exe = b.addExecutable(.{
         .name = "gravity",
