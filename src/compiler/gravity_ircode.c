@@ -43,7 +43,10 @@ ircode_t *ircode_create (uint16_t nlocals) {
     code->error = false;
 
     code->list = mem_alloc(NULL, sizeof(code_r));
-    if (!code->list) return NULL;
+    if (!code->list) {
+        mem_free(code);
+        return NULL;
+    }
     marray_init(*code->list);
     marray_init(code->label_true);
     marray_init(code->label_false);
