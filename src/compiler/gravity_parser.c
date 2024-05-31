@@ -437,7 +437,10 @@ static gnode_t *parse_file_expression (gravity_parser_t *parser) {
     while (gravity_lexer_peek(lexer) == TOK_OP_DOT) {
         gravity_lexer_next(lexer); // consume TOK_OP_DOT
         const char *identifier = parse_identifier(parser);
-        if (!identifier) return NULL;
+        if (!identifier) {
+            mem_free(list);
+            return NULL;
+        }
         cstring_array_push(list, identifier);
     }
 
