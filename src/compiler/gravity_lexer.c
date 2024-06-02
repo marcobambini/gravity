@@ -533,7 +533,7 @@ gravity_lexer_t *gravity_lexer_create (const char *source, size_t len, uint32_t 
     gravity_lexer_t *lexer = mem_alloc(NULL, sizeof(gravity_lexer_t));
     if (!lexer) return NULL;
 
-    bzero(lexer, sizeof(gravity_lexer_t));
+    memset(lexer, 0, sizeof(gravity_lexer_t));
     lexer->is_static = is_static;
     lexer->lineno = 1;
     lexer->buffer = source;

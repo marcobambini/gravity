@@ -1,0 +1,12 @@
+.{
+    .name = "gravity",
+    .version = "0.8.5-build+1eb6d5ab98b9df4909513612a2bb9238a8304422",
+
+    .dependencies = .{},
+
+    .paths = .{
+        "src/",
+        "build.zig",
+        "build.zig.zon",
+    },
+}

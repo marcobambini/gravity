@@ -55,7 +55,7 @@ ircode_t *ircode_create (uint16_t nlocals) {
     marray_init(code->context);
 
     // init state array (register 0 is reserved)
-    bzero(code->state, MAX_REGISTERS * sizeof(bool));
+    memset(code->state, 0, MAX_REGISTERS * sizeof(bool));
     code->state[0] = true;
     for (uint32_t i=0; i<nlocals; ++i) {
         code->state[i] = true;
