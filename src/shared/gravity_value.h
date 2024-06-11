@@ -9,6 +9,8 @@
 #ifndef __GRAVITY_VALUES__
 #define __GRAVITY_VALUES__
 
+#include "gravity_common.h"
+
 #include "gravity_memory.h"
 #include "gravity_utils.h"
 #include "gravity_array.h"
@@ -148,13 +150,6 @@ extern "C" {
 
 #define GRAVITY_BRIDGE_INDEX                UINT16_MAX
 #define GRAVITY_COMPUTED_INDEX              UINT16_MAX-1
-
-//DLL export/import support for Windows
-#if !defined(GRAVITY_API) && defined(_WIN32) && defined(BUILD_GRAVITY_API)
-  #define GRAVITY_API __declspec(dllexport)
-#else
-  #define GRAVITY_API
-#endif
 
 // MARK: - STRUCT -
 
