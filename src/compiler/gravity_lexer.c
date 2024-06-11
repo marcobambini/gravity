@@ -73,30 +73,33 @@ static inline bool is_whitespace (int c) {
     return ((c == ' ') || (c == '\t') || (c == '\v') || (c == '\f'));
 }
 
-static inline bool is_newline (gravity_lexer_t *lexer, int c) {
+static inline bool is_newline (gravity_lexer_t *lexer, int c, int n, int n2) {
     // CR: Carriage Return, U+000D (UTF-8 in hex: 0D)
     // LF: Line Feed, U+000A (UTF-8 in hex: 0A)
     // CR+LF: CR (U+000D) followed by LF (U+000A) (UTF-8 in hex: 0D0A)
 
     // LF
-    if (c == 0x0A) return true;
+    if (c == 0x0A)
+        return true;
 
     // CR+LF or CR
     if (c == 0x0D) {
-        if (PEEK_CURRENT == 0x0A) {NEXT;}
+        if (n == 0x0A) {
+            NEXT;
+        }
         return true;
     }
 
     // UTF-8 cases https://en.wikipedia.org/wiki/Newline#Unicode
 
     // NEL: Next Line, U+0085 (UTF-8 in hex: C285)
-    if ((c == 0xC2) && (PEEK_CURRENT == 0x85)) {
+    if ((c == 0xC2) && (n == 0x85)) {
         NEXT;
         return true;
     }
 
     // LS: Line Separator, U+2028 (UTF-8 in hex: E280A8)
-    if ((c == 0xE2) && (PEEK_CURRENT == 0x80) && (PEEK_NEXT == 0xA8)) {
+    if ((c == 0xE2) && (n == 0x80) && (n2 == 0xA8)) {
         NEXT; NEXT;
         return true;
     }
@@ -210,13 +213,13 @@ static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
         next_utf8(lexer, &c);
 
         if (isLineComment){
-            if (is_newline(lexer, c)) {INC_LINE; break;}
+            if (is_newline(lexer, c, PEEK_CURRENT, PEEK_NEXT)) {INC_LINE; break;}
         } else {
             if (IS_EOF) break;
             int c2 = PEEK_CURRENT;
             if ((c == '/') && (c2 == '*')) ++count;
             if ((c == '*') && (c2 == '/')) {--count; NEXT; INC_TOKLEN; if (count == 0) break;}
-            if (is_newline(lexer, c)) {INC_LINE;}
+            if (is_newline(lexer, c, c2, PEEK_NEXT)) {INC_LINE;}
         }
     }
 
@@ -304,7 +307,7 @@ loop:
     if (IS_EOF) goto report_token;
     if (is_digit(c, ntype)) goto accept_char;
     if (is_whitespace(c)) goto report_token;
-    if (is_newline(lexer, c)) goto report_token;
+    if (is_newline(lexer, c, PEEK_NEXT, PEEK_NEXT2)) goto report_token;
 
     if (expAllowed) {
         if ((c == expChar) && (!expFound)) {expFound = true; signAllowed = true; goto accept_char;}
@@ -347,7 +350,7 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 
     while ((c2 = (unsigned char)PEEK_CURRENT) != c) {
         if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
-        if (is_newline(lexer, c2)) INC_LINE;
+        if (is_newline(lexer, c2, PEEK_NEXT, PEEK_NEXT2)) INC_LINE;
 
         // handle escaped characters
         if (c2 == '\\') {
@@ -576,7 +579,7 @@ loop:
     c = PEEK_CURRENT;
 
     if (is_whitespace(c)) {INC_OFFSET_POSITION; goto loop;}
-    if (is_newline(lexer, c)) {INC_OFFSET_POSITION; INC_LINE; goto loop;}
+    if (is_newline(lexer, c, PEEK_NEXT, PEEK_NEXT2)) {INC_OFFSET_POSITION; INC_LINE; goto loop;}
     if (is_comment(c, PEEK_NEXT)) {lexer_scan_comment(lexer); goto loop;}
 
     if (is_semicolon(c)) {token = lexer_scan_semicolon(lexer); goto return_result;}
@@ -619,7 +622,7 @@ void gravity_lexer_skip_line (gravity_lexer_t *lexer) {
     while (!IS_EOF) {
         int c = 0;
         next_utf8(lexer, &c);
-        if (is_newline(lexer, c)) {
+        if (is_newline(lexer, c, PEEK_CURRENT, PEEK_NEXT)) {
             INC_LINE;
             break;
         }
