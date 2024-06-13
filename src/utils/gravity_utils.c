@@ -95,7 +95,7 @@ double millitime (nanotime_t tstart, nanotime_t tend) {
 // MARK: - I/O Functions -
 
 int64_t file_size (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     WIN32_FILE_ATTRIBUTE_DATA fileInfo;
     if (GetFileAttributesExA(path, GetFileExInfoStandard, (void*)&fileInfo) == 0) return -1;
     return (int64_t)(((__int64)fileInfo.nFileSizeHigh) << 32 ) + fileInfo.nFileSizeLow;
@@ -107,7 +107,7 @@ int64_t file_size (const char *path) {
 }
 
 bool file_exists (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) return true;
     #else
     if (access(path, F_OK) == 0) return true;
@@ -117,7 +117,7 @@ bool file_exists (const char *path) {
 }
 
 bool file_delete (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     return DeleteFileA(path);
     #else
     if (unlink(path) == 0) return true;
@@ -136,7 +136,7 @@ char *file_read(const char *path, size_t *len) {
     if (fsize < 0) goto abort_read;
     
     int oflags = O_RDONLY;
-    #ifdef WIN32
+    #ifdef _WIN32
     // Only Windows needs to understand the difference between text and binary, so only Windows defines O_BINARY 
     oflags |= O_BINARY;
     #endif
@@ -171,7 +171,7 @@ bool file_write (const char *path, const char *buffer, size_t len) {
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
     if (fd < 0) return false;
     
-    ssize_t nwrite = (ssize_t)write(fd, buffer, len);
+    ssize_t nwrite = (ssize_t)write(fd, buffer, (unsigned int)len);
     close(fd);
     
     return (nwrite == len);
@@ -185,7 +185,7 @@ char *file_buildpath (const char *filename, const char *dirpath) {
     char *full_path = (char *)mem_alloc(NULL, len);
     if (!full_path) return NULL;
     
-    #ifdef WIN32
+    #ifdef _WIN32
     PathCombineA(full_path, filename, dirpath);
     #else
     // check if PATH_SEPARATOR exists in dirpath
@@ -220,7 +220,7 @@ char *file_name_frompath (const char *path) {
 // MARK: - Directory Functions -
 
 bool is_directory (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     DWORD dwAttrs = GetFileAttributesA(path);
     if (dwAttrs == INVALID_FILE_ATTRIBUTES) return false;
     if (dwAttrs & FILE_ATTRIBUTE_DIRECTORY) return true;
@@ -235,7 +235,7 @@ bool is_directory (const char *path) {
 }
 
 bool directory_create (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     CreateDirectoryA(path, NULL);
     #else
     mode_t saved = umask(0);
@@ -247,7 +247,7 @@ bool directory_create (const char *path) {
 }
 
 DIRREF directory_init (const char *dirpath) {
-	#ifdef WIN32
+	#ifdef _WIN32
 	WIN32_FIND_DATAW findData;
 	WCHAR   path[MAX_PATH];
 	WCHAR   dirpathW[MAX_PATH];
@@ -258,7 +258,7 @@ DIRREF directory_init (const char *dirpath) {
 	// in this way I can be sure that the first file returned (and lost) is .
 	PathCombineW(path, dirpathW, L"*");
 	
-	// if the path points to a symbolic link, the WIN32_FIND_DATA buffer contains
+	// if the path points to a symbolic link, the _WIN32_FIND_DATA buffer contains
 	// information about the symbolic link, not the target
 	return FindFirstFileW(path, &findData);
 	#else
@@ -270,7 +270,7 @@ char *directory_read (DIRREF ref, char *win32buffer) {
 	if (ref == NULL) return NULL;
 	
 	while (1) {
-		#ifdef WIN32
+		#ifdef _WIN32
 		WIN32_FIND_DATAA findData;
 		
 		if (FindNextFileA(ref, &findData) == 0) {
@@ -280,7 +280,7 @@ char *directory_read (DIRREF ref, char *win32buffer) {
 		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
 		if (findData.cFileName[0] == '\0') continue;
 		if (findData.cFileName[0] == '.') continue;
-		// cFileName from WIN32_FIND_DATAA is a fixed size array, and findData is local
+		// cFileName from _WIN32_FIND_DATAA is a fixed size array, and findData is local
 		// This line of code is under the assumption that `win32buffer` is at least MAX_PATH in size!
 		return !win32buffer ? NULL : memcpy(win32buffer, findData.cFileName, sizeof(findData.cFileName));
 		#else
@@ -302,7 +302,7 @@ char *directory_read_extend (DIRREF ref, char *win32buffer) {
     if (ref == NULL) return NULL;
     
     while (1) {
-        #ifdef WIN32
+        #ifdef _WIN32
         WIN32_FIND_DATAA findData;
         
         if (FindNextFileA(ref, &findData) == 0) {
@@ -312,7 +312,7 @@ char *directory_read_extend (DIRREF ref, char *win32buffer) {
         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) continue;
         if (findData.cFileName[0] == '\0') continue;
         if (findData.cFileName[0] == '.') continue;
-        // cFileName from WIN32_FIND_DATAA is a fixed size array, and findData is local
+        // cFileName from _WIN32_FIND_DATAA is a fixed size array, and findData is local
         // This line of code is under the assumption that `win32buffer` is at least MAX_PATH in size!
         return !win32buffer ? NULL : memcpy(win32buffer, findData.cFileName, sizeof(findData.cFileName));
         #else
