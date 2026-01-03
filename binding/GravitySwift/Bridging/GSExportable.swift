@@ -18,4 +18,8 @@ public extension GSExportable {
     static var runtimeName: String {
         return String(describing: self)
     }
+
+    static var isClass: Bool {
+        self is AnyClass
+    }
 }

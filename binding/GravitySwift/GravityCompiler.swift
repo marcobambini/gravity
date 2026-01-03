@@ -5,29 +5,29 @@
 //  Created by v.prusakov on 6/2/22.
 //
 
-//
-//  File.swift
-//
-//
-//  Created by v.prusakov on 6/4/22.
-//
-
 import CGravity
 
-public class GravityCompiler {
-    
+/// Collection on data required for Gravity virtual machine.
+public struct GravityBinary {
+    let binary: UnsafeMutablePointer<gravity_closure_t>!
+    let compiler: GravityCompiler
+}
+
+/// Gravity Compiler
+public final class GravityCompiler {
+
     internal private(set) var compiler: OpaquePointer
-    
-    public init() {
-        self.compiler = gravity_compiler_create(nil)
+
+    init(delegate: UnsafeMutablePointer<gravity_delegate_t>) {
+        self.compiler = gravity_compiler_create(delegate)
     }
     
     deinit {
         gravity_compiler_free(self.compiler)
     }
     
-    public func compile(source: String, debug: Bool = true) -> UnsafeMutablePointer<gravity_closure_t>! {
-        source.withCString { sourcePtr in
+    public func compile(source: String, debug: Bool = true) -> GravityBinary {
+        let closure = source.withCString { sourcePtr in
             return gravity_compiler_run(
                 self.compiler,
                 sourcePtr,
@@ -37,9 +37,11 @@ public class GravityCompiler {
                 debug // add_debug
             )
         }
+
+        return GravityBinary(binary: closure, compiler: self)
     }
     
-    public func transferMem(to vm: GravityVirtualMachine) {
+    func transferMem(to vm: GravityVirtualMachine) {
         gravity_compiler_transfer(self.compiler, vm.vmPtr)
     }
 }

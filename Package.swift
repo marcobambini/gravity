@@ -27,7 +27,8 @@ let package = Package(
             dependencies: ["Gravity"],
             path: "examples/GravitySwiftExample",
             resources: [
-                .copy("main.gravity")
+                .copy("main.gravity"),
+                .copy("extern.gravity")
             ]
         ),
         

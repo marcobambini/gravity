@@ -18,7 +18,12 @@ class GravityBridgeClassDescriptor {
     private(set) var methodDescriptors: [MethodDescriptor] = []
     private(set) var propertyDescripors: [PropertyDescriptor] = []
     
-    internal init<T>(vm: GravityVirtualMachine, registredName: String, gClass: UnsafeMutablePointer<gravity_class_t>?, type: T.Type) {
+    internal init<T>(
+        vm: GravityVirtualMachine,
+        registredName: String,
+        gClass: UnsafeMutablePointer<gravity_class_t>?,
+        type: T.Type
+    ) {
         self.vm = vm
         self.registredName = registredName
         self.gClass = gClass

@@ -29,12 +29,10 @@ public final class GravityExportEncoder {
         )
         
         // FIXME: xdata required to identify value as class. instead we get `closure` and value never call bridge_init
-        
         let xdata = Unmanaged<GravityBridgeClassDescriptor>.passRetained(classDescriptor).toOpaque()
         gravity_class_setxdata(clazz, xdata)
         
         self.classDescriptors.append(classDescriptor)
-        
         return _GravityExportClassEncoderContainer(descriptor: classDescriptor, type: T.self)
     }
 }

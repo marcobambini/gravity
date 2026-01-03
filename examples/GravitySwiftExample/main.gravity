@@ -5,14 +5,25 @@
 //  Created by v.prusakov on 6/6/22.
 //
 
-extern var SwiftObject
-extern var sw
+#include "extern"
+
+struct Value {
+    var integer: Int = 25102018
+}
 
 func main() {
+    var swiftStruct = SwiftStruct()
+    swiftStruct.printText()
+    swiftStruct.text = "New value"
+    swiftStruct.printText()
+
     var obj = SwiftObject()
     obj.random
     obj.printKek()
     System.print(sw.random)
+
+    var value = Value()
+    System.print(value.integer)
     
     System.print(obj.random)
     System.print(obj.text)
