@@ -147,7 +147,8 @@ class SwiftObject: @unchecked Sendable {
     }
 }
 
-struct SwiftStruct: GSExportable {
+@GSExportable
+struct SwiftStruct {
     init() {
         print("SwiftStruct Init")
     }
@@ -160,13 +161,6 @@ struct SwiftStruct: GSExportable {
 
     func printText() {
         print(Self.self, #function, text)
-    }
-
-    static func export(in encoder: GravityExportEncoder) throws {
-        let container = try encoder.makeContainer(for: SwiftStruct.self)
-        container.bind(.constructor(Self.init))
-        container.bind(.property(\Self.text, named: "text"))
-        container.bind(.method(self.printText, named: "printText"))
     }
 }
 

@@ -256,6 +256,19 @@ public extension GSValue {
         // We use unretained value, because we will release it later in bridge_free function.
         return Unmanaged<_ValueBox>.fromOpaque(xdata).takeUnretainedValue().value as? T
     }
+
+    func mutableScope<T>(of type: T.Type, scope: (inout T) -> Void) {
+        // Extra data always contains reference to an object, and we should work with it as AnyObject, but cast to T.
+        // With that hack we can support both value and reference types.
+        guard let xdata = xData else { return }
+
+        // We use unretained value, because we will release it later in bridge_free function.
+        let valueBox = Unmanaged<_ValueBox>.fromOpaque(xdata).takeUnretainedValue()
+        if var value = valueBox.value as? T {
+            scope(&value)
+            valueBox.value = value
+        }
+    }
 }
 
 extension GSValue: Hashable {

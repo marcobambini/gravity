@@ -9,6 +9,10 @@
 
 struct Value {
     var integer: Int = 25102018
+
+    func value() {
+        System.print(sw.random)
+    }
 }
 
 func main() {

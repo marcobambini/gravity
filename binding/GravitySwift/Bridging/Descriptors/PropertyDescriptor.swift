@@ -7,6 +7,7 @@
 
 import CGravity
 
+/// Contains setter and getter logic for Swift properties.
 public final class PropertyDescriptor {
     let name: String
     private let getter: (GSValue) -> GSValue // target -> value
@@ -46,7 +47,23 @@ public final class PropertyDescriptor {
             setter: nil
         )
     }
-    
+
+    public static func property<T, A>(_ keyPath: WritableKeyPath<T, A>, named name: String) -> PropertyDescriptor {
+        PropertyDescriptor(
+            name: name,
+            getter: { target in
+                let value = (target.toObjectOf(T.self))?[keyPath: keyPath]
+                return GSValue(object: value, in: target.vm)
+            },
+            setter: { target, value in
+                // we use var because we know that target always contains ref type.
+                target.mutableScope(of: T.self) {
+                    $0[keyPath: keyPath] = value.toObjectOf(A.self)!
+                }
+            }
+        )
+    }
+
     // MARK: - Internals
     
     func setValue(_ newValue: GSValue, in target: GSValue) {

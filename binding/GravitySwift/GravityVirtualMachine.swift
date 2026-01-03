@@ -287,7 +287,7 @@ extension GravityVirtualMachine {
             )
         }
 
-        clazz?.pointee.is_struct = !T.isClass
+//        clazz?.pointee.is_struct = !T.isClass
 
         return clazz!
     }
