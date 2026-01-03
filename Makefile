@@ -14,9 +14,10 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
       $(wildcard $(OPT_DIR)*.c)
 
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
-CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API
+CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API -MMD
 OBJ = $(SRC:.c=.o)
-
+DEP = $(OBJ:.o=.d)
+	
 ifeq ($(OS),Windows_NT)
 	# Windows
 	LIBTARGET = gravity.dll
@@ -68,6 +69,8 @@ lib: gravity
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) gravity example libgravity.so gravity.dll
-	
+	rm -f $(OBJ) $(DEP) gravity example libgravity.so gravity.dll
+
 .PHONY: all clean gravity example
+
+-include $(DEP)
