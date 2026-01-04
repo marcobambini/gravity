@@ -217,7 +217,7 @@ public extension GSValue {
     }
     
     // TODO: Currently not work with Range/List/Map
-    func toObjectOf<T>(_ type: T.Type) -> T? {
+    func toObjectOf<T: _GravityCompitable>(_ type: T.Type) -> T? {
         if type == String.self {
             return self.toString as? T
         }
@@ -229,9 +229,6 @@ public extension GSValue {
         }
         if type == Int16.self {
             return Int16(self.toInteger) as? T
-        }
-        if type == Int8.self {
-            return Int8(self.toInteger) as? T
         }
         if type == Int8.self {
             return Int8(self.toInteger) as? T
@@ -248,7 +245,13 @@ public extension GSValue {
         if type == Double.self {
             return self.toDouble as? T
         }
-        
+        if type == Array<GSValue>.self {
+            return self.toList as? T
+        }
+        if type == GSValue.self {
+            return self as? T
+        }
+
         // Extra data always contains reference to an object, and we should work with it as AnyObject, but cast to T.
         // With that hack we can support both value and reference types.
         guard let xdata = xData else { return nil }
@@ -270,6 +273,36 @@ public extension GSValue {
         }
     }
 }
+
+public protocol _GravityCompitable {}
+protocol _GravityMapCompitable: _GravityCompitable {}
+protocol _GravityArrayCompitable: _GravityCompitable {}
+
+extension Dictionary: _GravityCompitable where Key: (_GravityCompitable & Hashable), Value: _GravityCompitable {}
+
+extension Dictionary: _GravityMapCompitable where Key: (_GravityCompitable & Hashable), Value: _GravityCompitable {}
+
+extension Array: _GravityCompitable where Element: _GravityCompitable { }
+
+extension Array: _GravityArrayCompitable where Element: _GravityCompitable {}
+extension ContiguousArray: _GravityCompitable where Element: _GravityCompitable { }
+
+extension ContiguousArray: _GravityArrayCompitable where Element: _GravityCompitable {}
+extension Set: _GravityCompitable where Element: _GravityCompitable { }
+
+extension Set: _GravityArrayCompitable where Element: _GravityCompitable {}
+
+extension String: _GravityCompitable {}
+extension Int32: _GravityCompitable {}
+extension Int16: _GravityCompitable {}
+extension Int8: _GravityCompitable {}
+extension UInt8: _GravityCompitable {}
+extension UInt16: _GravityCompitable {}
+extension UInt32: _GravityCompitable {}
+extension Double: _GravityCompitable {}
+extension Float: _GravityCompitable {}
+extension Int: _GravityCompitable {}
+extension GSValue: _GravityCompitable {}
 
 extension GSValue: Hashable {
     public func hash(into hasher: inout Hasher) {
@@ -365,6 +398,7 @@ extension GSValue: Equatable {
 }
 
 public extension GSValue {
+    @discardableResult
     func callMethod(named name: String, with args: [Any]) -> GSValue? {
         if self.hasMethod(named: name) {
             return nil
@@ -377,13 +411,15 @@ public extension GSValue {
     }
     
     // Not sure that is works
+    @discardableResult
     func callConstructor(with args: [Any]) -> GSValue? {
         let closure = self.toGravityClosure
         let arguments = args.map { GSValue(object: $0, in: self.vm) }
         
         return self.vm.execute(closure: closure, sender: nil, params: arguments)
     }
-    
+
+    @discardableResult
     func callAsFunction(_ args: Any...) -> GSValue? {
         let closure = self.toGravityClosure
         let arguments = args.map { GSValue(object: $0, in: self.vm) }

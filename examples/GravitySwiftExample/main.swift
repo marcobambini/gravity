@@ -15,14 +15,16 @@ class GVMDelegateImpl: GravityVirtualMachineDelegate {
         errorType: error_type_t,
         errorDescription: error_desc_t
     ) {
-
+        print("error", message)
     }
     
     func virtualMachine(_ virtualMachine: Gravity.GravityVirtualMachine, didGetValueFrom target: Gravity.GSValue, forKey key: String) throws -> Gravity.GSValue? {
+        print("didGetValueFrom")
         return nil
     }
 
     func virtualMachine(_ virtualMachine: Gravity.GravityVirtualMachine, didGetUndefValueFrom target: Gravity.GSValue, forKey key: String) throws -> Gravity.GSValue? {
+        print("didGetUndefValueFrom", target, key)
         return nil
     }
 
@@ -147,6 +149,33 @@ class SwiftObject: @unchecked Sendable {
     }
 }
 
+struct GSSystem {
+
+    let value: GSValue
+
+    func update() {
+        value.callMethod(named: "update", with: [])
+    }
+}
+
+@GSExportable
+class SystemRegister {
+
+    @GSExportableIgnore
+    var systems: [GSSystem] = []
+
+    func register(_ system: GSValue) {
+        self.systems.append(.init(value: system))
+    }
+
+    @GSExportableIgnore
+    func update() {
+        self.systems.forEach {
+            $0.update()
+        }
+    }
+}
+
 @GSExportable
 struct SwiftStruct {
     init() {
@@ -162,15 +191,23 @@ struct SwiftStruct {
     func printText() {
         print(Self.self, #function, text)
     }
+
+    func query(_ arguments: [GSValue]) {
+        print(arguments)
+    }
 }
 
 try! vm.bindClass(with: SwiftObject.self)
 try! vm.bindClass(with: SwiftStruct.self)
+try! vm.bindClass(with: SystemRegister.self)
 
+var register = SystemRegister()
 vm.setValue(SwiftObject(), forKey: "sw")
+vm.setValue(register, forKey: "registrator")
 
 let binary = vm.loadGravityFile(from: sourceCode)
 if let res = vm.execute(binary) {
     print(res)
 }
 
+register.update()

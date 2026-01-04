@@ -4,6 +4,7 @@ import SwiftSyntaxMacros
 @main
 struct GravityMacrosPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        GSExportableMacro.self
+        GSExportableMacro.self,
+        GSExportableIgnore.self
     ]
 }

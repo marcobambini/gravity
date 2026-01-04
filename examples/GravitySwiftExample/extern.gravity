@@ -6,3 +6,8 @@
 //
 
 extern var sw
+extern var registrator
+
+class GSSystem {
+    func update() {}
+}

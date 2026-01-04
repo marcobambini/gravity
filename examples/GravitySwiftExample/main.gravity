@@ -15,25 +15,42 @@ struct Value {
     }
 }
 
-func main() {
-    var swiftStruct = SwiftStruct()
-    swiftStruct.printText()
-    swiftStruct.text = "New value"
-    swiftStruct.printText()
+var value = Value()
+value.value()
 
-    var obj = SwiftObject()
-    obj.random
-    obj.printKek()
-    System.print(sw.random)
-
-    var value = Value()
-    System.print(value.integer)
-    
-    System.print(obj.random)
-    System.print(obj.text)
-    
-    obj.text = "Some new text"
-    System.print(obj.text)
-//    obj.printText()
-    System.print(obj.debug(365))
+class MySystem: GSSystem {
+    func update() {
+        System.print("Update")
+    }
 }
+
+registrator.register(MySystem())
+
+func main() {
+    
+}
+
+//
+//func main() {
+//    var swiftStruct = SwiftStruct()
+//    swiftStruct.printText()
+//    swiftStruct.query([Value, SwiftObject])
+//    swiftStruct.text = "New value"
+//    swiftStruct.printText()
+//
+//    var obj = SwiftObject()
+//    obj.random
+//    obj.printKek()
+//    System.print(sw.random)
+//
+//    var value = Value()
+//    System.print(value.integer)
+//    
+//    System.print(obj.random)
+//    System.print(obj.text)
+//    
+//    obj.text = "Some new text"
+//    System.print(obj.text)
+////    obj.printText()
+//    System.print(obj.debug(365))
+//}

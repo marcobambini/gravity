@@ -29,7 +29,7 @@ public class MethodDescriptor {
     
     // MARK: Methods
     
-    public static func method<T, R>(_ method: @escaping MethodNoArg<T, R>, named: String) -> MethodDescriptor {
+    public static func method<T: _GravityCompitable, R>(_ method: @escaping MethodNoArg<T, R>, named: String) -> MethodDescriptor {
         return MethodDescriptor(
             name: named,
             argsCount: 0,
@@ -40,7 +40,7 @@ public class MethodDescriptor {
         )
     }
     
-    public static func method<T, A, R>(_ method: @escaping Method1Arg<T, A, R>, named: String) -> MethodDescriptor {
+    public static func method<T: _GravityCompitable, A: _GravityCompitable, R>(_ method: @escaping Method1Arg<T, A, R>, named: String) -> MethodDescriptor {
         MethodDescriptor(
             name: named,
             argsCount: 1,
@@ -53,7 +53,7 @@ public class MethodDescriptor {
         )
     }
     
-    public static func method<T, A, B, R>(_ method: @escaping Method2Arg<T, A, B, R>, named: String) -> MethodDescriptor {
+    public static func method<T: _GravityCompitable, A: _GravityCompitable, B: _GravityCompitable, R>(_ method: @escaping Method2Arg<T, A, B, R>, named: String) -> MethodDescriptor {
         MethodDescriptor(
             name: named,
             argsCount: 2,
@@ -67,7 +67,7 @@ public class MethodDescriptor {
         )
     }
     
-    public static func method<T, A, B, C, R>(_ method: @escaping Method3Arg<T, A, B, C, R>, named: String) -> MethodDescriptor {
+    public static func method<T: _GravityCompitable, A: _GravityCompitable, B: _GravityCompitable, C: _GravityCompitable, R>(_ method: @escaping Method3Arg<T, A, B, C, R>, named: String) -> MethodDescriptor {
         MethodDescriptor(
             name: named,
             argsCount: 3,
@@ -82,7 +82,7 @@ public class MethodDescriptor {
         )
     }
     
-    public static func method<T, A, B, C, D, R>(_ method: @escaping Method4Arg<T, A, B, C, D, R>, named: String) -> MethodDescriptor {
+    public static func method<T: _GravityCompitable, A: _GravityCompitable, B: _GravityCompitable, C: _GravityCompitable, D: _GravityCompitable, R>(_ method: @escaping Method4Arg<T, A, B, C, D, R>, named: String) -> MethodDescriptor {
         MethodDescriptor(
             name: named,
             argsCount: 4,
@@ -112,7 +112,7 @@ public class MethodDescriptor {
         )
     }
     
-    public static func constructor<T, A>(_ constructor: @escaping StaticMethod1Arg<T, A>) -> MethodDescriptor {
+    public static func constructor<T, A: _GravityCompitable>(_ constructor: @escaping StaticMethod1Arg<T, A>) -> MethodDescriptor {
         MethodDescriptor(
             name: Self.constructorName,
             argsCount: 1,
@@ -136,7 +136,7 @@ public class MethodDescriptor {
         )
     }
     
-    public static func staticMethod<T, A>(_ method: @escaping StaticMethod1Arg<T, A>, named name: String) -> MethodDescriptor {
+    public static func staticMethod<T, A: _GravityCompitable>(_ method: @escaping StaticMethod1Arg<T, A>, named name: String) -> MethodDescriptor {
         MethodDescriptor(
             name: name,
             argsCount: 1,
@@ -169,6 +169,8 @@ public typealias StaticMethod4Arg<T, A, C, D, B> = (A, B, C, D) -> T
 public typealias StaticMethod5Arg<T, A, C, D, E, B> = (A, B, C, D, E) -> T
 
 public typealias StaticMethod6Arg<T, A, C, D, E, F, B> = (A, B, C, D, E, F) -> T
+
+public typealias MethodWithArgs<T, each A, R> = (T) -> (repeat each A) -> R
 
 public typealias MethodNoArg<T, R> = (T) -> () -> R
 

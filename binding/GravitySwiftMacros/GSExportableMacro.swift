@@ -15,6 +15,21 @@ enum MacroError: LocalizedError {
     }
 }
 
+/// Helper function to check if a declaration has the @GSExportableIgnore attribute
+private func hasGSExportableIgnoreAttribute(_ attributes: AttributeListSyntax) -> Bool {
+    attributes.contains { attr in
+        guard let attributeSyntax = attr.as(AttributeSyntax.self) else {
+            return false
+        }
+        
+        // Check attribute name - can be IdentifierTypeSyntax or other type syntax
+        let attributeName = attributeSyntax.attributeName.trimmedDescription
+        // Remove the @ symbol if present and compare
+        let name = attributeName.hasPrefix("@") ? String(attributeName.dropFirst()) : attributeName
+        return name == "GSExportableIgnore"
+    }
+}
+
 public struct GSExportableMacro: ExtensionMacro {
     public static func expansion(
         of node: AttributeSyntax,
@@ -55,6 +70,9 @@ public struct GSExportableMacro: ExtensionMacro {
                 let isPrivate = property.modifiers.contains { $0.name.tokenKind == .keyword(.private) }
                 if isPrivate { continue }
                 
+                // Check if property has @GSExportableIgnore attribute
+                if hasGSExportableIgnoreAttribute(property.attributes) { continue }
+                
                 for binding in property.bindings {
                     if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
                         let propertyName = identifier.identifier.text
@@ -73,6 +91,9 @@ public struct GSExportableMacro: ExtensionMacro {
                 let isStatic = function.modifiers.contains { $0.name.tokenKind == .keyword(.static) }
                 let isPrivate = function.modifiers.contains { $0.name.tokenKind == .keyword(.private) }
                 if isPrivate { continue }
+                
+                // Check if function has @GSExportableIgnore attribute
+                if hasGSExportableIgnoreAttribute(function.attributes) { continue }
                 
                 let functionName = function.name.text
                 if isStatic {

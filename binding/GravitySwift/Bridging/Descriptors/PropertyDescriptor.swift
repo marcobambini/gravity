@@ -23,7 +23,7 @@ public final class PropertyDescriptor {
         self.setter = setter
     }
     
-    public static func property<T, A>(_ keyPath: ReferenceWritableKeyPath<T, A>, named name: String) -> PropertyDescriptor {
+    public static func property<T: _GravityCompitable, A: _GravityCompitable>(_ keyPath: ReferenceWritableKeyPath<T, A>, named name: String) -> PropertyDescriptor {
         PropertyDescriptor(
             name: name,
             getter: { target in
@@ -37,7 +37,7 @@ public final class PropertyDescriptor {
         )
     }
     
-    public static func property<T, A>(_ keyPath: KeyPath<T, A>, named name: String) -> PropertyDescriptor {
+    public static func property<T: _GravityCompitable, A: _GravityCompitable>(_ keyPath: KeyPath<T, A>, named name: String) -> PropertyDescriptor {
         PropertyDescriptor(
             name: name,
             getter: { target in
@@ -48,7 +48,7 @@ public final class PropertyDescriptor {
         )
     }
 
-    public static func property<T, A>(_ keyPath: WritableKeyPath<T, A>, named name: String) -> PropertyDescriptor {
+    public static func property<T: _GravityCompitable, A: _GravityCompitable>(_ keyPath: WritableKeyPath<T, A>, named name: String) -> PropertyDescriptor {
         PropertyDescriptor(
             name: name,
             getter: { target in

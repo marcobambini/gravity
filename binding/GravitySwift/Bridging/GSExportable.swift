@@ -7,7 +7,7 @@
 
 /// Base protocol to collection information about class or struct.
 /// You can define class name, methods and static methods which called from Gravity Script.
-public protocol GSExportable {
+public protocol GSExportable: _GravityCompitable {
 
     static var runtimeName: String { get }
 
