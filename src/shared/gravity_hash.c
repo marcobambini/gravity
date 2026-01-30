@@ -100,7 +100,7 @@ struct gravity_hash_t {
 #define COMPUTE_HASH_NOMODULO(key,hash)     register uint32_t hash = murmur3_32(key, len, HASH_SEED_VALUE)
 #define RECOMPUTE_HASH(tbl,key,hash)        hash = murmur3_32(key, len, HASH_SEED_VALUE); hash = hash % tbl->size
 
-static inline uint32_t murmur3_32 (const char *key, uint32_t len, uint32_t seed) {
+static uint32_t murmur3_32 (const char *key, uint32_t len, uint32_t seed) {
     static const uint32_t c1 = 0xcc9e2d51;
     static const uint32_t c2 = 0x1b873593;
     static const uint32_t r1 = 15;
@@ -203,7 +203,7 @@ bool gravity_hash_isempty (gravity_hash_t *hashtable) {
     return (hashtable->count == 0);
 }
 
-static inline int gravity_hash_resize (gravity_hash_t *hashtable) {
+static int gravity_hash_resize (gravity_hash_t *hashtable) {
     uint32_t size = (hashtable->size * 2);
     gravity_hash_t newtbl = {
         .size = size,

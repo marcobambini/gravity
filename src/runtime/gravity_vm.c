@@ -219,7 +219,7 @@ gravity_value_t gravity_vm_keyindex (gravity_vm *vm, uint32_t index) {
     return cache[index];
 }
 
-static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber_t *fiber) {
+static gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber_t *fiber) {
     #pragma unused(vm)
 
     // check if there are enough slots in the call frame and optionally create new cframes
@@ -243,7 +243,7 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
     return &fiber->frames[fiber->nframes - 1];
 }
 
-static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t stacktopdelta, gravity_value_t **stackstart) {
+static bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t stacktopdelta, gravity_value_t **stackstart) {
     #pragma unused(vm)
 	if (stacktopdelta == 0) return true;
 	
@@ -1562,22 +1562,22 @@ void gravity_vm_free (gravity_vm *vm) {
     mem_free(vm);
 }
 
-inline gravity_value_t gravity_vm_lookup (gravity_vm *vm, gravity_value_t key) {
+gravity_value_t gravity_vm_lookup (gravity_vm *vm, gravity_value_t key) {
     gravity_value_t *value = gravity_hash_lookup(vm->context, key);
     return (value) ? *value : VALUE_NOT_VALID;
 }
 
-inline gravity_closure_t *gravity_vm_fastlookup (gravity_vm *vm, gravity_class_t *c, int index) {
+gravity_closure_t *gravity_vm_fastlookup (gravity_vm *vm, gravity_class_t *c, int index) {
     #pragma unused(vm)
     return (gravity_closure_t *)gravity_class_lookup_closure(c, cache[index]);
 }
 
-inline gravity_value_t gravity_vm_getvalue (gravity_vm *vm, const char *key, uint32_t keylen) {
+gravity_value_t gravity_vm_getvalue (gravity_vm *vm, const char *key, uint32_t keylen) {
     STATICVALUE_FROM_STRING(k, key, keylen);
     return gravity_vm_lookup(vm, k);
 }
 
-inline void gravity_vm_setvalue (gravity_vm *vm, const char *key, gravity_value_t value) {
+void gravity_vm_setvalue (gravity_vm *vm, const char *key, gravity_value_t value) {
     gravity_hash_insert(vm->context, VALUE_FROM_CSTRING(vm, key), value);
 }
 
