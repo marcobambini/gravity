@@ -173,7 +173,7 @@ static bool convert_object_string (gravity_vm *vm, gravity_value_t *args, uint16
     RETURN_VALUE(v, rindex);
 }
 
-static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
+static gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
     // allocate initial memory to a 512 buffer
     uint32_t len = 512;
     char *buffer = mem_alloc(NULL, len+1);
@@ -249,7 +249,7 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
     return result;
 }
 
-static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list) {
+static gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list) {
     // allocate initial memory to a 512 buffer
     uint32_t len = 512;
     char *buffer = mem_alloc(NULL, len+1);
@@ -297,7 +297,7 @@ static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_
     return result;
 }
 
-inline gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_INT(v)) return v;
 
     // handle conversion for basic classes
@@ -320,7 +320,7 @@ inline gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
     return VALUE_FROM_ERROR(NULL);
 }
 
-inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_FLOAT(v)) return v;
 
     // handle conversion for basic classes
@@ -343,7 +343,7 @@ inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
     return VALUE_FROM_ERROR(NULL);
 }
 
-inline gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_BOOL(v)) return v;
 
     // handle conversion for basic classes
@@ -370,7 +370,7 @@ inline gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
     return VALUE_FROM_ERROR(NULL);
 }
 
-inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_STRING(v)) return v;
 
     // handle conversion for basic classes

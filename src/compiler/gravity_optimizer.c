@@ -222,7 +222,7 @@ static void finalize_function (gravity_function_t *f, bool add_debug) {
 
 // MARK: -
 
-inline static bool pop1_instruction (ircode_t *code, uint32_t index, inst_t **inst1) {
+static bool pop1_instruction (ircode_t *code, uint32_t index, inst_t **inst1) {
     *inst1 = NULL;
 
     for (int32_t i=index-1; i>=0; --i) {
@@ -236,7 +236,7 @@ inline static bool pop1_instruction (ircode_t *code, uint32_t index, inst_t **in
     return false;
 }
 
-inline static bool pop2_instructions (ircode_t *code, uint32_t index, inst_t **inst1, inst_t **inst2) {
+static bool pop2_instructions (ircode_t *code, uint32_t index, inst_t **inst1, inst_t **inst2) {
     *inst1 = NULL;
     *inst2 = NULL;
 
@@ -254,7 +254,7 @@ inline static bool pop2_instructions (ircode_t *code, uint32_t index, inst_t **i
     return false;
 }
 
-inline static inst_t *current_instruction (ircode_t *code, uint32_t i) {
+static inst_t *current_instruction (ircode_t *code, uint32_t i) {
     while (1) {
         inst_t *inst = ircode_get(code, i);
         if (inst == NULL) return NULL;

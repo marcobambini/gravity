@@ -69,11 +69,11 @@ typedef enum {
 
 // MARK: -
 
-static inline bool is_whitespace (int c) {
+static bool is_whitespace (int c) {
     return ((c == ' ') || (c == '\t') || (c == '\v') || (c == '\f'));
 }
 
-static inline bool is_newline (gravity_lexer_t *lexer, int c) {
+static bool is_newline (gravity_lexer_t *lexer, int c) {
     // CR: Carriage Return, U+000D (UTF-8 in hex: 0D)
     // LF: Line Feed, U+000A (UTF-8 in hex: 0A)
     // CR+LF: CR (U+000D) followed by LF (U+000A) (UTF-8 in hex: 0D0A)
@@ -105,35 +105,35 @@ static inline bool is_newline (gravity_lexer_t *lexer, int c) {
     return false;
 }
 
-static inline bool is_comment (int c1, int c2) {
+static bool is_comment (int c1, int c2) {
     return (c1 == '/') && ((c2 == '*') || (c2 == '/'));
 }
 
-static inline bool is_semicolon (int c) {
+static bool is_semicolon (int c) {
     return (c == ';');
 }
 
-static inline bool is_alpha (int c) {
+static bool is_alpha (int c) {
     if (c == '_') return true;
     return isalpha(c);
 }
 
-static inline bool is_digit (int c, gravity_number_type ntype) {
+static bool is_digit (int c, gravity_number_type ntype) {
     if (ntype == NUMBER_BIN) return (c == '0' || (c == '1'));
     if (ntype == NUMBER_OCT) return (c >= '0' && (c <= '7'));
     if ((ntype == NUMBER_HEX) && ((toupper(c) >= 'A' && toupper(c) <= 'F'))) return true;
     return isdigit(c);
 }
 
-static inline bool is_string (int c) {
+static bool is_string (int c) {
     return ((c == '"') || (c == '\''));
 }
 
-static inline bool is_special (int c) {
+static bool is_special (int c) {
     return (c == '@');
 }
 
-static inline bool is_builtin_operator (int c) {
+static bool is_builtin_operator (int c) {
     // PARENTHESIS
     // { } [ ] ( )
     // PUNCTUATION
@@ -149,11 +149,11 @@ static inline bool is_builtin_operator (int c) {
             (c == '[') || (c == ']') || (c == '(') || (c == ')') );
 }
 
-static inline bool is_preprocessor (int c) {
+static bool is_preprocessor (int c) {
     return (c == '#');
 }
 
-static inline bool is_identifier (int c) {
+static bool is_identifier (int c) {
     // when called I am already sure first character is alpha so next valid characters are alpha, digit and _
     return ((isalpha(c)) || (isdigit(c)) || (c == '_'));
 }
@@ -172,7 +172,7 @@ static gtoken_t lexer_error(gravity_lexer_t *lexer, const char *message) {
     return TOK_ERROR;
 }
 
-static inline bool next_utf8(gravity_lexer_t *lexer, int *result) {
+static bool next_utf8(gravity_lexer_t *lexer, int *result) {
     int c = NEXT;
     INC_TOKLEN;
 
