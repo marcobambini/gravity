@@ -11,8 +11,14 @@
 #include "gravity_debug.h"
 #include <inttypes.h>
 
-typedef marray_t(inst_t *)      code_r;
-typedef marray_t(bool *)        context_r;
+// Register bitmask helpers (256 registers packed into 32 bytes)
+#define REG_BITMASK_SIZE    (MAX_REGISTERS / 8)
+#define REG_SET(a, i)       ((a)[(i) >> 3] |=  (unsigned char)(1u << ((i) & 7)))
+#define REG_CLR(a, i)       ((a)[(i) >> 3] &= (unsigned char)~(1u << ((i) & 7)))
+#define REG_TEST(a, i)      (((a)[(i) >> 3] & (1u << ((i) & 7))) != 0)
+
+typedef marray_t(inst_t *)              code_r;
+typedef marray_t(unsigned char *)       context_r;
 
 struct ircode_t {
     code_r      *list;                      // array of ircode instructions
@@ -27,8 +33,8 @@ struct ircode_t {
     uint16_t    nlocals;                    // number of local registers (params + local variables)
     bool        error;                      // error flag set when no more registers are availables
 
-    bool        state[MAX_REGISTERS];       // registers mask
-    bool        skipclear[MAX_REGISTERS];   // registers protection for temps used in for loop
+    unsigned char state[REG_BITMASK_SIZE];      // registers allocation bitmask
+    unsigned char skipclear[REG_BITMASK_SIZE];  // temp protection bitmask (for loop vars)
     uint32_r    registers;                  // registers stack
     context_r   context;                    // context array
 };
@@ -54,12 +60,14 @@ ircode_t *ircode_create (uint16_t nlocals) {
     marray_init(code->registers);
     marray_init(code->context);
 
-    // init state array (register 0 is reserved)
-    bzero(code->state, MAX_REGISTERS * sizeof(bool));
-    code->state[0] = true;
-    for (uint32_t i=0; i<nlocals; ++i) {
-        code->state[i] = true;
+    // init register bitmasks
+    memset(code->state, 0, REG_BITMASK_SIZE);
+    memset(code->skipclear, 0, REG_BITMASK_SIZE);
+    // mark register 0 and all local registers as allocated
+    for (uint32_t i = 0; i < nlocals; ++i) {
+        REG_SET(code->state, i);
     }
+    if (nlocals == 0) REG_SET(code->state, 0); // register 0 is always reserved
     return code;
 }
 
@@ -128,6 +136,7 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
     #endif
 
     inst_t *inst = (inst_t *)mem_alloc(NULL, sizeof(inst_t));
+    assert(inst);
     inst->op = op;
     inst->tag = tag;
     inst->p1 = p1;
@@ -138,7 +147,6 @@ static inst_t *inst_new (opcode_t op, uint32_t p1, uint32_t p2, uint32_t p3, opt
     if (tag == DOUBLE_TAG) inst->d = d;
     else if (tag == INT_TAG) inst->n = n;
 
-    assert(inst);
     return inst;
 }
 
@@ -357,18 +365,21 @@ void ircode_unsetlabel_check (ircode_t *code) {
 
 uint32_t ircode_getlabel_true (ircode_t *code) {
     size_t n = marray_size(code->label_true);
+    if (n == 0) return 0;
     uint32_t v = marray_get(code->label_true, n-1);
     return v;
 }
 
 uint32_t ircode_getlabel_false (ircode_t *code) {
     size_t n = marray_size(code->label_false);
+    if (n == 0) return 0;
     uint32_t v = marray_get(code->label_false, n-1);
     return v;
 }
 
 uint32_t ircode_getlabel_check (ircode_t *code) {
     size_t n = marray_size(code->label_check);
+    if (n == 0) return 0;
     uint32_t v = marray_get(code->label_check, n-1);
     return v;
 }
@@ -437,25 +448,17 @@ void ircode_add_check (ircode_t *code) {
 
 // MARK: - Context based functions -
 
-#if 0
-static void dump_context(bool *context) {
-    for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
-        printf("%d ", context[i]);
-    }
-    printf("\n");
-}
-#endif
-
 void ircode_push_context (ircode_t *code) {
-    bool *context = mem_alloc(NULL, sizeof(bool) * MAX_REGISTERS);
-    marray_push(bool *, code->context, context);
+    unsigned char *context = mem_alloc(NULL, REG_BITMASK_SIZE);
+    memset(context, 0, REG_BITMASK_SIZE);
+    marray_push(unsigned char *, code->context, context);
 }
 
 void ircode_pop_context (ircode_t *code) {
-    bool *context = marray_pop(code->context);
-    // apply context mask
-    for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
-        if (context[i]) code->state[i] = false;
+    unsigned char *context = marray_pop(code->context);
+    // clear bits in state that are set in context
+    for (uint32_t b = 0; b < REG_BITMASK_SIZE; ++b) {
+        code->state[b] &= ~context[b];
     }
     mem_free(context);
 }
@@ -464,12 +467,12 @@ uint32_t ircode_register_pop_context_protect (ircode_t *code, bool protect) {
     if (marray_size(code->registers) == 0) return REGISTER_ERROR;
     uint32_t value = (uint32_t)marray_pop(code->registers);
 
-    if (protect) code->state[value] = true;
-    else if (value >= code->nlocals) code->state[value] = false;
+    if (protect) REG_SET(code->state, value);
+    else if (value >= code->nlocals) REG_CLR(code->state, value);
 
     if (protect && value >= code->nlocals) {
-        bool *context = marray_last(code->context);
-        context[value] = true;
+        unsigned char *context = marray_last(code->context);
+        REG_SET(context, value);
     }
 
     DEBUG_REGISTER("POP REGISTER %d", value);
@@ -478,28 +481,32 @@ uint32_t ircode_register_pop_context_protect (ircode_t *code, bool protect) {
 
 bool ircode_register_protect_outside_context (ircode_t *code, uint32_t nreg) {
     if (nreg < code->nlocals) return true;
-    if (!code->state[nreg]) return false;
-    bool *context = marray_last(code->context);
-    context[nreg] = false;
+    if (!REG_TEST(code->state, nreg)) return false;
+    unsigned char *context = marray_last(code->context);
+    REG_CLR(context, nreg);
     return true;
 }
 
 void ircode_register_protect_in_context (ircode_t *code, uint32_t nreg) {
-    assert(code->state[nreg]);
-    bool *context = marray_last(code->context);
-    context[nreg] = true;
+    assert(REG_TEST(code->state, nreg));
+    unsigned char *context = marray_last(code->context);
+    REG_SET(context, nreg);
 }
 
 // MARK: -
 
 static uint32_t ircode_register_new (ircode_t *code) {
-    for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
-        if (code->state[i] == false) {
-            code->state[i] = true;
-            return i;
+    // scan bytes to find one with a free bit (not 0xFF)
+    for (uint32_t b = 0; b < REG_BITMASK_SIZE; ++b) {
+        unsigned char avail = (unsigned char)~code->state[b];
+        if (avail) {
+            uint32_t bit = 0;
+            while (!(avail & (1u << bit))) ++bit;
+            uint32_t reg = (b << 3) | bit;
+            REG_SET(code->state, reg);
+            return reg;
         }
     }
-    // 0 means no registers available
     code->error = true;
     return 0;
 }
@@ -513,12 +520,14 @@ uint32_t ircode_register_push (ircode_t *code, uint32_t nreg) {
 }
 
 uint32_t ircode_register_first_temp_available (ircode_t *code) {
-    for (uint32_t i=0; i<MAX_REGISTERS; ++i) {
-        if (code->state[i] == false) {
-            return i;
+    for (uint32_t b = 0; b < REG_BITMASK_SIZE; ++b) {
+        unsigned char avail = (unsigned char)~code->state[b];
+        if (avail) {
+            uint32_t bit = 0;
+            while (!(avail & (1u << bit))) ++bit;
+            return (b << 3) | bit;
         }
     }
-    // 0 means no registers available
     code->error = true;
     return 0;
 }
@@ -545,13 +554,13 @@ uint32_t ircode_register_pop (ircode_t *code) {
 void ircode_register_clear (ircode_t *code, uint32_t nreg) {
     if (nreg == REGISTER_ERROR) return;
     // cleanup busy mask only if it is a temp register
-    if (nreg >= code->nlocals) code->state[nreg] = false;
+    if (nreg >= code->nlocals) REG_CLR(code->state, nreg);
 }
 
 void ircode_register_set (ircode_t *code, uint32_t nreg) {
     if (nreg == REGISTER_ERROR) return;
     // set busy mask only if it is a temp register
-    if (nreg >= code->nlocals) code->state[nreg] = true;
+    if (nreg >= code->nlocals) REG_SET(code->state, nreg);
 }
 
 uint32_t ircode_register_last (ircode_t *code) {
@@ -579,20 +588,20 @@ uint32_t ircode_register_count (ircode_t *code) {
 // MARK: -
 
 void ircode_register_temp_protect (ircode_t *code, uint32_t nreg) {
-    code->skipclear[nreg] = true;
+    REG_SET(code->skipclear, nreg);
     DEBUG_REGISTER("SET SKIP REGISTER %d", nreg);
 }
 
 void ircode_register_temp_unprotect (ircode_t *code, uint32_t nreg) {
-    code->skipclear[nreg] = false;
+    REG_CLR(code->skipclear, nreg);
     DEBUG_REGISTER("UNSET SKIP REGISTER %d", nreg);
 }
 
 void ircode_register_temps_clear (ircode_t *code) {
-    // clear all temporary registers (if not protected)
-    for (uint32_t i=code->nlocals; i<=code->maxtemp; ++i) {
-        if (!code->skipclear[i]) {
-            code->state[i] = false;
+    // clear all temporary registers (if not protected by skipclear)
+    for (uint32_t i = code->nlocals; i <= code->maxtemp; ++i) {
+        if (!REG_TEST(code->skipclear, i)) {
+            REG_CLR(code->state, i);
             DEBUG_REGISTER("CLEAR TEMP REGISTER %d", i);
         }
     }

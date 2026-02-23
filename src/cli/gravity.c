@@ -183,13 +183,14 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
         const char *full_path = file_buildpath(target_file, folder_path);
         if (is_directory(full_path)) {
             // skip disabled folder
-            if (strcmp(target_file, "disabled") == 0) continue;
+            if (strcmp(target_file, "disabled") == 0) {mem_free(full_path); continue;}
             unittest_scan(full_path, data);
+            mem_free(full_path);
             continue;
         }
-        
+
         // test only files with a .gravity extension
-        if (strstr(full_path, ".gravity") == NULL) continue;
+        if (strstr(full_path, ".gravity") == NULL) {mem_free(full_path); continue;}
         data->is_fuzzy = (strstr(full_path, "/fuzzy/") != NULL);
         
         // load source code
@@ -234,7 +235,7 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
             }
         }
         gravity_vm_free(vm);
-        
+
         // case for empty files or simple declarations test
         if (!data->processed) {
             ++data->nsuccess;
@@ -425,6 +426,8 @@ int main (int argc, const char* argv[]) {
     // pass argc and argv to the ENV class
     gravity_env_register_args(vm, argc, argv);
 
+    char *inline_buffer = NULL;
+
     // check if input file is source code that needs to be compiled
     if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
 
@@ -447,10 +450,10 @@ int main (int argc, const char* argv[]) {
 
         // create closure to execute inline code
         if (type == OP_INLINE_RUN) {
-            char *buffer = mem_alloc(NULL, size+1024);
-            assert(buffer);
-            size = snprintf(buffer, size+1024, "func main() {%s};", input_file);
-            source_code = buffer;
+            inline_buffer = mem_alloc(NULL, size+1024);
+            assert(inline_buffer);
+            size = snprintf(inline_buffer, size+1024, "func main() {%s};", input_file);
+            source_code = inline_buffer;
         }
 
         // create compiler
@@ -494,6 +497,7 @@ int main (int argc, const char* argv[]) {
     }
 
 cleanup:
+    if (inline_buffer) mem_free(inline_buffer);
     if (compiler) gravity_compiler_free(compiler);
     if (vm) gravity_vm_free(vm);
     gravity_core_free();

@@ -1,0 +1,27 @@
+#unittest {
+	name: "String iteration collects all characters.";
+	result: true;
+};
+
+func main() {
+    var s = "abcde";
+    var count = 0;
+    var collected = "";
+
+    for (var c in s) {
+        collected = collected + c;
+        count += 1;
+    }
+
+    if (count != 5) return false;
+    if (collected != "abcde") return false;
+
+    // empty string iteration
+    var count2 = 0;
+    for (var c in "") {
+        count2 += 1;
+    }
+    if (count2 != 0) return false;
+
+    return true;
+}

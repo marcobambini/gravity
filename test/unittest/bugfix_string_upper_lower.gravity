@@ -1,0 +1,11 @@
+#unittest {
+	name: "String upper and lower correctness.";
+	result: true;
+};
+
+func main() {
+    var s = "Hello World";
+    var u = s.upper();
+    var l = s.lower();
+    return (u == "HELLO WORLD") && (l == "hello world");
+}

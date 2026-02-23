@@ -792,7 +792,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
     // check upvalue limit
     uint32_t nupvalues = (node->uplist) ? (uint32_t)marray_size(*node->uplist) : 0;
     if (nupvalues > MAX_UPVALUES) REPORT_ERROR(node, "Maximum number of upvalues reached in function %s (max:%d found:%d).",
-                                               node->identifier, MAX_LOCALS, nupvalues);
+                                               node->identifier, MAX_UPVALUES, nupvalues);
 
     POP_DECLARATION();
 

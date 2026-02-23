@@ -40,8 +40,8 @@ typedef enum {
 // LEXER macros
 #define NEXT                    lexer->buffer[lexer->offset++]; ++lexer->position; INC_COL
 #define PEEK_CURRENT            ((lexer->offset < lexer->length) ? (int)lexer->buffer[lexer->offset] : 0)
-#define PEEK_NEXT               ((lexer->offset < lexer->length) ? lexer->buffer[lexer->offset+1] : 0)
-#define PEEK_NEXT2              ((lexer->offset+1 < lexer->length) ? lexer->buffer[lexer->offset+2] : 0)
+#define PEEK_NEXT               ((lexer->offset + 1 < lexer->length) ? lexer->buffer[lexer->offset+1] : 0)
+#define PEEK_NEXT2              ((lexer->offset+2 < lexer->length) ? lexer->buffer[lexer->offset+2] : 0)
 #define INC_LINE                ++lexer->lineno; RESET_COL
 #define INC_COL                 ++lexer->colno
 #define DEC_COL                 --lexer->colno

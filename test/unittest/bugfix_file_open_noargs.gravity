@@ -1,0 +1,9 @@
+#unittest {
+	name: "File open with no args should not crash.";
+	error: RUNTIME;
+};
+
+func main() {
+    var f = File.open();
+    return f;
+}

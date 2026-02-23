@@ -28,13 +28,15 @@
 #define marray_dec(v)               (--(v).n)
 #define marray_nset(v,N)            ((v).n = N)
 #define marray_push(type, v, x)     do {if ((v).n == (v).m) {                                     \
-                                    (v).m = (v).m? (v).m<<1 : MARRAY_DEFAULT_SIZE;                \
-                                    void *_tmp = realloc((v).p, sizeof(type) * (v).m);            \
-                                    if (_tmp) (v).p = (type*)_tmp;}                               \
-                                    if ((v).p) (v).p[(v).n++] = (x);} while(0)
-#define marray_resize(type, v, n)   do { (v).m += (n); (v).p = (type*)realloc((v).p, sizeof(type) * (v).m); } while(0)
-#define marray_resize0(type, v, n)  do { (v).p = (type*)realloc((v).p, sizeof(type) * ((v).m+(n)));      \
-                                    (v).m ? memset((v).p+(v).m, 0, (sizeof(type) * (n))) : memset((v).p, 0, (sizeof(type) * (n))); (v).m += (n); } while(0)
+                                    size_t _newm = (v).m? (v).m<<1 : MARRAY_DEFAULT_SIZE;         \
+                                    void *_tmp = realloc((v).p, sizeof(type) * _newm);            \
+                                    if (_tmp) { (v).p = (type*)_tmp; (v).m = _newm; }}            \
+                                    if ((v).p && (v).n < (v).m) (v).p[(v).n++] = (x);} while(0)
+#define marray_resize(type, v, n)   do { void *_tmp = realloc((v).p, sizeof(type) * ((v).m+(n)));        \
+                                    if (_tmp) { (v).p = (type*)_tmp; (v).m += (n); }} while(0)
+#define marray_resize0(type, v, n)  do { void *_tmp = realloc((v).p, sizeof(type) * ((v).m+(n)));        \
+                                    if (_tmp) { (v).p = (type*)_tmp;                                     \
+                                    memset((v).p+(v).m, 0, (sizeof(type) * (n))); (v).m += (n); }} while(0)
 #define marray_npop(v,k)            ((v).n -= k)
 #define marray_reset(v,k)           ((v).n = k)
 #define marray_reset0(v)            marray_reset(v, 0)

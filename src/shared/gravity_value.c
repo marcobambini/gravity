@@ -126,7 +126,10 @@ bool gravity_class_grow (gravity_class_t *c, uint32_t n) {
     gravity_value_t *new_ivars = (gravity_value_t *)mem_alloc(NULL, new_nivars * sizeof(gravity_value_t));
     if (!new_ivars) return false;
     for (uint32_t i=0; i<new_nivars; ++i) new_ivars[i] = VALUE_FROM_NULL;
-    if (c->ivars) mem_free(c->ivars);
+    if (c->ivars) {
+        memcpy(new_ivars, c->ivars, c->nivars * sizeof(gravity_value_t));
+        mem_free(c->ivars);
+    }
     c->ivars = new_ivars;
     c->nivars = new_nivars;
     return true;
@@ -595,6 +598,9 @@ uint16_t gravity_function_cpool_add (gravity_vm *vm, gravity_function_t *f, grav
             return (uint16_t)i;
         }
     }
+
+    // safety check: cpool index must fit in uint16_t
+    if (n >= UINT16_MAX) return UINT16_MAX;
 
     // vm is required here because I cannot know in advance if v is already in the pool or not
     // and value object v must be added to the VM only once

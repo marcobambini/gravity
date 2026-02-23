@@ -1,0 +1,15 @@
+#unittest {
+	name: "File.buildpath constructs correct path.";
+	result: true;
+};
+
+func main() {
+    var p = File.buildpath("test.txt", "/tmp");
+    if (p != "/tmp/test.txt") return false;
+
+    // with trailing separator
+    var p2 = File.buildpath("file.dat", "/var/data/");
+    if (p2 != "/var/data/file.dat") return false;
+
+    return true;
+}

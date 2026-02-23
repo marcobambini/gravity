@@ -1,0 +1,35 @@
+#unittest {
+	name: "String.count finds matches after partial match failure.";
+	result: true;
+};
+
+func main() {
+    // basic match
+    if ("hello".count("l") != 2) return false;
+
+    // match after partial match failure: "aab".count("ab") must find "ab" at position 1
+    if ("aab".count("ab") != 1) return false;
+
+    // another partial match case: "aaab".count("aab") should find 1
+    if ("aaab".count("aab") != 1) return false;
+
+    // multiple non-overlapping matches
+    if ("abcabc".count("abc") != 2) return false;
+
+    // no match
+    if ("hello".count("xyz") != 0) return false;
+
+    // match at end
+    if ("foobar".count("bar") != 1) return false;
+
+    // single character repeated
+    if ("aaaa".count("aa") != 2) return false;
+
+    // empty search string
+    if ("hello".count("") != 0) return false;
+
+    // full string match
+    if ("abc".count("abc") != 1) return false;
+
+    return true;
+}

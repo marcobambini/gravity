@@ -1,0 +1,11 @@
+#unittest {
+	name: "File read with negative size should not crash.";
+	error: RUNTIME;
+};
+
+func main() {
+    var f = File.open("test/unittest/bugfix_file_read_negative.gravity", "r");
+    var data = f.read(-1);
+    f.close();
+    return data;
+}

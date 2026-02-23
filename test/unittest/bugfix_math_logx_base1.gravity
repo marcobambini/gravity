@@ -1,0 +1,18 @@
+#unittest {
+	name: "Math.logx with base 1 returns undefined.";
+	result: true;
+};
+
+func main() {
+    // logx(base=1, value) should not crash (division by zero)
+    // it returns undefined since log(1) = 0
+    var r = Math.logx(1, 100);
+    if (r != undefined) return false;
+
+    // normal cases should still work
+    var r2 = Math.logx(10, 100);
+    // log10(100) = 2.0
+    if (r2 < 1.99 || r2 > 2.01) return false;
+
+    return true;
+}

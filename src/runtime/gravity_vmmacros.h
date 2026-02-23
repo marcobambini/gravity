@@ -31,7 +31,7 @@
 #define OPCODE_GET_ONE26bit(op, n)                      n = (op & 0x3FFFFFF)
 #define OPCODE_GET_ONE8bit_ONE10bit(op,r1,r3)           r1 = (op >> 18) & 0xFF; r3 = (op & 0x3FF)
 #define OPCODE_GET_THREE8bit(op,r1,r2,r3)               OPCODE_GET_TWO8bit_ONE10bit(op,r1,r2,r3)
-#define OPCODE_GET_FOUR8bit(op,r1,r2,r3,r4)             r1 = (op >> 24) & 0xFF; r2 = (op >> 16) & 0xFF; r3 = (op >> 8) & 0xFF; r4 = (op & 0xFF)
+#define OPCODE_GET_FOUR8bit(op,r1,r2,r3,r4)             r1 = (op >> 18) & 0xFF; r2 = (op >> 10) & 0xFF; r3 = (op >> 2) & 0xFF; r4 = (op & 0x03)
 #define OPCODE_GET_THREE8bit_ONE2bit(op,r1,r2,r3,r4)    r1 = (op >> 18) & 0xFF; r2 = (op >> 10) & 0xFF; r3 = (op >> 2) & 0xFF; r4 = (op & 0x03)
 
 #define GRAVITY_VM_DEBUG                0               // print each VM instruction

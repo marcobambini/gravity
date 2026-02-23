@@ -158,7 +158,8 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
         return;
     }
 
-    char *new_buffer = mem_alloc(NULL, len*2);
+    if (len > SIZE_MAX / 6) return;
+    char *new_buffer = mem_alloc(NULL, len*6+1);
     size_t j = 0;
     assert(new_buffer);
 
@@ -173,7 +174,14 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
             case '\r': JSON_ESCAPE ('r');   continue;
             case '\t': JSON_ESCAPE ('t');   continue;
 
-            default: new_buffer[j] = c; ++j;break;
+            default:
+                if ((unsigned char)c < 0x20) {
+                    // escape other control characters as \uXXXX
+                    j += snprintf(&new_buffer[j], 7, "\\u%04x", (unsigned char)c);
+                } else {
+                    new_buffer[j] = c; ++j;
+                }
+                break;
         };
     }
 

@@ -32,21 +32,59 @@ static bool JSON_stringify (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     // extract value
     gravity_value_t value = GET_VALUE(1);
     
-    // special case for string because it can be huge (and must be quoted)
+    // special case for string because it can be huge (and must be quoted + escaped)
     if (VALUE_ISA_STRING(value)) {
-        const int nchars = 5;
         const char *v = VALUE_AS_STRING(value)->s;
         size_t vlen = VALUE_AS_STRING(value)->len;
 
-        // string must be quoted
-        if (vlen < 4096-nchars) {
-            char vbuffer2[4096];
-            vlen = snprintf(vbuffer2, sizeof(vbuffer2), "\"%s\"", v);
-            RETURN_VALUE(VALUE_FROM_STRING(vm, vbuffer2, (uint32_t)vlen), rindex);
+        // calculate escaped length
+        size_t escaped_len = 0;
+        for (size_t k = 0; k < vlen; ++k) {
+            unsigned char c = (unsigned char)v[k];
+            switch (c) {
+                case '"': case '\\': case '\b': case '\f':
+                case '\n': case '\r': case '\t':
+                    escaped_len += 2; break;
+                default:
+                    escaped_len += (c < 0x20) ? 6 : 1; break;
+            }
+        }
+
+        // allocate: escaped_len + 2 quotes + 1 null
+        size_t alloc_size = escaped_len + 3;
+        char stack_buf[4096];
+        bool use_heap = (alloc_size > sizeof(stack_buf));
+        char *buf = use_heap ? (char *)mem_alloc(NULL, alloc_size) : stack_buf;
+
+        // write escaped string
+        size_t pos = 0;
+        buf[pos++] = '"';
+        for (size_t k = 0; k < vlen; ++k) {
+            unsigned char c = (unsigned char)v[k];
+            switch (c) {
+                case '"':  buf[pos++] = '\\'; buf[pos++] = '"'; break;
+                case '\\': buf[pos++] = '\\'; buf[pos++] = '\\'; break;
+                case '\b': buf[pos++] = '\\'; buf[pos++] = 'b'; break;
+                case '\f': buf[pos++] = '\\'; buf[pos++] = 'f'; break;
+                case '\n': buf[pos++] = '\\'; buf[pos++] = 'n'; break;
+                case '\r': buf[pos++] = '\\'; buf[pos++] = 'r'; break;
+                case '\t': buf[pos++] = '\\'; buf[pos++] = 't'; break;
+                default:
+                    if (c < 0x20) {
+                        pos += snprintf(buf + pos, 7, "\\u%04x", c);
+                    } else {
+                        buf[pos++] = (char)c;
+                    }
+                    break;
+            }
+        }
+        buf[pos++] = '"';
+        buf[pos] = '\0';
+
+        if (use_heap) {
+            RETURN_VALUE(VALUE_FROM_OBJECT(gravity_string_new(vm, buf, (uint32_t)pos, (uint32_t)alloc_size)), rindex);
         } else {
-            char *vbuffer2 = mem_alloc(NULL, vlen + nchars);
-            vlen = snprintf(vbuffer2, vlen + nchars, "\"%s\"", v);
-            RETURN_VALUE(VALUE_FROM_OBJECT(gravity_string_new(vm, vbuffer2, (uint32_t)vlen, 0)), rindex);
+            RETURN_VALUE(VALUE_FROM_STRING(vm, buf, (uint32_t)pos), rindex);
         }
     }
     

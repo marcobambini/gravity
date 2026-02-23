@@ -742,10 +742,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // decode operation
                 DECODE_BINARY_OPERATION(r1,r2,r3);
 
-                // check fast comparison only if both values are boolean OR if one of them is undefined
+                // check fast equality for boolean/undefined (only valid for EQ/NEQ, not ordered comparisons)
                 DEFINE_STACK_VARIABLE(v2,r2);
                 DEFINE_STACK_VARIABLE(v3,r3);
-                if ((VALUE_ISA_BOOL(v2) && (VALUE_ISA_BOOL(v3))) || (VALUE_ISA_UNDEFINED(v2) || (VALUE_ISA_UNDEFINED(v3)))) {
+                if ((op == EQ || op == NEQ) && ((VALUE_ISA_BOOL(v2) && (VALUE_ISA_BOOL(v3))) || (VALUE_ISA_UNDEFINED(v2) || (VALUE_ISA_UNDEFINED(v3))))) {
                     register gravity_int_t eq_result = (v2.isa == v3.isa) && (v2.n == v3.n);
                     SETVALUE(r1, VALUE_FROM_BOOL((op == EQ) ? eq_result : !eq_result));
                     DISPATCH();
@@ -1837,11 +1837,13 @@ void gravity_vm_setslot (gravity_vm *vm, gravity_value_t value, uint32_t index) 
         return;
     }
 
+    if (!vm->fiber->nframes) return;
     gravity_callframe_t *frame = &(vm->fiber->frames[vm->fiber->nframes-1]);
     frame->stackstart[index] = value;
 }
 
 gravity_value_t gravity_vm_getslot (gravity_vm *vm, uint32_t index) {
+    if (!vm->fiber->nframes) return VALUE_FROM_NULL;
     gravity_callframe_t *frame = &(vm->fiber->frames[vm->fiber->nframes-1]);
     return frame->stackstart[index];
 }

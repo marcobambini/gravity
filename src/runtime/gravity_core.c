@@ -218,7 +218,9 @@ static gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
         // check if buffer needs to be reallocated
         if (len1 + len2 + pos + 4 > len) {
             len = (len1 + len2 + pos + 4) + len;
-            buffer = mem_realloc(NULL, buffer, len);
+            char *_tmp = mem_realloc(NULL, buffer, len);
+            if (!_tmp) { mem_free(buffer); return VALUE_FROM_ERROR("Out of memory"); }
+            buffer = _tmp;
         }
 
         // copy key string to new buffer
@@ -274,7 +276,9 @@ static gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list
         // check if buffer needs to be reallocated
         if (len1+pos+2 > len) {
             len = (len1+pos+2) + len;
-            buffer = mem_realloc(NULL, buffer, len);
+            char *_tmp = mem_realloc(NULL, buffer, len);
+            if (!_tmp) { mem_free(buffer); return VALUE_FROM_ERROR("Out of memory"); }
+            buffer = _tmp;
         }
 
         // copy string to new buffer
@@ -1024,7 +1028,7 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
         for (int32_t i=count; i<=(index+MIN_LIST_RESIZE); ++i) {
             marray_set(list->array, i, VALUE_FROM_NULL);
         }
-        marray_set(list->array, index, value);
+        // value is set unconditionally below
     }
 
     marray_set(list->array, index, value);
@@ -1097,6 +1101,8 @@ static bool list_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
     gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
     register int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+    size_t count = marray_size(list->array);
+    if (index < 0 || (size_t)index >= count) RETURN_VALUE(VALUE_FROM_NULL, rindex);
     RETURN_VALUE(marray_get(list->array, index), rindex);
 }
 
@@ -1602,7 +1608,7 @@ static bool range_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     #pragma unused(vm, nargs)
     gravity_range_t *range = VALUE_AS_RANGE(GET_VALUE(0));
 
-    // check for invalid range first
+    // check for empty/backward range (half-open ranges like 0..<0 create from > to)
     if (range->to < range->from) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
 
     // check for start of iteration
@@ -1641,7 +1647,9 @@ static bool range_contains (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     // check error condition
     if (!VALUE_ISA_INT(value)) RETURN_ERROR("A numeric value is expected.");
 
-    RETURN_VALUE(VALUE_FROM_BOOL((value.n >= range->from) && (value.n <= range->to)), rindex);
+    gravity_int_t lo = (range->from < range->to) ? range->from : range->to;
+    gravity_int_t hi = (range->from < range->to) ? range->to : range->from;
+    RETURN_VALUE(VALUE_FROM_BOOL((value.n >= lo) && (value.n <= hi)), rindex);
 }
 
 static bool range_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1812,8 +1820,7 @@ static bool function_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
     // DEFAULT_MINSTACK_SIZE is 256 and in case of a 256 function arguments a maximum registers error would be returned
     // so I can assume to be always safe here
     while (nargs < func->nparams) {
-        uint32_t index = (func->nparams - nargs);
-        args[index] = VALUE_FROM_UNDEFINED;
+        args[nargs] = VALUE_FROM_UNDEFINED;
         ++nargs;
     }
     
@@ -2128,17 +2135,17 @@ static bool int_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         already_seeded = true;
     }
 
-    int r;
+    gravity_int_t r;
     // if num1 is lower, consider it min, otherwise, num2 is min
     if (num1 < num2) {
         // returns a random integer between num1 and num2 inclusive
-        r = (int)((rand() % (num2 - num1 + 1)) + num1);
+        r = (gravity_int_t)((rand() % (num2 - num1 + 1)) + num1);
     }
     else if (num1 > num2) {
-        r = (int)((rand() % (num1 - num2 + 1)) + num2);
+        r = (gravity_int_t)((rand() % (num1 - num2 + 1)) + num2);
     }
     else {
-        r = (int)num1;
+        r = num1;
     }
     RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
@@ -2447,28 +2454,22 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
     gravity_string_t *str_to_count = VALUE_AS_STRING(GET_VALUE(1));
 
-    int j = 0;
-    int count = 0;
+    // empty search string: return 0
+    if (str_to_count->len == 0) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
 
-    // iterate through whole string
-    for (int i = 0; i < main_str->len; ++i) {
-        if (main_str->s[i] == str_to_count->s[j]) {
-            // if the characters match and we are on the last character of the search
-            // string, then we have found a match
-            if (j == str_to_count->len - 1) {
-                ++count;
-                j = 0;
-                continue;
-            }
-        }
-        // reset if it isn't a match
-        else {
-            j = 0;
-            continue;
-        }
-        // move forward in the search string if we found a match but we aren't
-        // finished checking all the characters of the search string yet
-        ++j;
+    int count = 0;
+    const char *p = main_str->s;
+    uint32_t remaining = main_str->len;
+    uint32_t needle_len = str_to_count->len;
+
+    // find all non-overlapping occurrences using strstr
+    while (remaining >= needle_len) {
+        char *found = string_strnstr(p, str_to_count->s, remaining);
+        if (!found) break;
+        ++count;
+        uint32_t advance = (uint32_t)(found - p) + needle_len;
+        p = found + needle_len;
+        remaining -= advance;
     }
 
     RETURN_VALUE(VALUE_FROM_INT(count), rindex);
@@ -2520,7 +2521,7 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
     // if no arguments passed, change the whole string to uppercase
     if (nargs == 1) {
-        for (int i = 0; i <= main_str->len; ++i) {
+        for (int i = 0; i < main_str->len; ++i) {
          ret[i] = toupper(ret[i]);
         }
     }
@@ -2559,7 +2560,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
     // if no arguments passed, change the whole string to lowercase
     if (nargs == 1) {
-        for (int i = 0; i <= main_str->len; ++i) {
+        for (int i = 0; i < main_str->len; ++i) {
          ret[i] = tolower(ret[i]);
         }
     }
@@ -2630,7 +2631,7 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
         // Reverse the string, and reverse the indices
         first_index = original_len - first_index -1;
 
-        // reverse the String
+        // reverse the String (UTF-8 aware: reverse whole bytes first, then fix multi-byte sequences)
         int i = original_len - 1;
         int j = 0;
         char c;
@@ -2640,6 +2641,39 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
             original[j] = c;
             --i;
             ++j;
+        }
+        // fix multi-byte UTF-8 sequences that were reversed byte-by-byte
+        for (uint32_t k = 0; k < original_len; ) {
+            unsigned char ch = (unsigned char)original[k];
+            int seq_len = 1;
+            if (ch >= 0xF0) seq_len = 4;
+            else if (ch >= 0xE0) seq_len = 3;
+            else if (ch >= 0xC0) seq_len = 2;
+            // after byte-reversal, lead bytes of multi-byte sequences end up at the end
+            // of their sequence; detect continuation bytes (10xxxxxx) which indicate a
+            // reversed multi-byte sequence and find the lead byte to determine length
+            if ((ch & 0xC0) == 0x80) {
+                // continuation byte: scan forward to find the lead byte
+                int end = k + 1;
+                while (end < (int)original_len && ((unsigned char)original[end] & 0xC0) == 0x80) ++end;
+                if (end < (int)original_len) {
+                    unsigned char lead = (unsigned char)original[end];
+                    if (lead >= 0xF0) seq_len = 4;
+                    else if (lead >= 0xE0) seq_len = 3;
+                    else if (lead >= 0xC0) seq_len = 2;
+                    // reverse the bytes within this multi-byte sequence to restore correct order
+                    int lo = k, hi = k + seq_len - 1;
+                    while (lo < hi) {
+                        char tmp = original[lo];
+                        original[lo] = original[hi];
+                        original[hi] = tmp;
+                        ++lo; --hi;
+                    }
+                }
+                k += seq_len;
+            } else {
+                k += seq_len;
+            }
         }
 
         gravity_value_t s = VALUE_FROM_STRING(vm, original + first_index, substr_len);
@@ -2764,9 +2798,10 @@ static bool string_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
     nanotime_t t1 = nanotime();
     while (i < n) {
-        gravity_value_t v_str = VALUE_FROM_STRING(vm, str + i, 1);
+        uint32_t clen = utf8_charbytes(str + i, 0);
+        gravity_value_t v_str = VALUE_FROM_STRING(vm, str + i, clen);
         if (!gravity_vm_runclosure(vm, closure, value, &v_str, 1)) return false;
-        ++i;
+        i += clen;
     }
     nanotime_t t2 = nanotime();
     RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
@@ -2790,9 +2825,12 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 
     // compute new value
     gravity_int_t index = value.n;
+    if (index < 0 || (uint32_t)index >= string->len) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     if (index+1 < string->len) {
         uint32_t n = utf8_charbytes(string->s + index, 0);
         index += n;
+        // after advancing, check if new index is still within bounds
+        if ((uint32_t)index >= string->len) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     } else {
         RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     }
@@ -2804,7 +2842,9 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 static bool string_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
-    int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+    gravity_int_t raw_index = VALUE_AS_INT(GET_VALUE(1));
+    if (raw_index < 0 || (uint32_t)raw_index >= string->len) RETURN_VALUE(VALUE_FROM_NULL, rindex);
+    int32_t index = (int32_t)raw_index;
     uint32_t n = utf8_charbytes(string->s + index, 0);
     RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, n), rindex);
 }
@@ -3017,7 +3057,7 @@ static bool fiber_elapsed_time (gravity_vm *vm, gravity_value_t *args, uint16_t 
 }
 
 static bool fiber_abort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    gravity_value_t msg = (nargs > 0) ? GET_VALUE(1) : VALUE_FROM_NULL;
+    gravity_value_t msg = (nargs > 1) ? GET_VALUE(1) : VALUE_FROM_NULL;
     if (!VALUE_ISA_STRING(msg)) RETURN_ERROR("Fiber.abort expects a string as argument.");
 
     gravity_string_t *s = VALUE_AS_STRING(msg);
@@ -3170,7 +3210,10 @@ static bool system_input (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     char buffer[1024];
     if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
         // remove trailing newline captured by fgets (default true)
-        if (remove_trailing) buffer[strlen(buffer) - 1] = 0;
+        if (remove_trailing) {
+            size_t len = strlen(buffer);
+            if (len > 0 && buffer[len - 1] == '\n') buffer[len - 1] = 0;
+        }
         RETURN_VALUE(VALUE_FROM_CSTRING(vm, buffer), rindex);
     }
     

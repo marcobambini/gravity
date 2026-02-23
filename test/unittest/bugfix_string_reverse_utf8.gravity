@@ -1,0 +1,24 @@
+#unittest {
+	name: "String reverse subscript preserves ASCII.";
+	result: true;
+};
+
+func main() {
+    var s = "abcde";
+
+    // reverse subscript: s[4...0] should give "edcba"
+    var r = s[4...0];
+    if (r != "edcba") return false;
+
+    // single char via range
+    var s2 = "x";
+    var r2 = s2[0...0];
+    if (r2 != "x") return false;
+
+    // two char reverse
+    var s3 = "ab";
+    var r3 = s3[1...0];
+    if (r3 != "ba") return false;
+
+    return true;
+}

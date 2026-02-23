@@ -1,0 +1,29 @@
+#unittest {
+	name: "List.next with invalid index returns null.";
+	result: true;
+};
+
+func main() {
+    var list = [10, 20, 30];
+
+    // valid indices
+    if (list.next(0) != 10) return false;
+    if (list.next(1) != 20) return false;
+    if (list.next(2) != 30) return false;
+
+    // out-of-bounds: should return null, not crash
+    var r1 = list.next(100);
+    if (r1 != null) return false;
+
+    var r2 = list.next(-1);
+    if (r2 != null) return false;
+
+    // normal for-in still works
+    var sum = 0;
+    for (var x in list) {
+        sum += x;
+    }
+    if (sum != 60) return false;
+
+    return true;
+}

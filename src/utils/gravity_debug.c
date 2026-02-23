@@ -34,17 +34,18 @@ const char *opcode_name (opcode_t op) {
         "BOR", "BXOR", "BNOT", "MAPNEW", "LISTNEW", "RANGENEW", "SETLIST",
         "CLOSURE", "CLOSE", "CHECK", "RESERVED2", "RESERVED3", "RESERVED4",
         "RESERVED5", "RESERVED6"};
+    if ((unsigned)op >= sizeof(optable)/sizeof(optable[0])) return "UNKNOWN";
     return optable[op];
 }
 
-#define DUMP_VM(buffer, bindex, ...)                    bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);   \
-                                                        bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);    \
-                                                        bindex += snprintf(&buffer[bindex], balloc-bindex, "\n");
+#define DUMP_VM(buffer, bindex, ...)                    if (bindex < balloc) bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);   \
+                                                        if (bindex < balloc) bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);    \
+                                                        if (bindex < balloc) bindex += snprintf(&buffer[bindex], balloc-bindex, "\n");
 
-#define DUMP_VM_NOCR(buffer, bindex, ...)               bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);   \
-                                                        bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
+#define DUMP_VM_NOCR(buffer, bindex, ...)               if (bindex < balloc) bindex += snprintf(&buffer[bindex], balloc-bindex, "%06u\t", pc);   \
+                                                        if (bindex < balloc) bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
 
-#define DUMP_VM_RAW(buffer, bindex, ...)                bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
+#define DUMP_VM_RAW(buffer, bindex, ...)                if (bindex < balloc) bindex += snprintf(&buffer[bindex], balloc-bindex, __VA_ARGS__);
 
 const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const char *bcode, uint32_t blen, bool deserialize) {
     uint32_t    *ip = NULL;
@@ -248,8 +249,9 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
         ++pc;
     }
     
+    if (ip && deserialize) mem_free(ip);
     return buffer;
-    
+
 abort_disassemble:
     if (ip && deserialize) mem_free(ip);
     if (buffer) mem_free(buffer);

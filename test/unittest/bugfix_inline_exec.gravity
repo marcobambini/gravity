@@ -1,0 +1,20 @@
+#unittest {
+	name: "Math.atan2 returns correct values.";
+	result: true;
+};
+
+func main() {
+    // atan2(0, 1) = 0
+    var r1 = Math.atan2(0, 1);
+    if (r1 != 0) return false;
+
+    // atan2(1, 0) should be pi/2 ~ 1.5707...
+    var r2 = Math.atan2(1, 0);
+    if (r2 < 1.57 || r2 > 1.58) return false;
+
+    // atan2(1, 1) should be pi/4 ~ 0.7853...
+    var r3 = Math.atan2(1, 1);
+    if (r3 < 0.78 || r3 > 0.79) return false;
+
+    return true;
+}

@@ -127,7 +127,7 @@ bool file_delete (const char *path) {
 }
 
 char *file_read(const char *path, size_t *len) {
-    int     fd = 0;
+    int     fd = -1;
     off_t   fsize = 0;
     size_t  fsize2 = 0;
     char    *buffer = NULL;
@@ -186,7 +186,7 @@ char *file_buildpath (const char *filename, const char *dirpath) {
     if (!full_path) return NULL;
     
     #ifdef WIN32
-    PathCombineA(full_path, filename, dirpath);
+    PathCombineA(full_path, dirpath, filename);
     #else
     // check if PATH_SEPARATOR exists in dirpath
     if ((len2) && (dirpath[len2-1] != PATH_SEPARATOR))
@@ -213,6 +213,8 @@ char *file_name_frompath (const char *path) {
             break;
         }
     }
+    // if no separator found, the entire path is the filename
+    if (!name) name = string_dup(buffer);
     mem_free(buffer);
     return name;
 }
@@ -363,6 +365,7 @@ int string_cmp (const char *s1, const char *s2) {
 }
 
 char *string_dup (const char *s1) {
+    if (!s1) return NULL;
     size_t len = (size_t)strlen(s1);
     char*s = (char *)mem_alloc(NULL, len + 1);
     if (!s) return NULL;
@@ -660,11 +663,12 @@ int64_t number_from_bin (const char *s, uint32_t len) {
     
     // sanity check on len
     if (len > 64) return 0;
-    int64_t value = 0;
+    uint64_t value = 0;
     for (uint32_t i=0; i<len; ++i) {
         int c = s[i];
-        value = (value << 1) + (c - '0');
+        if (c != '0' && c != '1') return 0;
+        value = (value << 1) + (unsigned)(c - '0');
     }
-    return value;
+    return (int64_t)value;
 }
 

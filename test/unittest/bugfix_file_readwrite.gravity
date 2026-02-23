@@ -1,0 +1,27 @@
+#unittest {
+	name: "File read/write returns correct byte count.";
+	result: true;
+};
+
+func main() {
+    var path = "/tmp/_gravity_rw_test.txt";
+    var data = "Hello, Gravity!";
+
+    // write data and check byte count returned
+    var f = File.open(path, "w");
+    if (!f) return false;
+    var nwritten = f.write(data);
+    f.close();
+    if (nwritten != data.length) return false;
+
+    // read data back and verify content and length
+    var f2 = File.open(path, "r");
+    if (!f2) return false;
+    var content = f2.read(100);
+    f2.close();
+
+    if (content.length != data.length) return false;
+    if (content != data) return false;
+
+    return true;
+}

@@ -132,6 +132,7 @@ static bool internal_file_buildpath (gravity_vm *vm, gravity_value_t *args, uint
     }
     
     gravity_value_t string = VALUE_FROM_STRING(vm, result, (uint32_t)strlen(result));
+    mem_free(result);
     RETURN_VALUE(string, rindex);
 }
 
@@ -185,6 +186,7 @@ static void scan_directory (gravity_vm *vm, char *path, bool recursive, gravity_
         char *full_path = file_buildpath(target_file, path);
         if (recursive && (is_directory(full_path))) {
             scan_directory(vm, full_path, recursive, closure, n, true);
+            mem_free(full_path);
             continue;
         }
         
@@ -253,7 +255,7 @@ static bool internal_file_open (gravity_vm *vm, gravity_value_t *args, uint16_t 
      */
     
     // 1 parameter of type string is required
-    if (nargs > 1 && !VALUE_ISA_STRING(args[1])) {
+    if (nargs < 2 || !VALUE_ISA_STRING(args[1])) {
         RETURN_ERROR("A path parameter of type String is required.");
     }
     char *path = VALUE_AS_STRING(args[1])->s;
@@ -270,6 +272,7 @@ static bool internal_file_open (gravity_vm *vm, gravity_value_t *args, uint16_t 
     
     gravity_file_t *instance = gravity_ifile_new(vm, file);
     if (instance == NULL) {
+        fclose(file);
         RETURN_VALUE(VALUE_FROM_NULL, rindex);
     }
     
@@ -291,15 +294,17 @@ static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t
     
     if (VALUE_ISA_INT(args[1])) n = VALUE_AS_INT(args[1]);
     else str = VALUE_AS_STRING(args[1]);
-    
+
+    if (n <= 0) RETURN_ERROR("Invalid read size.");
+
     char *buffer = (char *)mem_alloc(NULL, n);
     if (!buffer) {
-        RETURN_ERROR("Not enought memory to allocate required buffer.");
+        RETURN_ERROR("Not enough memory to allocate required buffer.");
     }
     
     // args[1] was a number so read up-to n characters
     if (str == NULL) {
-        nread = fread(buffer, (size_t)n, 1, instance->file);
+        nread = fread(buffer, 1, (size_t)n, instance->file);
     } else {
         // read up-until s character was found (or EOF)
         // taking in account buffer b resizing
@@ -318,6 +323,7 @@ static bool internal_file_iread (gravity_vm *vm, gravity_value_t *args, uint16_t
             
             if (ptr + 2 >= eptr) {
                 char *nbuf;
+                if ((size_t)n > SIZE_MAX / 2) break;
                 size_t nbufsiz = n * 2;
                 ssize_t d = ptr - buffer;
                 if ((nbuf = mem_realloc(NULL, buffer, nbufsiz)) == NULL) break;
@@ -352,7 +358,7 @@ static bool internal_file_iwrite (gravity_vm *vm, gravity_value_t *args, uint16_
     gravity_file_t *instance = VALUE_AS_FILE(args[0]);
     gravity_string_t *data = VALUE_AS_STRING(args[1]);
     
-    size_t nwritten = fwrite(data->s, data->len, 1, instance->file);
+    size_t nwritten = fwrite(data->s, 1, data->len, instance->file);
     RETURN_VALUE(VALUE_FROM_INT(nwritten), rindex);
 }
 

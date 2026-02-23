@@ -28,7 +28,7 @@
 // http://www.mathsisfun.com/binary-decimal-hexadecimal-converter.html
 #define OPCODE_SET(op,code)                             op = (code & 0x3F) << 26
 #define OPCODE_SET_TWO8bit_ONE10bit(op,code,a,b,c)      op = (code & 0x3F) << 26; op += (a & 0xFF) << 18; op += (b & 0xFF) << 10; op += (c & 0x3FF)
-#define OPCODE_SET_FOUR8bit(op,a,b,c,d)                 op = (a & 0xFF) << 24; op += (b & 0xFF) << 16; op += (c & 0xFF) << 8; op += (d & 0xFF)
+#define OPCODE_SET_FOUR8bit(op,code,a,b,c,d)            op = (code & 0x3F) << 26; op += (a & 0xFF) << 18; op += (b & 0xFF) << 10; op += (c & 0xFF) << 2; op += (d & 0x03)
 #define OPCODE_SET_ONE8bit_SIGN_ONE17bit(op,code,a,s,n) op = (code & 0x3F) << 26; op += (a & 0xFF) << 18; op += (s & 0x01) << 17; op += (n & 0x1FFFF)
 #define OPCODE_SET_SIGN_ONE25bit(op,code,s,a)           op = (code & 0x3F) << 26; op += (s & 0x01) << 25; op += (a & 0x1FFFFFF)
 #define OPCODE_SET_ONE8bit_ONE18bit(op,code,a,n)        op = (code & 0x3F) << 26; op += (a & 0xFF) << 18; op += (n & 0x3FFFF)
@@ -295,7 +295,7 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
     //      00005    ADD 2 2 3
     // inst points to a MATH instruction but registers are not the same as the LOADI instructions
     // so no optimizations must be performed
-    if (!(inst->p2 == inst1->p1 && inst->p3 == inst2->p2)) return false;
+    if (!(inst->p2 == inst1->p1 && inst->p3 == inst2->p1)) return false;
     
     // compute operands
     if (type == DOUBLE_TAG) {
@@ -373,11 +373,11 @@ static bool optimize_neg_instruction (ircode_t *code, inst_t *inst, uint32_t i) 
     if (inst1->tag == INT_TAG) {
         int64_t n = inst1->n;
         if (n > 131072) return false;
-        inst1->p1 = inst->p2;
+        inst1->p1 = inst->p1;
         inst1->n = -(int64_t)n;
     } else if (inst1->tag == DOUBLE_TAG) {
         double d = inst1->d;
-        inst1->p1 = inst->p2;
+        inst1->p1 = inst->p1;
         inst1->d = -d;
     } else {
         return false;
