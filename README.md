@@ -86,12 +86,12 @@ Requires a C99 compiler. No external dependencies.
 ## Usage
 
 ```bash
-./gravity file.gravity              # Compile and execute a source file
-./gravity -c file.gravity           # Compile to bytecode (outputs gravity.json)
-./gravity -o out.json -c file.gravity  # Compile to a specific output file
-./gravity -x gravity.json           # Execute precompiled bytecode
-./gravity -i 'return 2 + 3'        # Execute inline code
-./gravity -t test/unittest          # Run unit tests
+./gravity file.gravity                  # Compile and execute a source file
+./gravity -c file.gravity               # Compile to bytecode (outputs gravity.json)
+./gravity -o out.json -c file.gravity   # Compile to a specific output file
+./gravity -x gravity.json               # Execute precompiled bytecode
+./gravity -i 'return 2 + 3'             # Execute inline code
+./gravity -t test/unittest              # Run unit tests
 ```
 
 ## Project Structure
