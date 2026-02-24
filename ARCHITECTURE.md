@@ -77,11 +77,11 @@ src/
 Source Code
     │
     ▼
-┌─────────┐
+┌──────────┐
 │  Lexer   │  Character stream → Token stream
 └────┬─────┘
      ▼
-┌─────────┐
+┌──────────┐
 │  Parser  │  Token stream → Abstract Syntax Tree
 └────┬─────┘
      ▼
@@ -412,12 +412,14 @@ The lookup traverses the declaration stack from innermost to outermost:
 What can be declared inside each construct:
 
 ```
-              func    var    enum   class   module
+         │   func    var    enum   class   module
+-------------------------------------------------
 func     │   YES     YES    NO     YES     YES
 var      │   YES     NO     NO     YES     YES
 enum     │   YES     NO     NO     YES     YES
 class    │   YES     NO     NO     YES     YES
 module   │   NO      NO     NO     NO      NO
+-------------------------------------------------
 ```
 
 ---
