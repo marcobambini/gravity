@@ -3634,13 +3634,14 @@ void gravity_core_init (void) {
 }
 
 void gravity_core_free (void) {
-    // free optionals first
-    gravity_opt_free();
-
     if (!core_inited) return;
 
     // check if others VM are still running
     if (--refcount) return;
+
+    // free optionals after refcount check — avoids double-free when mini-VM
+    // in gravity_compiler_reset() has already freed GC objects via internal_vm_cleanup
+    gravity_opt_free();
 
     // this function should never be called
     // it is just called when we need to internally check for memory leaks
