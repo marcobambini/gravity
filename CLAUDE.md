@@ -29,6 +29,10 @@ Compiler flags: `-std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API`
 ./gravity -i 'print("hello")'           # Inline execution
 ```
 
+The `test/` directory also contains:
+- `test/fuzzy/` — randomised fuzzing inputs; all must compile/run without crashing
+- `test/infiniteloop/` — programs that must terminate with a `RUNTIME` error (not hang)
+
 CI runs: `make && test/unittest/run_all.sh`
 
 ## Architecture
@@ -59,6 +63,7 @@ Core API in `src/runtime/` and example usage in `examples/example.c`:
 - `gravity_compiler_create/run` — compile source to closures
 - `gravity_vm_new/runmain/runclosure` — create VM and execute code
 - `gravity_vm_loadfile/loadbuffer` — load from file or memory
+- `gravity_vm_get/gravity_vm_set` — read/write VM configuration at runtime (e.g. `GRAVITY_VM_MAXSTACK` to cap fiber stack growth)
 
 ## Code Style
 

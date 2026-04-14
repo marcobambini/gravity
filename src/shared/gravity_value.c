@@ -1423,6 +1423,24 @@ void gravity_fiber_reassign (gravity_fiber_t *fiber, gravity_closure_t *closure,
 
     // update stacktop in order to be GC friendly
     fiber->stacktop += FN_COUNTREG(closure->f, nargs);
+
+    // ensure the stack is large enough for the new frame's register window;
+    // gravity_check_stack is only called on CALL instructions so it would not
+    // catch an overflow that occurs while executing the frame itself
+    uint32_t stack_used = (uint32_t)(fiber->stacktop - fiber->stack);
+    if (stack_used > fiber->stackalloc) {
+        uint32_t new_size = power_of2_ceil(stack_used);
+        if (!new_size || new_size < stack_used) new_size = stack_used;
+        gravity_value_t *new_stack = (gravity_value_t *)mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size);
+        if (new_stack) {
+            ptrdiff_t offset = new_stack - fiber->stack;
+            fiber->stack = new_stack;
+            fiber->stackalloc = new_size;
+            // adjust all pointers that referenced the old stack address
+            fiber->stacktop += offset;
+            frame->stackstart += offset; // frame 0 stackstart is always at the base
+        }
+    }
 }
 
 void gravity_fiber_reset (gravity_fiber_t *fiber) {

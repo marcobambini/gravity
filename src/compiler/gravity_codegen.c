@@ -929,11 +929,19 @@ static void process_constructor (gvisitor_t *self, gravity_class_t *c, gnode_t *
             char name[256];
             snprintf(name, sizeof(name), "%s%d", CLASS_INTERNAL_INIT_NAME, ninit++);
 
-            // add new internal init to class and call it from main $init function
-            // super_init should not be duplicated here because class hash table values are not freed (only keys are freed)
+            // keep the class binding for serialisation compatibility
             gravity_class_bind(c, name, VALUE_FROM_OBJECT(super_init));
-            uint16_t index = gravity_function_cpool_add(NULL, internal_init_function, VALUE_FROM_CSTRING(GET_VM(), name));
-            ircode_patch_init((ircode_t *)internal_init_function->bytecode, index);
+
+            // store the closure directly in the constant pool so the call does not
+            // need a runtime name lookup via LOAD from self.  A dynamic lookup
+            // lets parent $initN names resolve against the subclass's hash table,
+            // where they alias to different (deeper) $init functions, causing
+            // infinite recursion when a subclass is instantiated.
+            // gravity_closure_new already registers the closure with GET_VM(); pass
+            // NULL to gravity_function_cpool_add to avoid registering it a second time
+            gravity_closure_t *super_closure = gravity_closure_new(GET_VM(), super_init);
+            uint16_t index = gravity_function_cpool_add(NULL, internal_init_function, VALUE_FROM_OBJECT(super_closure));
+            ircode_patch_init_direct((ircode_t *)internal_init_function->bytecode, index);
         }
         super = super->superclass;
     }

@@ -242,7 +242,7 @@
                                                     uint32_t _w = FN_COUNTREG(func, frame->nargs); \
                                                     uint32_t _rneed = FN_COUNTREG(_c->f, _N);      \
 													uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + _w + _rneed - fiber->stacktop, 0); \
-                                                    if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;              \
+                                                    if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) RUNTIME_ERROR("Out of memory: fiber stack could not be grown."); \
                                                     if (vm->aborted) return false
 
 #define PREPARE_FUNC_CALL1(_c,_v1,_i,_w)            PREPARE_FUNC_CALLN(_c,_i,_w,1);         \

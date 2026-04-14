@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.9.5"     // git tag 0.9.5
-#define GRAVITY_VERSION_NUMBER				0x000905    // git push --tags
+#define GRAVITY_VERSION						"0.9.6"     // git tag 0.9.6
+#define GRAVITY_VERSION_NUMBER				0x000906    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -132,6 +132,7 @@ extern "C" {
 #define DEFAULT_CONTEXT_SIZE                256             // default VM context entries (can grow)
 #define DEFAULT_MINSTRING_SIZE              32              // minimum string allocation size
 #define DEFAULT_MINSTACK_SIZE               256             // sizeof(gravity_value_t) * 256     = 16 * 256 => 4 KB
+#define DEFAULT_MAXSTACK_SIZE               1048576         // sizeof(gravity_value_t) * 1048576 = 16 * 1048576 => 16 MB
 #define DEFAULT_MINCFRAME_SIZE              32              // sizeof(gravity_callframe_t) * 48  = 32 * 48 => 1.5 KB
 #define DEFAULT_CG_THRESHOLD                (5*1024*1024)   // 5MB
 #define DEFAULT_CG_MINTHRESHOLD             (1024*1024)     // 1MB

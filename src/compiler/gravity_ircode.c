@@ -205,6 +205,57 @@ void ircode_patch_init (ircode_t *code, uint16_t index) {
     code->list = list;
 }
 
+void ircode_patch_init_direct (ircode_t *code, uint16_t index) {
+    // prepend call instructions to code — like ircode_patch_init but loads the
+    // callable directly from the constant pool instead of doing a dynamic name
+    // lookup via LOAD from self.  This avoids the name-aliasing bug where a
+    // parent's $init resolved $initN against the subclass's hash table at
+    // runtime and ended up calling itself recursively.
+    //
+    // LOADK temp index    (load closure stored at cpool[index] directly)
+    // MOVE  temp+1 0      (self as first argument)
+    // CALL  temp temp 1
+
+    // load constant (the closure itself, no LOAD-from-self step)
+    uint32_t dest = ircode_register_push_temp(code);
+    inst_t *inst1 = inst_new(LOADK, dest, index, 0, NO_TAG, 0, 0.0, 0);
+
+    // prepare parameter (self)
+    uint32_t dest2 = ircode_register_push_temp(code);
+    inst_t *inst2 = inst_new(MOVE, dest2, 0, 0, NO_TAG, 0, 0.0, 0);
+    ircode_register_pop(code);
+
+    // execute call
+    inst_t *inst3 = inst_new(CALL, dest, dest, 1, NO_TAG, 0, 0.0, 0);
+
+    // pop temps used
+    ircode_register_pop(code);
+
+    // create new instruction list
+    code_r *list = mem_alloc(NULL, sizeof(code_r));
+    marray_init(*list);
+
+    // add newly created instructions
+    marray_push(inst_t*, *list, inst1);
+    marray_push(inst_t*, *list, inst2);
+    marray_push(inst_t*, *list, inst3);
+
+    // then copy original instructions
+    code_r *orig_list = code->list;
+    uint32_t count = ircode_count(code);
+    for (uint32_t i=0; i<count; ++i) {
+        inst_t *inst = marray_get(*orig_list, i);
+        marray_push(inst_t*, *list, inst);
+    }
+
+    // free dest list
+    marray_destroy(*orig_list);
+    mem_free(code->list);
+
+    // replace dest list with the newly created list
+    code->list = list;
+}
+
 uint8_t opcode_numop (opcode_t op) {
     switch (op) {
         case HALT: return 0;

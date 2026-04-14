@@ -46,6 +46,9 @@ struct gravity_vm {
     // recursion
     gravity_int_t       maxrecursion;                   // maximum recursive depth
     gravity_int_t       recursioncount;                 // recursion counter
+
+    // stack limit
+    uint32_t            maxstacksize;                   // maximum fiber stack size (in slots) to prevent OOM from unbounded recursion
     
     // anonymous names
     uint32_t            nanon;                          // counter for anonymous classes (used in object_bind)
@@ -227,8 +230,7 @@ static gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber
         uint32_t new_size = fiber->framesalloc * 2;
         void *ptr = mem_realloc(NULL, fiber->frames, sizeof(gravity_callframe_t) * new_size);
         if (!ptr) {
-            // frames reallocation failed means that there is a very high probability to be into an infinite loop
-            report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Infinite loop detected. Current execution must be aborted.");
+            report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Out of memory: call frame stack could not be grown.");
             return NULL;
         }
         fiber->frames = (gravity_callframe_t *)ptr;
@@ -244,12 +246,11 @@ static gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber
 }
 
 static bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t stacktopdelta, gravity_value_t **stackstart) {
-    #pragma unused(vm)
 	if (stacktopdelta == 0) return true;
-	
+
     // update stacktop pointer before a call
     fiber->stacktop += stacktopdelta;
-	
+
     // check stack size
 	uint32_t stack_size = (uint32_t)(fiber->stacktop - fiber->stack);
     uint32_t stack_needed = MAXNUM(stack_size, DEFAULT_MINSTACK_SIZE);
@@ -259,13 +260,20 @@ static bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_
     // perform stack reallocation (power_of2_ceil returns 0 if argument is bigger than 2^31)
     uint32_t new_size = power_of2_ceil(fiber->stackalloc + stack_needed);
     bool size_condition = (new_size && (uint64_t)new_size >= (uint64_t)(fiber->stackalloc + stack_needed) && ((sizeof(gravity_value_t) * new_size) < SIZE_MAX));
-    void *ptr = (size_condition) ? mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
+
+    // enforce the configurable stack size limit to prevent unbounded growth (e.g. infinite recursion)
+    if (!size_condition || new_size > vm->maxstacksize) {
+        fiber->stacktop -= stacktopdelta;
+        report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Out of memory: fiber stack exceeded the maximum allowed size (%u slots).", vm->maxstacksize);
+        return false;
+    }
+
+    void *ptr = mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size);
     if (!ptr) {
         // restore stacktop to previous state
         fiber->stacktop -= stacktopdelta;
 
-        // stack reallocation failed means that there is a very high probability to be into an infinite loop
-        // so return false and let the calling function (vm_exec) raise a runtime error
+        report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Out of memory: fiber stack reallocation failed.");
         return false;
     }
     
@@ -1188,7 +1196,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 uint32_t _rneed = FN_COUNTREG(closure->f, r3);
 				uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
                 if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) {
-                    RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+                    RUNTIME_ERROR("Out of memory: fiber stack could not be grown.");
                 }
 
                 // if less arguments are passed then fill the holes with UNDEFINED values
@@ -1524,6 +1532,7 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
     vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
     vm->maxccalls = MAX_CCALLS;
     vm->maxrecursion = 0; // default is no limit
+    vm->maxstacksize = DEFAULT_MAXSTACK_SIZE;
 
     vm->pc = 0;
     vm->delegate = (delegate) ? delegate : &empty_delegate;
@@ -1910,6 +1919,7 @@ gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
         if (strcmp(key, GRAVITY_VM_MAXCALLS) == 0) return VALUE_FROM_INT(vm->maxccalls);
         if (strcmp(key, GRAVITY_VM_MAXBLOCK) == 0) return VALUE_FROM_INT(vm->maxmemblock);
         if (strcmp(key, GRAVITY_VM_MAXRECURSION) == 0) return VALUE_FROM_INT(vm->maxrecursion);
+        if (strcmp(key, GRAVITY_VM_MAXSTACK) == 0) return VALUE_FROM_INT(vm->maxstacksize);
     }
     return VALUE_FROM_NULL;
 }
@@ -1923,6 +1933,7 @@ bool gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value) {
         if ((strcmp(key, GRAVITY_VM_MAXCALLS) == 0) && VALUE_ISA_INT(value)) {vm->maxccalls = (uint32_t)VALUE_AS_INT(value); return true;}
         if ((strcmp(key, GRAVITY_VM_MAXBLOCK) == 0) && VALUE_ISA_INT(value)) {vm->maxmemblock = (uint32_t)VALUE_AS_INT(value); return true;}
         if ((strcmp(key, GRAVITY_VM_MAXRECURSION) == 0) && VALUE_ISA_INT(value)) {vm->maxrecursion = (uint32_t)VALUE_AS_INT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXSTACK) == 0) && VALUE_ISA_INT(value)) {vm->maxstacksize = (uint32_t)VALUE_AS_INT(value); return true;}
     }
     return false;
 }

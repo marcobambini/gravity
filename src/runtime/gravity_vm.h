@@ -23,6 +23,7 @@ extern "C" {
 #define GRAVITY_VM_MAXCALLS             "maxCCalls"
 #define GRAVITY_VM_MAXBLOCK             "maxBlock"
 #define GRAVITY_VM_MAXRECURSION         "maxRecursionDepth"
+#define GRAVITY_VM_MAXSTACK             "maxStack"
 
 typedef void (*vm_cleanup_cb) (gravity_vm *vm);
 typedef bool (*vm_filter_cb) (gravity_object_t *obj);
