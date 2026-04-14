@@ -2,6 +2,20 @@
 
 All notable changes to Gravity are documented in this file.
 
+## [0.9.7] - 2026-04-14
+
+### Fixed
+- **Float precision loss in JSON bytecode serialization** — float constants were written with `%f` (6 decimal places), silently rounding small values like `-0.000000004` to zero and causing `RUNTIME ERROR: Unknown LOADK index` on the `-c`/`-x` (compile + execute bytecode) path. Switched to `%.17g` for full IEEE 754 double round-trip precision (issue #420).
+- **Float constant deduplication in cpool** — `gravity_function_cpool_add` used the epsilon-based `gravity_value_equals` (EPSILON = 1e-6) to detect duplicate constants, incorrectly merging distinct small floats into a single pool entry. The cpool now uses exact bit-level comparison for float values (issue #420).
+- **`gravity_optionals.h` unconditionally defined all optional-module guards** — the `#ifndef GRAVITY_INCLUDE_*` blocks always defined every guard, making it impossible to exclude modules at compile time. The guards are now left undefined by default; embedders define only the modules they need. The Gravity CLI and runtime define all four (issue #426).
+- **Makefile dependency errors** — four issues: `gravity` and `example` were incorrectly listed as `.PHONY` targets (causing unconditional rebuilds); `lib` depended on the `gravity` executable instead of just `$(OBJ)`; `gravity.c` and `example.c` were compiled only during the link step so `-MMD` never generated `.d` header-dependency files for them; `make clean` did not remove `libgravity.dylib` on macOS (issue #413).
+- **`run_all.sh` portability** — the test runner used GNU `timeout` which is not available on macOS. The script now auto-detects `timeout`, `gtimeout` (Homebrew coreutils), or falls back to a pure-bash kill-watcher.
+
+### Changed
+- Version bumped to **0.9.7** (`GRAVITY_VERSION`, `GRAVITY_VERSION_NUMBER`).
+
+---
+
 ## [0.9.6] - 2026-04-14
 
 ### Fixed
