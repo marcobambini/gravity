@@ -299,8 +299,18 @@ void json_add_double (json_t *json, const char *key, double value) {
     json_check_comma(json);
     
     char buffer[512];
-    // was %g but we don't like scientific notation nor the missing .0 in case of float number with no decimals
-    size_t len = snprintf(buffer, sizeof(buffer), "%f", value);
+    // Use %.17g for a lossless double round-trip (17 significant digits covers
+    // the full IEEE 754 range without precision loss that occurred with "%f").
+    // If the result contains no decimal point or exponent, append ".0" so the
+    // value is deserialized as a float rather than an integer.
+    size_t len = snprintf(buffer, sizeof(buffer), "%.17g", value);
+    bool has_dot_or_exp = false;
+    for (size_t i = 0; i < len; i++) {
+        if (buffer[i] == '.' || buffer[i] == 'e' || buffer[i] == 'E') { has_dot_or_exp = true; break; }
+    }
+    if (!has_dot_or_exp && len + 2 < sizeof(buffer)) {
+        buffer[len++] = '.'; buffer[len++] = '0'; buffer[len] = '\0';
+    }
 
     if (key) {
         json_write_raw (json, key, strlen(key), true, true);

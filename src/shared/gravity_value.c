@@ -593,6 +593,14 @@ uint16_t gravity_function_cpool_add (gravity_vm *vm, gravity_function_t *f, grav
     size_t n = marray_size(f->cpool);
     for (size_t i=0; i<n; i++) {
         gravity_value_t v2 = marray_get(f->cpool, i);
+        // Float constants must match exactly at the bit level so that distinct
+        // small values (e.g. -4e-9 vs -5e-11) are never merged due to the
+        // epsilon-based gravity_value_equals comparison.
+        if (v.isa == gravity_class_float && v2.isa == gravity_class_float) {
+            if (v.f != v2.f) continue;
+            gravity_value_free(NULL, v);
+            return (uint16_t)i;
+        }
         if (gravity_value_equals(v,v2)) {
             gravity_value_free(NULL, v);
             return (uint16_t)i;
