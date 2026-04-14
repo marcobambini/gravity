@@ -2,7 +2,7 @@
 
 All notable changes to Gravity are documented in this file.
 
-## [0.9.6] - Unreleased
+## [0.9.6] - 2026-04-14
 
 ### Fixed
 - **Stack overflow now produces a clean runtime error** instead of a hard crash (SIGSEGV). Infinite recursion and pathological call depths are caught by a configurable stack size limit before the process runs out of memory.
