@@ -16,7 +16,9 @@ SRC = $(wildcard $(COMPILER_DIR)*.c) \
 INCLUDE = -I$(COMPILER_DIR) -I$(RUNTIME_DIR) -I$(SHARED_DIR) -I$(UTILS_DIR) -I$(OPT_DIR)
 CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API -MMD
 OBJ = $(SRC:.c=.o)
-DEP = $(OBJ:.o=.d)
+GRAVITY_OBJ = $(GRAVITY_SRC:.c=.o)
+EXAMPLE_OBJ = $(EXAMPLE_SRC:.c=.o)
+DEP = $(OBJ:.o=.d) $(GRAVITY_OBJ:.o=.d) $(EXAMPLE_OBJ:.o=.d)
 	
 ifeq ($(OS),Windows_NT)
 	# Windows
@@ -59,18 +61,18 @@ endif
 
 all: gravity
 
-gravity:	$(OBJ) $(GRAVITY_SRC)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-	
-example:	$(OBJ) $(EXAMPLE_SRC)
+gravity: $(OBJ) $(GRAVITY_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-lib: gravity
+example: $(OBJ) $(EXAMPLE_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+lib: $(OBJ)
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) $(DEP) gravity example libgravity.so gravity.dll
+	rm -f $(OBJ) $(GRAVITY_OBJ) $(EXAMPLE_OBJ) $(DEP) gravity example libgravity.dylib libgravity.so gravity.dll
 
-.PHONY: all clean gravity example
+.PHONY: all clean lib
 
 -include $(DEP)
