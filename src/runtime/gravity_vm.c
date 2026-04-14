@@ -16,6 +16,10 @@
 #include "gravity_opcodes.h"
 #include "gravity_memory.h"
 #include "gravity_vmmacros.h"
+#define GRAVITY_INCLUDE_MATH
+#define GRAVITY_INCLUDE_JSON
+#define GRAVITY_INCLUDE_ENV
+#define GRAVITY_INCLUDE_FILE
 #include "gravity_optionals.h"
 
 // MARK: Internals -
