@@ -20,9 +20,7 @@ const char *current_filepath (const char *base, const char *target_file) {
 	// __FILE__ macro contains full path to main.c file
 	// for example: /Users/marco/SQLabs/Butterfly/gravity/main/main.c
 	
-	snprintf(buffer, strlen(base) - skip, "%s", base);
-	strcat(buffer, "/shared/");
-	strcat(buffer, target_file);
+	snprintf(buffer, sizeof(buffer), "%.*s/shared/%s", (int)(strlen(base) - skip - 1), base, target_file);
 	
 	return buffer;
 }
