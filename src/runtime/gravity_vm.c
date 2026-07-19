@@ -1543,12 +1543,15 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
     vm->context = gravity_hash_create(DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
 
     // garbage collector
+    // graylist/gctemp MUST be initialized before gravity_gc_setenabled: enabling the GC
+    // can trigger a collection that grows the graylist buffer, and a marray_init after
+    // that would zero the pointer and orphan (leak) the allocation.
+    marray_init(vm->graylist);
+    marray_init(vm->gctemp);
     gravity_gc_setenabled(vm, true);
     gravity_gc_setvalues(vm, DEFAULT_CG_THRESHOLD, DEFAULT_CG_MINTHRESHOLD, DEFAULT_CG_RATIO);
     vm->memallocated = 0;
     vm->maxmemblock = MAX_MEMORY_BLOCK;
-    marray_init(vm->graylist);
-    marray_init(vm->gctemp);
 
     // init base and core
     gravity_core_register(vm);
