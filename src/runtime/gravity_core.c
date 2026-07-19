@@ -3376,8 +3376,13 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_object, "clone", NEW_CLOSURE_VALUE(object_clone));
 
     // INTROSPECTION support added to OBJECT CLASS
-    gravity_class_bind(gravity_class_object, "class", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(object_class), NULL)));
-    gravity_class_bind(gravity_class_object, "meta", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(object_meta), NULL)));
+    // NOTE: VALUE_FROM_OBJECT is a macro that can evaluate its argument twice
+    // (non GRAVITY_USE_HIDDEN_INITIALIZERS build), so computed_property_create
+    // must never be called inline inside it (it would create a leaked duplicate)
+    gravity_closure_t *object_class_closure = computed_property_create(NULL, NEW_FUNCTION(object_class), NULL);
+    gravity_class_bind(gravity_class_object, "class", VALUE_FROM_OBJECT(object_class_closure));
+    gravity_closure_t *object_meta_closure = computed_property_create(NULL, NEW_FUNCTION(object_meta), NULL);
+    gravity_class_bind(gravity_class_object, "meta", VALUE_FROM_OBJECT(object_meta_closure));
     gravity_class_bind(gravity_class_object, "respondTo", NEW_CLOSURE_VALUE(object_respond));
     gravity_class_bind(gravity_class_object, "methods", NEW_CLOSURE_VALUE(object_methods));
     gravity_class_bind(gravity_class_object, "properties", NEW_CLOSURE_VALUE(object_properties));
@@ -3481,8 +3486,10 @@ void gravity_core_init (void) {
     gravity_class_t *int_meta = gravity_class_get_meta(gravity_class_int);
     gravity_class_bind(int_meta, "random", NEW_CLOSURE_VALUE(int_random));
     gravity_class_bind(int_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(int_exec));
-    gravity_class_bind(int_meta, "min", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(int_min), NULL)));
-    gravity_class_bind(int_meta, "max", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(int_max), NULL)));
+    gravity_closure_t *int_min_closure = computed_property_create(NULL, NEW_FUNCTION(int_min), NULL);
+    gravity_class_bind(int_meta, "min", VALUE_FROM_OBJECT(int_min_closure));
+    gravity_closure_t *int_max_closure = computed_property_create(NULL, NEW_FUNCTION(int_max), NULL);
+    gravity_class_bind(int_meta, "max", VALUE_FROM_OBJECT(int_max_closure));
     
     // FLOAT CLASS
     gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_float_add));
@@ -3506,8 +3513,10 @@ void gravity_core_init (void) {
     // Meta
     gravity_class_t *float_meta = gravity_class_get_meta(gravity_class_float);
     gravity_class_bind(float_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(float_exec));
-    gravity_class_bind(float_meta, "min", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(float_min), NULL)));
-    gravity_class_bind(float_meta, "max", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(float_max), NULL)));
+    gravity_closure_t *float_min_closure = computed_property_create(NULL, NEW_FUNCTION(float_min), NULL);
+    gravity_class_bind(float_meta, "min", VALUE_FROM_OBJECT(float_min_closure));
+    gravity_closure_t *float_max_closure = computed_property_create(NULL, NEW_FUNCTION(float_max), NULL);
+    gravity_class_bind(float_meta, "max", VALUE_FROM_OBJECT(float_max_closure));
 
     // BOOL CLASS
     gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_bool_add));
@@ -3658,6 +3667,19 @@ void gravity_core_free (void) {
     computed_property_free(gravity_class_float, "degrees", true);
     gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
     computed_property_free(system_meta, GRAVITY_VM_GCENABLED, true);
+    // these computed properties are also created in gravity_core_init but were
+    // missing from this free list (leaked on every core init/free cycle)
+    computed_property_free(gravity_class_object, "class", true);
+    computed_property_free(gravity_class_object, "meta", true);
+    computed_property_free(gravity_class_range, "from", true);
+    computed_property_free(gravity_class_range, "to", true);
+    computed_property_free(gravity_class_string, "bytes", true);
+    gravity_class_t *int_meta_cp = gravity_class_get_meta(gravity_class_int);
+    computed_property_free(int_meta_cp, "min", true);
+    computed_property_free(int_meta_cp, "max", true);
+    gravity_class_t *float_meta_cp = gravity_class_get_meta(gravity_class_float);
+    computed_property_free(float_meta_cp, "min", true);
+    computed_property_free(float_meta_cp, "max", true);
 
     gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_int));
     gravity_class_free_core(NULL, gravity_class_int);
