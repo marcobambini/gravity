@@ -464,7 +464,12 @@ int main (int argc, const char* argv[]) {
         compiler = gravity_compiler_create(&delegate);
 
         // compile source code into a closure
+        // is_static is false, so the lexer takes ownership of source_code and frees it in
+        // parser_run, whether or not the compilation succeeded: drop our reference to the
+        // inline buffer here or cleanup would free it a second time
         closure = gravity_compiler_run(compiler, source_code, size, 0, false, true);
+        source_code = NULL;
+        inline_buffer = NULL;
         if (!closure) goto cleanup;
 
         // check if closure needs to be serialized
