@@ -2,6 +2,33 @@
 
 All notable changes to Gravity are documented in this file.
 
+## [0.9.8] - 2026-08-05
+
+Security and memory-safety release. Every issue below was found by external
+reporters fuzzing the compiler and the bytecode loader, and each fix ships with
+a regression test.
+
+### Fixed
+- **NULL dereference in `gravity_vm_loadbuffer`** — a serialized function object without an `identifier` field, such as `{"x":{"type":"function"}}`, reached `strlen(NULL)` and crashed the process. The loader now validates the structure of every JSON executable before using it: the root and each entry must be objects, the identifier must be present exactly once and be a string, and unknown object types are rejected. Malformed input is reported as a load error instead of crashing (issue #444).
+- **Signed 64-bit integer overflow in `json_parse_ex`** — the integer and exponent accumulators multiplied by 10 per digit with no range check, so any literal longer than 19 significant digits overflowed. Signed overflow is undefined behaviour: the parser stored a wrapped value, and builds compiled with `-fsanitize=undefined` trapped with SIGILL. Both accumulators are now range-checked and over-long literals are rejected (issue #447).
+- **Pointer-arithmetic overflow in the JSON scan loop** — `for (state.ptr = json; ; ++state.ptr)` incremented unconditionally, so input that ended while the scanner was still inside a string or comment advanced the pointer past one-past-the-end, which is undefined behaviour. The loop now stops at the end of the buffer regardless of scanner state (issue #448).
+- **Heap out-of-bounds read in `parse_number_expression`** — the `0x`/`0b`/`0o` prefix check read `value[1]` without confirming the token was at least two bytes, so a source file whose last token was a bare `0` read one byte past the buffer. The prefix is only inspected when the token is long enough (issue #446).
+- **Compiler crash (SIGFPE) folding a floating-point remainder** — `optimize_const_instruction` folded `%` by truncating both operands to `int64_t`, so any divisor with `0 < |divisor| < 1` became an integer division by zero and killed the compiler on `1 % 0.5`. Float remainder is now folded with `remainder()`, matching `operator_float_rem`, and mixed Int/Float remainders are left to the runtime because REM dispatches on the class of the left operand. This also fixes a silent wrong answer: `5.5 % 2.0` folded to `1` where the VM evaluates `-0.5` (issue #443).
+- **Undefined behaviour in Int arithmetic** — Gravity Ints wrap on overflow, but the wrap was performed on signed operands in the VM fast path, in the `operator_int_*` methods and in the constant folder, which is undefined in C and traps under `-fsanitize=undefined`. All three paths now go through new `GRAVITY_INT_ADD/SUB/MUL/NEG/DIV/REM` helpers that compute on the unsigned counterpart. The helpers also handle `GRAVITY_INT_MIN op -1`, which on x86 faults in `idiv` rather than merely wrapping (issue #443).
+- **Optional classes never released** — `gravity_core_free` decremented the refcount of the optional classes without the matching balance, so `Math`, `File`, `JSON` and `ENV` were leaked by every embedder that created and destroyed a VM (issue #442).
+- **Core reference leaked by every `gravity_compiler_run`** — the compiler took a reference to the core classes on each run and never released it, so the count never returned to zero and the core was never torn down (issue #442).
+- **Double free of the inline source buffer** — `gravity -i` passed its heap-allocated wrapper source to `gravity_compiler_run` with `is_static` false, which hands the buffer to the lexer; the lexer freed it in `parser_run` and the CLI freed the same pointer again on the way out, aborting every inline run under a hardened allocator.
+
+### Added
+- `test/loadbuffer/` — a suite of malformed JSON executables that must each be rejected as a load error without crashing, plus `json_bounds.c` (`make jsontest`), 60 bounds checks that drive the JSON scanner directly. Run with `test/loadbuffer/run_all.sh`.
+- A GitHub Actions workflow building with gcc and clang on Linux and macOS, and a second job that builds with `-fsanitize=address,undefined` and runs the unit tests, the fuzzing corpus and the loader tests through it.
+
+### Changed
+- Version bumped to **0.9.8** (`GRAVITY_VERSION`, `GRAVITY_VERSION_NUMBER`).
+- The usage text now prints the real default output file name, `gravity.g`; `README.md` and `CLAUDE.md` documented a stale `gravity.json`.
+
+---
+
 ## [0.9.7] - 2026-04-14
 
 ### Fixed
