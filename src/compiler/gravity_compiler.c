@@ -77,7 +77,7 @@ gravity_compiler_t *gravity_compiler_create (gravity_delegate_t *delegate) {
     return compiler;
 }
 
-static void gravity_compiler_reset (gravity_compiler_t *compiler, bool free_core) {
+static void gravity_compiler_reset (gravity_compiler_t *compiler) {
     // free memory for array of strings storage
     if (compiler->storage) {
         cstring_array_each(compiler->storage, {mem_free((void *)val);});
@@ -89,14 +89,19 @@ static void gravity_compiler_reset (gravity_compiler_t *compiler, bool free_core
     if (compiler->parser) gravity_parser_free(compiler->parser);
 
     // at the end free mini VM and objects array
-    if (compiler->vm) gravity_vm_free(compiler->vm);
+    if (compiler->vm) {
+        gravity_vm_free(compiler->vm);
+
+        // release the core reference taken by gravity_compiler_run when the mini VM was created,
+        // so that register/release stay balanced no matter how many times the compiler is run.
+        // Core is really freed only when its refcount drops to zero, so a real VM created with
+        // gravity_vm_new (which owns its own reference) keeps core and optionals alive.
+        gravity_core_free();
+    }
     if (compiler->objects) {
         marray_destroy(*compiler->objects);
         mem_free((void*)compiler->objects);
     }
-
-    // feel free to free core if someone requires it
-    if (free_core) gravity_core_free();
 
     // reset internal pointers
     compiler->vm = NULL;
@@ -107,7 +112,7 @@ static void gravity_compiler_reset (gravity_compiler_t *compiler, bool free_core
 }
 
 void gravity_compiler_free (gravity_compiler_t *compiler) {
-    gravity_compiler_reset(compiler, true);
+    gravity_compiler_reset(compiler);
     mem_free(compiler);
 }
 
@@ -147,11 +152,19 @@ gravity_closure_t *gravity_compiler_run (gravity_compiler_t *compiler, const cha
     if (compiler->ast) gnode_free(compiler->ast);
     if (!compiler->objects) compiler->objects = void_array_create();
 
-    // CODEGEN requires a mini vm in order to be able to handle garbage collector
-    compiler->vm = gravity_vm_newmini();
-    gravity_vm_setdata(compiler->vm, (void *)compiler);
-    gravity_vm_set_callbacks(compiler->vm, internal_vm_transfer, internal_vm_cleanup);
-    gravity_core_register(compiler->vm);
+    // CODEGEN requires a mini vm in order to be able to handle garbage collector.
+    // The mini VM is just a container for the transfer/cleanup callbacks (it holds no
+    // per-compilation state) so it is created once and reused by every subsequent run
+    // of the same compiler: creating a new one here would orphan the previous one and
+    // would take an extra core reference that nothing releases.
+    if (!compiler->vm) {
+        compiler->vm = gravity_vm_newmini();
+        gravity_vm_setdata(compiler->vm, (void *)compiler);
+        gravity_vm_set_callbacks(compiler->vm, internal_vm_transfer, internal_vm_cleanup);
+
+        // core reference owned by the mini VM, released by gravity_compiler_reset
+        gravity_core_register(compiler->vm);
+    }
 
     // STEP 0: CREATE PARSER
     compiler->parser = gravity_parser_create(source, len, fileid, is_static);
@@ -180,7 +193,7 @@ gravity_closure_t *gravity_compiler_run (gravity_compiler_t *compiler, const cha
     if (f) return gravity_closure_new(compiler->vm, f);
 
 abort_compilation:
-    gravity_compiler_reset(compiler, false);
+    gravity_compiler_reset(compiler);
     return NULL;
 }
 
