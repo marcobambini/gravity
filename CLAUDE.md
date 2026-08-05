@@ -32,8 +32,10 @@ Compiler flags: `-std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API`
 The `test/` directory also contains:
 - `test/fuzzy/` — randomised fuzzing inputs; all must compile/run without crashing
 - `test/infiniteloop/` — programs that must terminate with a `RUNTIME` error (not hang)
+- `test/loadbuffer/` — malformed JSON executables for the `gravity -x` loader; each must be
+  rejected as a load error without crashing. Run with `test/loadbuffer/run_all.sh`
 
-CI runs: `make && test/unittest/run_all.sh`
+CI runs: `make && test/unittest/run_all.sh && test/loadbuffer/run_all.sh`
 
 ## Architecture
 

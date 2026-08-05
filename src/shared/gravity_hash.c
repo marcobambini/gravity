@@ -111,9 +111,14 @@ static uint32_t murmur3_32 (const char *key, uint32_t len, uint32_t seed) {
     uint32_t hash = seed;
 
     const int nblocks = len / 4;
-    const uint32_t *blocks = (const uint32_t *) key;
     for (int i = 0; i < nblocks; i++) {
-        uint32_t k = blocks[i];
+        // key is a plain byte buffer with no alignment guarantee, so each block must be
+        // copied out instead of read through a uint32_t pointer: a misaligned load is
+        // undefined behaviour and faults outright on strict-alignment targets. The byte
+        // order is unchanged, so hash values are identical to the previous code, and
+        // compilers fold this memcpy back into a single unaligned load
+        uint32_t k;
+        memcpy(&k, key + (i * 4), sizeof(k));
         k *= c1;
         k = ROT32(k, r1);
         k *= c2;

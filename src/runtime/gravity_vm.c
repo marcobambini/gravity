@@ -2090,10 +2090,11 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
     uint32_t n = json->u.object.length;
     for (uint32_t i=0; i<n; ++i) {
         json_value *entry = json->u.object.values[i].value;
-        if (entry->u.object.length == 0) continue;
 
-        // each entry must be an object
+        // each entry must be an object (checked before reading any object only
+        // field, otherwise a non object entry would read an unset union member)
         if (entry->type != json_object) goto abort_load;
+        if (entry->u.object.length == 0) continue;
 
         gravity_object_t *obj = gravity_object_deserialize(vm, entry);
         if (!obj) goto abort_load;
@@ -2107,8 +2108,14 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
         if (OBJECT_ISA_FUNCTION(obj)) {
             gravity_function_t *f = (gravity_function_t *)obj;
             const char *identifier = f->identifier;
+
+            // a deserialized function is allowed to have a NULL identifier (missing identifier
+            // field or anonymous function, serialized as $anon_ and restored as NULL) but a top
+            // level function must be named because it is either $moduleinit or a global value
+            if (!identifier) goto abort_load;
+
             gravity_closure_t *cl = gravity_closure_new(vm, f);
-            if (string_casencmp(identifier, INITMODULE_NAME, strlen(identifier)) == 0) {
+            if (string_cmp(identifier, INITMODULE_NAME) == 0) {
                 closure = cl;
             } else {
                 gravity_vm_setvalue(vm, identifier, VALUE_FROM_OBJECT(cl));
