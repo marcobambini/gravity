@@ -5,6 +5,7 @@ UTILS_DIR = src/utils/
 OPT_DIR = src/optionals/
 GRAVITY_SRC = src/cli/gravity.c
 EXAMPLE_SRC = examples/example.c
+JSONTEST_SRC = test/loadbuffer/json_bounds.c
 
 CC ?= gcc
 SRC = $(wildcard $(COMPILER_DIR)*.c) \
@@ -18,7 +19,8 @@ CFLAGS = $(INCLUDE) -std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API -MMD
 OBJ = $(SRC:.c=.o)
 GRAVITY_OBJ = $(GRAVITY_SRC:.c=.o)
 EXAMPLE_OBJ = $(EXAMPLE_SRC:.c=.o)
-DEP = $(OBJ:.o=.d) $(GRAVITY_OBJ:.o=.d) $(EXAMPLE_OBJ:.o=.d)
+JSONTEST_OBJ = $(JSONTEST_SRC:.c=.o)
+DEP = $(OBJ:.o=.d) $(GRAVITY_OBJ:.o=.d) $(EXAMPLE_OBJ:.o=.d) $(JSONTEST_OBJ:.o=.d)
 	
 ifeq ($(OS),Windows_NT)
 	# Windows
@@ -67,11 +69,17 @@ gravity: $(OBJ) $(GRAVITY_OBJ)
 example: $(OBJ) $(EXAMPLE_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
+# bounds tests for the JSON scanner, see test/loadbuffer/json_bounds.c.
+# Build it with a sanitizer to catch out of bounds reads:
+#   make jsontest CC="clang -fsanitize=address,undefined"
+jsontest: $(OBJ) $(JSONTEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
 lib: $(OBJ)
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) $(GRAVITY_OBJ) $(EXAMPLE_OBJ) $(DEP) gravity example libgravity.dylib libgravity.so gravity.dll
+	rm -f $(OBJ) $(GRAVITY_OBJ) $(EXAMPLE_OBJ) $(JSONTEST_OBJ) $(DEP) gravity example jsontest libgravity.dylib libgravity.so gravity.dll
 
 .PHONY: all clean lib
 

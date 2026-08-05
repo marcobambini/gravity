@@ -8,3 +8,4 @@ compiler:
 script:
   - make
   - test/unittest/run_all.sh
+  - test/loadbuffer/run_all.sh

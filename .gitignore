@@ -286,6 +286,7 @@ paket-files/
 *.x86_64
 *.hex
 gravity
+jsontest
 
 # Debug files
 *.dSYM/
