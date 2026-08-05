@@ -29,6 +29,9 @@ static int ident =0;
 
 // MARK: -
 
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 3, 4)))
+#endif
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
     // TODO: add lasterror here like in semacheck2
     

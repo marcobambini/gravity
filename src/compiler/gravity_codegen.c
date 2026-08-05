@@ -67,6 +67,11 @@ typedef struct codegen_t codegen_t;
 } while(0)
 
 // MARK: -
+// the format attribute lets the compiler type check the variadic arguments, which it
+// cannot do on its own for a function that just forwards them to vsnprintf
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 3, 4)))
+#endif
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
     codegen_t *current = (codegen_t *)self->data;
     
@@ -1552,7 +1557,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 				VISIT_MOVE_OPT(arg);
                 uint32_t nreg = ircode_register_pop_context_protect(code, true);
                 if (nreg == REGISTER_ERROR) {
-                    report_error(self, (gnode_t *)arg, "Invalid argument expression at index %d.", j+1);
+                    report_error(self, (gnode_t *)arg, "Invalid argument expression at index %zu.", j+1);
                     goto cleanup;
                 }
 

@@ -48,6 +48,9 @@ typedef struct semacheck_t semacheck_t;
 
 // MARK: -
 
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 4, 5)))
+#endif
 static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *node, const char *format, ...) {
     semacheck_t *current = (semacheck_t *)self->data;
     

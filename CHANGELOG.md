@@ -5,7 +5,11 @@ All notable changes to Gravity are documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **Wrong format specifier in a codegen error message** — `report_error(..., "Invalid argument expression at index %d.", j+1)` passed a `size_t` to a `%d` conversion, which reads only 32 bits of a 64-bit argument: undefined behaviour in a variadic call. The three `report_error` helpers now carry `__attribute__((format(printf, ...)))` on gcc and clang, so the compiler type-checks every call site and this class of mistake fails the build instead of needing an external analyser to spot it.
 - **Heap buffer overflow in `list_storeat` when growing the list fails** — storing past the end of a list reallocates the backing array, but `marray_resize` leaves both the pointer and the capacity untouched when the `realloc` fails, so the existing `if (!list->array.p)` guard never fired: the old, smaller buffer is still there and still non-NULL. The count was then set to the requested index and the fill loop wrote well past the end of the allocation. The check now tests the capacity actually obtained, and the out-of-memory case is reported as `Not enough memory to resize List.` as intended. Reachable from a script: `x[4444444444444444444] = 0` asks for a single multi-gigabyte allocation.
+
+### Removed
+- The CodeQL workflow. It ran on `github/codeql-action@v1`, deprecated since January 2023 and no longer updated, so it kept reporting green without being a current analysis. Its one open finding is fixed above, and the compiler now checks that class directly. The `build-and-test` workflow, including its address + undefined sanitizer job, is unaffected.
 
 ### Changed
 - The sanitizer CI job caps a single allocation at 1 GB (`max_allocation_size_mb`) so the pathological allocations in `test/fuzzy` fail cleanly instead of pushing the runner into the OOM killer, and pins `abort_on_error` so a sanitizer finding arrives as a signal on every platform rather than as the bare exit code 1 the runtime defaults to on Linux. The fuzzing step also scans the output for sanitizer reports, which the exit code alone does not reliably convey.
