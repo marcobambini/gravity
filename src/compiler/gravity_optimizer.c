@@ -349,7 +349,13 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
                 // truncating both operands to int64 instead divided by zero for any
                 // 0 < |d2| < 1, and disagreed with the runtime on every operand with
                 // a fractional part: 2.5 % 2.0 folded to 0 but evaluated to 0.5
+                // mirror the runtime conditional rather than relying on an IEEE
+                // remainder being exact in either precision
+                #if GRAVITY_ENABLE_DOUBLE
                 d = remainder(d1, d2);
+                #else
+                d = (double)remainderf((float)d1, (float)d2);
+                #endif
             } else {
                 if (n2 == 0) return false;
                 n = GRAVITY_INT_REM(n1, n2);
