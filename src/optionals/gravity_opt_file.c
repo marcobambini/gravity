@@ -175,7 +175,7 @@ static void scan_directory (gravity_vm *vm, char *path, bool recursive, gravity_
         if (n) *n = *n + 1;
     }
     
-    #ifdef WIN32
+    #ifdef _WIN32
     char buffer[MAX_PATH];
     #else
     char *buffer = NULL;
