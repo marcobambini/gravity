@@ -2021,14 +2021,14 @@ static bool operator_int_add (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
     INTERNAL_CONVERT_INT(v2, true);
-    RETURN_VALUE(VALUE_FROM_INT(v1.n + v2.n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_ADD(v1.n, v2.n)), rindex);
 }
 
 static bool operator_int_sub (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
     INTERNAL_CONVERT_INT(v2, true);
-    RETURN_VALUE(VALUE_FROM_INT(v1.n - v2.n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_SUB(v1.n, v2.n)), rindex);
 }
 
 static bool operator_int_div (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2044,7 +2044,7 @@ static bool operator_int_mul (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
     INTERNAL_CONVERT_INT(v2, true);
-    RETURN_VALUE(VALUE_FROM_INT(v1.n * v2.n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_MUL(v1.n, v2.n)), rindex);
 }
 
 static bool operator_int_rem (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2074,7 +2074,8 @@ static bool operator_int_or (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 
 static bool operator_int_neg (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-    RETURN_VALUE(VALUE_FROM_INT(-GET_VALUE(0).n), rindex);
+    // negating GRAVITY_INT_MIN overflows just like the binary operators above
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_NEG(GET_VALUE(0).n)), rindex);
 }
 
 static bool operator_int_not (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {

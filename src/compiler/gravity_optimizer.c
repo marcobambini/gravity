@@ -8,6 +8,7 @@
 
 // Some optimizations taken from: http://www.compileroptimizations.com/
 
+#include <math.h>
 #include "gravity_hash.h"
 #include "gravity_optimizer.h"
 #include "gravity_opcodes.h"
@@ -308,19 +309,22 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
 
     // perform operation
     switch (inst->op) {
+        // the Int cases must wrap exactly like the runtime operators do (see operator_int_add,
+        // operator_int_sub and operator_int_mul), otherwise folding an expression at compile time
+        // would give a different result than evaluating it at runtime
         case ADD:
             if (type == DOUBLE_TAG) d = d1 + d2;
-            else n = n1 + n2;
+            else n = GRAVITY_INT_ADD(n1, n2);
             break;
 
         case SUB:
             if (type == DOUBLE_TAG) d = d1 - d2;
-            else n = n1 - n2;
+            else n = GRAVITY_INT_SUB(n1, n2);
             break;
 
         case MUL:
             if (type == DOUBLE_TAG) d = d1 * d2;
-            else n = n1 * n2;
+            else n = GRAVITY_INT_MUL(n1, n2);
             break;
 
         case DIV:
@@ -330,17 +334,25 @@ static bool optimize_const_instruction (inst_t *inst, inst_t *inst1, inst_t *ins
                 d = d1 / d2;
             } else {
                 if (n2 == 0) return false;
-                n = n1 / n2;
+                n = GRAVITY_INT_DIV(n1, n2);
             }
             break;
 
         case REM:
             if (type == DOUBLE_TAG) {
+                // REM is dispatched on the class of the left operand, so a mixed
+                // Int/Float expression runs operator_int_rem and does not follow
+                // float semantics at all: leave those to the runtime
+                if (inst1->tag != inst2->tag) return false;
                 if (d2 == 0.0) return false;
-                d = (double)((int64_t)d1 % (int64_t)d2);
+                // must match operator_float_rem, which computes an IEEE remainder.
+                // truncating both operands to int64 instead divided by zero for any
+                // 0 < |d2| < 1, and disagreed with the runtime on every operand with
+                // a fractional part: 2.5 % 2.0 folded to 0 but evaluated to 0.5
+                d = remainder(d1, d2);
             } else {
                 if (n2 == 0) return false;
-                n = n1 % n2;
+                n = GRAVITY_INT_REM(n1, n2);
             }
             break;
 

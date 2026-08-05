@@ -184,6 +184,27 @@ typedef int32_t                             gravity_int_t;
 #define GRAVITY_INT_MIN                     (-GRAVITY_INT_MAX-1)
 #endif
 
+// Int arithmetic wraps around on overflow, which is what the runtime operators and the constant
+// folder in gravity_optimizer.c have always produced. Signed overflow is undefined behaviour in C
+// though, so the wrap has to be done on the unsigned counterpart and converted back: the value is
+// unchanged, it is just no longer undefined. Builds compiled with -fsanitize=undefined used to
+// trap on a plain `a + b` here.
+// Both operands are widened to 64bit so a single definition serves either configuration: with
+// GRAVITY_ENABLE_INT64 the unsigned math wraps at 64bit, without it the 32bit operands cannot
+// overflow the intermediate and the assignment back to gravity_int_t truncates as before.
+// Keep these in sync with the folded results in optimize_const_instruction().
+#define GRAVITY_INT_ADD(a,b)                ((int64_t)((uint64_t)(a) + (uint64_t)(b)))
+#define GRAVITY_INT_SUB(a,b)                ((int64_t)((uint64_t)(a) - (uint64_t)(b)))
+#define GRAVITY_INT_MUL(a,b)                ((int64_t)((uint64_t)(a) * (uint64_t)(b)))
+#define GRAVITY_INT_NEG(a)                  ((int64_t)(0 - (uint64_t)(a)))
+
+// GRAVITY_INT_MIN/-1 overflows too, and on x86 it does not just wrap: the idiv instruction
+// faults and the process dies with SIGFPE. These mirror the results operator_int_div and
+// operator_int_rem already return for those operands, so the VM fast path and the method
+// dispatch path agree. Both arguments are evaluated more than once, so pass plain lvalues.
+#define GRAVITY_INT_DIV(a,b)                ((((a) == GRAVITY_INT_MIN) && ((b) == -1)) ? GRAVITY_INT_MIN : (a) / (b))
+#define GRAVITY_INT_REM(a,b)                ((((a) == GRAVITY_INT_MIN) && ((b) == -1)) ? 0 : (a) % (b))
+
 // Forward references (an object ptr is just its isa pointer)
 typedef struct gravity_class_s              gravity_class_t;
 typedef struct gravity_class_s              gravity_object_t;
