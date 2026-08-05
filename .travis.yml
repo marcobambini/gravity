@@ -8,4 +8,5 @@ compiler:
 script:
   - make
   - test/unittest/run_all.sh
+  - ./gravity -t test/unittest
   - test/loadbuffer/run_all.sh
