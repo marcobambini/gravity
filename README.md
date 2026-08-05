@@ -78,6 +78,7 @@ func main() {
 make                    # Build the gravity CLI executable
 make mode=debug         # Debug build with symbols
 make lib                # Build shared library (libgravity.dylib/so/dll)
+make staticlib          # Build static library (libgravity.a)
 make example            # Build the C embedding API example
 make clean              # Clean all build artifacts
 ```

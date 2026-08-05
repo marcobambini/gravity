@@ -12,6 +12,7 @@ Gravity is a dynamically typed, embeddable programming language written in porta
 make                    # Build the gravity CLI executable
 make mode=debug         # Debug build (-g -O0 -DDEBUG)
 make lib                # Build shared library (libgravity.dylib/so/dll)
+make staticlib          # Build static library (libgravity.a)
 make example            # Build the C API example
 make clean              # Clean all build artifacts
 ```

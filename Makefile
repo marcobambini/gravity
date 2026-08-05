@@ -22,6 +22,9 @@ EXAMPLE_OBJ = $(EXAMPLE_SRC:.c=.o)
 JSONTEST_OBJ = $(JSONTEST_SRC:.c=.o)
 DEP = $(OBJ:.o=.d) $(GRAVITY_OBJ:.o=.d) $(EXAMPLE_OBJ:.o=.d) $(JSONTEST_OBJ:.o=.d)
 	
+# the static library has the same name everywhere, only the shared one is platform specific
+SLIBTARGET = libgravity.a
+
 ifeq ($(OS),Windows_NT)
 	# Windows
 	LIBTARGET = gravity.dll
@@ -78,9 +81,13 @@ jsontest: $(OBJ) $(JSONTEST_OBJ)
 lib: $(OBJ)
 	$(CC) -shared -o $(LIBTARGET) $(OBJ) $(LDFLAGS)
 
-clean:
-	rm -f $(OBJ) $(GRAVITY_OBJ) $(EXAMPLE_OBJ) $(JSONTEST_OBJ) $(DEP) gravity example jsontest libgravity.dylib libgravity.so gravity.dll
+# static counterpart of lib: same objects, so the CLI entry point is left out here too
+staticlib: $(OBJ)
+	$(AR) rcs $(SLIBTARGET) $(OBJ)
 
-.PHONY: all clean lib
+clean:
+	rm -f $(OBJ) $(GRAVITY_OBJ) $(EXAMPLE_OBJ) $(JSONTEST_OBJ) $(DEP) gravity example jsontest libgravity.dylib libgravity.so $(SLIBTARGET) gravity.dll
+
+.PHONY: all clean lib staticlib
 
 -include $(DEP)
