@@ -680,7 +680,9 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
     int64_t        n = 0;
     double        d = 0;
 
-    if (value[0] == '0') {
+    // token.value points directly into the source buffer, which is not guaranteed to be
+    // zero terminated, so make sure the token is at least 2 bytes before peeking at value[1]
+    if ((token.bytes > 1) && (value[0] == '0')) {
         int c = toupper(value[1]);
         if (c == 'B') {type = decode_number_binary(token, &n); goto report_node;}
         else if (c == 'O') {type = decode_number_octal(token, &n); goto report_node;}
