@@ -1,0 +1,42 @@
+#unittest {
+	name: "List store-at grows correctly from several starting capacities.";
+	result: true;
+};
+
+// list_storeat grows the backing array when the index is past the end, and how
+// much spare capacity it has to work with depends on how the list was built.
+// Exercise the grow path from starting points that differ in that respect.
+// The out of memory branch of the same function cannot be reached from a script:
+// it is covered by test/fuzzy under the allocation cap the sanitizer CI job sets.
+func check (list, index) {
+    list[index] = 42;
+
+    if (list.count != index + 1) return false;
+    if (list[index] != 42) return false;
+    // everything the resize skipped over has to read back as null
+    if (list[index - 1] != null) return false;
+
+    return true;
+}
+
+func main() {
+    // List(n) allocates exactly n, so the array is full before the store
+    if (!check(List(8), 9)) return false;
+    if (!check(List(8), 200)) return false;
+
+    // a literal list, then one grown by repeated pushes
+    if (!check([0, 1, 2], 10)) return false;
+
+    var pushed = [];
+    for (var i in 0..<40) pushed.push(i);
+    if (!check(pushed, 500)) return false;
+
+    // growing the same list repeatedly must keep it consistent
+    var repeated = [];
+    for (var i in 1...20) {
+        repeated[i * 7] = 42;
+        if (repeated.count != i * 7 + 1) return false;
+    }
+
+    return true;
+}

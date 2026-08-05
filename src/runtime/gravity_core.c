@@ -1024,9 +1024,17 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     if ((uint32_t)index >= count) {
         // handle list resizing here
         marray_resize(gravity_value_t, list->array, index-count+MIN_LIST_RESIZE);
-        if (!list->array.p) RETURN_ERROR("Not enough memory to resize List.");
+        // marray_resize leaves both p and m untouched when the realloc fails, so p is still
+        // the old, smaller (and non NULL) buffer: checking it for NULL does not detect the
+        // failure, and the writes below would then run past the end of that allocation.
+        // Check the capacity actually obtained instead
+        if (marray_max(list->array) <= (size_t)index) RETURN_ERROR("Not enough memory to resize List.");
         marray_nset(list->array, index+1);
-        for (int32_t i=count; i<=(index+MIN_LIST_RESIZE); ++i) {
+        // fill the gap left by the resize. The bound is the capacity actually obtained
+        // rather than index+MIN_LIST_RESIZE: the two agree only as long as the array had
+        // spare capacity before the resize, which holds for every list the runtime builds
+        // today but is not something this loop should have to depend on
+        for (size_t i=count; i<marray_max(list->array); ++i) {
             marray_set(list->array, i, VALUE_FROM_NULL);
         }
         // value is set unconditionally below

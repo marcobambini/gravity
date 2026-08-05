@@ -39,10 +39,17 @@ jobs:
     env:
       # CC is used to both compile and link, so the sanitizer flags belong here
       SAN_CC: "clang -fsanitize=address,undefined"
-      UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1"
+      UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1:abort_on_error=1"
       # this job is about out of bounds and undefined behaviour: leak detection is
-      # left off so that a leak somewhere else cannot mask a memory safety report
-      ASAN_OPTIONS: "detect_leaks=0"
+      # left off so that a leak somewhere else cannot mask a memory safety report.
+      # abort_on_error makes a finding arrive as SIGABRT on every platform, instead of
+      # the plain exit code 1 the runtime defaults to on Linux, which is indistinguishable
+      # from an input the interpreter simply rejected.
+      # Some inputs in test/fuzzy ask for a list index in the 10^9 range, which is a
+      # single allocation of several GB and enough to push the runner into the OOM
+      # killer: cap one allocation and let it fail, which the interpreter reports as a
+      # normal runtime error. Without the cap this job dies with exit code 143
+      ASAN_OPTIONS: "detect_leaks=0:abort_on_error=1:allocator_may_return_null=1:max_allocation_size_mb=1024"
 
     steps:
       - uses: actions/checkout@v4
@@ -78,10 +85,16 @@ jobs:
           for test in $(find test/fuzzy -name '*.gravity'); do
             # || keeps the failure out of set -e, which the default shell enables
             res=0
-            timeout 60 ./gravity "$test" > /dev/null 2>&1 || res=$?
-            # a fuzzed input is allowed to be rejected, but never to crash
+            out=$(timeout 60 ./gravity "$test" 2>&1) || res=$?
+            # a fuzzed input is allowed to be rejected, and to run out of memory, but
+            # never to crash and never to trip a sanitizer
             if [[ $res -ge 128 ]]; then
               echo "Fail! $test killed by signal $(($res-128))"
+              echo "$out" | head -40
+              status=1
+            elif grep -qE 'ERROR: (Address|Undefined|Leak)Sanitizer|runtime error:' <<< "$out"; then
+              echo "Fail! $test tripped a sanitizer"
+              echo "$out" | head -40
               status=1
             fi
           done
