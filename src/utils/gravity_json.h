@@ -96,6 +96,10 @@ void        json_set_option (json_t *json, json_opt_mask option_value);
    #endif
 #endif
 
+#ifndef JSON_INT_MAX
+   #define JSON_INT_MAX INT64_MAX
+#endif
+
 #include <stdlib.h>
 
 #ifdef __cplusplus

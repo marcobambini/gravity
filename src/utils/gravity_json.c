@@ -423,6 +423,11 @@ static unsigned char hex_value (json_char c)
    }
 }
 
+static int would_overflow (json_int_t value, json_char b)
+{
+   return ((JSON_INT_MAX - (b - '0')) / 10 ) < value;
+}
+
 typedef struct
 {
    unsigned long used_memory;
@@ -583,7 +588,8 @@ static const long
    flag_num_e_got_sign   = 1 << 11,
    flag_num_e_negative   = 1 << 12,
    flag_line_comment     = 1 << 13,
-   flag_block_comment    = 1 << 14;
+   flag_block_comment    = 1 << 14,
+   flag_num_got_decimal  = 1 << 15;
 
 json_value * json_parse_ex (json_settings * settings,
                             const json_char * json,
@@ -596,7 +602,7 @@ json_value * json_parse_ex (json_settings * settings,
    json_state state = EMPTY_STATE_STRUCT;
    long flags;
    long num_digits = 0, num_e = 0;
-   json_int_t num_fraction = 0;
+   double num_fraction = 0;
 
    /* Skip UTF-8 BOM
     */
@@ -1123,11 +1129,25 @@ json_value * json_parse_ex (json_settings * settings,
                         continue;
                      }
 
+                     if (would_overflow (top->u.integer, b))
+                     {
+                        json_int_t integer = top->u.integer;
+                        -- num_digits;
+                        -- state.ptr;
+                        top->type = json_double;
+                        top->u.dbl = (double)integer;
+                        continue;
+                     }
+
                      top->u.integer = (top->u.integer * 10) + (b - '0');
                      continue;
                   }
 
-                  num_fraction = (num_fraction * 10) + (b - '0');
+                  if (flags & flag_num_got_decimal)
+                     num_fraction = (num_fraction * 10) + (b - '0');
+                  else
+                     top->u.dbl = (top->u.dbl * 10) + (b - '0');
+
                   continue;
                }
 
@@ -1153,6 +1173,7 @@ json_value * json_parse_ex (json_settings * settings,
                   top->type = json_double;
                   top->u.dbl = (double) top->u.integer;
 
+                  flags |= flag_num_got_decimal;
                   num_digits = 0;
                   continue;
                }
@@ -1166,7 +1187,7 @@ json_value * json_parse_ex (json_settings * settings,
                         goto e_failed;
                      }
 
-                     top->u.dbl += ((double) num_fraction) / (pow (10.0, (double) num_digits));
+                     top->u.dbl += num_fraction / (pow (10.0, (double) num_digits));
                   }
 
                   if (b == 'e' || b == 'E')

@@ -1,0 +1,31 @@
+#unittest {
+	name: "JSON.parse with integers too large for int64.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// A digit run that does not fit in a signed 64-bit integer must not
+	// overflow while being accumulated. The value degrades to a float,
+	// the same way it already does when a '.' or an exponent is seen.
+	var big = JSON.parse('{"v":2222222222222222222222222}');
+	if (big["v"] < 2.0e24) return false;
+	if (big["v"] > 2.3e24) return false;
+
+	// One digit past INT64_MAX (9223372036854775807).
+	var over = JSON.parse('{"v":92233720368547758070}');
+	if (over["v"] < 9.2e19) return false;
+
+	// Negative values overflow through the same accumulator.
+	var neg = JSON.parse('{"v":-2222222222222222222222222}');
+	if (neg["v"] > -2.0e24) return false;
+
+	// Values that still fit must keep their exact integer value.
+	var exact = JSON.parse('{"v":9223372036854775807}');
+	if (exact["v"] != 9223372036854775807) return false;
+
+	var small = JSON.parse('{"v":42}');
+	if (small["v"] != 42) return false;
+
+	return true;
+}
