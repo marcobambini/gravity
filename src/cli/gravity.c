@@ -270,7 +270,7 @@ static void print_help (void) {
     printf("  --version          show version information and exit\n");
     printf("  --help             show command line usage and exit\n");
     printf("  -c input_file      compile input_file\n");
-    printf("  -o output_file     specify output file name (default to gravity.json)\n");
+    printf("  -o output_file     specify output file name (default to %s)\n", DEFAULT_OUTPUT);
     printf("  -x input_file      execute input_file (JSON format expected)\n");
     printf("  -i source_code     compile and execute source_code string\n");
     printf("  -q                 don't print result and execution time\n");

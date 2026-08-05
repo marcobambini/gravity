@@ -287,6 +287,10 @@ paket-files/
 *.hex
 gravity
 jsontest
+example
+
+# Default output of gravity -c
+gravity.g
 
 # Debug files
 *.dSYM/

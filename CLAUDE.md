@@ -24,8 +24,8 @@ Compiler flags: `-std=gnu99 -fgnu89-inline -fPIC -DBUILD_GRAVITY_API`
 ./gravity -t test/unittest              # Run all unit tests
 ./test/unittest/run_all.sh              # Run all tests via shell script (with timeouts)
 ./gravity test/unittest/somefile.gravity # Run a single test file
-./gravity -c test.gravity               # Compile only (produces gravity.json)
-./gravity -x gravity.json               # Execute compiled bytecode
+./gravity -c test.gravity               # Compile only (produces gravity.g)
+./gravity -x gravity.g                  # Execute compiled bytecode
 ./gravity -i 'print("hello")'           # Inline execution
 ```
 
