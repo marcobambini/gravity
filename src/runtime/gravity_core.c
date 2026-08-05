@@ -68,6 +68,7 @@
 
 static bool core_inited = false;        // initialize global classes just once
 static uint32_t refcount = 0;           // protect deallocation of global classes
+static uint32_t opt_refcount = 0;       // outstanding gravity_opt_register calls (not yet balanced by a gravity_opt_free)
 
 // boxed
 gravity_class_t *gravity_class_int;
@@ -3650,7 +3651,15 @@ void gravity_core_free (void) {
 
     // free optionals after refcount check — avoids double-free when mini-VM
     // in gravity_compiler_reset() has already freed GC objects via internal_vm_cleanup
-    gravity_opt_free();
+    // each optional class keeps its own refcount, incremented once per gravity_opt_register
+    // (so once per gravity_core_register), but this point is reached only on the very last
+    // teardown: balance every outstanding registration here, otherwise the optional classes
+    // would survive with a non-zero refcount and never be released (they are not owned by
+    // any VM garbage collector, so nothing else can free them)
+    while (opt_refcount) {
+        gravity_opt_free();
+        --opt_refcount;
+    }
 
     // this function should never be called
     // it is just called when we need to internally check for memory leaks
@@ -3755,6 +3764,7 @@ const char **gravity_core_identifiers (void) {
 void gravity_core_register (gravity_vm *vm) {
     gravity_core_init();
     gravity_opt_register(vm);
+    ++opt_refcount;
     ++refcount;
     if (!vm) return;
 
