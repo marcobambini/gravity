@@ -903,7 +903,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DECODE_BINARY_OPERATION(r1, r2, r3);
 
                 // check fast math operation first (only in case of int and float)
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, +, NO_CHECK);
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, +, GRAVITY_INT_ADD, NO_CHECK);
 
                 // fast math operation cannot be performed so let's try with a regular call
                 // prepare function call for binary operation
@@ -922,7 +922,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DECODE_BINARY_OPERATION(r1, r2, r3);
 
                 // check fast math operation first (only in case of int and float)
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, -, NO_CHECK);
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, -, GRAVITY_INT_SUB, NO_CHECK);
 
                 // prepare function call for binary operation
                 PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_SUB_INDEX, rwin);
@@ -951,7 +951,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					#pragma warning (push)
 					#pragma warning (disable: 4723)
                 #endif
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, /, CHECK_ZERO(v3));
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, /, GRAVITY_INT_DIV, CHECK_ZERO(v3));
                 #if defined(__clang__)
                     #pragma clang diagnostic pop
                 #elif defined(__GNUC__)
@@ -976,7 +976,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DECODE_BINARY_OPERATION(r1, r2, r3);
 
                 // check fast math operation first (only in case of int and float)
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, *, NO_CHECK);
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, *, GRAVITY_INT_MUL, NO_CHECK);
 
                 // prepare function call for binary operation
                 PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_MUL_INDEX, rwin);
@@ -1050,7 +1050,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 #pragma unused(r3)
 
                 // check fast bool operation first (only if it is int or float)
-                CHECK_FAST_UNARY_MATH(r1, r2, v2, -);
+                CHECK_FAST_UNARY_MATH(r1, r2, v2, -, GRAVITY_INT_NEG);
 
                 // prepare function call for binary operation
                 PREPARE_FUNC_CALL1(closure, v2, GRAVITY_NEG_INDEX, rwin);

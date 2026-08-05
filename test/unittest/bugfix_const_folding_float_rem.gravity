@@ -1,0 +1,30 @@
+#unittest {
+	name: "Float constant folding agrees with the runtime remainder operator.";
+	result: true;
+};
+
+// every expression below is folded by the optimizer at compile time, so it is
+// compared against the same operation evaluated at runtime through rem()
+func rem(a, b) {
+    return a % b;
+}
+
+func main() {
+    // 0 < |divisor| < 1 truncated to an integer 0 and divided by zero, which is
+    // a SIGFPE where integer division by zero traps
+    if (1.0 % 0.5 != rem(1.0, 0.5)) return false;
+    if (7.5 % 0.25 != rem(7.5, 0.25)) return false;
+
+    // any operand with a fractional part folded to a different value than the
+    // one the runtime computes
+    if (2.5 % 2.0 != rem(2.5, 2.0)) return false;
+    if (9.75 % 4.5 != rem(9.75, 4.5)) return false;
+    if (-7.5 % 2.0 != rem(-7.5, 2.0)) return false;
+
+    // REM is dispatched on the class of the left operand, so these keep following
+    // integer semantics even though the right operand is a float
+    if (5 % 1.5 != rem(5, 1.5)) return false;
+    if (17 % 5 != rem(17, 5)) return false;
+
+    return true;
+}
