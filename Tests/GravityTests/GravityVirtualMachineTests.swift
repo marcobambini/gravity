@@ -42,7 +42,26 @@ struct GravityVirtualMachineTests {
         #expect(delegate.errors.isEmpty)
         #expect(result.toInteger == 42)
     }
+
+    @Test("Releases bridged Swift instances during VM teardown")
+    func releasesBridgedInstancesDuringTeardown() throws {
+        let delegate = TestVirtualMachineDelegate()
+        weak var releasedObject: TeardownProbe?
+
+        do {
+            let virtualMachine = GravityVirtualMachine(settings: .init(), delegate: delegate)
+            try virtualMachine.bindClass(with: TeardownProbe.self)
+            let object = TeardownProbe()
+            releasedObject = object
+            virtualMachine.setValue(object, forKey: "probe")
+        }
+
+        #expect(releasedObject == nil)
+    }
 }
+
+@GSExportable
+private final class TeardownProbe {}
 
 private final class TestVirtualMachineDelegate: GravityVirtualMachineDelegate {
     private(set) var errors: [String] = []

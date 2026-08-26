@@ -39,7 +39,16 @@ func errorCallback(
 }
 
 func bridgeFree(_ vmPointer: OpaquePointer?, objptr: UnsafeMutablePointer<gravity_object_t>?) {
-    guard let vm = GravityVirtualMachine.getVM(vmPointer!) else { fatalError("Cannot found Virtual Machine") }
+    guard let vmPointer, let objptr else {
+        return
+    }
+    guard let vm = GravityVirtualMachine.getVM(vmPointer) else {
+        let value = gravity_value_from_object(objptr)
+        if let xData = gravity_value_xdata(value) {
+            Unmanaged<AnyObject>.fromOpaque(xData).release()
+        }
+        return
+    }
     let value = GSValue(object: objptr, in: vm)
 
     if let delegate = vm.delegate as? GravityMemoryControlVMDelegate {
