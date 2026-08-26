@@ -31,7 +31,7 @@
 #define OPCODE_GET_ONE26bit(op, n)                      n = (op & 0x3FFFFFF)
 #define OPCODE_GET_ONE8bit_ONE10bit(op,r1,r3)           r1 = (op >> 18) & 0xFF; r3 = (op & 0x3FF)
 #define OPCODE_GET_THREE8bit(op,r1,r2,r3)               OPCODE_GET_TWO8bit_ONE10bit(op,r1,r2,r3)
-#define OPCODE_GET_FOUR8bit(op,r1,r2,r3,r4)             r1 = (op >> 24) & 0xFF; r2 = (op >> 16) & 0xFF; r3 = (op >> 8) & 0xFF; r4 = (op & 0xFF)
+#define OPCODE_GET_FOUR8bit(op,r1,r2,r3,r4)             r1 = (op >> 18) & 0xFF; r2 = (op >> 10) & 0xFF; r3 = (op >> 2) & 0xFF; r4 = (op & 0x03)
 #define OPCODE_GET_THREE8bit_ONE2bit(op,r1,r2,r3,r4)    r1 = (op >> 18) & 0xFF; r2 = (op >> 10) & 0xFF; r3 = (op >> 2) & 0xFF; r4 = (op & 0x03)
 
 #define GRAVITY_VM_DEBUG                0               // print each VM instruction
@@ -184,6 +184,10 @@
 
 // FAST MATH MACROS
 #define FMATH_BIN_INT(_r1,_v2,_v3,_OP)              do {SETVALUE(_r1, VALUE_FROM_INT(_v2 _OP _v3)); DISPATCH_INNER();} while(0)
+// Int math overflows are undefined behaviour, so the operation goes through the GRAVITY_INT_*
+// helpers (see gravity_value.h) instead of applying the operator directly. The helper form is
+// only needed for the Int path: the Float one keeps using the plain operator
+#define FMATH_BIN_INT_OP(_r1,_v2,_v3,_INTOP)        do {SETVALUE(_r1, VALUE_FROM_INT(_INTOP(_v2, _v3))); DISPATCH_INNER();} while(0)
 #define FMATH_BIN_FLOAT(_r1,_v2,_v3,_OP)            do {SETVALUE(_r1, VALUE_FROM_FLOAT(_v2 _OP _v3)); DISPATCH_INNER();} while(0)
 #define FMATH_BIN_BOOL(_r1,_v2,_v3,_OP)             do {SETVALUE(_r1, VALUE_FROM_BOOL(_v2 _OP _v3)); DISPATCH_INNER();} while(0)
 
@@ -202,14 +206,14 @@
                                                     if (VALUE_ISA_BOOL(v2)) {SETVALUE(r1, VALUE_FROM_BOOL(OP v2.n)); DISPATCH();}
 
 // fast math only for INT and FLOAT
-#define CHECK_FAST_BINARY_MATH(r1,r2,r3,v2,v3,OP,_CHECK)                                                                                                        \
+#define CHECK_FAST_BINARY_MATH(r1,r2,r3,v2,v3,OP,_INTOP,_CHECK)                                                                                                 \
                                                     DEFINE_STACK_VARIABLE(v2,r2);                                                                               \
                                                     DEFINE_STACK_VARIABLE(v3,r3);                                                                               \
                                                     _CHECK;                                                                                                     \
                                                     if (VALUE_ISA_INT(v2)) {                                                                                    \
-                                                        if (VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, OP);                                               \
+                                                        if (VALUE_ISA_INT(v3)) FMATH_BIN_INT_OP(r1, v2.n, v3.n, _INTOP);                                        \
                                                         if (VALUE_ISA_FLOAT(v3)) FMATH_BIN_FLOAT(r1, v2.n, v3.f, OP);                                           \
-                                                        if (VALUE_ISA_NULL(v3)) FMATH_BIN_INT(r1, v2.n, 0, OP);                                                 \
+                                                        if (VALUE_ISA_NULL(v3)) FMATH_BIN_INT_OP(r1, v2.n, 0, _INTOP);                                          \
                                                         if (VALUE_ISA_STRING(v3)) RUNTIME_ERROR("Right operand must be a number (use the number() method).");   \
                                                     } else if (VALUE_ISA_FLOAT(v2)) {                                                                           \
                                                         if (VALUE_ISA_FLOAT(v3)) FMATH_BIN_FLOAT(r1, v2.f, v3.f, OP);                                           \
@@ -218,15 +222,15 @@
                                                         if (VALUE_ISA_STRING(v3)) RUNTIME_ERROR("Right operand must be a number (use the number() method).");   \
                                                     }
 
-#define CHECK_FAST_UNARY_MATH(r1,r2,v2,OP)          DEFINE_STACK_VARIABLE(v2,r2);                                                   \
-                                                    if (VALUE_ISA_INT(v2)) {SETVALUE(r1, VALUE_FROM_INT(OP v2.n)); DISPATCH();}     \
+#define CHECK_FAST_UNARY_MATH(r1,r2,v2,OP,_INTOP)   DEFINE_STACK_VARIABLE(v2,r2);                                                       \
+                                                    if (VALUE_ISA_INT(v2)) {SETVALUE(r1, VALUE_FROM_INT(_INTOP(v2.n))); DISPATCH();}    \
                                                     if (VALUE_ISA_FLOAT(v2)) {SETVALUE(r1, VALUE_FROM_FLOAT(OP v2.f)); DISPATCH();}
 
 
 #define CHECK_FAST_BINARY_REM(r1,r2,r3,v2,v3)       DEFINE_STACK_VARIABLE(v2,r2);                                                               \
                                                     DEFINE_STACK_VARIABLE(v3,r3);                                                               \
                                                     CHECK_ZERO(v3);                                                                             \
-                                                    if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT(r1, v2.n, v3.n, %)
+                                                    if (VALUE_ISA_INT(v2) && VALUE_ISA_INT(v3)) FMATH_BIN_INT_OP(r1, v2.n, v3.n, GRAVITY_INT_REM)
 
 #define CHECK_FAST_BINARY_BIT(r1,r2,r3,v2,v3,OP)    DEFINE_STACK_VARIABLE(v2,r2);                                                               \
                                                     DEFINE_STACK_VARIABLE(v3,r3);                                                               \
@@ -242,7 +246,7 @@
                                                     uint32_t _w = FN_COUNTREG(func, frame->nargs); \
                                                     uint32_t _rneed = FN_COUNTREG(_c->f, _N);      \
 													uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + _w + _rneed - fiber->stacktop, 0); \
-                                                    if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) return false;              \
+                                                    if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) RUNTIME_ERROR("Out of memory: fiber stack could not be grown."); \
                                                     if (vm->aborted) return false
 
 #define PREPARE_FUNC_CALL1(_c,_v1,_i,_w)            PREPARE_FUNC_CALLN(_c,_i,_w,1);         \

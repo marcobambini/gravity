@@ -1,0 +1,33 @@
+#unittest {
+	name: "Range creation and iteration.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Basic range
+	var sum = 0;
+	for (var i in 1...5) {
+		sum += i;
+	}
+	var r1 = (sum == 15);  // 1+2+3+4+5
+
+	// Range count
+	var r = 1...10;
+	var r2 = (r.count == 10);
+
+	// Range contains
+	var r3 = r.contains(5);
+	var r4 = !r.contains(11);
+
+	// Negative step not needed, just test range bounds
+	var first = 0;
+	var count2 = 0;
+	for (var i in 1...3) {
+		if (count2 == 0) first = i;
+		count2 += 1;
+	}
+	var r5 = (first == 1 && count2 == 3);
+
+	return r1 and r2 and r3 and r4 and r5;
+}

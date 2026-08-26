@@ -1,0 +1,36 @@
+#unittest {
+	name: "JSON.stringify escapes special characters.";
+	result: true;
+};
+
+func main() {
+    // basic string
+    var r1 = JSON.stringify("hello");
+    if (r1 != "\"hello\"") return false;
+
+    // string with embedded quote: must be escaped as \"
+    var r2 = JSON.stringify("say \"hi\"");
+    if (r2 != "\"say \\\"hi\\\"\"") return false;
+
+    // string with backslash: must be escaped as \\
+    var r3 = JSON.stringify("a\\b");
+    if (r3 != "\"a\\\\b\"") return false;
+
+    // string with newline: must be escaped as \n
+    var r4 = JSON.stringify("line1\nline2");
+    if (r4 != "\"line1\\nline2\"") return false;
+
+    // string with tab: must be escaped as \t
+    var r5 = JSON.stringify("col1\tcol2");
+    if (r5 != "\"col1\\tcol2\"") return false;
+
+    // no special chars
+    var r6 = JSON.stringify("plain");
+    if (r6 != "\"plain\"") return false;
+
+    // empty string
+    var r7 = JSON.stringify("");
+    if (r7 != "\"\"") return false;
+
+    return true;
+}

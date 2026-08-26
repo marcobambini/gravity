@@ -53,6 +53,11 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ],
             path: "binding/GravitySwiftMacros"
+        ),
+        .testTarget(
+            name: "GravityTests",
+            dependencies: ["Gravity"],
+            path: "Tests/GravityTests"
         )
     ],
     cLanguageStandard: .gnu99,

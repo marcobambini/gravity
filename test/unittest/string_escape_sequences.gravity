@@ -1,0 +1,33 @@
+#unittest {
+	name: "String escape sequences.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Basic escapes
+	var s1 = "hello\tworld";
+	var r1 = s1.length == 11;
+
+	// Newline
+	var s2 = "line1\nline2";
+	var r2 = s2.length == 11;
+
+	// Hex escape
+	var s3 = "\x41\x42\x43";
+	var r3 = (s3 == "ABC");
+
+	// Unicode escape (2-byte UTF-8)
+	var s4 = "\u00E9";  // e with accent
+	var r4 = s4.bytes == 2;
+
+	// Multiple escapes in sequence
+	var s5 = "\t\n\r";
+	var r5 = s5.length == 3;
+
+	// Escaped backslash
+	var s6 = "a\\b";
+	var r6 = s6.length == 3;
+
+	return r1 and r2 and r3 and r4 and r5 and r6;
+}

@@ -1,0 +1,25 @@
+#unittest {
+	name: "Fiber stack grows correctly when $moduleinit register window exceeds stackalloc (issue #437).";
+	result: true;
+};
+
+// Regression test for issue #437: heap-buffer-overflow in gravity_vm_exec.
+//
+// The many empty-string literals below force $moduleinit's ntemp to ~255 because
+// the compiler allocates a fresh temp register for each one without reuse, giving
+// FN_COUNTREG($moduleinit, 0) = 255.  gravity_fiber_reassign() then bumps fiber->stacktop
+// by 255 (for $moduleinit) and later by ~6 (for main), totalling 261 > DEFAULT_MINSTACK_SIZE
+// (256).  Before the fix the buffer was never grown, so recursive calls advanced the frame's
+// stackstart until writes landed past fiber->stack[255], corrupting the heap.
+// The fix makes gravity_fiber_reassign() realloc the stack whenever stack_used > stackalloc.
+
+func countdown(n) {
+    if (n <= 0) return true;
+    return countdown(n - 1);
+}
+
+func main() {
+    return countdown(100);
+}
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''

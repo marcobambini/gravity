@@ -1,0 +1,13 @@
+#unittest {
+	name: "Reverse range loop iteration.";
+	result: 55;
+};
+
+func main() {
+    var sum = 0;
+    var r = Range(10, 1);
+    r.loop(func(i) {
+        sum += i;
+    });
+    return sum;
+}

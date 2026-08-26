@@ -1,0 +1,32 @@
+#unittest {
+	name: "Constant folding produces correct results.";
+	result: true;
+};
+
+func main() {
+    // these constant expressions should be folded by the optimizer
+    var a = 10 + 20;
+    if (a != 30) return false;
+
+    var b = 100 - 25;
+    if (b != 75) return false;
+
+    var c = 6 * 7;
+    if (c != 42) return false;
+
+    var d = 100 / 4;
+    if (d != 25) return false;
+
+    // mixed int/float
+    var e = 10 + 2.5;
+    if (e != 12.5) return false;
+
+    var f = 3.0 * 4.0;
+    if (f != 12.0) return false;
+
+    // nested constant expressions
+    var g = 2 + 3 + 4;
+    if (g != 9) return false;
+
+    return true;
+}

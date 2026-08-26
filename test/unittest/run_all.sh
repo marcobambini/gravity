@@ -10,6 +10,32 @@ set -u -o pipefail
 
 readonly SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 readonly GRAVITY_BIN=$SCRIPT_DIR/../../gravity
+
+# Resolve a portable timeout implementation.
+# Preference order: timeout (Linux/GNU coreutils) → gtimeout (macOS + brew
+# install coreutils) → pure-bash fallback using a background kill watcher.
+if command -v timeout &>/dev/null; then
+    run_timeout() { timeout "$@"; }
+elif command -v gtimeout &>/dev/null; then
+    run_timeout() { gtimeout "$@"; }
+else
+    run_timeout() {
+        local t=$1; shift
+        "$@" &
+        local pid=$!
+        ( sleep "$t" && kill "$pid" 2>/dev/null ) &
+        local watcher=$!
+        wait "$pid" 2>/dev/null
+        local rc=$?
+        kill "$watcher" 2>/dev/null
+        wait "$watcher" 2>/dev/null
+        # If the process was killed by our watcher (SIGTERM = 143) mimic the
+        # standard timeout exit code of 124 so the caller can detect timeouts.
+        [[ $rc -eq 143 ]] && return 124
+        return $rc
+    }
+fi
+
 files=$(find $SCRIPT_DIR -iname "*.gravity" | grep -v disabled)
 tests_total=$(echo "$files" | wc -l)
 tests_success=0
@@ -24,7 +50,7 @@ for test in $files; do
     if [[ "$test" =~ "mem" || "$test" =~ "recursion" ]]; then
         timeout=10
     fi
-    timeout $timeout "$GRAVITY_BIN" "$test"
+    run_timeout $timeout "$GRAVITY_BIN" "$test"
     res=$?
     if [[ $res -eq 0 ]]; then
         tests_success=$(($tests_success+1))

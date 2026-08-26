@@ -60,7 +60,18 @@ typedef struct codegen_t codegen_t;
 #define CODEGEN_ASSERT_REGISTERS(_n1,_n2,_v)
 #endif
 
+#define VISIT_MOVE_OPT(e)  do {                                                                     \
+    ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1, LINE_NUMBER(node));                            \
+    visit(e);                                                                                       \
+    ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0, LINE_NUMBER(node));                            \
+} while(0)
+
 // MARK: -
+// the format attribute lets the compiler type check the variadic arguments, which it
+// cannot do on its own for a function that just forwards them to vsnprintf
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 3, 4)))
+#endif
 static void report_error (gvisitor_t *self, gnode_t *node, const char *format, ...) {
     codegen_t *current = (codegen_t *)self->data;
     
@@ -77,6 +88,7 @@ static void report_error (gvisitor_t *self, gnode_t *node, const char *format, .
 
     // build error message
     char buffer[1024];
+    buffer[0] = 0;
     va_list arg;
     if (format) {
         va_start (arg, format);
@@ -515,6 +527,12 @@ static void visit_flow_ternary_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) 
     DEBUG_CODEGEN("visit_flow_ternary_stmt");
     DECLARE_CODE();
 
+    // Both branches must produce their result in the same register slot.
+    // This works because: after popping the condition register, the allocator
+    // is at state S. The true branch visits+pops (returning to S), then the
+    // false branch visits from the same state S — deterministic allocation
+    // guarantees both branches push their result into the same register.
+    // At runtime only one branch executes, but both target the same slot.
     uint32_t reg;
     uint32_t label_false = ircode_newlabel(code);
     uint32_t label_final = ircode_newlabel(code);
@@ -739,8 +757,8 @@ static void visit_loop_for_stmt (gvisitor_t *self, gnode_loop_stmt_t *node) {
 	ircode_add(code, MOVE, temp1, iterate_fn, 0, LINE_NUMBER(node));
     temp2 = ircode_register_push_temp(code);                            // ++TEMP => 6
 	ircode_add(code, MOVE, temp2, $expr, 0, LINE_NUMBER(node));
-    temp2 = ircode_register_push_temp(code);                            // ++TEMP => 7
-	ircode_add(code, MOVE, temp2, $value, 0, LINE_NUMBER(node));
+    temp3 = ircode_register_push_temp(code);                            // ++TEMP => 7
+	ircode_add(code, MOVE, temp3, $value, 0, LINE_NUMBER(node));
 	ircode_add(code, CALL, $value, temp1, 2, LINE_NUMBER(node));
     temp = ircode_register_pop(code);                                   // --TEMP => 6
     DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
@@ -820,9 +838,6 @@ static void visit_jump_stmt (gvisitor_t *self, gnode_jump_stmt_t *node) {
 static void visit_empty_stmt (gvisitor_t *self, gnode_empty_stmt_t *node) {
     #pragma unused(self, node)
     DEBUG_CODEGEN("visit_empty_stmt");
-
-    DECLARE_CODE();
-	ircode_add(code, NOP, 0, 0, 0, LINE_NUMBER(node));
 }
 
 // MARK: - Declarations -
@@ -919,11 +934,19 @@ static void process_constructor (gvisitor_t *self, gravity_class_t *c, gnode_t *
             char name[256];
             snprintf(name, sizeof(name), "%s%d", CLASS_INTERNAL_INIT_NAME, ninit++);
 
-            // add new internal init to class and call it from main $init function
-            // super_init should not be duplicated here because class hash table values are not freed (only keys are freed)
+            // keep the class binding for serialisation compatibility
             gravity_class_bind(c, name, VALUE_FROM_OBJECT(super_init));
-            uint16_t index = gravity_function_cpool_add(NULL, internal_init_function, VALUE_FROM_CSTRING(GET_VM(), name));
-            ircode_patch_init((ircode_t *)internal_init_function->bytecode, index);
+
+            // store the closure directly in the constant pool so the call does not
+            // need a runtime name lookup via LOAD from self.  A dynamic lookup
+            // lets parent $initN names resolve against the subclass's hash table,
+            // where they alias to different (deeper) $init functions, causing
+            // infinite recursion when a subclass is instantiated.
+            // gravity_closure_new already registers the closure with GET_VM(); pass
+            // NULL to gravity_function_cpool_add to avoid registering it a second time
+            gravity_closure_t *super_closure = gravity_closure_new(GET_VM(), super_init);
+            uint16_t index = gravity_function_cpool_add(NULL, internal_init_function, VALUE_FROM_OBJECT(super_closure));
+            ircode_patch_init_direct((ircode_t *)internal_init_function->bytecode, index);
         }
         super = super->superclass;
     }
@@ -1439,6 +1462,12 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 
     DECLARE_CODE();
     CODEGEN_COUNT_REGISTERS(n1);
+
+    // resources managed by cleanup label
+    uint32_r self_list; marray_init(self_list);
+    uint32_r args; marray_init(args);
+    uint32_t dest_register = 0;
+
     ircode_push_context(code);
 
     // disable MOVE optimization
@@ -1453,17 +1482,18 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
     uint32_t target_register = ircode_register_pop_context_protect(code, true);
     if (target_register == REGISTER_ERROR) {
         report_error(self, (gnode_t *)node->id, "Invalid postfix expression.");
-        return;
+        goto cleanup;
     }
 
     // register where to store final result
-    uint32_t dest_register = target_register;
+    dest_register = target_register;
 
     // mandatory self register (initialized to 0 in case of implicit self or explicit super)
-    uint32_r self_list; marray_init(self_list);
-    uint32_t first_self_register = compute_self_register(self, code, node->id, target_register, node->list);
-    if (first_self_register == UINT32_MAX) return;
-    marray_push(uint32_t, self_list, first_self_register);
+    {
+        uint32_t first_self_register = compute_self_register(self, code, node->id, target_register, node->list);
+        if (first_self_register == UINT32_MAX) goto cleanup;
+        marray_push(uint32_t, self_list, first_self_register);
+    }
 
     // process each subnode and set is_assignment flag
     bool is_assignment = node->base.is_assignment;
@@ -1505,7 +1535,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
             uint32_t treg = ircode_register_pop_context_protect(code, true);
             if (treg == REGISTER_ERROR) {
                 report_error(self, (gnode_t *)subnode, "Unexpected register error.");
-                return;
+                goto cleanup;
             }
 
             // always add SELF parameter (must be temp+1)
@@ -1515,39 +1545,37 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
             treg = ircode_register_pop_context_protect(code, true);
             if (treg == REGISTER_ERROR) {
                 report_error(self, (gnode_t *)subnode, "Unexpected register error.");
-                return;
+                goto cleanup;
             }
 
             // process each parameter (each must be temp+2 ... temp+n)
-            marray_decl_init(uint32_r, args);
+            marray_init(args);
             size_t n = gnode_array_size(subnode->args);
             for (size_t j=0; j<n; ++j) {
                 // process each argument
                 gnode_t *arg = (gnode_t *)gnode_array_get(subnode->args, j);
-				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1, LINE_NUMBER(node));
-                visit(arg);
-				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0, LINE_NUMBER(node));
+				VISIT_MOVE_OPT(arg);
                 uint32_t nreg = ircode_register_pop_context_protect(code, true);
                 if (nreg == REGISTER_ERROR) {
-                    report_error(self, (gnode_t *)arg, "Invalid argument expression at index %d.", j+1);
-                    return;
+                    report_error(self, (gnode_t *)arg, "Invalid argument expression at index %zu.", j+1);
+                    goto cleanup;
                 }
 
                 // make sure args are in consecutive register locations (from temp_target_register + 1 to temp_target_register + n)
                 if (nreg != temp_target_register + j + 2) {
                     uint32_t temp = ircode_register_push_temp(code);
-                    if (temp == 0) return; // temp value == 0 means codegen error (error will be automatically reported later in visit_function_decl
+                    if (ircode_iserror(code)) goto cleanup;
 					ircode_add(code, MOVE, temp, nreg, 0, LINE_NUMBER(node));
                     ircode_register_clear(code, nreg);
                     nreg = ircode_register_pop_context_protect(code, true);
                     if (nreg == REGISTER_ERROR) {
                         report_error(self, (gnode_t *)arg, "Invalid argument expression");
-                        return;
+                        goto cleanup;
                     }
                 }
                 if (nreg != temp_target_register + j + 2) {
                     report_error(self, (gnode_t *)arg, "Invalid register computation in call expression.");
-                    return;
+                    goto cleanup;
                 }
                 
                 // a checkpoint should be added after each nreg computation in order to support STRUCT
@@ -1579,14 +1607,14 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                     uint32_t last_register = ircode_register_last(code);
                     if (last_register == REGISTER_ERROR) {
                         report_error(self, (gnode_t *)subnode, "Invalid call expression.");
-                        return;
+                        goto cleanup;
                     }
                     if (dest_is_temp && last_register == dest_register) dest_is_temp = false;
                 }
                 if (dest_is_temp) ircode_register_push(code, dest_register);
                 if (!ircode_register_protect_outside_context(code, dest_register)) {
                     report_error(self, (gnode_t *)subnode, "Invalid register access.");
-                    return;
+                    goto cleanup;
                 }
             }
 
@@ -1598,27 +1626,31 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
             gnode_identifier_expr_t *expr = (gnode_identifier_expr_t *)subnode->expr;
             uint32_t index = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, expr->value));
             uint32_t index_register = ircode_register_push_temp(code);
+            if (ircode_iserror(code)) {
+                report_error(self, (gnode_t *)expr, "Register allocation failed.");
+                goto cleanup;
+            }
 			ircode_add(code, LOADK, index_register, index, 0, LINE_NUMBER(expr));
             uint32_t temp = ircode_register_pop(code);
             if (temp == REGISTER_ERROR) {
                 report_error(self, (gnode_t *)expr, "Invalid access expression.");
-                return;
+                goto cleanup;
             }
 
             // generate LOAD/STORE instruction
             dest_register = (is_real_assigment) ? ircode_register_pop(code) : ircode_register_push_temp(code);
             if (dest_register == REGISTER_ERROR) {
                 report_error(self, (gnode_t *)expr, "Invalid access expression.");
-                return;
+                goto cleanup;
             }
 
             if (is_super) {
                 gravity_class_t *class = context_get_class(self);
                 if (!class) {
                     report_error(self, (gnode_t *)node, "Unable to use super keyword in a non class context.");
-                    return;
+                    goto cleanup;
                 }
-                
+
                 // check if class has a superclass not yet processed
                 const char *identifier = lookup_superclass_identifier (self, class);
                 if (!identifier) {
@@ -1626,21 +1658,25 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                     class = class->superclass;
                     identifier = (class) ? class->identifier : GRAVITY_CLASS_OBJECT_NAME;
                 }
-                
+
                 uint32_t cpool_index = gravity_function_cpool_add(GET_VM(), context_function, VALUE_FROM_CSTRING(NULL, identifier));
                 ircode_add_constant(code, cpool_index, LINE_NUMBER(node));
                 uint32_t temp_reg = ircode_register_pop(code);
+                if (temp_reg == REGISTER_ERROR) {
+                    report_error(self, (gnode_t *)node, "Invalid super access expression.");
+                    goto cleanup;
+                }
                 ircode_add(code, LOADS, dest_register, temp_reg, index_register, LINE_NUMBER(node));
             } else {
                 ircode_add(code, (is_real_assigment) ? STORE : LOAD, dest_register, target_register, index_register, LINE_NUMBER(node));
             }
-            
+
             if (!is_real_assigment) {
                 if (i+1<count) {
                 uint32_t rtemp = ircode_register_pop_context_protect(code, true);
                 if (rtemp == REGISTER_ERROR) {
                     report_error(self, (gnode_t *)expr, "Unexpected register error.");
-                    return;
+                    goto cleanup;
                 }
                 } else {
                     // last loop
@@ -1658,27 +1694,25 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
 
         } else if (tag == NODE_SUBSCRIPT_EXPR) {
             // process index
-			ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1, LINE_NUMBER(node));
-            visit(subnode->expr);
-			ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0, LINE_NUMBER(node));
+			VISIT_MOVE_OPT(subnode->expr);
             uint32_t index = ircode_register_pop(code);
             if (index == REGISTER_ERROR) {
                 report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
-                return;
+                goto cleanup;
             }
 
             // generate LOADAT/STOREAT instruction
             dest_register = (is_real_assigment) ? ircode_register_pop(code) : ircode_register_push_temp(code);
             if (dest_register == REGISTER_ERROR) {
                 report_error(self, (gnode_t *)subnode->expr, "Invalid subscript expression.");
-                return;
+                goto cleanup;
             }
 			ircode_add(code, (is_real_assigment) ? STOREAT : LOADAT, dest_register, target_register, index, LINE_NUMBER(node));
             if ((!is_real_assigment) && (i+1<count)) {
                 uint32_t rtemp = ircode_register_pop_context_protect(code, true);
                 if (rtemp == REGISTER_ERROR) {
                     report_error(self, (gnode_t *)subnode->expr, "Unexpected register error.");
-                    return;
+                    goto cleanup;
                 }
                 marray_push(uint32_t, self_list, rtemp);
             }
@@ -1695,20 +1729,29 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
     ircode_pop_context(code);
 
     // temp fix for not optimal register allocation algorithm generated code
-    uint32_t temp_register = ircode_register_first_temp_available(code);
-    if (temp_register < dest_register) {
-        // free dest register
-        ircode_register_pop(code);
-        // allocate a new register (that I am now sure does not have holes)
-        temp_register = ircode_register_push_temp(code);
-        ircode_add(code, MOVE, temp_register, dest_register, 0, LINE_NUMBER(node));
-        ircode_register_clear(code, dest_register);
+    {
+        uint32_t temp_register = ircode_register_first_temp_available(code);
+        if (temp_register < dest_register) {
+            // free dest register
+            ircode_register_pop(code);
+            // allocate a new register (that I am now sure does not have holes)
+            temp_register = ircode_register_push_temp(code);
+            ircode_add(code, MOVE, temp_register, dest_register, 0, LINE_NUMBER(node));
+            ircode_register_clear(code, dest_register);
+        }
     }
-    
+
     CODEGEN_COUNT_REGISTERS(n2);
     CODEGEN_ASSERT_REGISTERS(n1, n2, (is_assignment) ? -1 : 1);
 
     // re-enable MOVE optimization
+	ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1, LINE_NUMBER(node));
+    return;
+
+cleanup:
+    marray_destroy(args);
+    marray_destroy(self_list);
+    ircode_pop_context(code);
 	ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1, LINE_NUMBER(node));
 }
 
@@ -1897,14 +1940,12 @@ static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *no
             uint32_t    target = 0;
 
             if (type == LOCATION_CLASS_IVAR_OUTER) {
+                // keep the outer ref register alive until after STORE/LOAD to prevent
+                // index_register allocation from clobbering it (push_temp reuses freed slots)
                 dest = ircode_register_push_temp(code);
                 for (uint16_t i=0; i<nup; ++i) {
 					ircode_add(code, LOAD, dest, target, 0 + MAX_REGISTERS, LINE_NUMBER(node));
                     target = dest;
-                }
-                if (is_assignment) {
-                    uint32_t temp = ircode_register_pop(code);
-                    DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
                 }
             }
 
@@ -1924,7 +1965,11 @@ static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *no
             }
 
             if (is_assignment) {
-                // should be prohibited by semantic to store something into a non ivar slot?
+                // pop the outer ref register kept alive to prevent clobbering by index_register
+                if (type == LOCATION_CLASS_IVAR_OUTER) {
+                    uint32_t temp = ircode_register_pop(code);
+                    DEBUG_ASSERT(temp != REGISTER_ERROR, "Unexpected register error.");
+                }
                 dest = ircode_register_pop(code); // consume temp register
                 if (dest == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid identifier expression.");
 				ircode_add(code, STORE, dest, target, index_register, LINE_NUMBER(node));
@@ -2045,9 +2090,7 @@ static void visit_list_expr (gvisitor_t *self, gnode_list_expr_t *node) {
 
             if (ismap) {
                 e = gnode_array_get(node->list2, j);
-				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 1, LINE_NUMBER(node));
-                visit(e);
-				ircode_pragma(code, PRAGMA_MOVE_OPTIMIZATION, 0, LINE_NUMBER(node));
+				VISIT_MOVE_OPT(e);
                 nreg = ircode_register_pop_context_protect(code, true);
                 if ((nreg == REGISTER_ERROR) || ((nreg <= dest) && (ircode_register_istemp(code, nreg)))) {
                     report_error(self, (gnode_t *)e, "Invalid map expression.");
@@ -2142,6 +2185,7 @@ gravity_function_t *gravity_codegen(gnode_t *node, gravity_delegate_t *delegate,
     marray_pop(data.context);
     assert(marray_size(data.context) == 0);
     marray_destroy(data.context);
+    marray_destroy(data.superfix);
 
     // in case of codegen errors explicity free code and return NULL
     if (visitor.nerr != 0) {ircode_free(code); f->bytecode = NULL;}

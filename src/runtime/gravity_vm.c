@@ -16,6 +16,10 @@
 #include "../shared/gravity_opcodes.h"
 #include "../shared/gravity_memory.h"
 #include "../runtime/gravity_vmmacros.h"
+#define GRAVITY_INCLUDE_MATH
+#define GRAVITY_INCLUDE_JSON
+#define GRAVITY_INCLUDE_ENV
+#define GRAVITY_INCLUDE_FILE
 #include "../optionals/gravity_optionals.h"
 
 // MARK: Internals -
@@ -46,6 +50,9 @@ struct gravity_vm {
     // recursion
     gravity_int_t       maxrecursion;                   // maximum recursive depth
     gravity_int_t       recursioncount;                 // recursion counter
+
+    // stack limit
+    uint32_t            maxstacksize;                   // maximum fiber stack size (in slots) to prevent OOM from unbounded recursion
     
     // anonymous names
     uint32_t            nanon;                          // counter for anonymous classes (used in object_bind)
@@ -219,7 +226,7 @@ gravity_value_t gravity_vm_keyindex (gravity_vm *vm, uint32_t index) {
     return cache[index];
 }
 
-static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber_t *fiber) {
+static gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravity_fiber_t *fiber) {
     #pragma unused(vm)
 
     // check if there are enough slots in the call frame and optionally create new cframes
@@ -227,8 +234,7 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
         uint32_t new_size = fiber->framesalloc * 2;
         void *ptr = mem_realloc(NULL, fiber->frames, sizeof(gravity_callframe_t) * new_size);
         if (!ptr) {
-            // frames reallocation failed means that there is a very high probability to be into an infinite loop
-            report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Infinite loop detected. Current execution must be aborted.");
+            report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Out of memory: call frame stack could not be grown.");
             return NULL;
         }
         fiber->frames = (gravity_callframe_t *)ptr;
@@ -243,13 +249,12 @@ static inline gravity_callframe_t *gravity_new_callframe (gravity_vm *vm, gravit
     return &fiber->frames[fiber->nframes - 1];
 }
 
-static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t stacktopdelta, gravity_value_t **stackstart) {
-    #pragma unused(vm)
+static bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, uint32_t stacktopdelta, gravity_value_t **stackstart) {
 	if (stacktopdelta == 0) return true;
-	
+
     // update stacktop pointer before a call
     fiber->stacktop += stacktopdelta;
-	
+
     // check stack size
 	uint32_t stack_size = (uint32_t)(fiber->stacktop - fiber->stack);
     uint32_t stack_needed = MAXNUM(stack_size, DEFAULT_MINSTACK_SIZE);
@@ -259,13 +264,20 @@ static inline bool gravity_check_stack (gravity_vm *vm, gravity_fiber_t *fiber, 
     // perform stack reallocation (power_of2_ceil returns 0 if argument is bigger than 2^31)
     uint32_t new_size = power_of2_ceil(fiber->stackalloc + stack_needed);
     bool size_condition = (new_size && (uint64_t)new_size >= (uint64_t)(fiber->stackalloc + stack_needed) && ((sizeof(gravity_value_t) * new_size) < SIZE_MAX));
-    void *ptr = (size_condition) ? mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size) : NULL;
+
+    // enforce the configurable stack size limit to prevent unbounded growth (e.g. infinite recursion)
+    if (!size_condition || new_size > vm->maxstacksize) {
+        fiber->stacktop -= stacktopdelta;
+        report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Out of memory: fiber stack exceeded the maximum allowed size (%u slots).", vm->maxstacksize);
+        return false;
+    }
+
+    void *ptr = mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size);
     if (!ptr) {
         // restore stacktop to previous state
         fiber->stacktop -= stacktopdelta;
 
-        // stack reallocation failed means that there is a very high probability to be into an infinite loop
-        // so return false and let the calling function (vm_exec) raise a runtime error
+        report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "Out of memory: fiber stack reallocation failed.");
         return false;
     }
     
@@ -742,10 +754,10 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // decode operation
                 DECODE_BINARY_OPERATION(r1,r2,r3);
 
-                // check fast comparison only if both values are boolean OR if one of them is undefined
+                // check fast equality for boolean/undefined (only valid for EQ/NEQ, not ordered comparisons)
                 DEFINE_STACK_VARIABLE(v2,r2);
                 DEFINE_STACK_VARIABLE(v3,r3);
-                if ((VALUE_ISA_BOOL(v2) && (VALUE_ISA_BOOL(v3))) || (VALUE_ISA_UNDEFINED(v2) || (VALUE_ISA_UNDEFINED(v3)))) {
+                if ((op == EQ || op == NEQ) && ((VALUE_ISA_BOOL(v2) && (VALUE_ISA_BOOL(v3))) || (VALUE_ISA_UNDEFINED(v2) || (VALUE_ISA_UNDEFINED(v3))))) {
                     register gravity_int_t eq_result = (v2.isa == v3.isa) && (v2.n == v3.n);
                     SETVALUE(r1, VALUE_FROM_BOOL((op == EQ) ? eq_result : !eq_result));
                     DISPATCH();
@@ -891,7 +903,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DECODE_BINARY_OPERATION(r1, r2, r3);
 
                 // check fast math operation first (only in case of int and float)
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, +, NO_CHECK);
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, +, GRAVITY_INT_ADD, NO_CHECK);
 
                 // fast math operation cannot be performed so let's try with a regular call
                 // prepare function call for binary operation
@@ -910,7 +922,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DECODE_BINARY_OPERATION(r1, r2, r3);
 
                 // check fast math operation first (only in case of int and float)
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, -, NO_CHECK);
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, -, GRAVITY_INT_SUB, NO_CHECK);
 
                 // prepare function call for binary operation
                 PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_SUB_INDEX, rwin);
@@ -939,7 +951,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
 					#pragma warning (push)
 					#pragma warning (disable: 4723)
                 #endif
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, /, CHECK_ZERO(v3));
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, /, GRAVITY_INT_DIV, CHECK_ZERO(v3));
                 #if defined(__clang__)
                     #pragma clang diagnostic pop
                 #elif defined(__GNUC__)
@@ -964,7 +976,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 DECODE_BINARY_OPERATION(r1, r2, r3);
 
                 // check fast math operation first (only in case of int and float)
-                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, *, NO_CHECK);
+                CHECK_FAST_BINARY_MATH(r1, r2, r3, v2, v3, *, GRAVITY_INT_MUL, NO_CHECK);
 
                 // prepare function call for binary operation
                 PREPARE_FUNC_CALL2(closure, v2, v3, GRAVITY_MUL_INDEX, rwin);
@@ -1038,7 +1050,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 #pragma unused(r3)
 
                 // check fast bool operation first (only if it is int or float)
-                CHECK_FAST_UNARY_MATH(r1, r2, v2, -);
+                CHECK_FAST_UNARY_MATH(r1, r2, v2, -, GRAVITY_INT_NEG);
 
                 // prepare function call for binary operation
                 PREPARE_FUNC_CALL1(closure, v2, GRAVITY_NEG_INDEX, rwin);
@@ -1188,7 +1200,7 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 uint32_t _rneed = FN_COUNTREG(closure->f, r3);
 				uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
                 if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) {
-                    RUNTIME_ERROR("Infinite loop detected. Current execution must be aborted.");
+                    RUNTIME_ERROR("Out of memory: fiber stack could not be grown.");
                 }
 
                 // if less arguments are passed then fill the holes with UNDEFINED values
@@ -1524,18 +1536,22 @@ gravity_vm *gravity_vm_new (gravity_delegate_t *delegate) {
     vm->fiber = gravity_fiber_new(vm, NULL, 0, 0);
     vm->maxccalls = MAX_CCALLS;
     vm->maxrecursion = 0; // default is no limit
+    vm->maxstacksize = DEFAULT_MAXSTACK_SIZE;
 
     vm->pc = 0;
     vm->delegate = (delegate) ? delegate : &empty_delegate;
     vm->context = gravity_hash_create(DEFAULT_CONTEXT_SIZE, gravity_value_hash, gravity_value_equals, NULL, NULL);
 
     // garbage collector
+    // graylist/gctemp MUST be initialized before gravity_gc_setenabled: enabling the GC
+    // can trigger a collection that grows the graylist buffer, and a marray_init after
+    // that would zero the pointer and orphan (leak) the allocation.
+    marray_init(vm->graylist);
+    marray_init(vm->gctemp);
     gravity_gc_setenabled(vm, true);
     gravity_gc_setvalues(vm, DEFAULT_CG_THRESHOLD, DEFAULT_CG_MINTHRESHOLD, DEFAULT_CG_RATIO);
     vm->memallocated = 0;
     vm->maxmemblock = MAX_MEMORY_BLOCK;
-    marray_init(vm->graylist);
-    marray_init(vm->gctemp);
 
     // init base and core
     gravity_core_register(vm);
@@ -1562,22 +1578,22 @@ void gravity_vm_free (gravity_vm *vm) {
     mem_free(vm);
 }
 
-inline gravity_value_t gravity_vm_lookup (gravity_vm *vm, gravity_value_t key) {
+gravity_value_t gravity_vm_lookup (gravity_vm *vm, gravity_value_t key) {
     gravity_value_t *value = gravity_hash_lookup(vm->context, key);
     return (value) ? *value : VALUE_NOT_VALID;
 }
 
-inline gravity_closure_t *gravity_vm_fastlookup (gravity_vm *vm, gravity_class_t *c, int index) {
+gravity_closure_t *gravity_vm_fastlookup (gravity_vm *vm, gravity_class_t *c, int index) {
     #pragma unused(vm)
     return (gravity_closure_t *)gravity_class_lookup_closure(c, cache[index]);
 }
 
-inline gravity_value_t gravity_vm_getvalue (gravity_vm *vm, const char *key, uint32_t keylen) {
+gravity_value_t gravity_vm_getvalue (gravity_vm *vm, const char *key, uint32_t keylen) {
     STATICVALUE_FROM_STRING(k, key, keylen);
     return gravity_vm_lookup(vm, k);
 }
 
-inline void gravity_vm_setvalue (gravity_vm *vm, const char *key, gravity_value_t value) {
+void gravity_vm_setvalue (gravity_vm *vm, const char *key, gravity_value_t value) {
     gravity_hash_insert(vm->context, VALUE_FROM_CSTRING(vm, key), value);
 }
 
@@ -1837,11 +1853,13 @@ void gravity_vm_setslot (gravity_vm *vm, gravity_value_t value, uint32_t index) 
         return;
     }
 
+    if (!vm->fiber->nframes) return;
     gravity_callframe_t *frame = &(vm->fiber->frames[vm->fiber->nframes-1]);
     frame->stackstart[index] = value;
 }
 
 gravity_value_t gravity_vm_getslot (gravity_vm *vm, uint32_t index) {
+    if (!vm->fiber->nframes) return VALUE_FROM_NULL;
     gravity_callframe_t *frame = &(vm->fiber->frames[vm->fiber->nframes-1]);
     return frame->stackstart[index];
 }
@@ -1908,6 +1926,7 @@ gravity_value_t gravity_vm_get (gravity_vm *vm, const char *key) {
         if (strcmp(key, GRAVITY_VM_MAXCALLS) == 0) return VALUE_FROM_INT(vm->maxccalls);
         if (strcmp(key, GRAVITY_VM_MAXBLOCK) == 0) return VALUE_FROM_INT(vm->maxmemblock);
         if (strcmp(key, GRAVITY_VM_MAXRECURSION) == 0) return VALUE_FROM_INT(vm->maxrecursion);
+        if (strcmp(key, GRAVITY_VM_MAXSTACK) == 0) return VALUE_FROM_INT(vm->maxstacksize);
     }
     return VALUE_FROM_NULL;
 }
@@ -1921,6 +1940,7 @@ bool gravity_vm_set (gravity_vm *vm, const char *key, gravity_value_t value) {
         if ((strcmp(key, GRAVITY_VM_MAXCALLS) == 0) && VALUE_ISA_INT(value)) {vm->maxccalls = (uint32_t)VALUE_AS_INT(value); return true;}
         if ((strcmp(key, GRAVITY_VM_MAXBLOCK) == 0) && VALUE_ISA_INT(value)) {vm->maxmemblock = (uint32_t)VALUE_AS_INT(value); return true;}
         if ((strcmp(key, GRAVITY_VM_MAXRECURSION) == 0) && VALUE_ISA_INT(value)) {vm->maxrecursion = (uint32_t)VALUE_AS_INT(value); return true;}
+        if ((strcmp(key, GRAVITY_VM_MAXSTACK) == 0) && VALUE_ISA_INT(value)) {vm->maxstacksize = (uint32_t)VALUE_AS_INT(value); return true;}
     }
     return false;
 }
@@ -2053,6 +2073,10 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
     void_r objects;
     marray_init(objects);
 
+    void *saved = vm->data;
+    void_r stack;
+    marray_init(stack);
+
     // start json parsing
     json_value *json = json_parse (buffer, len);
     if (!json) goto abort_load;
@@ -2066,10 +2090,11 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
     uint32_t n = json->u.object.length;
     for (uint32_t i=0; i<n; ++i) {
         json_value *entry = json->u.object.values[i].value;
-        if (entry->u.object.length == 0) continue;
 
-        // each entry must be an object
+        // each entry must be an object (checked before reading any object only
+        // field, otherwise a non object entry would read an unset union member)
         if (entry->type != json_object) goto abort_load;
+        if (entry->u.object.length == 0) continue;
 
         gravity_object_t *obj = gravity_object_deserialize(vm, entry);
         if (!obj) goto abort_load;
@@ -2083,8 +2108,14 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
         if (OBJECT_ISA_FUNCTION(obj)) {
             gravity_function_t *f = (gravity_function_t *)obj;
             const char *identifier = f->identifier;
+
+            // a deserialized function is allowed to have a NULL identifier (missing identifier
+            // field or anonymous function, serialized as $anon_ and restored as NULL) but a top
+            // level function must be named because it is either $moduleinit or a global value
+            if (!identifier) goto abort_load;
+
             gravity_closure_t *cl = gravity_closure_new(vm, f);
-            if (string_casencmp(identifier, INITMODULE_NAME, strlen(identifier)) == 0) {
+            if (string_cmp(identifier, INITMODULE_NAME) == 0) {
                 closure = cl;
             } else {
                 gravity_vm_setvalue(vm, identifier, VALUE_FROM_OBJECT(cl));
@@ -2096,12 +2127,9 @@ gravity_closure_t *gravity_vm_loadbuffer (gravity_vm *vm, const char *buffer, si
 
     // fix superclass(es)
     size_t count = marray_size(objects);
-    if (count) {
-        void *saved = vm->data;
 
+    if (count) {
         // prepare stack to help resolve nested super classes
-        void_r stack;
-        marray_init(stack);
         vm->data = (void *)&stack;
 
         // loop of each processed object
@@ -2122,7 +2150,9 @@ abort_load:
     report_runtime_error(vm, GRAVITY_ERROR_RUNTIME, "%s", "Unable to parse JSON executable file.");
 
 abort_super:
+    marray_destroy(stack);
     marray_destroy(objects);
+    vm->data = saved;
     if (json) json_value_free(json);
     gravity_gc_setenabled(vm, true);
     return NULL;

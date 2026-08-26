@@ -1,0 +1,28 @@
+#unittest {
+	name: "String.loop iterates UTF-8 characters correctly.";
+	result: true;
+};
+
+func main() {
+    // ASCII string loop
+    var count = 0;
+    var collected = "";
+    "abc".loop(func(c) {
+        collected = collected + c;
+        count += 1;
+    });
+    if (count != 3) return false;
+    if (collected != "abc") return false;
+
+    // multi-byte UTF-8: £ is 2 bytes
+    var count2 = 0;
+    var collected2 = "";
+    "£A£".loop(func(c) {
+        collected2 = collected2 + c;
+        count2 += 1;
+    });
+    if (count2 != 3) return false;
+    if (collected2 != "£A£") return false;
+
+    return true;
+}

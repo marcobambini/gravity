@@ -87,7 +87,6 @@
 #define VALUE_ISA_NULLCLASS(v)              (v.isa == gravity_class_null)
 #define VALUE_ISA_NULL(v)                   ((v.isa == gravity_class_null) && (v.n == 0))
 #define VALUE_ISA_UNDEFINED(v)              ((v.isa == gravity_class_null) && (v.n == 1))
-#define VALUE_ISA_CLASS(v)                  (v.isa == gravity_class_class)
 #define VALUE_ISA_CALLABLE(v)               (VALUE_ISA_FUNCTION(v) || VALUE_ISA_CLASS(v) || VALUE_ISA_FIBER(v))
 #define VALUE_ISA_VALID(v)                  (v.isa != NULL)
 #define VALUE_ISA_NOTVALID(v)               (v.isa == NULL)

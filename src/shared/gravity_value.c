@@ -121,11 +121,17 @@ gravity_class_t *gravity_class_getsuper (gravity_class_t *c) {
 }
 
 bool gravity_class_grow (gravity_class_t *c, uint32_t n) {
-    if (c->ivars) mem_free(c->ivars);
     if (c->nivars + n >= MAX_IVARS) return false;
-    c->nivars += n;
-    c->ivars = (gravity_value_t *)mem_alloc(NULL, c->nivars * sizeof(gravity_value_t));
-    for (uint32_t i=0; i<c->nivars; ++i) c->ivars[i] = VALUE_FROM_NULL;
+    uint32_t new_nivars = c->nivars + n;
+    gravity_value_t *new_ivars = (gravity_value_t *)mem_alloc(NULL, new_nivars * sizeof(gravity_value_t));
+    if (!new_ivars) return false;
+    for (uint32_t i=0; i<new_nivars; ++i) new_ivars[i] = VALUE_FROM_NULL;
+    if (c->ivars) {
+        memcpy(new_ivars, c->ivars, c->nivars * sizeof(gravity_value_t));
+        mem_free(c->ivars);
+    }
+    c->ivars = new_ivars;
+    c->nivars = new_nivars;
     return true;
 }
 
@@ -158,6 +164,8 @@ gravity_class_t *gravity_class_new_single (gravity_vm *vm, const char *identifie
     c->identifier = string_dup(identifier);
     c->superclass = NULL;
     c->nivars = nivar;
+    marray_init(c->inames);
+    
     c->htable = gravity_hash_create(0, gravity_value_hash, gravity_value_equals, gravity_hash_keyfree, NULL);
     if (nivar) {
         c->ivars = (gravity_value_t *)mem_alloc(NULL, nivar * sizeof(gravity_value_t));
@@ -209,13 +217,45 @@ uint32_t gravity_class_count_ivars (gravity_class_t *c) {
 }
 
 int16_t gravity_class_add_ivar (gravity_class_t *c, const char *identifier) {
-    #pragma unused(identifier)
-    // TODO: add identifier in array (for easier debugging)
+    marray_push(gravity_value_t, c->inames, (identifier) ? VALUE_FROM_CSTRING(NULL, identifier) : VALUE_FROM_NULL);
     ++c->nivars;
     return c->nivars-1; // its a C array so index is 0 based
 }
 
+int16_t gravity_class_ivar_index (gravity_class_t *c, const char *identifier) {
+    // -1 means NOT FOUND
+    if (!identifier) return -1;
+    
+    size_t n = marray_size(c->inames);
+    for (size_t i=0; i<n; i++) {
+        gravity_value_t v = marray_get(c->inames, i);
+        if (VALUE_ISA_STRING(v)) {
+            const char *name = VALUE_AS_CSTRING(v);
+            if (string_cmp(identifier, name) == 0) return (int16_t)i;
+        }
+    }
+    return -1;
+}
+
+static void gravity_class_dump_ivars(gravity_class_t *c) {
+    size_t n = marray_size(c->inames);
+    for (size_t i=0; i<n; i++) {
+        gravity_value_t v = marray_get(c->inames, i);
+        if (VALUE_ISA_NULL(v)) {
+            printf("%05zu\tNULL\n", i);
+            continue;
+        }
+        if (VALUE_ISA_STRING(v)) {
+            printf("%05zu\tSTRING: %s\n", i, VALUE_AS_CSTRING(v));
+            continue;
+        }
+        // SHOULD NEVER REACH THIS POINT
+        printf("ivar type error in ivar %zu\n", i);
+    }
+}
+
 void gravity_class_dump (gravity_class_t *c) {
+    gravity_class_dump_ivars(c);
     gravity_hash_dump(c->htable);
 }
 
@@ -243,6 +283,18 @@ void gravity_class_serialize (gravity_class_t *c, json_t *json) {
     // number of instance (and static) variables
     json_add_int(json, GRAVITY_JSON_LABELNIVAR, c->nivars);
     if ((c != meta) && (meta->nivars > 0)) json_add_int(json, GRAVITY_JSON_LABELSIVAR, meta->nivars);
+    
+    // ivar names
+    size_t n = marray_size(c->inames);
+    if (n > 0) {
+        json_begin_array(json, GRAVITY_JSON_LABELINAMES);
+        for (size_t i=0; i<n; i++) {
+            gravity_value_t v = marray_get(c->inames, i);
+            if (VALUE_ISA_STRING(v)) json_add_cstring(json, NULL, VALUE_AS_CSTRING(v));
+            else json_add_null(json, NULL);
+        }
+        json_end_array(json);
+    }
 
     // struct flag
     if (c->is_struct) json_add_bool(json, GRAVITY_JSON_LABELSTRUCT, true);
@@ -315,6 +367,18 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
                 gravity_class_grow(meta, (uint32_t)value->u.integer);
                 continue;
             }
+            
+            // inames
+            if (string_casencmp(key, GRAVITY_JSON_LABELINAMES, strlen(key)) == 0) {
+                uint32_t m = value->u.array.length;
+                for (uint32_t j=0; j<m; ++j) {
+                    json_value *r = value->u.array.values[j];
+                    gravity_object_t *obj = NULL;
+                    if (r->type == json_string) obj = gravity_object_deserialize(NULL, r);
+                    marray_push(gravity_value_t, c->inames, (obj) ? VALUE_FROM_OBJECT(obj) : VALUE_FROM_NULL);
+                }
+                continue;
+            }
 
             // struct
             if (string_casencmp(key, GRAVITY_JSON_LABELSTRUCT, strlen(key)) == 0) {
@@ -373,6 +437,7 @@ static void gravity_class_free_internal (gravity_vm *vm, gravity_class_t *c, boo
 
     if (c->identifier) mem_free((void *)c->identifier);
     if (c->superlook) mem_free((void *)c->superlook);
+    marray_destroy(c->inames);
     
     if (!skip_base) {
         // base classes have functions not registered inside VM so manually free all of them
@@ -393,7 +458,7 @@ void gravity_class_free (gravity_vm *vm, gravity_class_t *c) {
     gravity_class_free_internal(vm, c, true);
 }
 
-inline gravity_object_t *gravity_class_lookup (gravity_class_t *c, gravity_value_t key) {
+gravity_object_t *gravity_class_lookup (gravity_class_t *c, gravity_value_t key) {
     while (c) {
         gravity_value_t *v = gravity_hash_lookup(c->htable, key);
         if (v) return (gravity_object_t *)v->p;
@@ -410,13 +475,13 @@ gravity_class_t *gravity_class_lookup_class_identifier (gravity_class_t *c, cons
     return NULL;
 }
 
-inline gravity_closure_t *gravity_class_lookup_closure (gravity_class_t *c, gravity_value_t key) {
+gravity_closure_t *gravity_class_lookup_closure (gravity_class_t *c, gravity_value_t key) {
     gravity_object_t *obj = gravity_class_lookup(c, key);
     if (obj && OBJECT_ISA_CLOSURE(obj)) return (gravity_closure_t *)obj;
     return NULL;
 }
 
-inline gravity_closure_t *gravity_class_lookup_constructor (gravity_class_t *c, uint32_t nparams) {
+gravity_closure_t *gravity_class_lookup_constructor (gravity_class_t *c, uint32_t nparams) {
     if (c->xdata) {
         // bridged class so check for special $initN function
         if (nparams == 0) {
@@ -528,11 +593,22 @@ uint16_t gravity_function_cpool_add (gravity_vm *vm, gravity_function_t *f, grav
     size_t n = marray_size(f->cpool);
     for (size_t i=0; i<n; i++) {
         gravity_value_t v2 = marray_get(f->cpool, i);
+        // Float constants must match exactly at the bit level so that distinct
+        // small values (e.g. -4e-9 vs -5e-11) are never merged due to the
+        // epsilon-based gravity_value_equals comparison.
+        if (v.isa == gravity_class_float && v2.isa == gravity_class_float) {
+            if (v.f != v2.f) continue;
+            gravity_value_free(NULL, v);
+            return (uint16_t)i;
+        }
         if (gravity_value_equals(v,v2)) {
             gravity_value_free(NULL, v);
             return (uint16_t)i;
         }
     }
+
+    // safety check: cpool index must fit in uint16_t
+    if (n >= UINT16_MAX) return UINT16_MAX;
 
     // vm is required here because I cannot know in advance if v is already in the pool or not
     // and value object v must be added to the VM only once
@@ -1355,6 +1431,24 @@ void gravity_fiber_reassign (gravity_fiber_t *fiber, gravity_closure_t *closure,
 
     // update stacktop in order to be GC friendly
     fiber->stacktop += FN_COUNTREG(closure->f, nargs);
+
+    // ensure the stack is large enough for the new frame's register window;
+    // gravity_check_stack is only called on CALL instructions so it would not
+    // catch an overflow that occurs while executing the frame itself
+    uint32_t stack_used = (uint32_t)(fiber->stacktop - fiber->stack);
+    if (stack_used > fiber->stackalloc) {
+        uint32_t new_size = power_of2_ceil(stack_used);
+        if (!new_size || new_size < stack_used) new_size = stack_used;
+        gravity_value_t *new_stack = (gravity_value_t *)mem_realloc(NULL, fiber->stack, sizeof(gravity_value_t) * new_size);
+        if (new_stack) {
+            ptrdiff_t offset = new_stack - fiber->stack;
+            fiber->stack = new_stack;
+            fiber->stackalloc = new_size;
+            // adjust all pointers that referenced the old stack address
+            fiber->stacktop += offset;
+            frame->stackstart += offset; // frame 0 stackstart is always at the base
+        }
+    }
 }
 
 void gravity_fiber_reset (gravity_fiber_t *fiber) {
@@ -1846,13 +1940,13 @@ uint32_t gravity_value_hash (gravity_value_t value) {
     return gravity_hash_compute_buffer((const char *)value.p, sizeof(gravity_object_t*));
 }
 
-inline gravity_class_t *gravity_value_getclass (gravity_value_t v) {
+gravity_class_t *gravity_value_getclass (gravity_value_t v) {
     if ((v.isa == gravity_class_class) && (v.p->objclass == gravity_class_object)) return (gravity_class_t *)v.p;
     if ((v.isa == gravity_class_instance) || (v.isa == gravity_class_class)) return (v.p) ? v.p->objclass : NULL;
     return v.isa;
 }
 
-inline gravity_class_t *gravity_value_getsuper (gravity_value_t v) {
+gravity_class_t *gravity_value_getsuper (gravity_value_t v) {
     gravity_class_t *c = gravity_value_getclass(v);
     return (c && c->superclass) ? c->superclass : NULL;
 }
@@ -2359,7 +2453,7 @@ void gravity_range_blacken (gravity_vm *vm, gravity_range_t *range) {
 
 // MARK: -
 
-inline gravity_value_t gravity_string_to_value (gravity_vm *vm, const char *s, uint32_t len) {
+gravity_value_t gravity_string_to_value (gravity_vm *vm, const char *s, uint32_t len) {
     gravity_string_t *obj = mem_alloc(NULL, sizeof(gravity_string_t));
     if (len == AUTOLENGTH) len = (uint32_t)strlen(s);
 
@@ -2381,7 +2475,7 @@ inline gravity_value_t gravity_string_to_value (gravity_vm *vm, const char *s, u
     return value;
 }
 
-inline gravity_string_t *gravity_string_new (gravity_vm *vm, char *s, uint32_t len, uint32_t alloc) {
+gravity_string_t *gravity_string_new (gravity_vm *vm, char *s, uint32_t len, uint32_t alloc) {
     gravity_string_t *obj = mem_alloc(NULL, sizeof(gravity_string_t));
     if (len == AUTOLENGTH) len = (uint32_t)strlen(s);
 
@@ -2395,13 +2489,13 @@ inline gravity_string_t *gravity_string_new (gravity_vm *vm, char *s, uint32_t l
     return obj;
 }
 
-inline void gravity_string_set (gravity_string_t *obj, char *s, uint32_t len) {
+void gravity_string_set (gravity_string_t *obj, char *s, uint32_t len) {
     obj->s = (char *)s;
     obj->len = len;
     obj->hash = gravity_hash_compute_buffer((const char *)s, len);
 }
 
-inline void gravity_string_free (gravity_vm *vm, gravity_string_t *value) {
+void gravity_string_free (gravity_vm *vm, gravity_string_t *value) {
     #pragma unused(vm)
     DEBUG_FREE("FREE %s", gravity_object_debug((gravity_object_t *)value, true));
     if (value->alloc) mem_free(value->s);
@@ -2421,30 +2515,30 @@ void gravity_string_blacken (gravity_vm *vm, gravity_string_t *string) {
     gravity_vm_memupdate(vm, gravity_string_size(vm, string));
 }
 
-inline gravity_value_t gravity_value_from_error(const char* msg) {
+gravity_value_t gravity_value_from_error(const char* msg) {
     return ((gravity_value_t){.isa = NULL, .p = ((gravity_object_t *)msg)});
 }
 
-inline gravity_value_t gravity_value_from_object(void *obj) {
+gravity_value_t gravity_value_from_object(void *obj) {
     return ((gravity_value_t){.isa = (((gravity_object_t *)(obj))->isa), .p = (gravity_object_t *)(obj)});
 }
 
-inline gravity_value_t gravity_value_from_int(gravity_int_t n) {
+gravity_value_t gravity_value_from_int(gravity_int_t n) {
     return ((gravity_value_t){.isa = gravity_class_int, .n = (n)});
 }
 
-inline gravity_value_t gravity_value_from_float(gravity_float_t f) {
+gravity_value_t gravity_value_from_float(gravity_float_t f) {
     return ((gravity_value_t){.isa = gravity_class_float, .f = (f)});
 }
 
-inline gravity_value_t gravity_value_from_null(void) {
+gravity_value_t gravity_value_from_null(void) {
     return ((gravity_value_t){.isa = gravity_class_null, .n = 0});
 }
 
-inline gravity_value_t gravity_value_from_undefined(void) {
+gravity_value_t gravity_value_from_undefined(void) {
     return ((gravity_value_t){.isa = gravity_class_null, .n = 1});
 }
 
-inline gravity_value_t gravity_value_from_bool(bool b) {
+gravity_value_t gravity_value_from_bool(bool b) {
     return ((gravity_value_t){.isa = gravity_class_bool, .n = (b)});
 }

@@ -1,0 +1,9 @@
+#unittest {
+	name: "ENV.get rejects non-string key.";
+	error: RUNTIME;
+};
+
+func main() {
+	// Passing a non-string key should error
+	return ENV.get(12345);
+}

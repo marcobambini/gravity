@@ -1,0 +1,27 @@
+#unittest {
+	name: "Function default args fill correct slots.";
+	result: true;
+};
+
+func add3(a, b, c) {
+    if (c == undefined) c = 10;
+    if (b == undefined) b = 20;
+    return a + b + c;
+}
+
+func main() {
+    // call with all args
+    var r1 = add3(1, 2, 3);
+    if (r1 != 6) return false;
+
+    // call with fewer args — missing slots should be undefined, not overwrite existing
+    var r2 = add3(100, 200);
+    // a=100, b=200, c=undefined->10
+    if (r2 != 310) return false;
+
+    var r3 = add3(5);
+    // a=5, b=undefined->20, c=undefined->10
+    if (r3 != 35) return false;
+
+    return true;
+}

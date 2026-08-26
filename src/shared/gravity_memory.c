@@ -154,7 +154,7 @@ void *memdebug_realloc(gravity_vm *vm, void *ptr, size_t new_size) {
     }
 
     void *new_ptr = realloc(ptr, new_size);
-    if (!ptr) {
+    if (!new_ptr) {
         BUILD_ERROR("Unable to reallocate a block of %zu bytes", new_size);
         BUILD_STACK(n, stack);
         memdebug_report(current_error, stack, n, &memdebug.slot[index]);

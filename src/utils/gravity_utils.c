@@ -95,7 +95,7 @@ double millitime (nanotime_t tstart, nanotime_t tend) {
 // MARK: - I/O Functions -
 
 int64_t file_size (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     WIN32_FILE_ATTRIBUTE_DATA fileInfo;
     if (GetFileAttributesExA(path, GetFileExInfoStandard, (void*)&fileInfo) == 0) return -1;
     return (int64_t)(((__int64)fileInfo.nFileSizeHigh) << 32 ) + fileInfo.nFileSizeLow;
@@ -107,7 +107,7 @@ int64_t file_size (const char *path) {
 }
 
 bool file_exists (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     if (GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES) return true;
     #else
     if (access(path, F_OK) == 0) return true;
@@ -117,7 +117,7 @@ bool file_exists (const char *path) {
 }
 
 bool file_delete (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     return DeleteFileA(path);
     #else
     if (unlink(path) == 0) return true;
@@ -127,7 +127,7 @@ bool file_delete (const char *path) {
 }
 
 char *file_read(const char *path, size_t *len) {
-    int     fd = 0;
+    int     fd = -1;
     off_t   fsize = 0;
     size_t  fsize2 = 0;
     char    *buffer = NULL;
@@ -136,7 +136,7 @@ char *file_read(const char *path, size_t *len) {
     if (fsize < 0) goto abort_read;
     
     int oflags = O_RDONLY;
-    #ifdef WIN32
+    #ifdef _WIN32
     // Only Windows needs to understand the difference between text and binary, so only Windows defines O_BINARY 
     oflags |= O_BINARY;
     #endif
@@ -185,8 +185,8 @@ char *file_buildpath (const char *filename, const char *dirpath) {
     char *full_path = (char *)mem_alloc(NULL, len);
     if (!full_path) return NULL;
     
-    #ifdef WIN32
-    PathCombineA(full_path, filename, dirpath);
+    #ifdef _WIN32
+    PathCombineA(full_path, dirpath, filename);
     #else
     // check if PATH_SEPARATOR exists in dirpath
     if ((len2) && (dirpath[len2-1] != PATH_SEPARATOR))
@@ -200,27 +200,29 @@ char *file_buildpath (const char *filename, const char *dirpath) {
 
 char *file_name_frompath (const char *path) {
     if (!path || (path[0] == 0)) return NULL;
-    
+
     // must be sure to have a read-write memory address
 	char *buffer = string_dup(path);
-    if (!buffer) return false;
-    
+    if (!buffer) return NULL;
+
     char *name = NULL;
     size_t len = strlen(buffer);
     for (size_t i=len-1; i>0; --i) {
         if (buffer[i] == PATH_SEPARATOR) {
-            buffer[i] = 0;
 			name = string_dup(&buffer[i + 1]);
             break;
         }
     }
+    // if no separator found, the entire path is the filename
+    if (!name) name = string_dup(buffer);
+    mem_free(buffer);
     return name;
 }
 
 // MARK: - Directory Functions -
 
 bool is_directory (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     DWORD dwAttrs = GetFileAttributesA(path);
     if (dwAttrs == INVALID_FILE_ATTRIBUTES) return false;
     if (dwAttrs & FILE_ATTRIBUTE_DIRECTORY) return true;
@@ -235,7 +237,7 @@ bool is_directory (const char *path) {
 }
 
 bool directory_create (const char *path) {
-    #ifdef WIN32
+    #ifdef _WIN32
     CreateDirectoryA(path, NULL);
     #else
     mode_t saved = umask(0);
@@ -247,7 +249,7 @@ bool directory_create (const char *path) {
 }
 
 DIRREF directory_init (const char *dirpath) {
-	#ifdef WIN32
+	#ifdef _WIN32
 	WIN32_FIND_DATAW findData;
 	WCHAR   path[MAX_PATH];
 	WCHAR   dirpathW[MAX_PATH];
@@ -270,7 +272,7 @@ char *directory_read (DIRREF ref, char *win32buffer) {
 	if (ref == NULL) return NULL;
 	
 	while (1) {
-		#ifdef WIN32
+		#ifdef _WIN32
 		WIN32_FIND_DATAA findData;
 		
 		if (FindNextFileA(ref, &findData) == 0) {
@@ -302,7 +304,7 @@ char *directory_read_extend (DIRREF ref, char *win32buffer) {
     if (ref == NULL) return NULL;
     
     while (1) {
-        #ifdef WIN32
+        #ifdef _WIN32
         WIN32_FIND_DATAA findData;
         
         if (FindNextFileA(ref, &findData) == 0) {
@@ -358,11 +360,12 @@ int string_casencmp(const char *s1, const char *s2, size_t n) {
 }
 
 int string_cmp (const char *s1, const char *s2) {
-    if (!s1) return 1;
+    if (!s1 || !s2) return (s1 == s2) ? 0 : (s1 ? -1 : 1);
     return strcmp(s1, s2);
 }
 
 char *string_dup (const char *s1) {
+    if (!s1) return NULL;
     size_t len = (size_t)strlen(s1);
     char*s = (char *)mem_alloc(NULL, len + 1);
     if (!s) return NULL;
@@ -506,7 +509,7 @@ end_repl_str:
  
  */
 
-inline uint32_t utf8_charbytes (const char *s, uint32_t i) {
+uint32_t utf8_charbytes (const char *s, uint32_t i) {
     unsigned char c = (unsigned char)s[i];
     
     // determine bytes needed for character, based on RFC 3629
@@ -660,11 +663,12 @@ int64_t number_from_bin (const char *s, uint32_t len) {
     
     // sanity check on len
     if (len > 64) return 0;
-    int64_t value = 0;
+    uint64_t value = 0;
     for (uint32_t i=0; i<len; ++i) {
         int c = s[i];
-        value = (value << 1) + (c - '0');
+        if (c != '0' && c != '1') return 0;
+        value = (value << 1) + (unsigned)(c - '0');
     }
-    return value;
+    return (int64_t)value;
 }
 

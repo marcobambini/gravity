@@ -1,0 +1,14 @@
+#unittest {
+	name: "Test Math.xrt() with zero base.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// xrt with zero base should return undefined (division by zero in 1/base)
+	var r1 = Math.xrt(0, 16);
+	var r2 = Math.xrt(0.0, 25.0);
+
+	// undefined comparisons should be false
+	return (r1 == undefined) and (r2 == undefined);
+}

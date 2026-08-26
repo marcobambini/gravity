@@ -1,0 +1,25 @@
+#unittest {
+	name: "Integer arithmetic operations.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Basic operations
+	var r1 = (2 + 3 == 5);
+	var r2 = (10 - 7 == 3);
+	var r3 = (6 * 8 == 48);
+	var r4 = (20 / 4 == 5);
+	var r5 = (17 % 5 == 2);
+
+	// Negative number operations
+	var r6 = (-5 + 3 == -2);
+	var r7 = (-3 * -4 == 12);
+	var r8 = (-10 / 2 == -5);
+
+	// Bitwise operations
+	var r9 = (0xFF & 0x0F == 0x0F);
+	var r10 = (0xF0 | 0x0F == 0xFF);
+
+	return r1 and r2 and r3 and r4 and r5 and r6 and r7 and r8 and r9 and r10;
+}

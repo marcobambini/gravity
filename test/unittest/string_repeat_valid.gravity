@@ -1,0 +1,25 @@
+#unittest {
+	name: "String repeat with valid arguments.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Basic repeat
+	var s1 = "ab".repeat(3);
+	var r1 = (s1 == "ababab");
+
+	// Repeat 1 time (identity)
+	var s2 = "hello".repeat(1);
+	var r2 = (s2 == "hello");
+
+	// Single char repeat
+	var s3 = "x".repeat(5);
+	var r3 = (s3 == "xxxxx");
+
+	// Verify length
+	var s4 = "abc".repeat(4);
+	var r4 = (s4.length == 12);
+
+	return r1 and r2 and r3 and r4;
+}

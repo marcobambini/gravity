@@ -1,0 +1,31 @@
+#unittest {
+	name: "Optimizer constant folding arithmetic.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// These expressions should be constant-folded by the optimizer
+
+	// Addition
+	var r1 = (3 + 7 == 10);
+
+	// Subtraction
+	var r2 = (100 - 42 == 58);
+
+	// Multiplication
+	var r3 = (13 * 7 == 91);
+
+	// Division (was broken - always returned false due to wrong zero check)
+	var r4 = (84 / 12 == 7);
+	var r5 = (100 / 3 == 33);
+
+	// Modulo (also was broken)
+	var r6 = (100 % 13 == 9);
+	var r7 = (27 % 4 == 3);
+
+	// Negative results
+	var r8 = (5 - 10 == -5);
+
+	return r1 and r2 and r3 and r4 and r5 and r6 and r7 and r8;
+}

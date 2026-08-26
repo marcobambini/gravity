@@ -1,0 +1,33 @@
+#unittest {
+	name: "Complex string interpolation.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var x = 10;
+	var y = 20;
+
+	// Basic interpolation
+	var s1 = "sum is \(x + y)";
+	var r1 = (s1 == "sum is 30");
+
+	// Nested parentheses in interpolation
+	var s2 = "val \((x + y) * 2)";
+	var r2 = (s2 == "val 60");
+
+	// Multiple interpolations
+	var s3 = "\(x) and \(y)";
+	var r3 = (s3 == "10 and 20");
+
+	// Interpolation with method call
+	var name = "world";
+	var s4 = "hello \(name.upper())";
+	var r4 = (s4 == "hello WORLD");
+
+	// Empty prefix/suffix around interpolation
+	var s5 = "\(42)";
+	var r5 = (s5 == "42");
+
+	return r1 and r2 and r3 and r4 and r5;
+}

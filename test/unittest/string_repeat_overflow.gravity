@@ -1,0 +1,12 @@
+#unittest {
+	name: "String repeat overflow protection.";
+	error: RUNTIME;
+};
+
+func main() {
+	// A long string repeated many times should trigger overflow protection
+	// even if each individual value is under the max limit
+	var s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	// 26 * 200000000 > UINT32_MAX, should error
+	return s.repeat(200000000);
+}

@@ -1,0 +1,28 @@
+#unittest {
+	name: "Math.xrt computes correct root values.";
+	result: true;
+};
+
+func main() {
+    // square root of 9: xrt(base, value) = value^(1/base)
+    var r1 = Math.xrt(2, 9);
+    if (r1 < 2.99 || r1 > 3.01) return false;
+
+    // cube root of 27
+    var r2 = Math.xrt(3, 27);
+    if (r2 < 2.99 || r2 > 3.01) return false;
+
+    // 4th root of 16
+    var r3 = Math.xrt(4, 16);
+    if (r3 < 1.99 || r3 > 2.01) return false;
+
+    // float base: cube root of 8.0
+    var r4 = Math.xrt(3, 8.0);
+    if (r4 < 1.99 || r4 > 2.01) return false;
+
+    // float value and float base
+    var r5 = Math.xrt(3.0, 27.0);
+    if (r5 < 2.99 || r5 > 3.01) return false;
+
+    return true;
+}

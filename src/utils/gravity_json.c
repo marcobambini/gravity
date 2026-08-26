@@ -158,7 +158,8 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
         return;
     }
 
-    char *new_buffer = mem_alloc(NULL, len*2);
+    if (len > SIZE_MAX / 6) return;
+    char *new_buffer = mem_alloc(NULL, len*6+1);
     size_t j = 0;
     assert(new_buffer);
 
@@ -173,7 +174,14 @@ static void json_write_escaped (json_t *json, const char *buffer, size_t len, bo
             case '\r': JSON_ESCAPE ('r');   continue;
             case '\t': JSON_ESCAPE ('t');   continue;
 
-            default: new_buffer[j] = c; ++j;break;
+            default:
+                if ((unsigned char)c < 0x20) {
+                    // escape other control characters as \uXXXX
+                    j += snprintf(&new_buffer[j], 7, "\\u%04x", (unsigned char)c);
+                } else {
+                    new_buffer[j] = c; ++j;
+                }
+                break;
         };
     }
 
@@ -291,8 +299,18 @@ void json_add_double (json_t *json, const char *key, double value) {
     json_check_comma(json);
     
     char buffer[512];
-    // was %g but we don't like scientific notation nor the missing .0 in case of float number with no decimals
-    size_t len = snprintf(buffer, sizeof(buffer), "%f", value);
+    // Use %.17g for a lossless double round-trip (17 significant digits covers
+    // the full IEEE 754 range without precision loss that occurred with "%f").
+    // If the result contains no decimal point or exponent, append ".0" so the
+    // value is deserialized as a float rather than an integer.
+    size_t len = snprintf(buffer, sizeof(buffer), "%.17g", value);
+    bool has_dot_or_exp = false;
+    for (size_t i = 0; i < len; i++) {
+        if (buffer[i] == '.' || buffer[i] == 'e' || buffer[i] == 'E') { has_dot_or_exp = true; break; }
+    }
+    if (!has_dot_or_exp && len + 2 < sizeof(buffer)) {
+        buffer[len++] = '.'; buffer[len++] = '0'; buffer[len] = '\0';
+    }
 
     if (key) {
         json_write_raw (json, key, strlen(key), true, true);
@@ -448,6 +466,28 @@ static void * json_alloc (json_state * state, unsigned long size, int zero)
    return state->settings.memory_alloc (size, zero, state->settings.user_data);
 }
 
+/* During the first pass u.object.values does not hold a pointer yet: it is used as
+   a counter for the total size of the object key strings, and only new_value()
+   turns it into a real allocation on the second pass. Incrementing it as a pointer
+   means doing arithmetic on a null pointer, which is undefined behaviour and traps
+   any build compiled with -fsanitize=undefined (issue #448). Keep the tally in a
+   uintptr_t instead, copied in and out of the field so no aliasing rule is broken
+   and the layout of json_value is unchanged. uintptr_t also avoids truncating the
+   count on LLP64 targets, where unsigned long is narrower than a pointer. */
+
+static uintptr_t object_name_bytes_get (const json_value * value)
+{
+   uintptr_t bytes;
+   memcpy (&bytes, &value->u.object.values, sizeof (bytes));
+   return bytes;
+}
+
+static void object_name_bytes_add (json_value * value, uintptr_t size)
+{
+   uintptr_t bytes = object_name_bytes_get (value) + size;
+   memcpy (&value->u.object.values, &bytes, sizeof (bytes));
+}
+
 static int new_value (json_state * state,
                       json_value ** top, json_value ** root, json_value ** alloc,
                       json_type type)
@@ -487,12 +527,12 @@ static int new_value (json_state * state,
             values_size = sizeof (*value->u.object.values) * value->u.object.length;
 
             if (! (value->u.object.values = (json_object_entry *) json_alloc
-                  (state, values_size + ((unsigned long) value->u.object.values), 0)) )
+                  (state, values_size + (unsigned long) object_name_bytes_get (value), 0)) )
             {
                return 0;
             }
 
-            value->_reserved.object_mem = (*(char **) &value->u.object.values) + values_size;
+            value->_reserved.object_mem = (char *) value->u.object.values + values_size;
 
             value->u.object.length = 0;
             break;
@@ -566,6 +606,10 @@ static const long
    flag_num_e_negative   = 1 << 12,
    flag_line_comment     = 1 << 13,
    flag_block_comment    = 1 << 14;
+
+/* an exponent past this already saturates a double to inf or 0, so the
+   accumulator can be clamped here instead of being allowed to overflow */
+#define json_num_e_max  1000000
 
 json_value * json_parse_ex (json_settings * settings,
                             const json_char * json,
@@ -646,7 +690,10 @@ json_value * json_parse_ex (json_settings * settings,
                   case 't':  string_add ('\t');  break;
                   case 'u':
 
-                    if (end - state.ptr < 4 ||
+                    /* state.ptr sits on the `u`, so the four hex digits are at
+                       state.ptr[1..4]: the last one is in range only when at
+                       least 5 bytes are left */
+                    if (end - state.ptr < 5 ||
                         (uc_b1 = hex_value (*++ state.ptr)) == 0xFF ||
                         (uc_b2 = hex_value (*++ state.ptr)) == 0xFF ||
                         (uc_b3 = hex_value (*++ state.ptr)) == 0xFF ||
@@ -663,7 +710,8 @@ json_value * json_parse_ex (json_settings * settings,
                     if ((uchar & 0xF800) == 0xD800) {
                         json_uchar uchar2;
 
-                        if (end - state.ptr < 6 || (*++ state.ptr) != '\\' || (*++ state.ptr) != 'u' ||
+                        /* likewise the trailing surrogate spans state.ptr[1..6] */
+                        if (end - state.ptr < 7 || (*++ state.ptr) != '\\' || (*++ state.ptr) != 'u' ||
                             (uc_b1 = hex_value (*++ state.ptr)) == 0xFF ||
                             (uc_b2 = hex_value (*++ state.ptr)) == 0xFF ||
                             (uc_b3 = hex_value (*++ state.ptr)) == 0xFF ||
@@ -754,7 +802,7 @@ json_value * json_parse_ex (json_settings * settings,
                   case json_object:
 
                      if (state.first_pass)
-                        (*(json_char **) &top->u.object.values) += string_length + 1;
+                        object_name_bytes_add (top, string_length + 1);
                      else
                      {
                         top->u.object.values [top->u.object.length].name
@@ -763,7 +811,8 @@ json_value * json_parse_ex (json_settings * settings,
                         top->u.object.values [top->u.object.length].name_length
                            = string_length;
 
-                        (*(json_char **) &top->_reserved.object_mem) += string_length + 1;
+                        top->_reserved.object_mem =
+                           (char *) top->_reserved.object_mem + string_length + 1;
                      }
 
                      flags |= flag_seek_value | flag_need_colon;
@@ -942,7 +991,8 @@ json_value * json_parse_ex (json_settings * settings,
 
                      case 't':
 
-                        if ((end - state.ptr) < 3 || *(++ state.ptr) != 'r' ||
+                        /* state.ptr sits on the `t`, so `rue` spans state.ptr[1..3] */
+                        if ((end - state.ptr) < 4 || *(++ state.ptr) != 'r' ||
                             *(++ state.ptr) != 'u' || *(++ state.ptr) != 'e')
                         {
                            goto e_unknown_value;
@@ -958,7 +1008,8 @@ json_value * json_parse_ex (json_settings * settings,
 
                      case 'f':
 
-                        if ((end - state.ptr) < 4 || *(++ state.ptr) != 'a' ||
+                        /* `alse` spans state.ptr[1..4] */
+                        if ((end - state.ptr) < 5 || *(++ state.ptr) != 'a' ||
                             *(++ state.ptr) != 'l' || *(++ state.ptr) != 's' ||
                             *(++ state.ptr) != 'e')
                         {
@@ -973,7 +1024,8 @@ json_value * json_parse_ex (json_settings * settings,
 
                      case 'n':
 
-                        if ((end - state.ptr) < 3 || *(++ state.ptr) != 'u' ||
+                        /* `ull` spans state.ptr[1..3] */
+                        if ((end - state.ptr) < 4 || *(++ state.ptr) != 'u' ||
                             *(++ state.ptr) != 'l' || *(++ state.ptr) != 'l')
                         {
                            goto e_unknown_value;
@@ -1101,11 +1153,29 @@ json_value * json_parse_ex (json_settings * settings,
                      else
                      {
                         flags |= flag_num_e_got_sign;
-                        num_e = (num_e * 10) + (b - '0');
+
+                        if (num_e <= json_num_e_max)
+                           num_e = (num_e * 10) + (b - '0');
+
                         continue;
                      }
 
+                     if (top->u.integer > (JSON_INT_MAX - (b - '0')) / 10)
+                     {  snprintf (error, sizeof(error), "%d:%d: Integer literal is out of range", line_and_col);
+                        goto e_failed;
+                     }
+
                      top->u.integer = (top->u.integer * 10) + (b - '0');
+                     continue;
+                  }
+
+                  /* a double holds ~17 significant digits, so once the accumulator
+                     is full the remaining digits fall below the precision of the
+                     result: drop them, and keep num_digits (the fraction scale) in
+                     sync by not counting them */
+                  if (num_fraction > (JSON_INT_MAX - (b - '0')) / 10)
+                  {
+                     -- num_digits;
                      continue;
                   }
 

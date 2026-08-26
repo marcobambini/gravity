@@ -1,0 +1,29 @@
+#unittest {
+	name: "JSON parse and access.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Parse a simple JSON object
+	var json_str = '{"name":"gravity","version":1,"active":true}';
+	var obj = JSON.parse(json_str);
+
+	var r1 = (obj["name"] == "gravity");
+	var r2 = (obj["version"] == 1);
+	var r3 = (obj["active"] == true);
+
+	// Parse JSON array
+	var json_arr = '[1, 2, 3, 4, 5]';
+	var arr = JSON.parse(json_arr);
+	var r4 = (arr[0] == 1);
+	var r5 = (arr[4] == 5);
+	var r6 = (arr.count == 5);
+
+	// Parse null values
+	var json_null = '{"key":null}';
+	var obj2 = JSON.parse(json_null);
+	var r7 = (obj2["key"] == null);
+
+	return r1 and r2 and r3 and r4 and r5 and r6 and r7;
+}

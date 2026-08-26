@@ -12,17 +12,7 @@ func bridgeOptionalClasses(_ xdata: UnsafeMutableRawPointer?) -> UnsafeMutablePo
         return nil
     }
 
-    var names = vm.registredClasses().map { $0.toPointer() }
-    if names.isEmpty {
-        return nil
-    }
-    
-    let pointer = names.withUnsafeMutableBufferPointer { buffer in
-        let pointer = UnsafeMutablePointer<UnsafePointer<Int8>?>.allocate(capacity: buffer.count)
-        pointer.moveInitialize(from: buffer.baseAddress!, count: buffer.count)
-        return pointer
-    }
-    return pointer
+    return vm.optionalClassNamesPointer()
 }
 
 func logCallback(_ vmPointer: OpaquePointer?, message: UnsafePointer<CChar>?, xdata: UnsafeMutableRawPointer?) {
@@ -322,4 +312,3 @@ func bridgeGetUndefValue(
         return GravityReturn.error(error.localizedDescription, rIndex: Int32(vindex), vm: vm)
     }
 }
-

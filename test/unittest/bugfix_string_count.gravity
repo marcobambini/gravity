@@ -1,0 +1,30 @@
+#unittest {
+	name: "String.count with various inputs.";
+	result: true;
+};
+
+func main() {
+    var s = "hello world hello";
+
+    // count occurrences of a substring
+    var c1 = s.count("hello");
+    if (c1 != 2) return false;
+
+    // count single character ("hello world hello" has 5 l's)
+    var c2 = s.count("l");
+    if (c2 != 5) return false;
+
+    // count something not present
+    var c3 = s.count("xyz");
+    if (c3 != 0) return false;
+
+    // count empty string should return 0 (not crash)
+    var c4 = s.count("");
+    if (c4 != 0) return false;
+
+    // count on empty string
+    var c5 = "".count("a");
+    if (c5 != 0) return false;
+
+    return true;
+}

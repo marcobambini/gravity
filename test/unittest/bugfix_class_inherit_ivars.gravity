@@ -1,0 +1,27 @@
+#unittest {
+	name: "Class grow preserves inherited instance variables.";
+	result: 42;
+};
+
+class Base {
+    var value;
+    func init() {
+        value = 42;
+    }
+}
+
+class Child : Base {
+    var extra;
+    func init() {
+        super.init();
+        extra = 100;
+    }
+    func getBase() {
+        return value;
+    }
+}
+
+func main() {
+    var c = Child();
+    return c.getBase();
+}

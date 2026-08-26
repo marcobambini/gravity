@@ -1,0 +1,25 @@
+#unittest {
+	name: "Test Math.lcm() edge cases.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Basic cases
+	var r1 = Math.lcm(4, 6) == 12;
+	var r2 = Math.lcm(7, 5) == 35;
+
+	// Same number
+	var r3 = Math.lcm(8, 8) == 8;
+
+	// One is a multiple of the other
+	var r4 = Math.lcm(3, 9) == 9;
+
+	// Coprime numbers
+	var r5 = Math.lcm(7, 11) == 77;
+
+	// Larger numbers that would overflow with naive x*y approach
+	var r6 = Math.lcm(1000, 1500) == 3000;
+
+	return r1 and r2 and r3 and r4 and r5 and r6;
+}

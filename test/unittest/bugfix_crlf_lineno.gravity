@@ -1,0 +1,18 @@
+#unittest {
+	name: "Row reported with CR+LF line endings (issue #389).";
+	error: SEMANTIC;
+	error_row: 17;
+	error_col: 17;
+};
+
+// This file is stored with CR+LF line endings on purpose, see .gitattributes.
+// A CR+LF pair is a single line break: counting the CR and the LF as two of
+// them used to shift every row the compiler reports, by one per line read so
+// far, which made error messages on Windows sources point nowhere near the
+// offending statement.
+
+func main() {
+	var a = 1;
+	var b = 2;
+	return a + b + undefined_symbol_here;
+}

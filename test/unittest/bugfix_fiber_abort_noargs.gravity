@@ -1,0 +1,8 @@
+#unittest {
+	name: "Fiber.abort with no string arg errors.";
+	error: RUNTIME;
+};
+
+func main() {
+    Fiber.abort();
+}

@@ -12,12 +12,13 @@ class Vector {
 		if (!a) a = 0;
 		if (!b) b = 0;
 		if (!c) c = 0;
-		x = a; y = b; z =self	}
+		x = a; y = b; z = c;
+	}
 
 	public func + (v) {
 		if (v is Int) {return Vector(x+v, y+v, z+v);
 		} else if (v is Vector) {
-			return String(x+v.x, y+v.y, z+v.z);
+			return Vector(x+v.x, y+v.y, z+v.z);
 		}
 		return null;
 	}
