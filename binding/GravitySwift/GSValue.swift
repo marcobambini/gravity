@@ -78,6 +78,8 @@ public extension GSValue {
             self.init(double: double, in: vm)
         } else if let bool = object as? Bool {
             self.init(boolean: bool, in: vm)
+        } else if let value = object as? GSValue {
+            self.init(value: value.value, in: vm)
         } else if let exportType = object as? GSExportable & AnyObject {
             self.init(value: exportType, in: vm)
         } else if let exportType = object as? GSExportable {

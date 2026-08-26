@@ -58,10 +58,37 @@ struct GravityVirtualMachineTests {
 
         #expect(releasedObject == nil)
     }
+
+    @Test("Returns an existing Gravity value from a Swift method")
+    func returnsGravityValueFromSwiftMethod() throws {
+        let delegate = TestVirtualMachineDelegate()
+        let virtualMachine = GravityVirtualMachine(settings: .init(), delegate: delegate)
+        try virtualMachine.bindClass(with: ValueEcho.self)
+        virtualMachine.setValue(ValueEcho(), forKey: "echo")
+        let binary = virtualMachine.loadGravityFile(from: """
+        extern var echo;
+
+        func main() {
+            return echo.value([40, 2])[1];
+        }
+        """)
+
+        let result = try #require(virtualMachine.execute(binary))
+
+        #expect(delegate.errors.isEmpty)
+        #expect(result.toInteger == 2)
+    }
 }
 
 @GSExportable
 private final class TeardownProbe {}
+
+@GSExportable
+private final class ValueEcho {
+    func value(_ value: GSValue) -> GSValue {
+        value
+    }
+}
 
 private final class TestVirtualMachineDelegate: GravityVirtualMachineDelegate {
     private(set) var errors: [String] = []
