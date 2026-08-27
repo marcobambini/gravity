@@ -48,6 +48,9 @@ typedef struct semacheck_t semacheck_t;
 
 // MARK: -
 
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 4, 5)))
+#endif
 static void report_error (gvisitor_t *self, error_type_t error_type, gnode_t *node, const char *format, ...) {
     semacheck_t *current = (semacheck_t *)self->data;
     
@@ -792,7 +795,7 @@ static void visit_function_decl (gvisitor_t *self, gnode_function_decl_t *node) 
     // check upvalue limit
     uint32_t nupvalues = (node->uplist) ? (uint32_t)marray_size(*node->uplist) : 0;
     if (nupvalues > MAX_UPVALUES) REPORT_ERROR(node, "Maximum number of upvalues reached in function %s (max:%d found:%d).",
-                                               node->identifier, MAX_LOCALS, nupvalues);
+                                               node->identifier, MAX_UPVALUES, nupvalues);
 
     POP_DECLARATION();
 

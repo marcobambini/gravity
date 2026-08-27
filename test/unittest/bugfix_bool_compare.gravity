@@ -1,0 +1,29 @@
+#unittest {
+	name: "Bool ordered comparison.";
+	result: true;
+};
+
+func main() {
+    // equality (was already correct)
+    var r1 = (true == true);
+    var r2 = (true != false);
+
+    // ordered comparisons (were broken: fast-path only checked equality)
+    var r3 = (true > false);    // 1 > 0 = true
+    var r4 = (true < false);    // 1 < 0 = false
+    var r5 = (true <= true);    // 1 <= 1 = true
+    var r6 = (true >= true);    // 1 >= 1 = true
+    var r7 = (false < true);    // 0 < 1 = true
+    var r8 = (false >= true);   // 0 >= 1 = false
+
+    if (!r1) return false;
+    if (!r2) return false;
+    if (!r3) return false;
+    if (r4)  return false;
+    if (!r5) return false;
+    if (!r6) return false;
+    if (!r7) return false;
+    if (r8)  return false;
+
+    return true;
+}

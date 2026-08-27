@@ -78,6 +78,8 @@ public extension GSValue {
             self.init(double: double, in: vm)
         } else if let bool = object as? Bool {
             self.init(boolean: bool, in: vm)
+        } else if let value = object as? GSValue {
+            self.init(value: value.value, in: vm)
         } else if let exportType = object as? GSExportable & AnyObject {
             self.init(value: exportType, in: vm)
         } else if let exportType = object as? GSExportable {
@@ -333,7 +335,7 @@ public extension GSValue {
         
         let instance = self.toGravityInstance
         let closure = name.withCString { ptr in
-            gravity_instance_lookup_event(instance, name.toPointer())
+            gravity_instance_lookup_event(instance, ptr)
         }
         
         guard let closure = closure else {
@@ -400,11 +402,16 @@ extension GSValue: Equatable {
 public extension GSValue {
     @discardableResult
     func callMethod(named name: String, with args: [Any]) -> GSValue? {
-        if self.hasMethod(named: name) {
+        guard self.isInstance else {
             return nil
         }
-        
-        let closure = self.toGravityClosure
+
+        let instance = self.toGravityInstance
+        guard let closure = name.withCString({ ptr in
+            gravity_instance_lookup_event(instance, ptr)
+        }) else {
+            return nil
+        }
         let arguments = args.map { GSValue(object: $0, in: self.vm) }
         
         return self.vm.execute(closure: closure, sender: self, params: arguments)
@@ -436,11 +443,11 @@ public extension GSValue {
     }
     
     var isInteger: Bool {
-        return gravity_value_isa_float(self.value)
+        return gravity_value_isa_int(self.value)
     }
     
     var isDouble: Bool {
-        return gravity_value_isa_int(self.value)
+        return gravity_value_isa_float(self.value)
     }
     
     var isFunction: Bool {

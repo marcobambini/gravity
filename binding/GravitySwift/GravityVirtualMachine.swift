@@ -11,6 +11,8 @@ import Foundation
 /// Gravity Virtual Machine.
 public final class GravityVirtualMachine {
     private var bridgeClassDescriptors: [String: GravityBridgeClassDescriptor] = [:]
+    private var optionalClassNameStorage: [UnsafeMutablePointer<CChar>] = []
+    private var optionalClassList: UnsafeMutablePointer<UnsafePointer<CChar>?>?
     
     public struct Settings {
         public var reportNullErrors: Bool
@@ -64,6 +66,7 @@ public final class GravityVirtualMachine {
     deinit {
         Self.unregister(self)
         gravity_vm_free(self.vmPtr)
+        releaseOptionalClassNames()
     }
     
     // MARK: - Public
@@ -180,6 +183,8 @@ public extension GravityVirtualMachine {
             self.setValue(descriptor.gClass, forKey: descriptor.registredName)
             self.bridgeClassDescriptors[descriptor.registredName] = descriptor
         }
+
+        rebuildOptionalClassNames()
     }
 
     /// Set value to gravity virtual machine.
@@ -251,21 +256,86 @@ extension GravityVirtualMachine {
     func registredClasses() -> [String] {
         return Array(bridgeClassDescriptors.keys)
     }
+
+    func optionalClassNamesPointer() -> UnsafeMutablePointer<UnsafePointer<CChar>?> {
+        if optionalClassList == nil {
+            rebuildOptionalClassNames()
+        }
+        return optionalClassList!
+    }
+
+    private func rebuildOptionalClassNames() {
+        releaseOptionalClassNames()
+
+        optionalClassNameStorage = bridgeClassDescriptors.keys.sorted().map { name in
+            let bytes = name.utf8CString
+            let pointer = UnsafeMutablePointer<CChar>.allocate(capacity: bytes.count)
+            bytes.withUnsafeBufferPointer { buffer in
+                pointer.initialize(from: buffer.baseAddress!, count: buffer.count)
+            }
+            return pointer
+        }
+
+        let list = UnsafeMutablePointer<UnsafePointer<CChar>?>.allocate(capacity: optionalClassNameStorage.count + 1)
+        for (index, pointer) in optionalClassNameStorage.enumerated() {
+            list[index] = UnsafePointer(pointer)
+        }
+        list[optionalClassNameStorage.count] = nil
+        optionalClassList = list
+    }
+
+    private func releaseOptionalClassNames() {
+        optionalClassList?.deallocate()
+        optionalClassList = nil
+        optionalClassNameStorage.forEach { $0.deallocate() }
+        optionalClassNameStorage.removeAll(keepingCapacity: false)
+    }
 }
 
 extension GravityVirtualMachine {
-    nonisolated(unsafe) private static var virtualMachines: [GravityVirtualMachine] = []
+    private final class WeakVirtualMachine {
+        weak var value: GravityVirtualMachine?
+
+        init(_ value: GravityVirtualMachine) {
+            self.value = value
+        }
+    }
+
+    private final class VirtualMachineRegistry: @unchecked Sendable {
+        private let lock = NSLock()
+        private var virtualMachines: [OpaquePointer: WeakVirtualMachine] = [:]
+
+        func virtualMachine(for pointer: OpaquePointer) -> GravityVirtualMachine? {
+            lock.lock()
+            defer { lock.unlock() }
+            return virtualMachines[pointer]?.value
+        }
+
+        func register(_ virtualMachine: GravityVirtualMachine) {
+            lock.lock()
+            defer { lock.unlock() }
+            virtualMachines[virtualMachine.vmPtr] = WeakVirtualMachine(virtualMachine)
+        }
+
+        func unregister(_ virtualMachine: GravityVirtualMachine) {
+            lock.lock()
+            defer { lock.unlock() }
+            virtualMachines.removeValue(forKey: virtualMachine.vmPtr)
+        }
+    }
+
+    private static let registry = VirtualMachineRegistry()
     
     nonisolated static func getVM(_ pointer: OpaquePointer) -> GravityVirtualMachine? {
-        self.virtualMachines.first(where: { $0.vmPtr == pointer })
+        registry.virtualMachine(for: pointer)
     }
     
     nonisolated static func register(_ vm: GravityVirtualMachine) {
-        self.virtualMachines.append(vm)
+        registry.register(vm)
     }
     
     nonisolated static func unregister(_ vm: GravityVirtualMachine) {
-        self.virtualMachines.removeAll(where: { $0.vmPtr == vm.vmPtr })
+        registry.unregister(vm)
     }
 }
 

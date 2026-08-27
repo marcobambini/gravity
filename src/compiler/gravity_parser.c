@@ -7,6 +7,10 @@
 //
 
 #include "gravity_symboltable.h"
+#define GRAVITY_INCLUDE_MATH
+#define GRAVITY_INCLUDE_JSON
+#define GRAVITY_INCLUDE_ENV
+#define GRAVITY_INCLUDE_FILE
 #include "../optionals/gravity_optionals.h"
 #include "gravity_parser.h"
 #include "../shared/gravity_macros.h"
@@ -168,6 +172,7 @@ static void report_error (gravity_parser_t *parser, error_type_t error_type, gto
 
     // build error message
     char buffer[1024];
+    buffer[0] = 0;
     va_list arg;
     if (format) {
         va_start (arg, format);
@@ -438,6 +443,7 @@ static gnode_t *parse_file_expression (gravity_parser_t *parser) {
         gravity_lexer_next(lexer); // consume TOK_OP_DOT
         const char *identifier = parse_identifier(parser);
         if (!identifier) {
+            cstring_array_free(list);
             mem_free(list);
             return NULL;
         }
@@ -674,7 +680,9 @@ static gnode_t *parse_number_expression (gravity_parser_t *parser, gtoken_s toke
     int64_t        n = 0;
     double        d = 0;
 
-    if (value[0] == '0') {
+    // token.value points directly into the source buffer, which is not guaranteed to be
+    // zero terminated, so make sure the token is at least 2 bytes before peeking at value[1]
+    if ((token.bytes > 1) && (value[0] == '0')) {
         int c = toupper(value[1]);
         if (c == 'B') {type = decode_number_binary(token, &n); goto report_node;}
         else if (c == 'O') {type = decode_number_octal(token, &n); goto report_node;}
@@ -740,7 +748,7 @@ static gnode_t *parse_analyze_literal_string (gravity_parser_t *parser, gtoken_s
     gnode_r *r = NULL;
 
     // analyze s (of length len) for escaped characters or for interpolations
-    char *buffer = mem_alloc(NULL, len+1);
+    char *buffer = mem_alloc(NULL, len*4+1);
     uint32_t length = 0;
 
     for (uint32_t i=0; i<len;) {
@@ -862,7 +870,11 @@ return_string:
     if (r && length) gnode_array_push(r, gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION()));
 
     // return a node (even in case of error) so its memory will be automatically freed
-    return (r) ? gnode_string_interpolation_create(token, r, LAST_DECLARATION()) : gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION());
+    if (r) {
+        if (!length) mem_free(buffer);
+        return gnode_string_interpolation_create(token, r, LAST_DECLARATION());
+    }
+    return gnode_literal_string_expr_create(token, buffer, length, true, LAST_DECLARATION());
 }
 
 gnode_t *parse_literal_expression (gravity_parser_t *parser) {
@@ -1347,7 +1359,11 @@ static gnode_t *parse_variable_declaration (gravity_parser_t *parser, bool issta
 
 loop:
     identifier = parse_identifier(parser);
-    if (!identifier) return NULL;
+    if (!identifier) {
+        gnode_free((gnode_t *)node);
+        gnode_array_free(decls);
+        return NULL;
+    }
     token2 = gravity_lexer_token(lexer);
 
     // type annotation is optional so it can be NULL

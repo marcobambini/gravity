@@ -1,2 +1,6 @@
 *.gravity linguist-language=swift
 *.gravity linguist-vendored
+
+# this test is about how CR+LF line endings are counted, so it has to reach the
+# working directory byte for byte, whatever core.autocrlf is set to
+test/unittest/bugfix_crlf_lineno.gravity -text

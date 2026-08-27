@@ -1,0 +1,24 @@
+#unittest {
+	name: "Test Math.xrt() with float arguments.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Test int+int (already covered)
+	var r1 = Math.xrt(2, 9) == 3;
+
+	// Test int+float
+	var r2 = Math.xrt(2.0, 16);
+	var r2ok = (r2 > 3.99 && r2 < 4.01);
+
+	// Test float+int
+	var r3 = Math.xrt(2, 25.0);
+	var r3ok = (r3 > 4.99 && r3 < 5.01);
+
+	// Test float+float (was previously dead code due to duplicate condition)
+	var r4 = Math.xrt(2.0, 100.0);
+	var r4ok = (r4 > 9.99 && r4 < 10.01);
+
+	return r1 and r2ok and r3ok and r4ok;
+}

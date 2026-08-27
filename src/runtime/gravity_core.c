@@ -68,6 +68,7 @@
 
 static bool core_inited = false;        // initialize global classes just once
 static uint32_t refcount = 0;           // protect deallocation of global classes
+static uint32_t opt_refcount = 0;       // outstanding gravity_opt_register calls (not yet balanced by a gravity_opt_free)
 
 // boxed
 gravity_class_t *gravity_class_int;
@@ -173,7 +174,7 @@ static bool convert_object_string (gravity_vm *vm, gravity_value_t *args, uint16
     RETURN_VALUE(v, rindex);
 }
 
-static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
+static gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t *map) {
     // allocate initial memory to a 512 buffer
     uint32_t len = 512;
     char *buffer = mem_alloc(NULL, len+1);
@@ -218,7 +219,9 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
         // check if buffer needs to be reallocated
         if (len1 + len2 + pos + 4 > len) {
             len = (len1 + len2 + pos + 4) + len;
-            buffer = mem_realloc(NULL, buffer, len);
+            char *_tmp = mem_realloc(NULL, buffer, len);
+            if (!_tmp) { mem_free(buffer); return VALUE_FROM_ERROR("Out of memory"); }
+            buffer = _tmp;
         }
 
         // copy key string to new buffer
@@ -249,7 +252,7 @@ static inline gravity_value_t convert_map2string (gravity_vm *vm, gravity_map_t 
     return result;
 }
 
-static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list) {
+static gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_t *list) {
     // allocate initial memory to a 512 buffer
     uint32_t len = 512;
     char *buffer = mem_alloc(NULL, len+1);
@@ -274,7 +277,9 @@ static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_
         // check if buffer needs to be reallocated
         if (len1+pos+2 > len) {
             len = (len1+pos+2) + len;
-            buffer = mem_realloc(NULL, buffer, len);
+            char *_tmp = mem_realloc(NULL, buffer, len);
+            if (!_tmp) { mem_free(buffer); return VALUE_FROM_ERROR("Out of memory"); }
+            buffer = _tmp;
         }
 
         // copy string to new buffer
@@ -297,7 +302,7 @@ static inline gravity_value_t convert_list2string (gravity_vm *vm, gravity_list_
     return result;
 }
 
-inline gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_INT(v)) return v;
 
     // handle conversion for basic classes
@@ -320,7 +325,7 @@ inline gravity_value_t convert_value2int (gravity_vm *vm, gravity_value_t v) {
     return VALUE_FROM_ERROR(NULL);
 }
 
-inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_FLOAT(v)) return v;
 
     // handle conversion for basic classes
@@ -343,7 +348,7 @@ inline gravity_value_t convert_value2float (gravity_vm *vm, gravity_value_t v) {
     return VALUE_FROM_ERROR(NULL);
 }
 
-inline gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_BOOL(v)) return v;
 
     // handle conversion for basic classes
@@ -370,7 +375,7 @@ inline gravity_value_t convert_value2bool (gravity_vm *vm, gravity_value_t v) {
     return VALUE_FROM_ERROR(NULL);
 }
 
-inline gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) {
+gravity_value_t convert_value2string (gravity_vm *vm, gravity_value_t v) {
     if (VALUE_ISA_STRING(v)) return v;
 
     // handle conversion for basic classes
@@ -1019,12 +1024,20 @@ static bool list_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     if ((uint32_t)index >= count) {
         // handle list resizing here
         marray_resize(gravity_value_t, list->array, index-count+MIN_LIST_RESIZE);
-        if (!list->array.p) RETURN_ERROR("Not enough memory to resize List.");
+        // marray_resize leaves both p and m untouched when the realloc fails, so p is still
+        // the old, smaller (and non NULL) buffer: checking it for NULL does not detect the
+        // failure, and the writes below would then run past the end of that allocation.
+        // Check the capacity actually obtained instead
+        if (marray_max(list->array) <= (size_t)index) RETURN_ERROR("Not enough memory to resize List.");
         marray_nset(list->array, index+1);
-        for (int32_t i=count; i<=(index+MIN_LIST_RESIZE); ++i) {
+        // fill the gap left by the resize. The bound is the capacity actually obtained
+        // rather than index+MIN_LIST_RESIZE: the two agree only as long as the array had
+        // spare capacity before the resize, which holds for every list the runtime builds
+        // today but is not something this loop should have to depend on
+        for (size_t i=count; i<marray_max(list->array); ++i) {
             marray_set(list->array, i, VALUE_FROM_NULL);
         }
-        marray_set(list->array, index, value);
+        // value is set unconditionally below
     }
 
     marray_set(list->array, index, value);
@@ -1097,6 +1110,8 @@ static bool list_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t 
     #pragma unused(vm, nargs)
     gravity_list_t *list = VALUE_AS_LIST(GET_VALUE(0));
     register int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+    size_t count = marray_size(list->array);
+    if (index < 0 || (size_t)index >= count) RETURN_VALUE(VALUE_FROM_NULL, rindex);
     RETURN_VALUE(marray_get(list->array, index), rindex);
 }
 
@@ -1602,7 +1617,7 @@ static bool range_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     #pragma unused(vm, nargs)
     gravity_range_t *range = VALUE_AS_RANGE(GET_VALUE(0));
 
-    // check for invalid range first
+    // check for empty/backward range (half-open ranges like 0..<0 create from > to)
     if (range->to < range->from) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
 
     // check for start of iteration
@@ -1641,7 +1656,9 @@ static bool range_contains (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     // check error condition
     if (!VALUE_ISA_INT(value)) RETURN_ERROR("A numeric value is expected.");
 
-    RETURN_VALUE(VALUE_FROM_BOOL((value.n >= range->from) && (value.n <= range->to)), rindex);
+    gravity_int_t lo = (range->from < range->to) ? range->from : range->to;
+    gravity_int_t hi = (range->from < range->to) ? range->to : range->from;
+    RETURN_VALUE(VALUE_FROM_BOOL((value.n >= lo) && (value.n <= hi)), rindex);
 }
 
 static bool range_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -1812,8 +1829,7 @@ static bool function_exec (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
     // DEFAULT_MINSTACK_SIZE is 256 and in case of a 256 function arguments a maximum registers error would be returned
     // so I can assume to be always safe here
     while (nargs < func->nparams) {
-        uint32_t index = (func->nparams - nargs);
-        args[index] = VALUE_FROM_UNDEFINED;
+        args[nargs] = VALUE_FROM_UNDEFINED;
         ++nargs;
     }
     
@@ -2014,14 +2030,14 @@ static bool operator_int_add (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
     INTERNAL_CONVERT_INT(v2, true);
-    RETURN_VALUE(VALUE_FROM_INT(v1.n + v2.n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_ADD(v1.n, v2.n)), rindex);
 }
 
 static bool operator_int_sub (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
     INTERNAL_CONVERT_INT(v2, true);
-    RETURN_VALUE(VALUE_FROM_INT(v1.n - v2.n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_SUB(v1.n, v2.n)), rindex);
 }
 
 static bool operator_int_div (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2037,7 +2053,7 @@ static bool operator_int_mul (gravity_vm *vm, gravity_value_t *args, uint16_t na
     #pragma unused (nargs)
     DECLARE_2VARIABLES(v1, v2, 0, 1);
     INTERNAL_CONVERT_INT(v2, true);
-    RETURN_VALUE(VALUE_FROM_INT(v1.n * v2.n), rindex);
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_MUL(v1.n, v2.n)), rindex);
 }
 
 static bool operator_int_rem (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2067,7 +2083,8 @@ static bool operator_int_or (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 
 static bool operator_int_neg (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
-    RETURN_VALUE(VALUE_FROM_INT(-GET_VALUE(0).n), rindex);
+    // negating GRAVITY_INT_MIN overflows just like the binary operators above
+    RETURN_VALUE(VALUE_FROM_INT(GRAVITY_INT_NEG(GET_VALUE(0).n)), rindex);
 }
 
 static bool operator_int_not (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -2128,17 +2145,17 @@ static bool int_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         already_seeded = true;
     }
 
-    int r;
+    gravity_int_t r;
     // if num1 is lower, consider it min, otherwise, num2 is min
     if (num1 < num2) {
         // returns a random integer between num1 and num2 inclusive
-        r = (int)((rand() % (num2 - num1 + 1)) + num1);
+        r = (gravity_int_t)((rand() % (num2 - num1 + 1)) + num1);
     }
     else if (num1 > num2) {
-        r = (int)((rand() % (num1 - num2 + 1)) + num2);
+        r = (gravity_int_t)((rand() % (num1 - num2 + 1)) + num2);
     }
     else {
-        r = (int)num1;
+        r = num1;
     }
     RETURN_VALUE(VALUE_FROM_INT(r), rindex);
 }
@@ -2447,28 +2464,22 @@ static bool string_count (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     gravity_string_t *main_str = VALUE_AS_STRING(GET_VALUE(0));
     gravity_string_t *str_to_count = VALUE_AS_STRING(GET_VALUE(1));
 
-    int j = 0;
-    int count = 0;
+    // empty search string: return 0
+    if (str_to_count->len == 0) RETURN_VALUE(VALUE_FROM_INT(0), rindex);
 
-    // iterate through whole string
-    for (int i = 0; i < main_str->len; ++i) {
-        if (main_str->s[i] == str_to_count->s[j]) {
-            // if the characters match and we are on the last character of the search
-            // string, then we have found a match
-            if (j == str_to_count->len - 1) {
-                ++count;
-                j = 0;
-                continue;
-            }
-        }
-        // reset if it isn't a match
-        else {
-            j = 0;
-            continue;
-        }
-        // move forward in the search string if we found a match but we aren't
-        // finished checking all the characters of the search string yet
-        ++j;
+    int count = 0;
+    const char *p = main_str->s;
+    uint32_t remaining = main_str->len;
+    uint32_t needle_len = str_to_count->len;
+
+    // find all non-overlapping occurrences using strstr
+    while (remaining >= needle_len) {
+        char *found = string_strnstr(p, str_to_count->s, remaining);
+        if (!found) break;
+        ++count;
+        uint32_t advance = (uint32_t)(found - p) + needle_len;
+        p = found + needle_len;
+        remaining -= advance;
     }
 
     RETURN_VALUE(VALUE_FROM_INT(count), rindex);
@@ -2487,7 +2498,11 @@ static bool string_repeat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
     }
 
     // figure out the size of the array we need to make to hold the new string
-    uint32_t new_size = (uint32_t)(main_str->len * times_to_repeat);
+    uint64_t computed_size = (uint64_t)main_str->len * (uint64_t)times_to_repeat;
+    if (computed_size > UINT32_MAX) {
+        RETURN_ERROR("String.repeat() would exceed maximum string size");
+    }
+    uint32_t new_size = (uint32_t)computed_size;
     char *new_str = mem_alloc(vm, new_size+1);
     CHECK_MEM_ALLOC(new_str);
 
@@ -2516,7 +2531,7 @@ static bool string_upper (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
     // if no arguments passed, change the whole string to uppercase
     if (nargs == 1) {
-        for (int i = 0; i <= main_str->len; ++i) {
+        for (int i = 0; i < main_str->len; ++i) {
          ret[i] = toupper(ret[i]);
         }
     }
@@ -2555,7 +2570,7 @@ static bool string_lower (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
 
     // if no arguments passed, change the whole string to lowercase
     if (nargs == 1) {
-        for (int i = 0; i <= main_str->len; ++i) {
+        for (int i = 0; i < main_str->len; ++i) {
          ret[i] = tolower(ret[i]);
         }
     }
@@ -2626,7 +2641,7 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
         // Reverse the string, and reverse the indices
         first_index = original_len - first_index -1;
 
-        // reverse the String
+        // reverse the String (UTF-8 aware: reverse whole bytes first, then fix multi-byte sequences)
         int i = original_len - 1;
         int j = 0;
         char c;
@@ -2636,6 +2651,39 @@ static bool string_loadat (gravity_vm *vm, gravity_value_t *args, uint16_t nargs
             original[j] = c;
             --i;
             ++j;
+        }
+        // fix multi-byte UTF-8 sequences that were reversed byte-by-byte
+        for (uint32_t k = 0; k < original_len; ) {
+            unsigned char ch = (unsigned char)original[k];
+            int seq_len = 1;
+            if (ch >= 0xF0) seq_len = 4;
+            else if (ch >= 0xE0) seq_len = 3;
+            else if (ch >= 0xC0) seq_len = 2;
+            // after byte-reversal, lead bytes of multi-byte sequences end up at the end
+            // of their sequence; detect continuation bytes (10xxxxxx) which indicate a
+            // reversed multi-byte sequence and find the lead byte to determine length
+            if ((ch & 0xC0) == 0x80) {
+                // continuation byte: scan forward to find the lead byte
+                int end = k + 1;
+                while (end < (int)original_len && ((unsigned char)original[end] & 0xC0) == 0x80) ++end;
+                if (end < (int)original_len) {
+                    unsigned char lead = (unsigned char)original[end];
+                    if (lead >= 0xF0) seq_len = 4;
+                    else if (lead >= 0xE0) seq_len = 3;
+                    else if (lead >= 0xC0) seq_len = 2;
+                    // reverse the bytes within this multi-byte sequence to restore correct order
+                    int lo = k, hi = k + seq_len - 1;
+                    while (lo < hi) {
+                        char tmp = original[lo];
+                        original[lo] = original[hi];
+                        original[hi] = tmp;
+                        ++lo; --hi;
+                    }
+                }
+                k += seq_len;
+            } else {
+                k += seq_len;
+            }
         }
 
         gravity_value_t s = VALUE_FROM_STRING(vm, original + first_index, substr_len);
@@ -2760,9 +2808,10 @@ static bool string_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
     nanotime_t t1 = nanotime();
     while (i < n) {
-        gravity_value_t v_str = VALUE_FROM_STRING(vm, str + i, 1);
+        uint32_t clen = utf8_charbytes(str + i, 0);
+        gravity_value_t v_str = VALUE_FROM_STRING(vm, str + i, clen);
         if (!gravity_vm_runclosure(vm, closure, value, &v_str, 1)) return false;
-        ++i;
+        i += clen;
     }
     nanotime_t t2 = nanotime();
     RETURN_VALUE(VALUE_FROM_INT(t2-t1), rindex);
@@ -2786,9 +2835,12 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 
     // compute new value
     gravity_int_t index = value.n;
+    if (index < 0 || (uint32_t)index >= string->len) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     if (index+1 < string->len) {
         uint32_t n = utf8_charbytes(string->s + index, 0);
         index += n;
+        // after advancing, check if new index is still within bounds
+        if ((uint32_t)index >= string->len) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     } else {
         RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     }
@@ -2800,7 +2852,9 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
 static bool string_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     #pragma unused(vm, nargs)
     gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
-    int32_t index = (int32_t)VALUE_AS_INT(GET_VALUE(1));
+    gravity_int_t raw_index = VALUE_AS_INT(GET_VALUE(1));
+    if (raw_index < 0 || (uint32_t)raw_index >= string->len) RETURN_VALUE(VALUE_FROM_NULL, rindex);
+    int32_t index = (int32_t)raw_index;
     uint32_t n = utf8_charbytes(string->s + index, 0);
     RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, n), rindex);
 }
@@ -3013,7 +3067,7 @@ static bool fiber_elapsed_time (gravity_vm *vm, gravity_value_t *args, uint16_t 
 }
 
 static bool fiber_abort (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    gravity_value_t msg = (nargs > 0) ? GET_VALUE(1) : VALUE_FROM_NULL;
+    gravity_value_t msg = (nargs > 1) ? GET_VALUE(1) : VALUE_FROM_NULL;
     if (!VALUE_ISA_STRING(msg)) RETURN_ERROR("Fiber.abort expects a string as argument.");
 
     gravity_string_t *s = VALUE_AS_STRING(msg);
@@ -3166,7 +3220,10 @@ static bool system_input (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     char buffer[1024];
     if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
         // remove trailing newline captured by fgets (default true)
-        if (remove_trailing) buffer[strlen(buffer) - 1] = 0;
+        if (remove_trailing) {
+            size_t len = strlen(buffer);
+            if (len > 0 && buffer[len - 1] == '\n') buffer[len - 1] = 0;
+        }
         RETURN_VALUE(VALUE_FROM_CSTRING(vm, buffer), rindex);
     }
     
@@ -3329,8 +3386,13 @@ void gravity_core_init (void) {
     gravity_class_bind(gravity_class_object, "clone", NEW_CLOSURE_VALUE(object_clone));
 
     // INTROSPECTION support added to OBJECT CLASS
-    gravity_class_bind(gravity_class_object, "class", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(object_class), NULL)));
-    gravity_class_bind(gravity_class_object, "meta", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(object_meta), NULL)));
+    // NOTE: VALUE_FROM_OBJECT is a macro that can evaluate its argument twice
+    // (non GRAVITY_USE_HIDDEN_INITIALIZERS build), so computed_property_create
+    // must never be called inline inside it (it would create a leaked duplicate)
+    gravity_closure_t *object_class_closure = computed_property_create(NULL, NEW_FUNCTION(object_class), NULL);
+    gravity_class_bind(gravity_class_object, "class", VALUE_FROM_OBJECT(object_class_closure));
+    gravity_closure_t *object_meta_closure = computed_property_create(NULL, NEW_FUNCTION(object_meta), NULL);
+    gravity_class_bind(gravity_class_object, "meta", VALUE_FROM_OBJECT(object_meta_closure));
     gravity_class_bind(gravity_class_object, "respondTo", NEW_CLOSURE_VALUE(object_respond));
     gravity_class_bind(gravity_class_object, "methods", NEW_CLOSURE_VALUE(object_methods));
     gravity_class_bind(gravity_class_object, "properties", NEW_CLOSURE_VALUE(object_properties));
@@ -3434,8 +3496,10 @@ void gravity_core_init (void) {
     gravity_class_t *int_meta = gravity_class_get_meta(gravity_class_int);
     gravity_class_bind(int_meta, "random", NEW_CLOSURE_VALUE(int_random));
     gravity_class_bind(int_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(int_exec));
-    gravity_class_bind(int_meta, "min", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(int_min), NULL)));
-    gravity_class_bind(int_meta, "max", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(int_max), NULL)));
+    gravity_closure_t *int_min_closure = computed_property_create(NULL, NEW_FUNCTION(int_min), NULL);
+    gravity_class_bind(int_meta, "min", VALUE_FROM_OBJECT(int_min_closure));
+    gravity_closure_t *int_max_closure = computed_property_create(NULL, NEW_FUNCTION(int_max), NULL);
+    gravity_class_bind(int_meta, "max", VALUE_FROM_OBJECT(int_max_closure));
     
     // FLOAT CLASS
     gravity_class_bind(gravity_class_float, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_float_add));
@@ -3459,8 +3523,10 @@ void gravity_core_init (void) {
     // Meta
     gravity_class_t *float_meta = gravity_class_get_meta(gravity_class_float);
     gravity_class_bind(float_meta, GRAVITY_INTERNAL_EXEC_NAME, NEW_CLOSURE_VALUE(float_exec));
-    gravity_class_bind(float_meta, "min", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(float_min), NULL)));
-    gravity_class_bind(float_meta, "max", VALUE_FROM_OBJECT(computed_property_create(NULL, NEW_FUNCTION(float_max), NULL)));
+    gravity_closure_t *float_min_closure = computed_property_create(NULL, NEW_FUNCTION(float_min), NULL);
+    gravity_class_bind(float_meta, "min", VALUE_FROM_OBJECT(float_min_closure));
+    gravity_closure_t *float_max_closure = computed_property_create(NULL, NEW_FUNCTION(float_max), NULL);
+    gravity_class_bind(float_meta, "max", VALUE_FROM_OBJECT(float_max_closure));
 
     // BOOL CLASS
     gravity_class_bind(gravity_class_bool, GRAVITY_OPERATOR_ADD_NAME, NEW_CLOSURE_VALUE(operator_bool_add));
@@ -3587,13 +3653,22 @@ void gravity_core_init (void) {
 }
 
 void gravity_core_free (void) {
-    // free optionals first
-    gravity_opt_free();
-
     if (!core_inited) return;
 
     // check if others VM are still running
     if (--refcount) return;
+
+    // free optionals after refcount check — avoids double-free when mini-VM
+    // in gravity_compiler_reset() has already freed GC objects via internal_vm_cleanup
+    // each optional class keeps its own refcount, incremented once per gravity_opt_register
+    // (so once per gravity_core_register), but this point is reached only on the very last
+    // teardown: balance every outstanding registration here, otherwise the optional classes
+    // would survive with a non-zero refcount and never be released (they are not owned by
+    // any VM garbage collector, so nothing else can free them)
+    while (opt_refcount) {
+        gravity_opt_free();
+        --opt_refcount;
+    }
 
     // this function should never be called
     // it is just called when we need to internally check for memory leaks
@@ -3610,6 +3685,19 @@ void gravity_core_free (void) {
     computed_property_free(gravity_class_float, "degrees", true);
     gravity_class_t *system_meta = gravity_class_get_meta(gravity_class_system);
     computed_property_free(system_meta, GRAVITY_VM_GCENABLED, true);
+    // these computed properties are also created in gravity_core_init but were
+    // missing from this free list (leaked on every core init/free cycle)
+    computed_property_free(gravity_class_object, "class", true);
+    computed_property_free(gravity_class_object, "meta", true);
+    computed_property_free(gravity_class_range, "from", true);
+    computed_property_free(gravity_class_range, "to", true);
+    computed_property_free(gravity_class_string, "bytes", true);
+    gravity_class_t *int_meta_cp = gravity_class_get_meta(gravity_class_int);
+    computed_property_free(int_meta_cp, "min", true);
+    computed_property_free(int_meta_cp, "max", true);
+    gravity_class_t *float_meta_cp = gravity_class_get_meta(gravity_class_float);
+    computed_property_free(float_meta_cp, "min", true);
+    computed_property_free(float_meta_cp, "max", true);
 
     gravity_class_free_core(NULL, gravity_class_get_meta(gravity_class_int));
     gravity_class_free_core(NULL, gravity_class_int);
@@ -3685,6 +3773,7 @@ const char **gravity_core_identifiers (void) {
 void gravity_core_register (gravity_vm *vm) {
     gravity_core_init();
     gravity_opt_register(vm);
+    ++opt_refcount;
     ++refcount;
     if (!vm) return;
 

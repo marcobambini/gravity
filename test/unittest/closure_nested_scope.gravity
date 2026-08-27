@@ -1,0 +1,31 @@
+#unittest {
+	name: "Closure captures nested scope correctly.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	var counter = 0;
+
+	// Create a closure that captures and modifies outer variable
+	var increment = func() {
+		counter += 1;
+		return counter;
+	};
+
+	var r1 = (increment() == 1);
+	var r2 = (increment() == 2);
+	var r3 = (increment() == 3);
+	var r4 = (counter == 3);
+
+	// Closure over loop variable
+	var funcs = [];
+	for (var i in 0...2) {
+		var val = i;
+		funcs.push(func() { return val; });
+	}
+	var r5 = (funcs[0]() == 0);
+	var r6 = (funcs[2]() == 2);
+
+	return r1 and r2 and r3 and r4 and r5 and r6;
+}

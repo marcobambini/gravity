@@ -41,7 +41,7 @@
 #define ASIN                        asinf
 #define ACOS                        acosf
 #define ATAN                        atanf
-#define ATAN2                       atan2
+#define ATAN2                       atan2f
 #define CEIL                        ceilf
 #define FLOOR                       floorf
 #define ROUND                       roundf
@@ -223,23 +223,28 @@ static bool math_xrt (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
 
+    // check for division by zero in 1.0/base
+    if ((VALUE_ISA_INT(base) && base.n == 0) || (VALUE_ISA_FLOAT(base) && base.f == 0.0)) {
+        RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
+    }
+
     if (VALUE_ISA_INT(value) && VALUE_ISA_INT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.n, 1.0/base.n);
+        gravity_float_t computed_value = (gravity_float_t)POW((gravity_float_t)value.n, 1.0/base.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
 
     if (VALUE_ISA_INT(value) && VALUE_ISA_FLOAT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.n, 1.0/base.f);
+        gravity_float_t computed_value = (gravity_float_t)POW((gravity_float_t)value.n, 1.0/base.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
 
     if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.f, 1.0/base.n);
+        gravity_float_t computed_value = (gravity_float_t)POW((gravity_float_t)value.f, 1.0/base.n);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
 
-    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_INT(base)) {
-        gravity_float_t computed_value = (gravity_float_t)pow((gravity_float_t)value.f, 1.0/base.f);
+    if (VALUE_ISA_FLOAT(value) && VALUE_ISA_FLOAT(base)) {
+        gravity_float_t computed_value = (gravity_float_t)POW((gravity_float_t)value.f, 1.0/base.f);
         RETURN_VALUE(VALUE_FROM_FLOAT(computed_value), rindex);
     }
 
@@ -340,16 +345,14 @@ static bool math_floor (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
 }
 
 static int gcf(int x, int y) {
-    if (x == 0) {
-        return y;
-    }
+    if (x < 0) x = -x;
+    if (y < 0) y = -y;
+    if (x == 0) return y;
+    if (y == 0) return x;
     while (y != 0) {
-        if (x > y) {
-            x = x - y;
-        }
-        else {
-            y = y - x;
-        }
+        int t = y;
+        y = x % y;
+        x = t;
     }
     return x;
 }
@@ -372,7 +375,8 @@ static bool math_gcf (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
 }
 
 static int lcm(int x, int y) {
-    return x*y/gcf(x,y);
+    if (x == 0 || y == 0) return 0;
+    return (x / gcf(x, y)) * y;
 }
 
 static bool math_lcm (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
@@ -492,6 +496,10 @@ static bool math_logx (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, ui
     if (VALUE_ISA_NULL(value)) {
         RETURN_VALUE(VALUE_FROM_INT(0), rindex);
     }
+
+    // get base as float, check for domain error (base=1 causes division by zero since log(1)=0)
+    gravity_float_t base_f = VALUE_ISA_INT(base) ? (gravity_float_t)base.n : (VALUE_ISA_FLOAT(base) ? base.f : 0.0);
+    if (base_f == 1.0) RETURN_VALUE(VALUE_FROM_UNDEFINED, rindex);
 
     if (VALUE_ISA_INT(value) && VALUE_ISA_INT(base)) {
         gravity_float_t computed_value = (gravity_float_t)LOG((gravity_float_t)value.n)/(gravity_float_t)LOG((gravity_float_t)base.n);
@@ -643,7 +651,7 @@ static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
         }
         
         if (ndigits) {
-            double d = pow(10.0, (double)ndigits);
+            double d = POW(10.0, (double)ndigits);
             gravity_float_t f = (gravity_float_t)(ROUND((gravity_float_t)value.f * (gravity_float_t)d)) / (gravity_float_t)d;
             
             // convert f to string
@@ -652,15 +660,15 @@ static bool math_round (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
             
             // trunc c string to the requested ndigits
             char *p = buffer;
-            while (p) {
-                if (p[0] == '.') {
+            while (*p) {
+                if (*p == '.') {
                     ++p;
                     gravity_int_t n = 0;
-                    while (p && n < ndigits) {
+                    while (*p && n < ndigits) {
                         ++p;
                         ++n;
                     }
-                    if (p) p[0] = 0;
+                    *p = 0;
                     break;
                 }
                 ++p;
@@ -907,7 +915,8 @@ static bool math_random (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
             
 			gravity_int_t n0 = (gravity_int_t)(rnd * (gravity_float_t)GRAVITY_INT_MAX);
             if (n1 > n2) {gravity_int_t temp = n1; n1 = n2; n2 = temp;} // swap numbers if min > max
-            gravity_int_t n = (gravity_int_t)(n0 % (n2 + 1 - n1) + n1);
+            gravity_int_t range = n2 - n1;  // avoid overflow on n2 + 1 when n2 == GRAVITY_INT_MAX
+            gravity_int_t n = (gravity_int_t)(n0 % (range + 1) + n1);
             RETURN_VALUE(VALUE_FROM_INT(n), rindex);
         }
         

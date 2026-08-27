@@ -100,7 +100,7 @@ struct gravity_hash_t {
 #define COMPUTE_HASH_NOMODULO(key,hash)     register uint32_t hash = murmur3_32(key, len, HASH_SEED_VALUE)
 #define RECOMPUTE_HASH(tbl,key,hash)        hash = murmur3_32(key, len, HASH_SEED_VALUE); hash = hash % tbl->size
 
-static inline uint32_t murmur3_32 (const char *key, uint32_t len, uint32_t seed) {
+static uint32_t murmur3_32 (const char *key, uint32_t len, uint32_t seed) {
     static const uint32_t c1 = 0xcc9e2d51;
     static const uint32_t c2 = 0x1b873593;
     static const uint32_t r1 = 15;
@@ -111,9 +111,14 @@ static inline uint32_t murmur3_32 (const char *key, uint32_t len, uint32_t seed)
     uint32_t hash = seed;
 
     const int nblocks = len / 4;
-    const uint32_t *blocks = (const uint32_t *) key;
     for (int i = 0; i < nblocks; i++) {
-        uint32_t k = blocks[i];
+        // key is a plain byte buffer with no alignment guarantee, so each block must be
+        // copied out instead of read through a uint32_t pointer: a misaligned load is
+        // undefined behaviour and faults outright on strict-alignment targets. The byte
+        // order is unchanged, so hash values are identical to the previous code, and
+        // compilers fold this memcpy back into a single unaligned load
+        uint32_t k;
+        memcpy(&k, key + (i * 4), sizeof(k));
         k *= c1;
         k = ROT32(k, r1);
         k *= c2;
@@ -195,7 +200,8 @@ void gravity_hash_free (gravity_hash_t *hashtable) {
 
 uint32_t gravity_hash_memsize (gravity_hash_t *hashtable) {
     uint32_t size = sizeof(gravity_hash_t);
-    size += hashtable->size * sizeof(hash_node_t);
+    size += hashtable->size * sizeof(hash_node_t*);
+    size += hashtable->count * sizeof(hash_node_t);
     return size;
 }
 
@@ -203,7 +209,7 @@ bool gravity_hash_isempty (gravity_hash_t *hashtable) {
     return (hashtable->count == 0);
 }
 
-static inline int gravity_hash_resize (gravity_hash_t *hashtable) {
+static int gravity_hash_resize (gravity_hash_t *hashtable) {
     uint32_t size = (hashtable->size * 2);
     gravity_hash_t newtbl = {
         .size = size,
@@ -331,9 +337,8 @@ uint32_t gravity_hash_compute_int (gravity_int_t n) {
 }
 
 uint32_t gravity_hash_compute_float (gravity_float_t f) {
-    char buffer[24];
-    // was %g but we don't like scientific notation nor the missing .0 in case of float number with no decimals
-    snprintf(buffer, sizeof(buffer), "%f", f);
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%.17g", f);
     return murmur3_32(buffer, (uint32_t)strlen(buffer), HASH_SEED_VALUE);
 }
 

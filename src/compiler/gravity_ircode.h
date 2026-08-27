@@ -63,6 +63,7 @@ inst_t     *ircode_get (ircode_t *code, uint32_t index);
 bool        ircode_iserror (ircode_t *code);
 uint32_t    ircode_ntemps (ircode_t *code);
 void        ircode_patch_init (ircode_t *code, uint16_t index);
+void        ircode_patch_init_direct (ircode_t *code, uint16_t index);
 void        ircode_pop_context (ircode_t *code);
 void        ircode_push_context (ircode_t *code);
 

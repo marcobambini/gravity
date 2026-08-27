@@ -66,8 +66,8 @@
 extern "C" {
 #endif
 
-#define GRAVITY_VERSION						"0.8.5"     // git tag 0.8.5
-#define GRAVITY_VERSION_NUMBER				0x000805    // git push --tags
+#define GRAVITY_VERSION						"0.9.8"     // git tag 0.9.8
+#define GRAVITY_VERSION_NUMBER				0x000908    // git push --tags
 #define GRAVITY_BUILD_DATE                  __DATE__
 
 #ifndef GRAVITY_ENABLE_DOUBLE
@@ -110,13 +110,13 @@ extern "C" {
 
 #define GLOBALS_DEFAULT_SLOT                4096
 #define CPOOL_INDEX_MAX                     4096        // 2^12
-#define CPOOL_VALUE_SUPER                   CPOOL_INDEX_MAX+1
-#define CPOOL_VALUE_NULL                    CPOOL_INDEX_MAX+2
-#define CPOOL_VALUE_UNDEFINED               CPOOL_INDEX_MAX+3
-#define CPOOL_VALUE_ARGUMENTS               CPOOL_INDEX_MAX+4
-#define CPOOL_VALUE_TRUE                    CPOOL_INDEX_MAX+5
-#define CPOOL_VALUE_FALSE                   CPOOL_INDEX_MAX+6
-#define CPOOL_VALUE_FUNC                    CPOOL_INDEX_MAX+7
+#define CPOOL_VALUE_SUPER                   (CPOOL_INDEX_MAX+1)
+#define CPOOL_VALUE_NULL                    (CPOOL_INDEX_MAX+2)
+#define CPOOL_VALUE_UNDEFINED               (CPOOL_INDEX_MAX+3)
+#define CPOOL_VALUE_ARGUMENTS               (CPOOL_INDEX_MAX+4)
+#define CPOOL_VALUE_TRUE                    (CPOOL_INDEX_MAX+5)
+#define CPOOL_VALUE_FALSE                   (CPOOL_INDEX_MAX+6)
+#define CPOOL_VALUE_FUNC                    (CPOOL_INDEX_MAX+7)
 
 #define MAX_INSTRUCTION_OPCODE              64              // 2^6
 #define MAX_REGISTERS                       256             // 2^8
@@ -132,13 +132,14 @@ extern "C" {
 #define DEFAULT_CONTEXT_SIZE                256             // default VM context entries (can grow)
 #define DEFAULT_MINSTRING_SIZE              32              // minimum string allocation size
 #define DEFAULT_MINSTACK_SIZE               256             // sizeof(gravity_value_t) * 256     = 16 * 256 => 4 KB
+#define DEFAULT_MAXSTACK_SIZE               1048576         // sizeof(gravity_value_t) * 1048576 = 16 * 1048576 => 16 MB
 #define DEFAULT_MINCFRAME_SIZE              32              // sizeof(gravity_callframe_t) * 48  = 32 * 48 => 1.5 KB
-#define DEFAULT_CG_THRESHOLD                5*1024*1024     // 5MB
-#define DEFAULT_CG_MINTHRESHOLD             1024*1024       // 1MB
+#define DEFAULT_CG_THRESHOLD                (5*1024*1024)   // 5MB
+#define DEFAULT_CG_MINTHRESHOLD             (1024*1024)     // 1MB
 #define DEFAULT_CG_RATIO                    0.5             // 50%
 
-#define MAXNUM(a,b)                         ((a) > (b) ? a : b)
-#define MINNUM(a,b)                         ((a) < (b) ? a : b)
+#define MAXNUM(a,b)                         ((a) > (b) ? (a) : (b))
+#define MINNUM(a,b)                         ((a) < (b) ? (a) : (b))
 #define EPSILON                             0.000001
 #define MIN_LIST_RESIZE                     12              // value used when a List is resized
 
@@ -180,8 +181,29 @@ typedef int64_t                             gravity_int_t;
 #else
 typedef int32_t                             gravity_int_t;
 #define GRAVITY_INT_MAX                     2147483647
-#define GRAVITY_INT_MIN                     -2147483648
+#define GRAVITY_INT_MIN                     (-GRAVITY_INT_MAX-1)
 #endif
+
+// Int arithmetic wraps around on overflow, which is what the runtime operators and the constant
+// folder in gravity_optimizer.c have always produced. Signed overflow is undefined behaviour in C
+// though, so the wrap has to be done on the unsigned counterpart and converted back: the value is
+// unchanged, it is just no longer undefined. Builds compiled with -fsanitize=undefined used to
+// trap on a plain `a + b` here.
+// Both operands are widened to 64bit so a single definition serves either configuration: with
+// GRAVITY_ENABLE_INT64 the unsigned math wraps at 64bit, without it the 32bit operands cannot
+// overflow the intermediate and the assignment back to gravity_int_t truncates as before.
+// Keep these in sync with the folded results in optimize_const_instruction().
+#define GRAVITY_INT_ADD(a,b)                ((int64_t)((uint64_t)(a) + (uint64_t)(b)))
+#define GRAVITY_INT_SUB(a,b)                ((int64_t)((uint64_t)(a) - (uint64_t)(b)))
+#define GRAVITY_INT_MUL(a,b)                ((int64_t)((uint64_t)(a) * (uint64_t)(b)))
+#define GRAVITY_INT_NEG(a)                  ((int64_t)(0 - (uint64_t)(a)))
+
+// GRAVITY_INT_MIN/-1 overflows too, and on x86 it does not just wrap: the idiv instruction
+// faults and the process dies with SIGFPE. These mirror the results operator_int_div and
+// operator_int_rem already return for those operands, so the VM fast path and the method
+// dispatch path agree. Both arguments are evaluated more than once, so pass plain lvalues.
+#define GRAVITY_INT_DIV(a,b)                ((((a) == GRAVITY_INT_MIN) && ((b) == -1)) ? GRAVITY_INT_MIN : (a) / (b))
+#define GRAVITY_INT_REM(a,b)                ((((a) == GRAVITY_INT_MIN) && ((b) == -1)) ? 0 : (a) % (b))
 
 // Forward references (an object ptr is just its isa pointer)
 typedef struct gravity_class_s              gravity_class_t;
@@ -379,7 +401,7 @@ typedef struct gravity_class_s {
     const char              *superlook;     // when a superclass is set to extern a runtime lookup must be performed
     gravity_hash_t          *htable;        // hash table
     uint32_t                nivars;         // number of instance variables
-	//gravity_value_r			inames;			    // ivar names
+	gravity_value_r			inames;         // ivar names
     gravity_value_t         *ivars;         // static variables
 } gravity_class_s;
 
@@ -464,6 +486,7 @@ GRAVITY_API uint32_t            gravity_upvalue_size (gravity_vm *vm, gravity_up
 // MARK: - CLASS -
 GRAVITY_API void                gravity_class_blacken (gravity_vm *vm, gravity_class_t *c);
 GRAVITY_API int16_t             gravity_class_add_ivar (gravity_class_t *c, const char *identifier);
+GRAVITY_API int16_t             gravity_class_ivar_index (gravity_class_t *c, const char *identifier);
 GRAVITY_API void                gravity_class_bind (gravity_class_t *c, const char *key, gravity_value_t value);
 GRAVITY_API uint32_t            gravity_class_count_ivars (gravity_class_t *c);
 GRAVITY_API gravity_class_t    *gravity_class_deserialize (gravity_vm *vm, json_value *json);

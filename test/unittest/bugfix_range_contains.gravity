@@ -1,0 +1,24 @@
+#unittest {
+	name: "Range.contains works for backward ranges.";
+	result: true;
+};
+
+func main() {
+    // forward range contains
+    var r1 = Range(1, 10);
+    if (!r1.contains(5)) return false;
+    if (!r1.contains(1)) return false;
+    if (!r1.contains(10)) return false;
+    if (r1.contains(0)) return false;
+    if (r1.contains(11)) return false;
+
+    // backward range contains
+    var r2 = Range(10, 1);
+    if (!r2.contains(5)) return false;
+    if (!r2.contains(1)) return false;
+    if (!r2.contains(10)) return false;
+    if (r2.contains(0)) return false;
+    if (r2.contains(11)) return false;
+
+    return true;
+}

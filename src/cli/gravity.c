@@ -7,6 +7,10 @@
 //
 
 #include "gravity_compiler.h"
+#define GRAVITY_INCLUDE_MATH
+#define GRAVITY_INCLUDE_JSON
+#define GRAVITY_INCLUDE_ENV
+#define GRAVITY_INCLUDE_FILE
 #include "gravity_optionals.h"
 #include "gravity_utils.h"
 #include "gravity_core.h"
@@ -171,7 +175,7 @@ static const char *unittest_read (const char *path, size_t *size, uint32_t *file
 static void unittest_scan (const char *folder_path, unittest_data *data) {
     DIRREF dir = directory_init(folder_path);
     if (!dir) return;
-    #ifdef WIN32
+    #ifdef _WIN32
     char outbuffer[MAX_PATH];
     #else
     char *outbuffer = NULL;
@@ -183,13 +187,14 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
         const char *full_path = file_buildpath(target_file, folder_path);
         if (is_directory(full_path)) {
             // skip disabled folder
-            if (strcmp(target_file, "disabled") == 0) continue;
+            if (strcmp(target_file, "disabled") == 0) {mem_free(full_path); continue;}
             unittest_scan(full_path, data);
+            mem_free(full_path);
             continue;
         }
-        
+
         // test only files with a .gravity extension
-        if (strstr(full_path, ".gravity") == NULL) continue;
+        if (strstr(full_path, ".gravity") == NULL) {mem_free(full_path); continue;}
         data->is_fuzzy = (strstr(full_path, "/fuzzy/") != NULL);
         
         // load source code
@@ -234,7 +239,7 @@ static void unittest_scan (const char *folder_path, unittest_data *data) {
             }
         }
         gravity_vm_free(vm);
-        
+
         // case for empty files or simple declarations test
         if (!data->processed) {
             ++data->nsuccess;
@@ -265,7 +270,7 @@ static void print_help (void) {
     printf("  --version          show version information and exit\n");
     printf("  --help             show command line usage and exit\n");
     printf("  -c input_file      compile input_file\n");
-    printf("  -o output_file     specify output file name (default to gravity.json)\n");
+    printf("  -o output_file     specify output file name (default to %s)\n", DEFAULT_OUTPUT);
     printf("  -x input_file      execute input_file (JSON format expected)\n");
     printf("  -i source_code     compile and execute source_code string\n");
     printf("  -q                 don't print result and execution time\n");
@@ -425,6 +430,8 @@ int main (int argc, const char* argv[]) {
     // pass argc and argv to the ENV class
     gravity_env_register_args(vm, argc, argv);
 
+    char *inline_buffer = NULL;
+
     // check if input file is source code that needs to be compiled
     if ((type == OP_COMPILE) || (type == OP_COMPILE_RUN) || (type == OP_INLINE_RUN)) {
 
@@ -447,17 +454,22 @@ int main (int argc, const char* argv[]) {
 
         // create closure to execute inline code
         if (type == OP_INLINE_RUN) {
-            char *buffer = mem_alloc(NULL, size+1024);
-            assert(buffer);
-            size = snprintf(buffer, size+1024, "func main() {%s};", input_file);
-            source_code = buffer;
+            inline_buffer = mem_alloc(NULL, size+1024);
+            assert(inline_buffer);
+            size = snprintf(inline_buffer, size+1024, "func main() {%s};", input_file);
+            source_code = inline_buffer;
         }
 
         // create compiler
         compiler = gravity_compiler_create(&delegate);
 
         // compile source code into a closure
+        // is_static is false, so the lexer takes ownership of source_code and frees it in
+        // parser_run, whether or not the compilation succeeded: drop our reference to the
+        // inline buffer here or cleanup would free it a second time
         closure = gravity_compiler_run(compiler, source_code, size, 0, false, true);
+        source_code = NULL;
+        inline_buffer = NULL;
         if (!closure) goto cleanup;
 
         // check if closure needs to be serialized
@@ -494,6 +506,7 @@ int main (int argc, const char* argv[]) {
     }
 
 cleanup:
+    if (inline_buffer) mem_free(inline_buffer);
     if (compiler) gravity_compiler_free(compiler);
     if (vm) gravity_vm_free(vm);
     gravity_core_free();

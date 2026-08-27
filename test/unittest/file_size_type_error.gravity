@@ -1,0 +1,9 @@
+#unittest {
+	name: "File.size rejects non-string arguments.";
+	error: RUNTIME;
+};
+
+func main() {
+	// Passing a list where a string path is expected should error
+	return File.size([1, 2, 3]);
+}

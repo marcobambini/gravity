@@ -1,0 +1,104 @@
+name: "Build and test"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.cc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        cc: [gcc, clang]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: make CC=${{ matrix.cc }}
+
+      # run_all.sh runs each file in its own process and only catches crashes and
+      # timeouts, while -t checks the result declared in every #unittest block
+      - name: Unit tests
+        run: test/unittest/run_all.sh
+
+      - name: Unit test assertions
+        run: ./gravity -t test/unittest
+
+      - name: JSON executable loader tests
+        run: test/loadbuffer/run_all.sh
+
+  sanitizers:
+    name: address + undefined sanitizer
+    runs-on: ubuntu-latest
+    env:
+      # CC is used to both compile and link, so the sanitizer flags belong here
+      SAN_CC: "clang -fsanitize=address,undefined"
+      UBSAN_OPTIONS: "print_stacktrace=1:halt_on_error=1:abort_on_error=1"
+      # this job is about out of bounds and undefined behaviour: leak detection is
+      # left off so that a leak somewhere else cannot mask a memory safety report.
+      # abort_on_error makes a finding arrive as SIGABRT on every platform, instead of
+      # the plain exit code 1 the runtime defaults to on Linux, which is indistinguishable
+      # from an input the interpreter simply rejected.
+      # Some inputs in test/fuzzy ask for a list index in the 10^9 range, which is a
+      # single allocation of several GB and enough to push the runner into the OOM
+      # killer: cap one allocation and let it fail, which the interpreter reports as a
+      # normal runtime error. Without the cap this job dies with exit code 143
+      ASAN_OPTIONS: "detect_leaks=0:abort_on_error=1:allocator_may_return_null=1:max_allocation_size_mb=1024"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build gravity
+        run: make CC="$SAN_CC"
+
+      - name: Build jsontest
+        run: make jsontest CC="$SAN_CC"
+
+      # test/unittest/run_all.sh gives each test 0.1s, which is calibrated for an
+      # -O2 build and too tight once the binary is instrumented, so the unit tests
+      # are run here directly with a generous per test timeout
+      - name: Unit tests
+        run: |
+          status=0
+          for test in $(find test/unittest -name '*.gravity' | grep -v disabled); do
+            if ! timeout 60 ./gravity "$test"; then
+              echo "Fail! $test"
+              status=1
+            fi
+          done
+          exit $status
+
+      - name: Unit test assertions
+        run: ./gravity -t test/unittest
+
+      # the fuzzing corpus has no runner of its own: every input must compile and
+      # run without crashing, which is exactly what a sanitized build checks
+      - name: Fuzzing corpus
+        run: |
+          status=0
+          for test in $(find test/fuzzy -name '*.gravity'); do
+            # || keeps the failure out of set -e, which the default shell enables
+            res=0
+            out=$(timeout 60 ./gravity "$test" 2>&1) || res=$?
+            # a fuzzed input is allowed to be rejected, and to run out of memory, but
+            # never to crash and never to trip a sanitizer
+            if [[ $res -ge 128 ]]; then
+              echo "Fail! $test killed by signal $(($res-128))"
+              echo "$out" | head -40
+              status=1
+            elif grep -qE 'ERROR: (Address|Undefined|Leak)Sanitizer|runtime error:' <<< "$out"; then
+              echo "Fail! $test tripped a sanitizer"
+              echo "$out" | head -40
+              status=1
+            fi
+          done
+          exit $status
+
+      - name: JSON executable loader tests
+        run: test/loadbuffer/run_all.sh

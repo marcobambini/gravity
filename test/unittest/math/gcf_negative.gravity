@@ -1,0 +1,21 @@
+#unittest {
+	name: "Test Math.gcf() with negative numbers.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Negative arguments should work correctly (absolute values)
+	var r1 = Math.gcf(-12, 8) == 4;
+	var r2 = Math.gcf(12, -8) == 4;
+	var r3 = Math.gcf(-12, -8) == 4;
+
+	// Zero cases
+	var r4 = Math.gcf(0, 5) == 5;
+	var r5 = Math.gcf(7, 0) == 7;
+
+	// Large coprime numbers
+	var r6 = Math.gcf(17, 13) == 1;
+
+	return r1 and r2 and r3 and r4 and r5 and r6;
+}

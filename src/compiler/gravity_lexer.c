@@ -39,9 +39,9 @@ typedef enum {
 
 // LEXER macros
 #define NEXT                    lexer->buffer[lexer->offset++]; ++lexer->position; INC_COL
-#define PEEK_CURRENT            ((int)lexer->buffer[lexer->offset])
-#define PEEK_NEXT               ((lexer->offset < lexer->length) ? lexer->buffer[lexer->offset+1] : 0)
-#define PEEK_NEXT2              ((lexer->offset+1 < lexer->length) ? lexer->buffer[lexer->offset+2] : 0)
+#define PEEK_CURRENT            ((lexer->offset < lexer->length) ? (int)lexer->buffer[lexer->offset] : 0)
+#define PEEK_NEXT               ((lexer->offset + 1 < lexer->length) ? lexer->buffer[lexer->offset+1] : 0)
+#define PEEK_NEXT2              ((lexer->offset+2 < lexer->length) ? lexer->buffer[lexer->offset+2] : 0)
 #define INC_LINE                ++lexer->lineno; RESET_COL
 #define INC_COL                 ++lexer->colno
 #define DEC_COL                 --lexer->colno
@@ -69,71 +69,77 @@ typedef enum {
 
 // MARK: -
 
-static inline bool is_whitespace (int c) {
+static bool is_whitespace (int c) {
     return ((c == ' ') || (c == '\t') || (c == '\v') || (c == '\f'));
 }
 
-static inline bool is_newline (gravity_lexer_t *lexer, int c) {
+// Length in bytes of the line terminator that starts at c, or 0 when c does not start one.
+// n and n2 are the two characters that follow c in the buffer: the caller must supply them
+// because it is not always the case that c is still the character sitting at lexer->offset.
+// Nothing is consumed here, so every caller stays in charge of how far it advances, which
+// is what keeps the line counter, the offset and the token length in sync.
+static uint32_t newline_length (int c, int n, int n2) {
     // CR: Carriage Return, U+000D (UTF-8 in hex: 0D)
     // LF: Line Feed, U+000A (UTF-8 in hex: 0A)
     // CR+LF: CR (U+000D) followed by LF (U+000A) (UTF-8 in hex: 0D0A)
 
     // LF
-    if (c == 0x0A) return true;
+    if (c == 0x0A) return 1;
 
     // CR+LF or CR
-    if (c == 0x0D) {
-        if (PEEK_CURRENT == 0x0A) {NEXT;}
-        return true;
-    }
+    if (c == 0x0D) return (n == 0x0A) ? 2 : 1;
 
     // UTF-8 cases https://en.wikipedia.org/wiki/Newline#Unicode
 
     // NEL: Next Line, U+0085 (UTF-8 in hex: C285)
-    if ((c == 0xC2) && (PEEK_CURRENT == 0x85)) {
-        NEXT;
-        return true;
-    }
+    if ((c == 0xC2) && (n == 0x85)) return 2;
 
     // LS: Line Separator, U+2028 (UTF-8 in hex: E280A8)
-    if ((c == 0xE2) && (PEEK_CURRENT == 0x80) && (PEEK_NEXT == 0xA8)) {
-        NEXT; NEXT;
-        return true;
-    }
+    if ((c == 0xE2) && (n == 0x80) && (n2 == 0xA8)) return 3;
 
     // and probably more not handled here
-    return false;
+    return 0;
 }
 
-static inline bool is_comment (int c1, int c2) {
+// Variant for the callers that have already consumed c: it eats the remaining bytes of a
+// multi byte terminator so that the lexer is left sitting right after it.
+static bool is_newline (gravity_lexer_t *lexer, int c, int n, int n2) {
+    uint32_t nlen = newline_length(c, n, n2);
+    if (nlen == 0) return false;
+
+    for (uint32_t i = 1; i < nlen; ++i) {NEXT;}
+    return true;
+}
+
+static bool is_comment (int c1, int c2) {
     return (c1 == '/') && ((c2 == '*') || (c2 == '/'));
 }
 
-static inline bool is_semicolon (int c) {
+static bool is_semicolon (int c) {
     return (c == ';');
 }
 
-static inline bool is_alpha (int c) {
+static bool is_alpha (int c) {
     if (c == '_') return true;
     return isalpha(c);
 }
 
-static inline bool is_digit (int c, gravity_number_type ntype) {
+static bool is_digit (int c, gravity_number_type ntype) {
     if (ntype == NUMBER_BIN) return (c == '0' || (c == '1'));
     if (ntype == NUMBER_OCT) return (c >= '0' && (c <= '7'));
     if ((ntype == NUMBER_HEX) && ((toupper(c) >= 'A' && toupper(c) <= 'F'))) return true;
     return isdigit(c);
 }
 
-static inline bool is_string (int c) {
+static bool is_string (int c) {
     return ((c == '"') || (c == '\''));
 }
 
-static inline bool is_special (int c) {
+static bool is_special (int c) {
     return (c == '@');
 }
 
-static inline bool is_builtin_operator (int c) {
+static bool is_builtin_operator (int c) {
     // PARENTHESIS
     // { } [ ] ( )
     // PUNCTUATION
@@ -149,11 +155,11 @@ static inline bool is_builtin_operator (int c) {
             (c == '[') || (c == ']') || (c == '(') || (c == ')') );
 }
 
-static inline bool is_preprocessor (int c) {
+static bool is_preprocessor (int c) {
     return (c == '#');
 }
 
-static inline bool is_identifier (int c) {
+static bool is_identifier (int c) {
     // when called I am already sure first character is alpha so next valid characters are alpha, digit and _
     return ((isalpha(c)) || (isdigit(c)) || (c == '_'));
 }
@@ -172,7 +178,7 @@ static gtoken_t lexer_error(gravity_lexer_t *lexer, const char *message) {
     return TOK_ERROR;
 }
 
-static inline bool next_utf8(gravity_lexer_t *lexer, int *result) {
+static bool next_utf8(gravity_lexer_t *lexer, int *result) {
     int c = NEXT;
     INC_TOKLEN;
 
@@ -184,9 +190,9 @@ static inline bool next_utf8(gravity_lexer_t *lexer, int *result) {
 
     switch(len) {
         case 1: break;
-        case 2: INC_OFFSET; INC_TOKBYTES; break;
-        case 3: INC_OFFSET; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; break;
-        case 4: INC_OFFSET; INC_OFFSET; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; INC_TOKBYTES; INC_POSITION; INC_TOKUTF8LEN; break;
+        case 2: if (IS_EOF) return false; INC_OFFSET; INC_TOKBYTES; break;
+        case 3: if (IS_EOF) return false; INC_OFFSET; if (IS_EOF) return false; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; break;
+        case 4: if (IS_EOF) return false; INC_OFFSET; if (IS_EOF) return false; INC_OFFSET; if (IS_EOF) return false; INC_OFFSET; INC_TOKBYTES; INC_TOKBYTES; INC_TOKBYTES; INC_POSITION; INC_TOKUTF8LEN; break;
     }
 
     if (result) *result = c;
@@ -209,14 +215,15 @@ static gtoken_t lexer_scan_comment(gravity_lexer_t *lexer) {
         int c = 0;
         next_utf8(lexer, &c);
 
+        // c has just been consumed, so the characters that follow it start at the current offset
         if (isLineComment){
-            if (is_newline(lexer, c)) {INC_LINE; break;}
+            if (is_newline(lexer, c, PEEK_CURRENT, PEEK_NEXT)) {INC_LINE; break;}
         } else {
             if (IS_EOF) break;
             int c2 = PEEK_CURRENT;
             if ((c == '/') && (c2 == '*')) ++count;
             if ((c == '*') && (c2 == '/')) {--count; NEXT; INC_TOKLEN; if (count == 0) break;}
-            if (is_newline(lexer, c)) {INC_LINE;}
+            if (is_newline(lexer, c, c2, PEEK_NEXT)) {INC_LINE;}
         }
     }
 
@@ -304,7 +311,9 @@ loop:
     if (IS_EOF) goto report_token;
     if (is_digit(c, ntype)) goto accept_char;
     if (is_whitespace(c)) goto report_token;
-    if (is_newline(lexer, c)) goto report_token;
+    // c is still the character at the current offset and the terminator is not part of the
+    // number: leave it in place, gravity_lexer_next is the one that counts and skips it
+    if (newline_length(c, PEEK_NEXT, PEEK_NEXT2)) goto report_token;
 
     if (expAllowed) {
         if ((c == expChar) && (!expFound)) {expFound = true; signAllowed = true; goto accept_char;}
@@ -347,16 +356,33 @@ static gtoken_t lexer_scan_string(gravity_lexer_t *lexer) {
 
     while ((c2 = (unsigned char)PEEK_CURRENT) != c) {
         if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
-        if (is_newline(lexer, c2)) INC_LINE;
+
+        // a line terminator inside a string literal is part of the literal, so its bytes are
+        // consumed here (and counted into the token) instead of being left to next_utf8: a
+        // CR+LF pair must advance the line counter once but still contribute both its bytes
+        uint32_t nlen = newline_length(c2, PEEK_NEXT, PEEK_NEXT2);
+        if (nlen) {
+            for (uint32_t i = 0; i < nlen; ++i) {INC_OFFSET; INC_TOKBYTES;}
+            // CR+LF is two characters, NEL and LS are one
+            uint32_t nchars = ((c2 == 0x0D) && (nlen == 2)) ? 2 : 1;
+            for (uint32_t i = 0; i < nchars; ++i) {INC_POSITION; INC_TOKUTF8LEN;}
+            INC_LINE;
+
+            if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
+            continue;
+        }
 
         // handle escaped characters
         if (c2 == '\\') {
             INC_OFFSET_POSITION;
-            INC_OFFSET_POSITION;
-            INC_TOKLEN;
             INC_TOKLEN;
 
             // sanity check
+            if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
+
+            INC_OFFSET_POSITION;
+            INC_TOKLEN;
+
             if (IS_EOF) return lexer_error(lexer, "Unexpected EOF inside a string literal");
             continue;
         }
@@ -566,6 +592,7 @@ gtoken_t gravity_lexer_peek (gravity_lexer_t *lexer) {
 
 gtoken_t gravity_lexer_next (gravity_lexer_t *lexer) {
     int            c;
+    uint32_t    nlen;
     gtoken_t    token;
 
     // reset cached value
@@ -576,7 +603,20 @@ loop:
     c = PEEK_CURRENT;
 
     if (is_whitespace(c)) {INC_OFFSET_POSITION; goto loop;}
-    if (is_newline(lexer, c)) {INC_OFFSET_POSITION; INC_LINE; goto loop;}
+
+    // c is still the character at the current offset, so the two that follow it are
+    // PEEK_NEXT and PEEK_NEXT2. Skipping the whole terminator in one go is what keeps a
+    // CR+LF pair a single line: reading it as two separate breaks is issue #389
+    nlen = newline_length(c, PEEK_NEXT, PEEK_NEXT2);
+    if (nlen) {
+        for (uint32_t i = 0; i < nlen; ++i) {INC_OFFSET;}
+        // CR+LF is two characters, NEL and LS are one
+        INC_POSITION;
+        if ((c == 0x0D) && (nlen == 2)) INC_POSITION;
+        INC_LINE;
+        goto loop;
+    }
+
     if (is_comment(c, PEEK_NEXT)) {lexer_scan_comment(lexer); goto loop;}
 
     if (is_semicolon(c)) {token = lexer_scan_semicolon(lexer); goto return_result;}
@@ -619,7 +659,8 @@ void gravity_lexer_skip_line (gravity_lexer_t *lexer) {
     while (!IS_EOF) {
         int c = 0;
         next_utf8(lexer, &c);
-        if (is_newline(lexer, c)) {
+        // c has just been consumed, so the characters that follow it start at the current offset
+        if (is_newline(lexer, c, PEEK_CURRENT, PEEK_NEXT)) {
             INC_LINE;
             break;
         }

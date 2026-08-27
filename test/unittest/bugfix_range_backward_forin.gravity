@@ -1,0 +1,34 @@
+#unittest {
+	name: "Backward range loop iterates correctly.";
+	result: true;
+};
+
+func main() {
+    // backward range via .loop() should iterate in descending order
+    var values = [];
+    Range(5, 1).loop(func(i) {
+        values.push(i);
+    });
+    if (values.count != 5) return false;
+    if (values[0] != 5) return false;
+    if (values[1] != 4) return false;
+    if (values[2] != 3) return false;
+    if (values[3] != 2) return false;
+    if (values[4] != 1) return false;
+
+    // forward range loop still works
+    var sum = 0;
+    Range(1, 5).loop(func(i) {
+        sum += i;
+    });
+    if (sum != 15) return false;
+
+    // single-element range
+    var count = 0;
+    Range(3, 3).loop(func(i) {
+        count += 1;
+    });
+    if (count != 1) return false;
+
+    return true;
+}

@@ -1,0 +1,11 @@
+#unittest {
+	name: "Math round edge cases.";
+	result: true;
+};
+
+func main() {
+    var a = Math.round(3.14159, 2) == 3.14;
+    var b = Math.round(2.5, 0) == 3;
+    var c = Math.round(100.0, 0) == 100;
+    return a && b && c;
+}

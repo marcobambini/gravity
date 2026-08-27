@@ -1,0 +1,28 @@
+#unittest {
+	name: "Int.random stays within range.";
+	result: true;
+};
+
+func main() {
+    // test that random values stay within bounds
+    var i = 0;
+    while (i < 100) {
+        var r = Int.random(10, 20);
+        if (r < 10 || r > 20) return false;
+        i += 1;
+    }
+
+    // test reversed arguments
+    i = 0;
+    while (i < 100) {
+        var r = Int.random(20, 10);
+        if (r < 10 || r > 20) return false;
+        i += 1;
+    }
+
+    // test equal bounds
+    var r = Int.random(5, 5);
+    if (r != 5) return false;
+
+    return true;
+}

@@ -35,9 +35,7 @@ static gravity_list_t               *argv = NULL;
  *
  */
 static bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(nargs)
-    
-    if(!VALUE_ISA_STRING(args[1])) {
+    if(nargs < 2 || !VALUE_ISA_STRING(args[1])) {
         RETURN_ERROR("Environment variable key must be a string.");
     }
 
@@ -63,9 +61,7 @@ static bool gravity_env_get(gravity_vm *vm, gravity_value_t *args, uint16_t narg
  * @retval  Weather this function was successful or not.
  */
 static bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
-    #pragma unused(nargs)
-    
-    if(!VALUE_ISA_STRING(args[1]) || (!VALUE_ISA_STRING(args[2]) && !VALUE_ISA_NULL(args[2]))) {
+    if(nargs < 2 || !VALUE_ISA_STRING(args[1]) || (!VALUE_ISA_STRING(args[2]) && !VALUE_ISA_NULL(args[2]))) {
         RETURN_ERROR("Environment variable key and value must both be strings.");
     }
 
@@ -81,16 +77,22 @@ static bool gravity_env_set(gravity_vm *vm, gravity_value_t *args, uint16_t narg
 static bool gravity_env_keys(gravity_vm *vm, gravity_value_t *args, uint16_t nparams, uint32_t rindex) {
     #pragma unused(args, nparams)
     
+    #if defined(_WIN32)
+    extern char **_environ;
+    char **environ_ptr = _environ;
+    #else
     extern char **environ;
+    char **environ_ptr = environ;
+    #endif
     gravity_list_t *keys = gravity_list_new(vm, 16);
-    
-    for (char **env = environ; *env; ++env) {
+
+    for (char **env = environ_ptr; *env; ++env) {
         char *entry = *env;
         
         // env is in the form key=value
         uint32_t len = 0;
-        for (uint32_t i=0; entry[len]; ++i, ++len) {
-            if (entry[i] == '=') break;
+        while (entry[len] && entry[len] != '=') {
+            ++len;
         }
         gravity_value_t key = VALUE_FROM_STRING(vm, entry, len);
         marray_push(gravity_value_t, keys->array, key);

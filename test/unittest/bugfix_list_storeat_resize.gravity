@@ -1,0 +1,19 @@
+#unittest {
+	name: "List store-at with resize sets value correctly.";
+	result: true;
+};
+
+func main() {
+    var list = [0, 1, 2];
+
+    // store beyond current bounds, triggering resize
+    list[10] = 42;
+
+    if (list[10] != 42) return false;
+    if (list.count != 11) return false;
+
+    // elements between old end and new index should be null
+    if (list[5] != null) return false;
+
+    return true;
+}

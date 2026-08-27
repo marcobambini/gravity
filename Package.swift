@@ -19,7 +19,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/swiftlang/swift-syntax", from: "600.0.1")
+        .package(url: "https://github.com/swiftlang/swift-syntax", from: "602.0.0")
     ],
     targets: [
         .executableTarget(
@@ -53,6 +53,11 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ],
             path: "binding/GravitySwiftMacros"
+        ),
+        .testTarget(
+            name: "GravityTests",
+            dependencies: ["Gravity"],
+            path: "Tests/GravityTests"
         )
     ],
     cLanguageStandard: .gnu99,

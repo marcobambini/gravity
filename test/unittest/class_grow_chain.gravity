@@ -1,0 +1,30 @@
+#unittest {
+	name: "Deep class inheritance chain.";
+	error: NONE;
+	result: true;
+};
+
+class A {
+	var a = 1;
+}
+
+class B : A {
+	var b = 2;
+}
+
+class C : B {
+	var c = 3;
+}
+
+class D : C {
+	var d = 4;
+}
+
+func main() {
+	var obj = D();
+	var r1 = (obj.a == 1);
+	var r2 = (obj.b == 2);
+	var r3 = (obj.c == 3);
+	var r4 = (obj.d == 4);
+	return r1 and r2 and r3 and r4;
+}

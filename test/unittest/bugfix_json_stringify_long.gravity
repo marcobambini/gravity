@@ -1,0 +1,19 @@
+#unittest {
+	name: "JSON.stringify with string.";
+	result: true;
+};
+
+func main() {
+    // test basic JSON stringify with a string
+    var s = "hello world";
+    var json = JSON.stringify(s);
+    // JSON.stringify wraps in quotes: "..."
+    if (json.length != s.length + 2) return false;
+    if (json != "\"hello world\"") return false;
+
+    // empty string
+    var json2 = JSON.stringify("");
+    if (json2 != "\"\"") return false;
+
+    return true;
+}

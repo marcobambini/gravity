@@ -1,0 +1,23 @@
+#unittest {
+	name: "Constant folding with division and modulo.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// Integer constant folding
+	var r1 = (100 / 5 == 20);
+	var r2 = (99 / 10 == 9);
+	var r3 = (17 % 5 == 2);
+	var r4 = (100 % 7 == 2);
+
+	// Float constant folding
+	var r5 = (10.0 / 4.0 == 2.5);
+
+	// Mixed operations
+	var r6 = (10 + 20 == 30);
+	var r7 = (50 - 30 == 20);
+	var r8 = (6 * 7 == 42);
+
+	return r1 and r2 and r3 and r4 and r5 and r6 and r7 and r8;
+}

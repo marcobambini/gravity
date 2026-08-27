@@ -1,0 +1,27 @@
+#unittest {
+	name: "Unicode escape sequences in strings.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// ASCII via unicode escape
+	var s1 = "\u0041";  // 'A'
+	var r1 = (s1 == "A");
+
+	// 2-byte UTF-8 (Latin chars with accents)
+	var s2 = "\u00E9";  // e-acute
+	var r2 = (s2.bytes == 2);
+	var r3 = (s2.length == 1);
+
+	// 3-byte UTF-8 (CJK character)
+	var s3 = "\u4E16";  // Chinese char for 'world'
+	var r4 = (s3.bytes == 3);
+	var r5 = (s3.length == 1);
+
+	// Multiple unicode escapes together
+	var s4 = "\u0048\u0065\u006C\u006C\u006F";
+	var r6 = (s4 == "Hello");
+
+	return r1 and r2 and r3 and r4 and r5 and r6;
+}

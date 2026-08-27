@@ -1,0 +1,30 @@
+#unittest {
+	name: "Map and List type operations.";
+	error: NONE;
+	result: true;
+};
+
+func main() {
+	// List operations
+	var list = [10, 20, 30, 40, 50];
+	var r1 = (list.count == 5);
+	var r2 = (list[0] == 10);
+	var r3 = (list[4] == 50);
+
+	// List push and pop
+	list.push(60);
+	var r4 = (list.count == 6);
+	var popped = list.pop();
+	var r5 = (popped == 60);
+
+	// Map operations
+	var map = ["name": "gravity", "version": 1];
+	var r6 = (map["name"] == "gravity");
+	var r7 = (map["version"] == 1);
+
+	// Map modification
+	map["new_key"] = true;
+	var r8 = (map["new_key"] == true);
+
+	return r1 and r2 and r3 and r4 and r5 and r6 and r7 and r8;
+}

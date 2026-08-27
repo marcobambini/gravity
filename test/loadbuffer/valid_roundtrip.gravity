@@ -1,0 +1,18 @@
+// Positive control for run_all.sh: this file is compiled to a JSON executable and
+// then executed with -x, so that the checks on malformed input cannot pass simply
+// because gravity_vm_loadbuffer() started rejecting everything.
+
+var double = func(a) { return a * 2; };
+
+class Counter {
+    var value = 5;
+    func next() {
+        return func() { return value + 2; };
+    }
+}
+
+func main() {
+    var c = Counter();
+    if (double(c.next()()) != 14) return 1;
+    return 0;
+}

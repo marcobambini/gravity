@@ -1,0 +1,9 @@
+#unittest {
+	name: "File functions reject non-string arguments.";
+	error: RUNTIME;
+};
+
+func main() {
+	// Passing an integer where a string path is expected should error
+	return File.exists(12345);
+}

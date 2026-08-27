@@ -1,0 +1,9 @@
+#unittest {
+	name: "File.write rejects non-string arguments.";
+	error: RUNTIME;
+};
+
+func main() {
+	// Passing integers where strings are expected should error
+	return File.write(123, 456);
+}
