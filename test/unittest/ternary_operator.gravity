@@ -1,17 +1,24 @@
 #unittest {
     name: "Ternary operator.";
     error: NONE;
-    result: "le1le1eq2eq3ge4ge4";
+    result: "le1le1eq2eq3ge4ge4ltfl";
 }
 
 func test(x) {
     return x <= 2 ? x == 2 ? "eq2" : "le1" : x >= 4 ? "ge4" : "eq3";
 }
+
+func test_local() {
+    var local = "l";
+    return (true ? local : "f") + (true ? "t" : local) + (false ? local : "f") + (false ? "t" : local);
+}
+
 func main() {
     var result = "";
     for(var i in 0...5) {
         result += test(i);
     }
+    result += test_local();
     return result;
 }
 

@@ -1903,7 +1903,7 @@ static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *no
                 if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid identifier expression.");
 				ircode_add(code, MOVE, index, reg, 0, LINE_NUMBER(node));
             } else {
-                ircode_register_push(code, index);
+                ircode_add(code, MOVE, ircode_register_push_temp(code), index, 0, LINE_NUMBER(node));
             }
         } break;
 
