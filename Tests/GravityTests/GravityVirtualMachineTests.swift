@@ -79,6 +79,18 @@ struct GravityVirtualMachineTests {
         #expect(result.toInteger == 2)
     }
 
+    @Test("Bridges strings through null-terminated storage")
+    func bridgesNullTerminatedStrings() {
+        let delegate = TestVirtualMachineDelegate()
+        let virtualMachine = GravityVirtualMachine(
+            settings: .init(),
+            delegate: delegate
+        )
+        let value = GSValue(string: "Hello", in: virtualMachine)
+
+        #expect(value.toString == "Hello")
+    }
+
     @Test("Collects declaration annotations without executing main")
     func collectsDeclarationAnnotations() throws {
         let delegate = TestVirtualMachineDelegate()
