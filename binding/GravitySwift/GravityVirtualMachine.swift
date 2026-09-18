@@ -371,18 +371,11 @@ extension GravityVirtualMachine {
 
 extension String {
     func toPointer() -> UnsafePointer<CChar>? {
-        guard let data = self.data(using: .utf8) else { return nil }
-        
-        let buffer = UnsafeMutablePointer<CChar>.allocate(capacity: data.count)
-        let stream = OutputStream(toBuffer: buffer, capacity: data.count)
-        
-        stream.open()
-        data.withUnsafeBytes { pointer in
-            let charPointer = pointer.bindMemory(to: CChar.self)
-            stream.write(charPointer.baseAddress!, maxLength: charPointer.count)
+        let capacity = utf8.count + 1
+        let buffer = UnsafeMutablePointer<CChar>.allocate(capacity: capacity)
+        return withCString { source in
+            buffer.initialize(from: source, count: capacity)
+            return UnsafePointer(buffer)
         }
-        stream.close()
-        
-        return UnsafePointer<CChar>(buffer)
     }
 }
