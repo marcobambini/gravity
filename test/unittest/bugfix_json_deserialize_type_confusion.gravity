@@ -1,0 +1,36 @@
+#unittest {
+	name: "JSON.parse rejects deserializer fields of the wrong type instead of confusing them.";
+	result: true;
+};
+
+// GHSA-c3f8-98q2-cqvr: the JSON object deserializer trusted the JSON value type
+// of nested class/function fields and read the wrong union member. Because the
+// json_value string/array/object variants share the same {length, ptr} layout,
+// a string supplied where an array/object/integer was expected became an
+// attacker-controlled pointer+length pair (arbitrary-address read, heap OOB
+// read, or NULL deref). Each malformed input must now be rejected -> null,
+// without crashing.
+
+func main() {
+    // inames branch: a string where an array is expected (arbitrary-address read)
+    if (JSON.parse("{\"type\":\"class\",\"identifier\":\"C\",\"inames\":\"AAAAAAAAAAAAAAAA\"}") != null) return false;
+
+    // getter/setter branch: recursing into a non-object (heap OOB read)
+    if (JSON.parse("{\"type\":\"function\",\"identifier\":\"f\",\"tag\":3,\"$get\":\"BBBBBBBBBBBBBBBB\"}") != null) return false;
+
+    // super branch: an integer where a string is expected (NULL deref on strcmp)
+    if (JSON.parse("{\"type\":\"class\",\"identifier\":\"C\",\"super\":12345}") != null) return false;
+
+    // super branch: an array where a string is expected (aliased pointer as C string)
+    if (JSON.parse("{\"type\":\"class\",\"identifier\":\"C\",\"super\":[1,2,3]}") != null) return false;
+
+    // nivar/sivar branch: a string where an integer is expected
+    if (JSON.parse("{\"type\":\"class\",\"identifier\":\"C\",\"nivar\":\"XXXXXXXX\"}") != null) return false;
+
+    // a well-formed map must still deserialize correctly
+    var m = JSON.parse("{\"a\":1,\"b\":2}");
+    if (m.a != 1) return false;
+    if (m.b != 2) return false;
+
+    return true;
+}

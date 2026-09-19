@@ -328,7 +328,9 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 
     // sanity check identifier
     if (string_casencmp(key, GRAVITY_JSON_LABELIDENTIFIER, strlen(key)) != 0) return NULL;
-    assert(value->type == json_string);
+    // must be a real check, not an assert: on a release (NDEBUG) build the assert is
+    // compiled out and a non-string identifier would alias u.string.ptr (type confusion)
+    if (value->type != json_string) return NULL;
 
     // create class and meta
     gravity_class_t *c = gravity_class_new_pair(vm, value->u.string.ptr, NULL, 0, 0);
@@ -348,6 +350,9 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 
             // super
             if (string_casencmp(key, GRAVITY_JSON_LABELSUPER, strlen(key)) == 0) {
+                // the JSON value type must match the union member read below, otherwise a
+                // mismatched type aliases the shared string/array/object layout (type confusion)
+                if (value->type != json_string) goto abort_load;
                 // the trick here is to re-use a runtime field to store a temporary static data like superclass name
                 // (only if different than the default Object one)
                 if (strcmp(value->u.string.ptr, GRAVITY_CLASS_OBJECT_NAME) != 0) {
@@ -358,18 +363,21 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 
             // nivar
             if (string_casencmp(key, GRAVITY_JSON_LABELNIVAR, strlen(key)) == 0) {
+                if (value->type != json_integer) goto abort_load;
                 gravity_class_grow(c, (uint32_t)value->u.integer);
                 continue;
             }
 
             // sivar
             if (string_casencmp(key, GRAVITY_JSON_LABELSIVAR, strlen(key)) == 0) {
+                if (value->type != json_integer) goto abort_load;
                 gravity_class_grow(meta, (uint32_t)value->u.integer);
                 continue;
             }
-            
+
             // inames
             if (string_casencmp(key, GRAVITY_JSON_LABELINAMES, strlen(key)) == 0) {
+                if (value->type != json_array) goto abort_load;
                 uint32_t m = value->u.array.length;
                 for (uint32_t j=0; j<m; ++j) {
                     json_value *r = value->u.array.values[j];
@@ -388,6 +396,7 @@ gravity_class_t *gravity_class_deserialize (gravity_vm *vm, json_value *json) {
 
             // meta
             if (string_casencmp(key, GRAVITY_JSON_LABELMETA, strlen(key)) == 0) {
+                if (value->type != json_array) goto abort_load;
                 uint32_t m = value->u.array.length;
                 for (uint32_t j=0; j<m; ++j) {
                     json_value *r = value->u.array.values[j];
@@ -913,6 +922,11 @@ void gravity_function_serialize (gravity_function_t *f, json_t *json) {
 }
 
 gravity_function_t *gravity_function_deserialize (gravity_vm *vm, json_value *json) {
+    // the body below reads json->u.object.* unconditionally; a caller (e.g. the
+    // $get/$set branch) may hand us a non-object value whose union aliases the
+    // string/array layout, so reject anything that is not a real JSON object
+    if (json->type != json_object) return NULL;
+
     gravity_function_t *f = gravity_function_new(vm, NULL, 0, 0, 0, NULL);
 
     DEBUG_DESERIALIZE("DESERIALIZE FUNCTION: %p\n", f);
