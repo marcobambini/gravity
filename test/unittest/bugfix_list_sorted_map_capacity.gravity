@@ -1,0 +1,33 @@
+#unittest {
+	name: "List.sorted()/map() report their real capacity, not the source list's.";
+	result: true;
+};
+
+// GHSA-gq92-229r-8p96: sorted() and map() allocated the result with
+// gravity_list_new(NULL, count) (count + MARRAY_DEFAULT_SIZE slots) but then
+// overwrote the bookkeeping capacity with the SOURCE list's capacity. A list
+// grown by repeated push doubles its capacity well past count, so the result
+// reported more room than it actually had and later pushes wrote past the heap
+// allocation. Build such a source, derive a list, then push far beyond the
+// forged capacity and make sure every element reads back correctly.
+func exercise (derived) {
+    for (var i in 0..<40) derived.push(-1);
+
+    if (derived.count != 57) return false;
+    // the 40 appended elements must all be intact
+    for (var i in 17..<57) {
+        if (derived[i] != -1) return false;
+    }
+    return true;
+}
+
+func main() {
+    // source: 17 elements grown by push, capacity doubles 8 -> 16 -> 32
+    var a = [];
+    for (var i in 0..<17) a.push(i);
+
+    if (!exercise(a.sorted())) return false;
+    if (!exercise(a.map(func(x) { return x; }))) return false;
+
+    return true;
+}

@@ -1262,9 +1262,11 @@ static bool list_sorted (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
     gravity_list_t *newlist = gravity_list_new(NULL, (uint32_t)count);
 
     //memcpy should be faster than pushing element by element
+    // do NOT copy the source list capacity (array.m): gravity_list_new allocated
+    // only count+MARRAY_DEFAULT_SIZE slots, so overwriting m with the (possibly larger)
+    // source capacity would let later marray_push writes run past the allocation
     memcpy(newlist->array.p, list->array.p, sizeof(gravity_value_t)*count);
-    newlist->array.m = list->array.m;
-    newlist->array.n = list->array.n;
+    newlist->array.n = count;
     if (count > 1) {
         if (predicate == NULL) {
             gravity_value_t first_value = marray_get(list->array, 0);
@@ -1289,8 +1291,10 @@ static bool list_map (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uin
     
     // do not transfer newlist to GC because it could be freed during predicate closure execution
     gravity_list_t *newlist = gravity_list_new(NULL, (uint32_t)count);
-    newlist->array.m = list->array.m;
-    newlist->array.n = list->array.n;
+    // do NOT copy the source list capacity (array.m): gravity_list_new allocated
+    // only count+MARRAY_DEFAULT_SIZE slots, so overwriting m with the (possibly larger)
+    // source capacity would let later marray_push writes run past the allocation
+    newlist->array.n = count;
     for (uint32_t i = 0; i < count; i++) {
         gravity_value_t *value = &marray_get(list->array, i);
         if (!gravity_vm_runclosure(vm, predicate, selfvalue, value, 1)) return false;
