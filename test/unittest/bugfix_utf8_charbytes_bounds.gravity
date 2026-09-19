@@ -1,0 +1,30 @@
+#unittest {
+	name: "UTF-8 char length is bounds-checked in String methods.";
+	result: true;
+};
+
+// GHSA-m75h-734r-wc7j: utf8_charbytes returns a 1-4 byte length purely from the
+// leading byte, without checking the bytes are actually present. A truncated
+// trailing lead byte made string iteration / raw() read past the allocation
+// (heap OOB read), and a leading continuation byte froze the split("") scan at
+// a zero-length step (infinite loop DoS). The callers now clamp the length to
+// the bytes that remain and always advance by at least one.
+
+func main() {
+    // DoS: a leading continuation byte (0x80) used to make split("") loop
+    // forever; it must now advance one byte at a time and terminate.
+    var parts = "\x80abc".split("");
+    if (parts.count != 4) return false;
+
+    // OOB read: a valid last lead byte (0xF0) with no continuation bytes claims
+    // a 4-byte character. Iterating must stay in bounds and still visit it.
+    var s = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xF0";
+    var count = 0;
+    for (var c in s) count = count + 1;
+    if (count != 41) return false;
+
+    // raw() on a lone truncated lead byte must read only the one byte present.
+    if ("\xF0".raw() != 240) return false;
+
+    return true;
+}

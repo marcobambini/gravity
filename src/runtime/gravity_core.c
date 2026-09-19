@@ -2724,6 +2724,19 @@ static bool string_storeat (gravity_vm *vm, gravity_value_t *args, uint16_t narg
     RETURN_NOVALUE();
 }
 
+// Bounds-safe wrapper around utf8_charbytes (GHSA-m75h-734r-wc7j).
+// utf8_charbytes inspects only the leading byte and returns a claimed length of
+// 1-4 (0 for a continuation/invalid byte) without checking that many bytes are
+// actually available. A truncated trailing sequence would make callers memcpy
+// past the allocation (heap OOB read), and a 0 length would freeze a scanning
+// loop (infinite loop DoS). Clamp to the bytes that remain and never report
+// less than 1 so every caller both stays in bounds and makes forward progress.
+static inline uint32_t utf8_charbytes_safe (const char *s, uint32_t remaining) {
+    uint32_t n = utf8_charbytes(s, 0);
+    if ((n == 0) || (n > remaining)) return 1;
+    return n;
+}
+
 static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, uint32_t rindex) {
     // sanity check
     if ((nargs != 2) || (!VALUE_ISA_STRING(GET_VALUE(1)))) RETURN_ERROR("String.split() expects 1 string separator.");
@@ -2753,7 +2766,7 @@ static bool string_split (gravity_vm *vm, gravity_value_t *args, uint16_t nargs,
     // if the separator is empty, then we split the string at every character
     if (seplen == 0) {
         for (uint32_t i=0; i<slen;) {
-            uint32_t n = utf8_charbytes(original, 0);
+            uint32_t n = utf8_charbytes_safe(original, slen - i);
             marray_push(gravity_value_t, list->array, VALUE_FROM_STRING(vm, original, n));
             original += n;
             i += n;
@@ -2812,7 +2825,7 @@ static bool string_loop (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, 
 
     nanotime_t t1 = nanotime();
     while (i < n) {
-        uint32_t clen = utf8_charbytes(str + i, 0);
+        uint32_t clen = utf8_charbytes_safe(str + i, (uint32_t)(n - i));
         gravity_value_t v_str = VALUE_FROM_STRING(vm, str + i, clen);
         if (!gravity_vm_runclosure(vm, closure, value, &v_str, 1)) return false;
         i += clen;
@@ -2841,7 +2854,7 @@ static bool string_iterator (gravity_vm *vm, gravity_value_t *args, uint16_t nar
     gravity_int_t index = value.n;
     if (index < 0 || (uint32_t)index >= string->len) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
     if (index+1 < string->len) {
-        uint32_t n = utf8_charbytes(string->s + index, 0);
+        uint32_t n = utf8_charbytes_safe(string->s + index, string->len - (uint32_t)index);
         index += n;
         // after advancing, check if new index is still within bounds
         if ((uint32_t)index >= string->len) RETURN_VALUE(VALUE_FROM_FALSE, rindex);
@@ -2859,7 +2872,7 @@ static bool string_iterator_next (gravity_vm *vm, gravity_value_t *args, uint16_
     gravity_int_t raw_index = VALUE_AS_INT(GET_VALUE(1));
     if (raw_index < 0 || (uint32_t)raw_index >= string->len) RETURN_VALUE(VALUE_FROM_NULL, rindex);
     int32_t index = (int32_t)raw_index;
-    uint32_t n = utf8_charbytes(string->s + index, 0);
+    uint32_t n = utf8_charbytes_safe(string->s + index, string->len - (uint32_t)index);
     RETURN_VALUE(VALUE_FROM_STRING(vm, string->s + index, n), rindex);
 }
 
@@ -2913,7 +2926,7 @@ static bool string_raw (gravity_vm *vm, gravity_value_t *args, uint16_t nargs, u
     gravity_string_t *string = VALUE_AS_STRING(GET_VALUE(0));
     
     uint32_t ascii = 0;
-    uint32_t n = utf8_charbytes(string->s, 0);
+    uint32_t n = utf8_charbytes_safe(string->s, string->len);
     for (uint32_t i=0; i<n; ++i) {
         // if (n > 1) {printf("%u (%d)\n", (uint8_t)string->s[i], (uint32_t)pow(10, n-(i+1)));}
 		ascii += (uint32_t)((uint8_t)string->s[i] * pow(10, n - (i + 1)));
