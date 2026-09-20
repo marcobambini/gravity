@@ -542,15 +542,21 @@ static void visit_flow_ternary_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) 
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary condition expression.");
     ircode_add(code, JUMPF, reg, label_false, 0, LINE_NUMBER(node));
 
+    // allocate the result register up-front so that both branches store into it
+    // (a branch can leave its value in a non-temp register, like a local variable)
+    uint32_t dest = ircode_register_push_temp(code);
+
     visit(node->stmt);
     reg = ircode_register_pop(code);
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary left stmt expression.");
+    if (reg != dest) ircode_add(code, MOVE, dest, reg, 0, LINE_NUMBER(node));
     ircode_add(code, JUMP, label_final, 0, 0, LINE_NUMBER(node));
 
     ircode_marklabel(code, label_false, LINE_NUMBER(node));
     visit(node->elsestmt);
-    reg = ircode_register_last(code);
+    reg = ircode_register_pop(code);
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary right stmt expression.");
+    if (reg != dest) ircode_add(code, MOVE, dest, reg, 0, LINE_NUMBER(node));
     ircode_marklabel(code, label_final, LINE_NUMBER(node));
 
     return;
@@ -1903,7 +1909,7 @@ static void visit_identifier_expr (gvisitor_t *self, gnode_identifier_expr_t *no
                 if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid identifier expression.");
 				ircode_add(code, MOVE, index, reg, 0, LINE_NUMBER(node));
             } else {
-                ircode_add(code, MOVE, ircode_register_push_temp(code), index, 0, LINE_NUMBER(node));
+                ircode_register_push(code, index);
             }
         } break;
 
