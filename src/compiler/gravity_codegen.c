@@ -527,12 +527,6 @@ static void visit_flow_ternary_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) 
     DEBUG_CODEGEN("visit_flow_ternary_stmt");
     DECLARE_CODE();
 
-    // Both branches must produce their result in the same register slot.
-    // This works because: after popping the condition register, the allocator
-    // is at state S. The true branch visits+pops (returning to S), then the
-    // false branch visits from the same state S — deterministic allocation
-    // guarantees both branches push their result into the same register.
-    // At runtime only one branch executes, but both target the same slot.
     uint32_t reg;
     uint32_t label_false = ircode_newlabel(code);
     uint32_t label_final = ircode_newlabel(code);
@@ -542,15 +536,21 @@ static void visit_flow_ternary_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) 
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary condition expression.");
     ircode_add(code, JUMPF, reg, label_false, 0, LINE_NUMBER(node));
 
+    // allocate the result register up-front so that both branches store into it
+    // (a branch can leave its value in a non-temp register, like a local variable)
+    uint32_t dest = ircode_register_push_temp(code);
+
     visit(node->stmt);
     reg = ircode_register_pop(code);
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary left stmt expression.");
+    if (reg != dest) ircode_add(code, MOVE, dest, reg, 0, LINE_NUMBER(node));
     ircode_add(code, JUMP, label_final, 0, 0, LINE_NUMBER(node));
 
     ircode_marklabel(code, label_false, LINE_NUMBER(node));
     visit(node->elsestmt);
-    reg = ircode_register_last(code);
+    reg = ircode_register_pop(code);
     if (reg == REGISTER_ERROR) report_error(self, (gnode_t *)node, "Invalid ternary right stmt expression.");
+    if (reg != dest) ircode_add(code, MOVE, dest, reg, 0, LINE_NUMBER(node));
     ircode_marklabel(code, label_final, LINE_NUMBER(node));
 
     return;
