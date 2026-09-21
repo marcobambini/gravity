@@ -527,12 +527,6 @@ static void visit_flow_ternary_stmt (gvisitor_t *self, gnode_flow_stmt_t *node) 
     DEBUG_CODEGEN("visit_flow_ternary_stmt");
     DECLARE_CODE();
 
-    // Both branches must produce their result in the same register slot.
-    // This works because: after popping the condition register, the allocator
-    // is at state S. The true branch visits+pops (returning to S), then the
-    // false branch visits from the same state S — deterministic allocation
-    // guarantees both branches push their result into the same register.
-    // At runtime only one branch executes, but both target the same slot.
     uint32_t reg;
     uint32_t label_false = ircode_newlabel(code);
     uint32_t label_final = ircode_newlabel(code);
