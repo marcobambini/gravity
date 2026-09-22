@@ -263,6 +263,7 @@ uint8_t opcode_numop (opcode_t op) {
         case RET0: return 0;
         case RET: return 1;
         case CALL: return 3;
+        case CALL_NAMED: return 3;
         case SETLIST: return 3;
         case LOADK: return 2;
         case LOADG: return 2;
@@ -310,7 +311,6 @@ uint8_t opcode_numop (opcode_t op) {
         case CLOSURE: return 2;
         case CLOSE: return 1;
         case CHECK: return 1;
-        case RESERVED2:
         case RESERVED3:
         case RESERVED4:
         case RESERVED5:

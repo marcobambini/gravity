@@ -1,0 +1,12 @@
+#unittest {
+    name: "Positional argument after named argument is rejected";
+    error: SYNTAX;
+};
+
+func value(first = 1, second = 2) {
+    return first + second;
+}
+
+func main() {
+    return value(second: 2, 1);
+}

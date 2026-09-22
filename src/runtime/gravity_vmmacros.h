@@ -134,7 +134,7 @@
                                     &&RSHIFT,       &&BAND,         &&BOR,          &&BXOR,         \
                                     &&BNOT,         &&MAPNEW,       &&LISTNEW,      &&RANGENEW,     \
                                     &&SETLIST,      &&CLOSURE,      &&CLOSE,        &&CHECK,        \
-                                    &&RESERVED2,    &&RESERVED3,    &&RESERVED4,    &&RESERVED5,    \
+                                    &&CALL_NAMED,   &&RESERVED3,    &&RESERVED4,    &&RESERVED5,    \
                                     &&RESERVED6                                                        };
 #define INTERPRET_LOOP              DISPATCH();
 #define CASE_CODE(name)             START_MICROBENCH(vm); name

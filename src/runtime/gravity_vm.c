@@ -1165,10 +1165,12 @@ static bool gravity_vm_exec (gravity_vm *vm) {
             }
 
             // MARK: CALL
+            CASE_CODE(CALL_NAMED):
             CASE_CODE(CALL): {
                 // CALL A B C => R(A) = B(B+1...B+C)
                 OPCODE_GET_THREE8bit(inst, const uint32_t r1, const uint32_t r2, register uint32_t r3);
-                DEBUG_VM("CALL %d %d %d", r1, r2, r3);
+                const bool has_named_arguments = (op == CALL_NAMED);
+                DEBUG_VM("%s %d %d %d", has_named_arguments ? "CALL_NAMED" : "CALL", r1, r2, r3);
 
                 DEBUG_STACK();
 
@@ -1196,11 +1198,109 @@ static bool gravity_vm_exec (gravity_vm *vm) {
                 // sanity check
                 if (!closure) RUNTIME_ERROR("Unable to call object (in function %s)", func->identifier);
 
+                gravity_function_t *named_function = NULL;
+                const char *named_function_identifier = "anonymous";
+                uint32_t named_argument_count = 0;
+                gravity_list_t *argument_names = NULL;
+                if (has_named_arguments) {
+                    if (r3 < 2) RUNTIME_ERROR("Invalid named call metadata.");
+                    named_argument_count = r3 - 2; // skip self and the trailing labels list
+
+                    gravity_value_t names_value = STACK_GET(rwin + r3 - 1);
+                    if (!VALUE_ISA_LIST(names_value)) RUNTIME_ERROR("Invalid named call labels.");
+                    argument_names = VALUE_AS_LIST(names_value);
+                    if (marray_size(argument_names->array) != named_argument_count) {
+                        RUNTIME_ERROR("Named call argument and label counts do not match.");
+                    }
+
+                    if (VALUE_ISA_CLASS(v)) {
+                        gravity_closure_t *constructor = gravity_class_lookup_constructor(
+                            VALUE_AS_CLASS(v),
+                            named_argument_count
+                        );
+                        if (constructor) named_function = constructor->f;
+                    } else {
+                        named_function = closure->f;
+                    }
+
+                    if (!named_function || named_function->tag != EXEC_TYPE_NATIVE) {
+                        RUNTIME_ERROR("Named arguments require a Gravity function with parameter metadata.");
+                    }
+                    named_function_identifier = named_function->identifier
+                        ? named_function->identifier
+                        : "anonymous";
+                    if (named_function->nparams == 0) {
+                        RUNTIME_ERROR("Named argument metadata is unavailable for function %s.", named_function_identifier);
+                    }
+                    uint32_t formal_count = named_function->nparams - 1;
+                    if ((formal_count >= UINT8_MAX) || (marray_size(named_function->pname) != formal_count)) {
+                        RUNTIME_ERROR("Named argument metadata is unavailable for function %s.", named_function_identifier);
+                    }
+                    if (named_argument_count > formal_count) {
+                        RUNTIME_ERROR(
+                            "Function %s accepts %u arguments but %u were passed.",
+                            named_function_identifier,
+                            formal_count,
+                            named_argument_count
+                        );
+                    }
+                }
+
                 // check stack size
                 uint32_t _rneed = FN_COUNTREG(closure->f, r3);
+				if (named_function) {
+                    _rneed = MAXNUM(_rneed, FN_COUNTREG(named_function, named_function->nparams));
+                }
 				uint32_t stacktopdelta = (uint32_t)MAXNUM(stackstart + rwin + _rneed - fiber->stacktop, 0);
                 if (!gravity_check_stack(vm, fiber, stacktopdelta, &stackstart)) {
                     RUNTIME_ERROR("Out of memory: fiber stack could not be grown.");
+                }
+
+                if (has_named_arguments) {
+                    uint32_t formal_count = named_function->nparams - 1;
+                    gravity_value_t reordered[UINT8_MAX];
+                    bool assigned[UINT8_MAX] = {false};
+                    for (uint32_t i=0; i<formal_count; ++i) reordered[i] = VALUE_FROM_UNDEFINED;
+
+                    uint32_t next_positional = 0;
+                    for (uint32_t source_index=0; source_index<named_argument_count; ++source_index) {
+                        gravity_value_t label = marray_get(argument_names->array, source_index);
+                        uint32_t destination = UINT32_MAX;
+
+                        if (VALUE_ISA_UNDEFINED(label)) {
+                            while ((next_positional < formal_count) && assigned[next_positional]) ++next_positional;
+                            destination = next_positional;
+                            ++next_positional;
+                        } else if (VALUE_ISA_STRING(label)) {
+                            for (uint32_t parameter_index=0; parameter_index<formal_count; ++parameter_index) {
+                                gravity_value_t parameter_name = marray_get(named_function->pname, parameter_index);
+                                if (gravity_value_equals(label, parameter_name)) {
+                                    destination = parameter_index;
+                                    break;
+                                }
+                            }
+                            if (destination == UINT32_MAX) {
+                                RUNTIME_ERROR(
+                                    "Unknown named argument %s for function %s.",
+                                    VALUE_AS_CSTRING(label),
+                                    named_function_identifier
+                                );
+                            }
+                        } else {
+                            RUNTIME_ERROR("Named call labels must be strings or undefined.");
+                        }
+
+                        if ((destination >= formal_count) || assigned[destination]) {
+                            RUNTIME_ERROR("Duplicate or invalid named argument for function %s.", named_function_identifier);
+                        }
+                        assigned[destination] = true;
+                        reordered[destination] = STACK_GET(rwin + source_index + 1);
+                    }
+
+                    for (uint32_t i=0; i<formal_count; ++i) {
+                        SETVALUE(rwin + i + 1, reordered[i]);
+                    }
+                    r3 = named_function->nparams;
                 }
 
                 // if less arguments are passed then fill the holes with UNDEFINED values
@@ -1504,7 +1604,6 @@ static bool gravity_vm_exec (gravity_vm *vm) {
             }
             
             // MARK: - RESERVED
-            CASE_CODE(RESERVED2):
             CASE_CODE(RESERVED3):
             CASE_CODE(RESERVED4):
             CASE_CODE(RESERVED5):

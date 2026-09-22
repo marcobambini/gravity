@@ -4,6 +4,13 @@ All notable changes to Gravity are documented in this file.
 
 ## [Unreleased]
 
+---
+
+## [0.9.9] - 2026-09-22
+
+### Added
+- **Native named arguments** — calls can now mix leading positional arguments with labeled arguments, for example `spawn(entity, position: value)`. The parser preserves labels in the AST, codegen stores immutable label metadata in the constant pool, and the VM reorders values against function parameter metadata before applying defaults. Functions, methods, constructors, and callable Gravity objects are supported; duplicate labels, unknown labels, and positional arguments after a named argument are rejected with diagnostics.
+
 ### Fixed
 - **Wrong format specifier in a codegen error message** — `report_error(..., "Invalid argument expression at index %d.", j+1)` passed a `size_t` to a `%d` conversion, which reads only 32 bits of a 64-bit argument: undefined behaviour in a variadic call. The three `report_error` helpers now carry `__attribute__((format(printf, ...)))` on gcc and clang, so the compiler type-checks every call site and this class of mistake fails the build instead of needing an external analyser to spot it.
 - **Heap buffer overflow in `list_storeat` when growing the list fails** — storing past the end of a list reallocates the backing array, but `marray_resize` leaves both the pointer and the capacity untouched when the `realloc` fails, so the existing `if (!list->array.p)` guard never fired: the old, smaller buffer is still there and still non-NULL. The count was then set to the requested index and the fill loop wrote well past the end of the allocation. The check now tests the capacity actually obtained, and the out-of-memory case is reported as `Not enough memory to resize List.` as intended. Reachable from a script: `x[4444444444444444444] = 0` asks for a single multi-gigabyte allocation.

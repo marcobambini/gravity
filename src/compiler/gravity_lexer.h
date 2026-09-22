@@ -46,6 +46,7 @@ void                gravity_lexer_setdelegate (gravity_lexer_t *lexer, gravity_d
 
 gtoken_t            gravity_lexer_next (gravity_lexer_t *lexer);
 gtoken_t            gravity_lexer_peek (gravity_lexer_t *lexer);
+gtoken_t            gravity_lexer_peek2 (gravity_lexer_t *lexer);
 void                gravity_lexer_skip_line (gravity_lexer_t *lexer);
 
 uint32_t            gravity_lexer_lineno (gravity_lexer_t *lexer);

@@ -1,0 +1,12 @@
+#unittest {
+    name: "Duplicate named argument is rejected";
+    error: SYNTAX;
+};
+
+func value(first = 1) {
+    return first;
+}
+
+func main() {
+    return value(first: 1, first: 2);
+}

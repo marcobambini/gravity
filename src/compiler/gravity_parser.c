@@ -918,40 +918,36 @@ static gnode_t *parse_keyword_expression (gravity_parser_t *parser) {
     return gnode_keyword_expr_create(token, LAST_DECLARATION());
 }
 
-static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
+static gnode_r *parse_arguments_expression (gravity_parser_t *parser, cstring_r **argnames) {
     DEBUG_PARSER("parse_arguments_expression");
     DECLARE_LEXER;
+
+    *argnames = NULL;
 
     // it's OK for a call_expression_list to be empty
     if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) return NULL;
 
-    // https://en.wikipedia.org/wiki/Named_parameter
-    // with the introduction of named parameters there are a lot
-    // of sub-cases to handle here, for example I cannot know in
-    // advance if a call has named parameters or not from the
-    // beginning because we also support mixed calls (both position
-    // and named parameters)
-    // so basically I collect two arrays here
-    // one for names (or positions) and one for values
-    // if the call is not a named call then the useless
-    // array is discarded
-    
     bool arg_expected = true;
+    bool has_named_arguments = false;
+    bool named_argument_seen = false;
     gnode_r *list = gnode_array_create();
+    cstring_r *names = cstring_array_create();
 
-    uint32_t index = 0;
     while (1) {
         gtoken_t peek = gravity_lexer_peek(lexer);
 
         if (peek == TOK_OP_COMMA) {
             // added the ability to convert ,, to ,undefined,
             gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN, LAST_DECLARATION()));
+            cstring_array_push(names, NULL);
             arg_expected = true;
 
             // consume next TOK_OP_COMMA and check for special ,) case
             gravity_lexer_next(lexer);
-            if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS)
+            if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) {
                 gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN, LAST_DECLARATION()));
+                cstring_array_push(names, NULL);
+            }
 
         } else {
             // check exit condition
@@ -961,19 +957,50 @@ static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
             // I am going to parse and expression but is it allowed?
             if (!arg_expected) {
                 REPORT_ERROR(gravity_lexer_token_next(lexer), "Missing , in function call.");
+                cstring_array_each(names, {
+                    if (val) mem_free((void *)val);
+                });
+                cstring_array_free(names);
+                mem_free(names);
                 return list;
+            }
+
+            const char *argument_name = NULL;
+            if ((peek == TOK_IDENTIFIER) && (gravity_lexer_peek2(lexer) == TOK_OP_COLON)) {
+                argument_name = parse_identifier(parser);
+                parse_required(parser, TOK_OP_COLON);
+                has_named_arguments = true;
+                named_argument_seen = true;
+
+                size_t name_count = marray_size(*names);
+                for (size_t i=0; i<name_count; ++i) {
+                    const char *existing_name = marray_get(*names, i);
+                    if (existing_name && string_cmp(existing_name, argument_name) == 0) {
+                        REPORT_ERROR(gravity_lexer_token(lexer), "Duplicate named argument %s.", argument_name);
+                        break;
+                    }
+                }
+            } else if (named_argument_seen) {
+                REPORT_ERROR(gravity_lexer_token_next(lexer), "Positional arguments cannot follow named arguments.");
             }
 
             // parse expression
             gnode_t *expr = parse_expression(parser);
-            if (expr) gnode_array_push(list, expr);
+            if (expr) {
+                gnode_array_push(list, expr);
+                cstring_array_push(names, argument_name);
+            } else if (argument_name) {
+                mem_free((void *)argument_name);
+            }
 
             // consume next TOK_OP_COMMA and check for special ,) case
             peek = gravity_lexer_peek(lexer);
             if (peek == TOK_OP_COMMA) {
                 gravity_lexer_next(lexer);
-                if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS)
+                if (gravity_lexer_peek(lexer) == TOK_OP_CLOSED_PARENTHESIS) {
                     gnode_array_push(list, gnode_keyword_expr_create(UNDEF_TOKEN, LAST_DECLARATION()));
+                    cstring_array_push(names, NULL);
+                }
             }
 
             // arg is expected only if a comma is consumed
@@ -981,7 +1008,13 @@ static gnode_r *parse_arguments_expression (gravity_parser_t *parser) {
             arg_expected = (peek == TOK_OP_COMMA);
         }
         
-        ++index;
+    }
+
+    if (has_named_arguments) {
+        *argnames = names;
+    } else {
+        cstring_array_free(names);
+        mem_free(names);
     }
 
     return list;
@@ -1008,19 +1041,20 @@ static gnode_t *parse_postfix_expression (gravity_parser_t *parser, gtoken_t tok
             gnode_t *expr = parse_expression(parser);
             gtoken_s subtoken = gravity_lexer_token(lexer);
             parse_required(parser, TOK_OP_CLOSED_SQUAREBRACKET);
-            node = gnode_postfix_subexpr_create(subtoken, NODE_SUBSCRIPT_EXPR, expr, NULL, LAST_DECLARATION());
+            node = gnode_postfix_subexpr_create(subtoken, NODE_SUBSCRIPT_EXPR, expr, NULL, NULL, LAST_DECLARATION());
         } else if (tok == TOK_OP_OPEN_PARENTHESIS) {
-            gnode_r *args = parse_arguments_expression(parser);    // can be NULL and it's OK
+            cstring_r *argnames = NULL;
+            gnode_r *args = parse_arguments_expression(parser, &argnames);    // can be NULL and it's OK
             gtoken_s subtoken = gravity_lexer_token(lexer);
             parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
-            node = gnode_postfix_subexpr_create(subtoken, NODE_CALL_EXPR, NULL, args, LAST_DECLARATION());
+            node = gnode_postfix_subexpr_create(subtoken, NODE_CALL_EXPR, NULL, args, argnames, LAST_DECLARATION());
         } else if (tok == TOK_OP_DOT) {
             // was parse_identifier_expression but we need to allow also keywords here in order
             // to be able to supports expressions like name.repeat (repeat is a keyword but in this
             // context it should be interpreted as an identifier)
             gnode_t *expr = parse_identifier_or_keyword_expression(parser);
             gtoken_s subtoken = gravity_lexer_token(lexer);
-            node = gnode_postfix_subexpr_create(subtoken, NODE_ACCESS_EXPR, expr, NULL, LAST_DECLARATION());
+            node = gnode_postfix_subexpr_create(subtoken, NODE_ACCESS_EXPR, expr, NULL, NULL, LAST_DECLARATION());
         } else {
             // should never reach this point
             assert(0);
