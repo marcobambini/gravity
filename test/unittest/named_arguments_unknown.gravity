@@ -1,0 +1,12 @@
+#unittest {
+    name: "Unknown named argument is rejected";
+    error: RUNTIME;
+};
+
+func value(known = 1) {
+    return known;
+}
+
+func main() {
+    return value(unknown: 2);
+}

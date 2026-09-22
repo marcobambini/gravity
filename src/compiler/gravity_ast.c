@@ -495,7 +495,7 @@ gnode_t *gnode_keyword_expr_create (gtoken_s token, gnode_t *decl) {
     return (gnode_t *)node;
 }
 
-gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *expr, gnode_r *list, gnode_t *decl) {
+gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *expr, gnode_r *list, cstring_r *argnames, gnode_t *decl) {
     gnode_postfix_subexpr_t *node = (gnode_postfix_subexpr_t *)mem_alloc(NULL, sizeof(gnode_postfix_subexpr_t));
 
     SETBASE(node, type, token);
@@ -504,6 +504,7 @@ gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *ex
         node->args = list;
     else
         node->expr = expr;
+    node->argnames = argnames;
     return (gnode_t *)node;
 }
 
@@ -734,6 +735,13 @@ static void free_postfix_subexpr (gvisitor_t *self, gnode_postfix_subexpr_t *sub
         if (subnode->args) {
             gnode_array_each(subnode->args, visit(val););
             gnode_array_free(subnode->args);
+        }
+        if (subnode->argnames) {
+            cstring_array_each(subnode->argnames, {
+                if (val) mem_free((void *)val);
+            });
+            cstring_array_free(subnode->argnames);
+            mem_free(subnode->argnames);
         }
     } else {
         visit(subnode->expr);

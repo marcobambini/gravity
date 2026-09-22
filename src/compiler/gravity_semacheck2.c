@@ -569,6 +569,13 @@ static void free_postfix_subexpr (gnode_postfix_subexpr_t *subnode) {
             gnode_array_each(subnode->args, gnode_free(val););
             gnode_array_free(subnode->args);
         }
+        if (subnode->argnames) {
+            cstring_array_each(subnode->argnames, {
+                if (val) mem_free((void *)val);
+            });
+            cstring_array_free(subnode->argnames);
+            mem_free(subnode->argnames);
+        }
     } else {
         gnode_free(subnode->expr);
     }

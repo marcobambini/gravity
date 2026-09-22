@@ -590,6 +590,17 @@ gtoken_t gravity_lexer_peek (gravity_lexer_t *lexer) {
     return result;
 }
 
+gtoken_t gravity_lexer_peek2 (gravity_lexer_t *lexer) {
+    gravity_lexer_t saved = *lexer;
+    lexer->peeking = true;
+
+    gravity_lexer_next(lexer);
+    gtoken_t result = gravity_lexer_next(lexer);
+
+    *lexer = saved;
+    return result;
+}
+
 gtoken_t gravity_lexer_next (gravity_lexer_t *lexer) {
     int            c;
     uint32_t    nlen;

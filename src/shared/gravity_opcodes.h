@@ -128,9 +128,9 @@ typedef enum {
             CLOSURE,        //  A, B            //  create a new closure                    R(A) = closure(K(B))
             CLOSE,          //  A               //  close all upvalues from R(A)
 
-                                                //  *** UNUSED (6) ***
+                                                //  *** CALL METADATA AND RESERVED (6) ***
             CHECK,          //  A               //  checkpoint for structs                  R(A) = R(A).clone (if A is a struct)
-            RESERVED2,      //                  //  reserved for future use
+            CALL_NAMED,     //  A, B, C         //  call with trailing argument-label list
             RESERVED3,      //                  //  reserved for future use
             RESERVED4,      //                  //  reserved for future use
             RESERVED5,      //                  //  reserved for future use

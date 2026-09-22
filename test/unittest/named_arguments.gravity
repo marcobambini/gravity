@@ -1,0 +1,37 @@
+#unittest {
+    name: "Named arguments for functions, methods, constructors and callable objects";
+    error: NONE;
+    result: 2472;
+};
+
+func combine(a = 1, b = 2, c = 3) {
+    return a * 100 + b * 10 + c;
+}
+
+class Formatter {
+    func combine(a = 1, b = 2, c = 3) {
+        return a * 100 + b * 10 + c;
+    }
+}
+
+class Point {
+    var value;
+
+    func init(x = 0, y = 0, z = 0) {
+        value = x * 100 + y * 10 + z;
+    }
+}
+
+class Factory {
+    func exec(x = 0, y = 0, z = 0) {
+        return x * 100 + y * 10 + z;
+    }
+}
+
+func main() {
+    var functionValues = [combine(4, c: 9)];
+    var methodValue = Formatter().combine(c: 6, a: 5);
+    var constructorValue = Point(z: 8, x: 7).value;
+    var callableValue = Factory()(z: 9, x: 8);
+    return functionValues[0] + methodValue + constructorValue + callableValue;
+}

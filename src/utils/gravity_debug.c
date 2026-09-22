@@ -32,7 +32,7 @@ const char *opcode_name (opcode_t op) {
         "MUL", "REM", "AND", "OR", "LT", "GT", "EQ", "LEQ", "GEQ", "NEQ",
         "EQQ", "NEQQ", "IS", "MATCH", "NEG", "NOT", "LSHIFT", "RSHIFT", "BAND",
         "BOR", "BXOR", "BNOT", "MAPNEW", "LISTNEW", "RANGENEW", "SETLIST",
-        "CLOSURE", "CLOSE", "CHECK", "RESERVED2", "RESERVED3", "RESERVED4",
+        "CLOSURE", "CLOSE", "CHECK", "CALL_NAMED", "RESERVED3", "RESERVED4",
         "RESERVED5", "RESERVED6"};
     if ((unsigned)op >= sizeof(optable)/sizeof(optable[0])) return "UNKNOWN";
     return optable[op];
@@ -187,7 +187,8 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
                 break;
             }
                 
-            case CALL: {
+            case CALL:
+            case CALL_NAMED: {
                 // CALL A B C => R(A) = B(C0... CN)
                 OPCODE_GET_THREE8bit(inst, const uint32_t r1, const uint32_t r2, uint32_t r3);
                 DUMP_VM(buffer, bindex, "%s %d %d %d", opcode_name(op), r1, r2, r3);
@@ -236,7 +237,6 @@ const char *gravity_disassemble (gravity_vm *vm, gravity_function_t *f, const ch
                 break;
             }
                 
-            case RESERVED2:
             case RESERVED3:
             case RESERVED4:
             case RESERVED5:

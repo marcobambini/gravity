@@ -1584,8 +1584,42 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
                 marray_push(uint32_t, args, nreg);
             }
 
+            uint32_t argument_names_register = REGISTER_ERROR;
+            if (subnode->argnames) {
+                argument_names_register = ircode_register_push_temp(code);
+                if (argument_names_register != temp_target_register + n + 2) {
+                    report_error(self, (gnode_t *)subnode, "Invalid register computation for named arguments.");
+                    goto cleanup;
+                }
+                gravity_list_t *argument_names = gravity_list_new(NULL, (uint32_t)n);
+                if (!argument_names) {
+                    report_error(self, (gnode_t *)subnode, "Unable to allocate named argument metadata.");
+                    goto cleanup;
+                }
+                for (size_t j=0; j<n; ++j) {
+                    const char *argument_name = marray_get(*subnode->argnames, j);
+                    gravity_value_t name_value = argument_name
+                        ? VALUE_FROM_CSTRING(GET_VM(), argument_name)
+                        : VALUE_FROM_UNDEFINED;
+                    marray_push(gravity_value_t, argument_names->array, name_value);
+                }
+                uint16_t names_index = gravity_function_cpool_add(
+                    GET_VM(),
+                    context_function,
+                    VALUE_FROM_OBJECT(argument_names)
+                );
+                ircode_add(code, LOADK, argument_names_register, names_index, 0, LINE_NUMBER(node));
+            }
+
             // generate instruction CALL with count parameters (taking in account self)
-			ircode_add(code, CALL, dest_register, temp_target_register, (uint32_t)n+1, LINE_NUMBER(node));
+			ircode_add(
+                code,
+                subnode->argnames ? CALL_NAMED : CALL,
+                dest_register,
+                temp_target_register,
+                (uint32_t)n + (subnode->argnames ? 2 : 1),
+                LINE_NUMBER(node)
+            );
 
             // cleanup temp registers
             ircode_register_clear(code, temp_target_register);
@@ -1594,6 +1628,13 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
             for (size_t j=0; j<n; ++j) {
                 uint32_t reg = marray_get(args, j);
                 ircode_register_clear(code, reg);
+            }
+            if (argument_names_register != REGISTER_ERROR) {
+                uint32_t cleared_names_register = ircode_register_pop(code);
+                if (cleared_names_register != argument_names_register) {
+                    report_error(self, (gnode_t *)subnode, "Invalid named argument register cleanup.");
+                    goto cleanup;
+                }
             }
 
             // update self list

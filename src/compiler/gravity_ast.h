@@ -289,6 +289,7 @@ typedef struct {
         gnode_t         *expr;              // used in case of NODE_SUBSCRIPT_EXPR or NODE_ACCESS_EXPR
         gnode_r         *args;              // used in case of NODE_CALLFUNC_EXPR
     };
+    cstring_r           *argnames;          // named call labels aligned with args; NULL for positional calls
 } gnode_postfix_subexpr_t;
 
 typedef struct {
@@ -323,7 +324,7 @@ gnode_t *gnode_literal_float_expr_create (gtoken_s token, double f, gnode_t *dec
 gnode_t *gnode_literal_int_expr_create (gtoken_s token, int64_t n, gnode_t *decl);
 gnode_t *gnode_literal_string_expr_create (gtoken_s token, char *s, uint32_t len, bool allocated, gnode_t *decl);
 gnode_t *gnode_postfix_expr_create (gtoken_s token, gnode_t *id, gnode_r *list, gnode_t *decl);
-gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *expr, gnode_r *list, gnode_t *decl);
+gnode_t *gnode_postfix_subexpr_create (gtoken_s token, gnode_n type, gnode_t *expr, gnode_r *list, cstring_r *argnames, gnode_t *decl);
 gnode_t *gnode_string_interpolation_create (gtoken_s token, gnode_r *r, gnode_t *decl);
 gnode_t *gnode_unary_expr_create (gtoken_t op, gnode_t *expr, gnode_t *decl);
 

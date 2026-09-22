@@ -134,6 +134,32 @@ struct GravityVirtualMachineTests {
         let systemInstance = try #require(systemClass.callAsFunction())
         #expect(systemInstance.isInstance)
     }
+
+    @Test("Executes named arguments through the native compiler and VM")
+    func executesNamedArguments() throws {
+        let delegate = TestVirtualMachineDelegate()
+        let virtualMachine = GravityVirtualMachine(settings: .init(), delegate: delegate)
+        let binary = virtualMachine.loadGravityFile(from: """
+        func combine(a = 1, b = 2, c = 3) {
+            return a * 100 + b * 10 + c;
+        }
+
+        class Factory {
+            func exec(x = 0, y = 0, z = 0) {
+                return combine(x, b: y, c: z);
+            }
+        }
+
+        func main() {
+            return Factory()(z: 9, x: 8);
+        }
+        """)
+
+        let result = try #require(virtualMachine.execute(binary))
+
+        #expect(delegate.errors.isEmpty)
+        #expect(result.toInteger == 809)
+    }
 }
 
 @GSExportable
