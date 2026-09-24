@@ -167,6 +167,7 @@ typedef struct {
     uint16_t            nparams;            // formal parameters counter
     bool                has_defaults;       // flag set if parmas has default values
     bool                is_closure;         // flag to check if function is a closure
+    bool                is_async;           // declared async; body executes in a task fiber
     gupvalue_r          *uplist;            // list of upvalues used in function (can be empty)
 } gnode_function_decl_t;
 typedef gnode_function_decl_t gnode_function_expr_t;
@@ -281,6 +282,7 @@ typedef struct {
     gnode_t             base;               // NODE_CALLFUNC_EXPR, NODE_SUBSCRIPT_EXPR, NODE_ACCESS_EXPR
     gnode_t             *id;                // id(...) or id[...] or id.
     gnode_r             *list;              // list of postfix_subexpr
+    bool                is_await;           // source-level await, lowered to __adaAwait call
 } gnode_postfix_expr_t;
 
 typedef struct {

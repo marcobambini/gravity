@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 30656)
+Total output lines: 3058
+
 //
 //  gravity_parser.c
 //  gravity
@@ -28,6 +31,7 @@ struct gravity_parser_t {
     lexer_r                             *lexer;             // stack of lexers (stack used in #include statements)
     gnode_r                             *declarations;      // used to keep track of nodes hierarchy
     gnode_r                             *statements;        // used to build AST
+    gnode_t                             *pending_async;     // generated body declaration after its public wrapper
     gravity_delegate_t                  *delegate;          // compiler delegate
     uint16_r                            vdecl;              // to keep track of func expression in variable declaration nondes
 
@@ -119,7 +123,7 @@ static gnode_r *parse_optional_parameter_declaration (gravity_parser_t *parser, 
 static gnode_t *parse_compound_statement (gravity_parser_t *parser);
 static gnode_t *parse_expression (gravity_parser_t *parser);
 static gnode_t *parse_declaration_statement (gravity_parser_t *parser);
-static gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier);
+static gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier, bool is_async);
 static gnode_t *adjust_assignment_expression (gravity_parser_t *parser, gtoken_t tok, gnode_t *lnode, gnode_t *rnode);
 static gnode_t *parse_literal_expression (gravity_parser_t *parser);
 static gnode_t *parse_macro_statement (gravity_parser_t *parser);
@@ -265,7 +269,123 @@ static bool parse_semicolon (gravity_parser_t *parser) {
     #endif
 }
 
-gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier) {
+static gnode_t *async_identifier(gtoken_s token, const char *name, gnode_t *owner) {
+    return gnode_identifier_expr_create(token, string_dup(name), NULL, owner);
+}
+
+static gnode_t *async_call(gtoken_s token, const char *name, gnode_r *args, gnode_t *owner) {
+    gnode_r *parts = gnode_array_create();
+    gnode_array_push(parts, gnode_postfix_subexpr_create(token, NODE_CALL_EXPR, NULL, args, NULL, owner));
+    return gnode_postfix_expr_create(token, async_identifier(token, name, owner), parts, owner);
+}
+
+static gnode_t *async_member(gtoken_s token, gnode_t *base, const char *name, gnode_t *owner) {
+    gnode_r *parts = gnode_array_create();
+    gnode_t *member = async_identifier(token, name, owner);
+    gnode_array_push(parts, gnode_postfix_subexpr_create(token, NODE_ACCESS_EXPR, member, NULL, NULL, owner));
+    return gnode_postfix_expr_create(token, base, parts, owner);
+}
+
+static gnode_t *async_invoke(gtoken_s token, gnode_t *target, gnode_r *args, gnode_t *owner) {
+    gnode_r *parts = gnode_array_create();
+    gnode_array_push(parts, gnode_postfix_subexpr_create(token, NODE_CALL_EXPR, NULL, args, NULL, owner));
+    if (target->tag == NODE_POSTFIX_EXPR) {
+        gnode_postfix_expr_t *postfix = (gnode_postfix_expr_t *)target;
+        gnode_array_push(postfix->list, gnode_array_get(parts, 0));
+        gnode_array_free(parts);
+        return target;
+    }
+    return gnode_postfix_expr_create(token, target, parts, owner);
+}
+
+static gnode_t *async_local(gtoken_s token, const char *name, gnode_t *value, gnode_t *owner) {
+    gnode_r *variables = gnode_array_create();
+    gnode_array_push(variables, gnode_variable_create(token, string_dup(name), NULL, value, owner, NULL));
+    return gnode_variable_decl_create(token, TOK_KEY_VAR, 0, 0, variables, owner);
+}
+
+static gnode_t *async_return(gtoken_s token, gnode_t *value, gnode_t *owner) {
+    token.type = TOK_KEY_RETURN;
+    return gnode_jump_stat_create(token, value, owner);
+}
+
+static gnode_t *lower_async_function(gravity_parser_t *parser, gnode_function_decl_t *implementation, bool captures_self) {
+    gtoken_s token = implementation->base.token;
+    const char *public_name = implementation->identifier;
+    size_t private_name_size = strlen(public_name) + 48;
+    char *private_name = mem_alloc(NULL, private_name_size);
+    snprintf(private_name, private_name_size, "$ada_async_impl_%s_%u", public_name, ++parser->unique_id);
+    implementation->identifier = private_name;
+    implementation->is_async = false;
+
+    gnode_function_decl_t *wrapper = (gnode_function_decl_t *)gnode_function_decl_create(
+        token, public_name, implementation->access, implementation->storage, NULL, NULL, implementation->base.decl);
+    wrapper->is_async = true;
+    wrapper->params = gnode_array_create();
+    for (size_t i = 0; i < gnode_array_size(implementation->params); ++i) {
+        gnode_var_t *param = (gnode_var_t *)gnode_array_get(implementation->params, i);
+        gnode_t *default_value = param->expr ? gnode_duplicate(param->expr, true) : NULL;
+        gnode_array_push(wrapper->params, gnode_variable_create(token, string_dup(param->identifier),
+            param->annotation_type ? string_dup(param->annotation_type) : NULL, default_value, (gnode_t *)wrapper, NULL));
+    }
+    wrapper->has_defaults = implementation->has_defaults;
+
+    gnode_r *statements = gnode_array_create();
+    const char *receiver_name = "__ada_receiver";
+    if (captures_self) {
+        gnode_array_push(statements, async_local(token, receiver_name, async_identifier(token, SELF_PARAMETER_NAME, (gnode_t *)wrapper), (gnode_t *)wrapper));
+    }
+    gnode_array_push(statements, async_local(token, "__ada_task", async_call(token, "__AdaTask", gnode_array_create(), (gnode_t *)wrapper), (gnode_t *)wrapper));
+
+    gnode_r *captured = gnode_array_create();
+    if (captures_self) gnode_array_push(captured, async_identifier(token, receiver_name, (gnode_t *)wrapper));
+    for (size_t i = 1; i < gnode_array_size(wrapper->params); ++i) {
+        gnode_var_t *param = (gnode_var_t *)gnode_array_get(wrapper->params, i);
+        gnode_array_push(captured, async_identifier(token, param->identifier, (gnode_t *)wrapper));
+    }
+    gnode_r *capture_args = gnode_array_create();
+    gnode_array_push(capture_args, gnode_list_expr_create(token, captured, NULL, false, (gnode_t *)wrapper));
+    gnode_t *capture_call = async_invoke(token,
+        async_member(token, async_identifier(token, "__ada_task", (gnode_t *)wrapper), "capture", (gnode_t *)wrapper),
+        capture_args, (gnode_t *)wrapper);
+    gnode_array_push(statements, capture_call);
+
+    gnode_function_decl_t *fiber_body = (gnode_function_decl_t *)gnode_function_decl_create(token, NULL, 0, 0, NULL, NULL, (gnode_t *)wrapper);
+    fiber_body->is_closure = true;
+    fiber_body->params = gnode_array_create();
+    gnode_array_push(fiber_body->params, gnode_variable_create(token, string_dup(SELF_PARAMETER_NAME), NULL, NULL, (gnode_t *)fiber_body, NULL));
+    gnode_r *implementation_args = gnode_array_create();
+    for (size_t i = 1; i < gnode_array_size(wrapper->params); ++i) {
+        gnode_var_t *param = (gnode_var_t *)gnode_array_get(wrapper->params, i);
+        gnode_array_push(implementation_args, async_identifier(token, param->identifier, (gnode_t *)fiber_body));
+    }
+    gnode_t *target = captures_self
+        ? async_member(token, async_identifier(token, receiver_name, (gnode_t *)fiber_body), private_name, (gnode_t *)fiber_body)
+        : async_identifier(token, private_name, (gnode_t *)fiber_body);
+    gnode_t *body_call = async_invoke(token, target, implementation_args, (gnode_t *)fiber_body);
+    gnode_r *finish_args = gnode_array_create();
+    gnode_array_push(finish_args, body_call);
+    gnode_t *finish_call = async_invoke(token,
+        async_member(token, async_identifier(token, "__ada_task", (gnode_t *)fiber_body), "complete", (gnode_t *)fiber_body),
+        finish_args, (gnode_t *)fiber_body);
+    gnode_r *fiber_statements = gnode_array_create();
+    gnode_array_push(fiber_statements, finish_call);
+    fiber_body->block = (gnode_compound_stmt_t *)gnode_block_stat_create(NODE_COMPOUND_STAT, token, fiber_statements, (gnode_t *)fiber_body, 0);
+
+    gnode_r *fiber_args = gnode_array_create();
+    gnode_array_push(fiber_args, (gnode_t *)fiber_body);
+    gnode_t *fiber_create = async_invoke(token,
+        async_member(token, async_identifier(token, "Fiber", (gnode_t *)wrapper), "create", (gnode_t *)wrapper),
+        fiber_args, (gnode_t *)wrapper);
+    gnode_t *fiber_property = async_member(token, async_identifier(token, "__ada_task", (gnode_t *)wrapper), "fiber", (gnode_t *)wrapper);
+    gnode_array_push(statements, gnode_binary_expr_create(TOK_OP_ASSIGN, fiber_property, fiber_create, (gnode_t *)wrapper));
+    gnode_array_push(statements, async_return(token, async_identifier(token, "__ada_task", (gnode_t *)wrapper), (gnode_t *)wrapper));
+    wrapper->block = (gnode_compound_stmt_t *)gnode_block_stat_create(NODE_COMPOUND_STAT, token, statements, (gnode_t *)wrapper, 0);
+    parser->pending_async = (gnode_t *)implementation;
+    return (gnode_t *)wrapper;
+}
+
+static gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t access_specifier, gtoken_t storage_specifier, bool is_async) {
     DECLARE_LEXER;
 
     // access_specifier? storage_specifier? already parsed
@@ -293,6 +413,7 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
 
     // create func declaration node
     gnode_function_decl_t *func = (gnode_function_decl_t *) gnode_function_decl_create(token, identifier, access_specifier, storage_specifier, NULL, NULL, LAST_DECLARATION());
+    func->is_async = is_async;
 
     // check and consume TOK_OP_OPEN_PARENTHESIS
     if (!is_implicit) parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
@@ -321,6 +442,7 @@ gnode_t *parse_function (gravity_parser_t *parser, bool is_declaration, gtoken_t
     func->has_defaults = has_default_values;
     func->params = params;
     func->block = compound;
+    if (is_async) return lower_async_function(parser, func, IS_CLASS_ENCLOSED());
     return (gnode_t *)func;
 }
 
@@ -625,7 +747,7 @@ static gnode_t *parse_function_expression (gravity_parser_t *parser) {
     // if it is a func keyword used to refers to
     // the current executing function
 
-    gnode_t *node = parse_function(parser, false, 0, 0);
+    gnode_t *node = parse_function(parser, false, 0, 0, false);
     return node;
 }
 
@@ -1154,6 +1276,23 @@ static gnode_t *parse_unary (gravity_parser_t *parser) {
     return gnode_unary_expr_create(tok, node, LAST_DECLARATION());
 }
 
+static gnode_t *parse_await_expression (gravity_parser_t *parser) {
+    DECLARE_LEXER;
+    gravity_lexer_next(lexer);
+    gtoken_s token = gravity_lexer_token(lexer);
+    gnode_t *enclosing = get_enclosing(parser, NODE_FUNCTION_DECL);
+    if (!enclosing || !((gnode_function_decl_t *)enclosing)->is_async) {
+        REPORT_ERROR(token, "await requires an async function.");
+    }
+    gnode_t *value = parse_precedence(parser, PREC_UNARY);
+    if (!value) return NULL;
+    gnode_r *args = gnode_array_create();
+    gnode_array_push(args, value);
+    gnode_postfix_expr_t *call = (gnode_postfix_expr_t *)async_call(token, "__adaAwait", args, LAST_DECLARATION());
+    call->is_await = true;
+    return (gnode_t *)call;
+}
+
 static gnode_t *parse_infix (gravity_parser_t *parser) {
     DEBUG_PARSER("parse_infix");
 
@@ -1228,6 +1367,7 @@ static void init_grammer_rules (void) {
 
     rules[TOK_OP_OPEN_CURLYBRACE] = PREFIX(PREC_LOWEST, parse_function_expression);
     rules[TOK_KEY_FUNC] = PREFIX(PREC_LOWEST, parse_function_expression);
+    rules[TOK_KEY_AWAIT] = PREFIX(PREC_LOWEST, parse_await_expression);
 
     rules[TOK_IDENTIFIER] = PREFIX(PREC_LOWEST, parse_identifier_expression);
     rules[TOK_STRING] = PREFIX(PREC_LOWEST, parse_literal_expression);
@@ -1285,65 +1425,7 @@ static void init_grammer_rules (void) {
     rules[TOK_OP_BIT_OR_ASSIGN] = INFIX_OPERATOR(PREC_ASSIGN, "|=");
     rules[TOK_OP_BIT_XOR_ASSIGN] = INFIX_OPERATOR(PREC_ASSIGN, "^=");
 
-    rules[TOK_OP_NOT] = PREFIX_OPERATOR("!");
-}
-
-// MARK: - Declarations -
-
-static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
-    DEBUG_PARSER("parse_getter_setter");
-    DECLARE_LEXER;
-
-    gnode_t *getter = NULL;
-    gnode_t *setter = NULL;
-    gtoken_s token_block = gravity_lexer_token(lexer);
-
-    while (gravity_lexer_peek(lexer) != TOK_OP_CLOSED_CURLYBRACE) {
-        const char *identifier = parse_identifier(parser);
-        if (!identifier) goto parse_error;
-
-        bool is_getter = false;
-        gtoken_s token = gravity_lexer_token(lexer);
-        gnode_r *params = NULL;
-
-        // getter case: does not have explicit parameters (only implicit self)
-        if (strcmp(identifier, GETTER_FUNCTION_NAME) == 0) {
-            is_getter = true;
-            params = gnode_array_create();    // add implicit SELF param
-            gnode_array_push(params, gnode_variable_create(NO_TOKEN, string_dup(SELF_PARAMETER_NAME), NULL, NULL, LAST_DECLARATION(), NULL));
-        }
-
-        // setter case: could have explicit parameters (otherwise value is implicit)
-        if (strcmp(identifier, SETTER_FUNCTION_NAME) == 0) {
-            is_getter = false;
-            // check if parameters are explicit
-            if (gravity_lexer_peek(lexer) == TOK_OP_OPEN_PARENTHESIS) {
-                parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
-                params = parse_optional_parameter_declaration(parser, false, NULL);    // add implicit SELF
-                parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
-            } else {
-                params = gnode_array_create();    // add implicit SELF and VALUE params
-                gnode_array_push(params, gnode_variable_create(NO_TOKEN, string_dup(SELF_PARAMETER_NAME), NULL, NULL, LAST_DECLARATION(), NULL));
-                gnode_array_push(params, gnode_variable_create(NO_TOKEN, string_dup(SETTER_PARAMETER_NAME), NULL, NULL, LAST_DECLARATION(), NULL));
-            }
-        }
-        mem_free(identifier);
-
-        // create getter/setter func declaration
-        gnode_t *f = gnode_function_decl_create(token, NULL, 0, 0, params, NULL, LAST_DECLARATION());
-        // set storage to var so I can identify f as a special getter/setter function
-        ((gnode_function_decl_t *)f)->storage = TOK_KEY_VAR;
-
-        // parse compound statement
-        PUSH_DECLARATION(f);
-        gnode_compound_stmt_t *compound = (gnode_compound_stmt_t*)parse_compound_statement(parser);
-        POP_DECLARATION();
-
-        // finish func setup
-        ((gnode_function_decl_t *)f)->block = compound;
-
-        // assign f to the right function
-        if (is_getter) getter = f; else setter = f;
+   …656 tokens truncated… (is_getter) getter = f; else setter = f;
     }
 
     gnode_r *functions = gnode_array_create();
@@ -1696,7 +1778,12 @@ static gnode_t *parse_event_declaration (gravity_parser_t *parser, gtoken_t acce
     return NULL;
 }
 
-static gnode_t *parse_function_declaration (gravity_parser_t *parser, gtoken_t access_specifier, gtoken_t storage_specifier) {
+static gnode_t *parse_function_declaration (gravity_parser_t *parser, gtoken_t access_specifier, gtoken_t storage_specifier, bool is_async) {
+    if (is_async && IS_FUNCTION_ENCLOSED()) {
+        DECLARE_LEXER;
+        REPORT_ERROR(gravity_lexer_token(lexer), "Nested async functions are not supported.");
+        return NULL;
+    }
     // convert a function declaration within another function to a local variable assignment
     // for example:
     //
@@ -1713,7 +1800,7 @@ static gnode_t *parse_function_declaration (gravity_parser_t *parser, gtoken_t a
     // conversion is performed inside the parser
     // so next semantic checks can perform
     // identifier uniqueness checks
-    gnode_t *node = parse_function(parser, true, access_specifier, storage_specifier);
+    gnode_t *node = parse_function(parser, true, access_specifier, storage_specifier, is_async);
 
     if (IS_FUNCTION_ENCLOSED()) {
         gnode_function_decl_t *func = (gnode_function_decl_t *)node;
@@ -1837,6 +1924,10 @@ static gnode_t *parse_class_declaration (gravity_parser_t *parser, gtoken_t acce
                 ? parse_special_statement(parser)
                 : parse_declaration_statement(parser);
             if (decl) gnode_array_push(declarations, decl_check_access_specifier(decl));
+            if (parser->pending_async) {
+                gnode_array_push(declarations, parser->pending_async);
+                parser->pending_async = NULL;
+            }
             peek = gravity_lexer_peek(lexer);
         }
         POP_DECLARATION();
@@ -2425,7 +2516,15 @@ static gnode_t *parse_declaration_statement (gravity_parser_t *parser) {
 
     switch (peek) {
         case TOK_MACRO: return parse_macro_statement(parser);
-        case TOK_KEY_FUNC: return parse_function_declaration(parser, access_specifier, storage_specifier);
+        case TOK_KEY_FUNC: return parse_function_declaration(parser, access_specifier, storage_specifier, false);
+        case TOK_KEY_ASYNC: {
+            gravity_lexer_next(lexer);
+            if (gravity_lexer_peek(lexer) != TOK_KEY_FUNC) {
+                REPORT_ERROR(gravity_lexer_token(lexer), "async must precede func.");
+                return NULL;
+            }
+            return parse_function_declaration(parser, access_specifier, storage_specifier, true);
+        }
         case TOK_KEY_ENUM: return parse_enum_declaration(parser, access_specifier, storage_specifier);
         case TOK_KEY_MODULE: return parse_module_declaration(parser, access_specifier, storage_specifier);
         case TOK_KEY_EVENT: return parse_event_declaration(parser, access_specifier, storage_specifier);
@@ -2779,6 +2878,10 @@ static uint32_t parser_run (gravity_parser_t *parser) {
         while (gravity_lexer_peek(CURRENT_LEXER)) {
             gnode_t *node = parse_statement(parser);
             if (node) gnode_array_push(parser->statements, node);
+            if (parser->pending_async) {
+                gnode_array_push(parser->statements, parser->pending_async);
+                parser->pending_async = NULL;
+            }
         }
 
         // since it is a stack of lexers then check if it is a real EOF

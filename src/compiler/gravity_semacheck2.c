@@ -16,6 +16,7 @@ struct semacheck_t {
     gnode_r         *declarations;      // declarations stack
     uint16_r        statements;         // statements stack
     uint32_t        lasterror;          // last error line number to prevent reporting more than one error per line
+    bool            allow_async_call;   // direct operand of await or Tasks.start
 };
 typedef struct semacheck_t semacheck_t;
 
@@ -1045,6 +1046,15 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
         if (ISA(target, NODE_VARIABLE)) target = NULL; // a variable does not contain a symbol table
     }
 
+    semacheck_t *state = (semacheck_t *)self->data;
+    if (ISA(target, NODE_FUNCTION_DECL) && ((gnode_function_decl_t *)target)->is_async &&
+        gnode_array_size(node->list) > 0 &&
+        ISA(gnode_array_get(node->list, 0), NODE_CALL_EXPR) && !state->allow_async_call) {
+        REPORT_ERROR(node, "Async call to %s requires await or Tasks.start.", ((gnode_function_decl_t *)target)->identifier);
+    }
+    bool was_allowed = state->allow_async_call;
+    state->allow_async_call = false;
+
     // special enum case on list[0] (it is a static case)
     if (ISA(target, NODE_ENUM_DECL)) {
         // check first expression in the list (in case of enum MUST BE an identifier)
@@ -1127,7 +1137,17 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
             for (size_t j=0; j<n; ++j) {
                 gnode_t *val = (gnode_t *)gnode_array_get(subnode->args, j);
                 if (is_expression_assignment(val)) {REPORT_ERROR(val, "Assignment does not have side effects and so cannot be used as function argument."); return;}
+                bool allow_argument = node->is_await && j == 0;
+                if (!allow_argument && i > 0 && j == 0 && ISA(node->id, NODE_IDENTIFIER_EXPR)) {
+                    gnode_identifier_expr_t *identifier = (gnode_identifier_expr_t *)node->id;
+                    gnode_postfix_subexpr_t *member = (gnode_postfix_subexpr_t *)gnode_array_get(node->list, i - 1);
+                    allow_argument = strcmp(identifier->value, "Tasks") == 0 &&
+                        ISA(member, NODE_ACCESS_EXPR) && ISA(member->expr, NODE_IDENTIFIER_EXPR) &&
+                        strcmp(((gnode_identifier_expr_t *)member->expr)->value, "start") == 0;
+                }
+                state->allow_async_call = allow_argument;
                 visit(val);
+                state->allow_async_call = false;
             }
             continue;
         }
@@ -1148,6 +1168,7 @@ static void visit_postfix_expr (gvisitor_t *self, gnode_postfix_expr_t *node) {
         DEBUG_SEMA2("UNRECOGNIZED POSTFIX OPTIONAL EXPRESSION");
         assert(0);
     }
+    state->allow_async_call = was_allowed;
 }
 
 static void visit_file_expr (gvisitor_t *self, gnode_file_expr_t *node) {

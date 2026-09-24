@@ -28,6 +28,8 @@ const char *token_name (gtoken_t token) {
         // keywords
         case TOK_KEY_FILE: return "file";
         case TOK_KEY_FUNC: return "func";
+        case TOK_KEY_ASYNC: return "async";
+        case TOK_KEY_AWAIT: return "await";
         case TOK_KEY_SUPER: return "super";
         case TOK_KEY_DEFAULT: return "default";
         case TOK_KEY_TRUE: return "true";
@@ -122,7 +124,7 @@ const char *token_name (gtoken_t token) {
 
 void token_keywords_indexes (uint32_t *idx_start, uint32_t *idx_end) {
     *idx_start = (uint32_t)TOK_KEY_FUNC;
-    *idx_end = (uint32_t)TOK_KEY_CURRARGS;
+    *idx_end = (uint32_t)TOK_KEY_AWAIT;
 };
 
 gtoken_t token_special_builtin(gtoken_s *token) {
@@ -195,6 +197,8 @@ gtoken_t token_keyword (const char *buffer, int32_t len) {
             break;
 
         case 5:
+            if (string_casencmp(buffer, "async", len) == 0) return TOK_KEY_ASYNC;
+            if (string_casencmp(buffer, "await", len) == 0) return TOK_KEY_AWAIT;
             if (string_casencmp(buffer, "super", len) == 0) return TOK_KEY_SUPER;
             if (string_casencmp(buffer, "false", len) == 0) return TOK_KEY_FALSE;
             if (string_casencmp(buffer, "break", len) == 0) return TOK_KEY_BREAK;
@@ -311,7 +315,7 @@ bool token_isprimary_expression (gtoken_t token) {
             (token == TOK_KEY_FALSE) || (token == TOK_IDENTIFIER) || (token == TOK_KEY_NULL) ||
             (token == TOK_KEY_SUPER) || (token == TOK_KEY_FUNC) || (token == TOK_KEY_UNDEFINED) ||
             (token == TOK_OP_OPEN_PARENTHESIS) || (token == TOK_OP_OPEN_SQUAREBRACKET) ||
-            (token == TOK_OP_OPEN_CURLYBRACE) || (token == TOK_KEY_FILE));
+            (token == TOK_OP_OPEN_CURLYBRACE) || (token == TOK_KEY_FILE) || (token == TOK_KEY_AWAIT));
 
 }
 
@@ -355,7 +359,7 @@ bool token_isdeclaration_statement (gtoken_t token) {
     // empty_declaration (;)
 
     return ((token_isaccess_specifier(token) || token_isstorage_specifier(token) || token_isvariable_declaration(token) ||
-            (token == TOK_KEY_FUNC)    || (token == TOK_KEY_CLASS) || (token == TOK_KEY_STRUCT) || (token == TOK_KEY_ENUM) ||
+            (token == TOK_KEY_FUNC)    || (token == TOK_KEY_ASYNC) || (token == TOK_KEY_CLASS) || (token == TOK_KEY_STRUCT) || (token == TOK_KEY_ENUM) ||
             (token == TOK_KEY_MODULE) || (token == TOK_KEY_EVENT)  || (token == TOK_OP_SEMICOLON)));
 }
 

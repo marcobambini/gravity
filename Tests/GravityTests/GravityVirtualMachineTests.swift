@@ -3,6 +3,52 @@ import Testing
 
 @Suite("Gravity virtual machine", .serialized)
 struct GravityVirtualMachineTests {
+    @Test("Native async declarations retain method state and nested awaits")
+    func executesNativeAsync() throws {
+        let delegate = TestVirtualMachineDelegate()
+        let virtualMachine = GravityVirtualMachine(settings: .init(), delegate: delegate)
+        let binary = virtualMachine.loadGravityFile(from: """
+        class __AdaTask {
+            var fiber = null;
+            var value = null;
+            func capture(values) {}
+            func complete(value) { self.value = value; }
+        }
+        class Tasks { static func start(task) { return task; } }
+        func __adaAwait(task) { task.fiber.try(); return task.value; }
+        async func child(value) { return value + 2; }
+        class Counter {
+            var base = 7;
+            async func calculate(value) { return await child(value) + base; }
+        }
+        func main() {
+            var task = Tasks.start(Counter().calculate(3));
+            task.fiber.try();
+            return task.value;
+        }
+        """)
+        let result = try #require(virtualMachine.execute(binary))
+        #expect(delegate.errors.isEmpty)
+        #expect(result.toInteger == 12)
+    }
+
+    @Test("Native effect checks reject unawaited calls and synchronous awaits")
+    func rejectsInvalidAsyncEffects() {
+        let unawaited = TestVirtualMachineDelegate()
+        let vm1 = GravityVirtualMachine(settings: .init(), delegate: unawaited)
+        _ = vm1.loadGravityFile(from: """
+        class __AdaTask { var fiber = null; func capture(values) {} func complete(value) {} }
+        async func child() { return 1; }
+        func main() { return child(); }
+        """)
+        #expect(unawaited.errors.contains(where: { $0.contains("requires await or Tasks.start") }))
+
+        let synchronousAwait = TestVirtualMachineDelegate()
+        let vm2 = GravityVirtualMachine(settings: .init(), delegate: synchronousAwait)
+        _ = vm2.loadGravityFile(from: "func main() { return await 1; }")
+        #expect(synchronousAwait.errors.contains(where: { $0.contains("await requires an async function") }))
+    }
+
     @Test("Executes a script and returns its result")
     func executesScript() throws {
         let delegate = TestVirtualMachineDelegate()
