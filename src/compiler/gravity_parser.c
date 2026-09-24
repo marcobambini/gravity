@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 30656)
-Total output lines: 3058
-
 //
 //  gravity_parser.c
 //  gravity
@@ -1425,7 +1422,65 @@ static void init_grammer_rules (void) {
     rules[TOK_OP_BIT_OR_ASSIGN] = INFIX_OPERATOR(PREC_ASSIGN, "|=");
     rules[TOK_OP_BIT_XOR_ASSIGN] = INFIX_OPERATOR(PREC_ASSIGN, "^=");
 
-   …656 tokens truncated… (is_getter) getter = f; else setter = f;
+    rules[TOK_OP_NOT] = PREFIX_OPERATOR("!");
+}
+
+// MARK: - Declarations -
+
+static gnode_t *parse_getter_setter (gravity_parser_t *parser) {
+    DEBUG_PARSER("parse_getter_setter");
+    DECLARE_LEXER;
+
+    gnode_t *getter = NULL;
+    gnode_t *setter = NULL;
+    gtoken_s token_block = gravity_lexer_token(lexer);
+
+    while (gravity_lexer_peek(lexer) != TOK_OP_CLOSED_CURLYBRACE) {
+        const char *identifier = parse_identifier(parser);
+        if (!identifier) goto parse_error;
+
+        bool is_getter = false;
+        gtoken_s token = gravity_lexer_token(lexer);
+        gnode_r *params = NULL;
+
+        // getter case: does not have explicit parameters (only implicit self)
+        if (strcmp(identifier, GETTER_FUNCTION_NAME) == 0) {
+            is_getter = true;
+            params = gnode_array_create();    // add implicit SELF param
+            gnode_array_push(params, gnode_variable_create(NO_TOKEN, string_dup(SELF_PARAMETER_NAME), NULL, NULL, LAST_DECLARATION(), NULL));
+        }
+
+        // setter case: could have explicit parameters (otherwise value is implicit)
+        if (strcmp(identifier, SETTER_FUNCTION_NAME) == 0) {
+            is_getter = false;
+            // check if parameters are explicit
+            if (gravity_lexer_peek(lexer) == TOK_OP_OPEN_PARENTHESIS) {
+                parse_required(parser, TOK_OP_OPEN_PARENTHESIS);
+                params = parse_optional_parameter_declaration(parser, false, NULL);    // add implicit SELF
+                parse_required(parser, TOK_OP_CLOSED_PARENTHESIS);
+            } else {
+                params = gnode_array_create();    // add implicit SELF and VALUE params
+                gnode_array_push(params, gnode_variable_create(NO_TOKEN, string_dup(SELF_PARAMETER_NAME), NULL, NULL, LAST_DECLARATION(), NULL));
+                gnode_array_push(params, gnode_variable_create(NO_TOKEN, string_dup(SETTER_PARAMETER_NAME), NULL, NULL, LAST_DECLARATION(), NULL));
+            }
+        }
+        mem_free(identifier);
+
+        // create getter/setter func declaration
+        gnode_t *f = gnode_function_decl_create(token, NULL, 0, 0, params, NULL, LAST_DECLARATION());
+        // set storage to var so I can identify f as a special getter/setter function
+        ((gnode_function_decl_t *)f)->storage = TOK_KEY_VAR;
+
+        // parse compound statement
+        PUSH_DECLARATION(f);
+        gnode_compound_stmt_t *compound = (gnode_compound_stmt_t*)parse_compound_statement(parser);
+        POP_DECLARATION();
+
+        // finish func setup
+        ((gnode_function_decl_t *)f)->block = compound;
+
+        // assign f to the right function
+        if (is_getter) getter = f; else setter = f;
     }
 
     gnode_r *functions = gnode_array_create();
