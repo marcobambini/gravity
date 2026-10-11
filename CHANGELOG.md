@@ -2,25 +2,28 @@
 
 All notable changes to Gravity are documented in this file.
 
-## [Unreleased]
+## [0.9.9] - 2026-10-11
+
+Security and bug-fix release. The three memory-safety issues below are tracked as GitHub
+security advisories and are all reachable from a script; each fix, like the
+ternary fix, ships with a regression test.
 
 ### Fixed
-- **Wrong format specifier in a codegen error message** — `report_error(..., "Invalid argument expression at index %d.", j+1)` passed a `size_t` to a `%d` conversion, which reads only 32 bits of a 64-bit argument: undefined behaviour in a variadic call. The three `report_error` helpers now carry `__attribute__((format(printf, ...)))` on gcc and clang, so the compiler type-checks every call site and this class of mistake fails the build instead of needing an external analyser to spot it.
-- **Heap buffer overflow in `list_storeat` when growing the list fails** — storing past the end of a list reallocates the backing array, but `marray_resize` leaves both the pointer and the capacity untouched when the `realloc` fails, so the existing `if (!list->array.p)` guard never fired: the old, smaller buffer is still there and still non-NULL. The count was then set to the requested index and the fill loop wrote well past the end of the allocation. The check now tests the capacity actually obtained, and the out-of-memory case is reported as `Not enough memory to resize List.` as intended. Reachable from a script: `x[4444444444444444444] = 0` asks for a single multi-gigabyte allocation.
-
-### Removed
-- The CodeQL workflow. It ran on `github/codeql-action@v1`, deprecated since January 2023 and no longer updated, so it kept reporting green without being a current analysis. Its one open finding is fixed above, and the compiler now checks that class directly. The `build-and-test` workflow, including its address + undefined sanitizer job, is unaffected.
+- **Heap out-of-bounds write in `List.sorted()` and `List.map()`** — both allocate the result with `gravity_list_new(NULL, count)`, which reserves `count + MARRAY_DEFAULT_SIZE` slots, and then overwrote the result's capacity (`array.m`) with the capacity of the source list. A source list grown by `push` doubles its capacity, so the result claimed more room than it held and later pushes, which only check `n < m`, wrote script-controlled values past the allocation. The result now keeps its real capacity, as `List.reversed()` already did (GHSA-gq92-229r-8p96).
+- **Heap out-of-bounds read and infinite loop in String methods** — `utf8_charbytes()` derives a sequence length of 1–4 from the leading byte alone, without checking that many bytes remain, and returns 0 for a continuation byte. String iteration, `String.loop()` and `String.raw()` copied that many bytes and read past the buffer on a truncated trailing sequence, and `String.split("")` never advanced on a leading continuation byte, growing its result until the process ran out of memory. A new `utf8_charbytes_safe()` clamps the length to the bytes that remain and never returns less than 1; all five call sites use it, so an invalid sequence degrades to a single raw byte (GHSA-m75h-734r-wc7j).
+- **Type confusion in the JSON object deserializer (`JSON.parse`)** — `gravity_class_deserialize()` and `gravity_function_deserialize()` read union members of nested fields without checking the JSON type. Because strings, arrays and objects share the same `{length, ptr}` layout, a string supplied for `inames` was walked as an array of pointers (arbitrary read), `$get`/`$set` read object entries out of string bytes, and `super`/`nivar`/`sivar` could dereference NULL or copy an aliased pointer as a C string. Every field is now checked against the type actually read, and the class identifier check that was an `assert()`, compiled out under `NDEBUG`, is a real check (GHSA-c3f8-98q2-cqvr).
+- **Ternary operator returning the wrong value when a branch is a local variable** — a branch made of a bare local identifier left its value in the local's own register and emitted no instruction to move it, while the expression took its result from the register of the `else` branch. `true ? foo : 1` evaluated to the condition, `true`, and `true ? 1 : foo` to `foo`. Both branches now store into a result register allocated before either runs (issue #455, PR #456 by @swoolcock).
 
 ### Changed
-- The sanitizer CI job caps a single allocation at 1 GB (`max_allocation_size_mb`) so the pathological allocations in `test/fuzzy` fail cleanly instead of pushing the runner into the OOM killer, and pins `abort_on_error` so a sanitizer finding arrives as a signal on every platform rather than as the bare exit code 1 the runtime defaults to on Linux. The fuzzing step also scans the output for sanitizer reports, which the exit code alone does not reliably convey.
+- Version bumped to **0.9.9** (`GRAVITY_VERSION`, `GRAVITY_VERSION_NUMBER`).
 
 ---
 
 ## [0.9.8] - 2026-08-05
 
-Security and memory-safety release. Every issue below was found by external
-reporters fuzzing the compiler and the bytecode loader, and each fix ships with
-a regression test.
+Security and memory-safety release. Most of the crashes below were found by
+external reporters fuzzing the compiler and the bytecode loader, and each fix
+ships with a regression test.
 
 ### Fixed
 - **NULL dereference in `gravity_vm_loadbuffer`** — a serialized function object without an `identifier` field, such as `{"x":{"type":"function"}}`, reached `strlen(NULL)` and crashed the process. The loader now validates the structure of every JSON executable before using it: the root and each entry must be objects, the identifier must be present exactly once and be a string, and unknown object types are rejected. Malformed input is reported as a load error instead of crashing (issue #444).
@@ -29,17 +32,27 @@ a regression test.
 - **Heap out-of-bounds read in `parse_number_expression`** — the `0x`/`0b`/`0o` prefix check read `value[1]` without confirming the token was at least two bytes, so a source file whose last token was a bare `0` read one byte past the buffer. The prefix is only inspected when the token is long enough (issue #446).
 - **Compiler crash (SIGFPE) folding a floating-point remainder** — `optimize_const_instruction` folded `%` by truncating both operands to `int64_t`, so any divisor with `0 < |divisor| < 1` became an integer division by zero and killed the compiler on `1 % 0.5`. Float remainder is now folded with `remainder()`, matching `operator_float_rem`, and mixed Int/Float remainders are left to the runtime because REM dispatches on the class of the left operand. This also fixes a silent wrong answer: `5.5 % 2.0` folded to `1` where the VM evaluates `-0.5` (issue #443).
 - **Undefined behaviour in Int arithmetic** — Gravity Ints wrap on overflow, but the wrap was performed on signed operands in the VM fast path, in the `operator_int_*` methods and in the constant folder, which is undefined in C and traps under `-fsanitize=undefined`. All three paths now go through new `GRAVITY_INT_ADD/SUB/MUL/NEG/DIV/REM` helpers that compute on the unsigned counterpart. The helpers also handle `GRAVITY_INT_MIN op -1`, which on x86 faults in `idiv` rather than merely wrapping (issue #443).
+- **Wrong format specifier in a codegen error message** — `report_error(..., "Invalid argument expression at index %d.", j+1)` passed a `size_t` to a `%d` conversion, which reads only 32 bits of a 64-bit argument: undefined behaviour in a variadic call. The three `report_error` helpers now carry `__attribute__((format(printf, ...)))` on gcc and clang, so the compiler type-checks every call site and this class of mistake fails the build instead of needing an external analyser to spot it.
+- **Heap buffer overflow in `list_storeat` when growing the list fails** — storing past the end of a list reallocates the backing array, but `marray_resize` leaves both the pointer and the capacity untouched when the `realloc` fails, so the existing `if (!list->array.p)` guard never fired: the old, smaller buffer is still there and still non-NULL. The count was then set to the requested index and the fill loop wrote well past the end of the allocation. The check now tests the capacity actually obtained, and the out-of-memory case is reported as `Not enough memory to resize List.` as intended. Reachable from a script: `x[4444444444444444444] = 0` asks for a single multi-gigabyte allocation.
+- **Wrong line numbers on sources saved with CR+LF endings** — the lexer counted the CR and the LF of a CR+LF pair as two line breaks, so every row the compiler reported drifted by one per line read so far. The lookahead is now passed in explicitly, and a string literal spanning CR+LF lines keeps every byte of its terminator (issue #389, from the patch in #401).
+- **Windows code paths guarded by `WIN32` instead of `_WIN32`** — `gravity_utils.c`, `gravity_opt_file.c` and the CLI tested a macro no compiler defines on its own, so most Windows builds compiled the POSIX directory functions against a `DIRREF` that is a `HANDLE` (issue #411).
 - **Optional classes never released** — `gravity_core_free` decremented the refcount of the optional classes without the matching balance, so `Math`, `File`, `JSON` and `ENV` were leaked by every embedder that created and destroyed a VM (issue #442).
 - **Core reference leaked by every `gravity_compiler_run`** — the compiler took a reference to the core classes on each run and never released it, so the count never returned to zero and the core was never torn down (issue #442).
 - **Double free of the inline source buffer** — `gravity -i` passed its heap-allocated wrapper source to `gravity_compiler_run` with `is_static` false, which hands the buffer to the lexer; the lexer freed it in `parser_run` and the CLI freed the same pointer again on the way out, aborting every inline run under a hardened allocator.
 
 ### Added
 - `test/loadbuffer/` — a suite of malformed JSON executables that must each be rejected as a load error without crashing, plus `json_bounds.c` (`make jsontest`), 60 bounds checks that drive the JSON scanner directly. Run with `test/loadbuffer/run_all.sh`.
+- `make staticlib` builds `libgravity.a` from the same objects as `make lib`, without the CLI entry point (#427).
+- `test/unittest/bugfix_crlf_lineno.gravity` — a source stored with CR+LF endings on purpose, asserting the row and column the compiler reports.
 - A GitHub Actions workflow building with gcc and clang on Linux and macOS, and a second job that builds with `-fsanitize=address,undefined` and runs the unit tests, the fuzzing corpus and the loader tests through it.
 
 ### Changed
 - Version bumped to **0.9.8** (`GRAVITY_VERSION`, `GRAVITY_VERSION_NUMBER`).
 - The usage text now prints the real default output file name, `gravity.g`; `README.md` and `CLAUDE.md` documented a stale `gravity.json`.
+- The sanitizer CI job caps a single allocation at 1 GB (`max_allocation_size_mb`) so the pathological allocations in `test/fuzzy` fail cleanly instead of pushing the runner into the OOM killer, and pins `abort_on_error` so a sanitizer finding arrives as a signal on every platform rather than as the bare exit code 1 the runtime defaults to on Linux. The fuzzing step also scans the output for sanitizer reports, which the exit code alone does not reliably convey.
+
+### Removed
+- The CodeQL workflow. It ran on `github/codeql-action@v1`, deprecated since January 2023 and no longer updated, so it kept reporting green without being a current analysis. Its one open finding is fixed above, and the compiler now checks that class directly. The `build-and-test` workflow, including its address + undefined sanitizer job, is unaffected.
 
 ---
 
