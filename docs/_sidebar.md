@@ -1,6 +1,6 @@
 * INTRODUCTION
 
-  * [Overview](README.md)
+  * [Overview](overview.md)
   * [Getting Started](quickstart.md)
 
 * LANGUAGE GUIDE

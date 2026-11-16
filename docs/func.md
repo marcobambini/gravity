@@ -1,6 +1,6 @@
 ## Function
 
-Functions are first class objects like [Int](types.md) or [String](types.md) and can be stored in local variables (even in [Lists](list.md) or [Maps](map.md)), passed as function parameters or returned by a function. Functions can be implemented in Gravity or in a [native language](api.md) with calling conventions compatible with ANSI C.<br><br>Functions are called by value. This means that foo(1) calls the function which is the value of the variable foo. Calling a value that is not a function (or does not implement the exec method) will raise a runtime error.
+Functions are first class objects like [Int](types.md) or [String](types.md) and can be stored in local variables (even in [Lists](list.md) or [Maps](map.md)), passed as function parameters or returned by a function. Functions can be implemented in Gravity or in a [native language](extending.md) with calling conventions compatible with ANSI C.<br><br>Functions are called by value. This means that foo(1) calls the function which is the value of the variable foo. Calling a value that is not a function (or does not implement the exec method) will raise a runtime error.
 ```swift
 	func main() {
 		var a = 10;
